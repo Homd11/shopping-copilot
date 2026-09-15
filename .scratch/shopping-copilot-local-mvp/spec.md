@@ -103,6 +103,8 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - A Storefront Definition supplies route knowledge, bilingual vocabulary, filter capabilities, and an ISO currency code. Currency is injected into interpretation logic; the MVP configuration is validated at startup and fixed to EGP.
 - Money crosses internal boundaries as an exact decimal amount plus ISO currency code. The Storefront owns localized display formatting. Currency conversion, dynamic detection, and silent reinterpretation are prohibited.
 - The v1 Snapshot, Action, and Action Result contracts are manually mirrored across Python and TypeScript while the protocol changes rapidly. Every wire object is versioned, and shared fixtures validate both implementations. Generated contracts are deferred until after the local protocol stabilizes.
+- The v1 Action that asks a question is named `ask_shopper`, matching the canonical Shopper terminology. This supersedes older plan references to `ask_user`.
+- Integer fields use JSON safe-integer semantics. Integral JSON numbers such as `1.0` are accepted because JavaScript cannot retain that lexical distinction; fractions, booleans, strings, and unsafe integers are rejected.
 - A Snapshot is a semantic representation rather than a DOM dump. It is capped at 12 kB, prioritizes visible interactive elements, drops low-value off-screen content when necessary, and marks truncation explicitly.
 - Sensitive elements may appear only as minimal metadata marked sensitive. Their values are never collected. The execution layer independently refuses read or type Actions against them.
 - Storefront text inside a Snapshot is framed as untrusted data. It cannot override the Shopping Task, policy, or system rules.
