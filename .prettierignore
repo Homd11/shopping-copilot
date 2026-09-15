@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+pytest-cache-files-*
+pnpm-lock.yaml
+outputs
+work
