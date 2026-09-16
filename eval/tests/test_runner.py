@@ -1,0 +1,16 @@
+import pytest
+
+from eval.runner import remaining_timeout_ms, state_value
+
+
+def test_state_value_reads_nested_authoritative_state() -> None:
+    state = {"filters": {"type": "running", "max_price": 2000}, "product_count": 3}
+
+    assert state_value(state, "filters.type") == "running"
+    assert state_value(state, "filters.max_price") == 2000
+    assert state_value(state, "product_count") == 3
+
+
+def test_remaining_timeout_rejects_an_expired_case() -> None:
+    with pytest.raises(TimeoutError, match="Evaluation Case exceeded"):
+        remaining_timeout_ms(0.0)
