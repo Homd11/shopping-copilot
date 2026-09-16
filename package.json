@@ -10,6 +10,7 @@
   "scripts": {
     "agent:win": "python -m uvicorn agent.app:app --host 0.0.0.0 --port 8000 --reload",
     "build": "pnpm --recursive build",
+    "eval:browser": "python -m eval.runner",
     "eval:win": "python -m pytest eval/tests",
     "format": "pnpm format:ts && python -m ruff format agent eval",
     "format:check": "pnpm format:check:ts && python -m ruff format --check agent eval",
@@ -18,7 +19,7 @@
     "lint": "pnpm lint:ts && python -m ruff check agent eval",
     "lint:ts": "eslint . --max-warnings=0",
     "panel": "pnpm --filter @shopping-copilot/panel dev",
-    "store": "pnpm --filter @shopping-copilot/store dev",
+    "store": "pnpm --filter @shopping-copilot/bridge build && pnpm --filter @shopping-copilot/store dev",
     "test": "pnpm --recursive test && python -m pytest agent/tests eval/tests"
   },
   "devDependencies": {

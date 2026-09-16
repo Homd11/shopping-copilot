@@ -25,10 +25,18 @@ Run the services in separate terminals:
 ```powershell
 pnpm store
 pnpm agent:win
+pnpm panel
 ```
 
-The store is available at `http://localhost:4000`; the agent health endpoint is
-`http://localhost:8000/health`.
+Open the Panel at `http://localhost:4100`. It embeds the Controlled Storefront from
+`http://localhost:4000` and connects to the Agent at `http://localhost:8000`.
+
+The first complete tracer bullet supports these deterministic requests:
+
+- `عاوز كوتشي للجري بأقل من ٢٠٠٠`
+- `Show me running shoes under 2000 EGP`
+
+Both requests navigate to the running-shoes category with an inclusive EGP 2000 maximum.
 
 ## Quality checks
 
@@ -38,3 +46,14 @@ pnpm lint
 pnpm test
 pnpm build
 ```
+
+Install Playwright's pinned Chromium build once, then run the two real-browser Evaluation
+Cases:
+
+```powershell
+python -m playwright install chromium
+pnpm eval:browser
+```
+
+The evaluation starts isolated local services, resets the Storefront before each case, and
+prints one JSON result per case with pass/fail, step count, elapsed time, and failure details.

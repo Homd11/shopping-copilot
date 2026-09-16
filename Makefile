@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: store agent panel eval install format format-check lint test build ci
+.PHONY: store agent panel eval eval-browser install format format-check lint test build ci
 
 store:
 	pnpm --filter @shopping-copilot/store dev
@@ -13,6 +13,9 @@ panel:
 
 eval:
 	$(PYTHON) -m pytest eval/tests
+
+eval-browser:
+	$(PYTHON) -m eval.runner
 
 install:
 	pnpm install --frozen-lockfile

@@ -1,0 +1,262 @@
+import type { Snapshot, SnapshotElement, Viewport } from "./types.js";
+
+const SNAPSHOT_BUDGET_BYTES = 12_000;
+const INTERACTIVE_ROLES = new Set([
+  "link",
+  "button",
+  "textbox",
+  "searchbox",
+  "checkbox",
+  "radio",
+  "combobox",
+  "listbox",
+  "option",
+  "heading",
+  "tab",
+  "menuitem",
+  "banner",
+  "navigation",
+  "main",
+  "contentinfo",
+  "dialog",
+]);
+
+export interface SnapshotBuilderOptions {
+  isVisible?: (element: Element) => boolean;
+  url?: () => string;
+  viewport?: Viewport;
+}
+
+export interface RegisteredElement {
+  element: Element;
+  sensitive: boolean;
+}
+
+function compactText(value: string | null | undefined): string {
+  return (value ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function implicitRole(element: Element): string | undefined {
+  const tag = element.tagName.toLowerCase();
+  if (tag === "a" && element.hasAttribute("href")) return "link";
+  if (tag === "button") return "button";
+  if (tag === "textarea") return "textbox";
+  if (tag === "select")
+    return element.hasAttribute("multiple") ? "listbox" : "combobox";
+  if (tag === "option") return "option";
+  if (/^h[1-6]$/.test(tag)) return "heading";
+  if (tag === "header") return "banner";
+  if (tag === "nav") return "navigation";
+  if (tag === "main") return "main";
+  if (tag === "footer") return "contentinfo";
+  if (tag === "dialog") return "dialog";
+  if (tag !== "input") return undefined;
+
+  const type = (element.getAttribute("type") ?? "text").toLowerCase();
+  if (type === "checkbox") return "checkbox";
+  if (type === "radio") return "radio";
+  if (type === "button" || type === "submit" || type === "reset")
+    return "button";
+  if (type === "search") return "searchbox";
+  if (["hidden", "file", "image"].includes(type)) return undefined;
+  return "textbox";
+}
+
+function elementRole(element: Element): string | undefined {
+  return element.getAttribute("role") ?? implicitRole(element);
+}
+
+function labelledByText(element: Element): string {
+  const ids = element.getAttribute("aria-labelledby")?.split(/\s+/) ?? [];
+  return compactText(
+    ids
+      .map((id) => element.ownerDocument.getElementById(id)?.textContent ?? "")
+      .join(" "),
+  );
+}
+
+function labelText(element: Element): string {
+  if (!(element instanceof element.ownerDocument.defaultView!.HTMLElement))
+    return "";
+  const labels =
+    "labels" in element
+      ? (element.labels as NodeListOf<HTMLLabelElement> | null)
+      : null;
+  return compactText(
+    labels ? [...labels].map((label) => label.textContent).join(" ") : "",
+  );
+}
+
+function accessibleName(element: Element): string {
+  return (
+    labelledByText(element) ||
+    compactText(element.getAttribute("aria-label")) ||
+    labelText(element) ||
+    compactText(element.textContent) ||
+    compactText(element.getAttribute("alt")) ||
+    compactText(element.getAttribute("title")) ||
+    compactText(element.getAttribute("placeholder"))
+  );
+}
+
+function defaultVisibility(element: Element): boolean {
+  if (!element.isConnected || element.closest('[hidden], [aria-hidden="true"]'))
+    return false;
+  const view = element.ownerDocument.defaultView;
+  if (view === null) return false;
+  const style = view.getComputedStyle(element);
+  if (style.display === "none" || style.visibility === "hidden") return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+function nearestRegion(element: Element): string | undefined {
+  const landmark = element.closest(
+    "header, nav, main, footer, dialog, [role=dialog]",
+  );
+  if (landmark === null || landmark === element) return undefined;
+  return landmark.getAttribute("role") ?? landmark.tagName.toLowerCase();
+}
+
+function nearestGroup(element: Element): string | undefined {
+  const fieldset = element.closest("fieldset");
+  if (fieldset !== null)
+    return compactText(fieldset.querySelector("legend")?.textContent);
+  const group = element.closest('[role="group"], [role="radiogroup"]');
+  return group === null ? undefined : accessibleName(group);
+}
+
+function isSensitiveField(element: Element, name: string): boolean {
+  if (element.tagName.toLowerCase() !== "input") return false;
+  const type = (element.getAttribute("type") ?? "").toLowerCase();
+  const autocomplete = (
+    element.getAttribute("autocomplete") ?? ""
+  ).toLowerCase();
+  const identity = `${element.getAttribute("name") ?? ""} ${name}`;
+  return (
+    type === "password" ||
+    autocomplete.startsWith("cc-") ||
+    autocomplete === "one-time-code" ||
+    /card|cvv|cvc|expir/i.test(identity)
+  );
+}
+
+function optionalState(
+  element: Element,
+  role: string,
+): Partial<SnapshotElement> {
+  const state: Partial<SnapshotElement> = {};
+  if (role === "link") state.href = element.getAttribute("href") ?? undefined;
+  if (element instanceof element.ownerDocument.defaultView!.HTMLInputElement) {
+    state.value = element.value;
+    if (role === "checkbox" || role === "radio")
+      state.checked = element.checked;
+    state.disabled = element.disabled;
+  } else if (
+    element instanceof element.ownerDocument.defaultView!.HTMLSelectElement
+  ) {
+    state.value = element.value;
+    state.options = [...element.options].map((option) =>
+      compactText(option.textContent),
+    );
+    state.disabled = element.disabled;
+  } else if (
+    element instanceof element.ownerDocument.defaultView!.HTMLButtonElement
+  ) {
+    state.disabled = element.disabled;
+  }
+  if (role === "heading") state.level = Number(element.tagName.slice(1));
+  return state;
+}
+
+export class SnapshotBuilder {
+  readonly #document: Document;
+  readonly #options: SnapshotBuilderOptions;
+  readonly #ids = new WeakMap<Element, number>();
+  readonly #elements = new Map<number, RegisteredElement>();
+  #nextId = 1;
+
+  constructor(document: Document, options: SnapshotBuilderOptions = {}) {
+    this.#document = document;
+    this.#options = options;
+  }
+
+  resolve(id: number): RegisteredElement | undefined {
+    return this.#elements.get(id);
+  }
+
+  build(): Snapshot {
+    const elements = [...this.#document.querySelectorAll("*")]
+      .map((element) => this.#describe(element))
+      .filter((element): element is SnapshotElement => element !== undefined);
+    const snapshot = this.#snapshot(elements, false);
+    if (
+      new TextEncoder().encode(JSON.stringify(snapshot)).length <=
+      SNAPSHOT_BUDGET_BYTES
+    ) {
+      return snapshot;
+    }
+
+    const visible = elements.filter((element) => element.visible);
+    const withoutLowValue = visible.filter(
+      (element) => element.role !== "heading" && element.role !== "option",
+    );
+    const candidates = [visible, withoutLowValue];
+    for (const candidate of candidates) {
+      const truncated = this.#snapshot(candidate, true);
+      if (
+        new TextEncoder().encode(JSON.stringify(truncated)).length <=
+        SNAPSHOT_BUDGET_BYTES
+      ) {
+        return truncated;
+      }
+    }
+    return this.#snapshot(withoutLowValue.slice(0, 50), true);
+  }
+
+  #snapshot(elements: SnapshotElement[], truncated: boolean): Snapshot {
+    const view = this.#document.defaultView;
+    return {
+      v: 1,
+      url: this.#options.url?.() ?? view?.location.href ?? "",
+      title: this.#document.title,
+      lang: this.#document.documentElement.lang || "en",
+      viewport: this.#options.viewport ?? {
+        w: view?.innerWidth ?? 0,
+        h: view?.innerHeight ?? 0,
+        scrollY: view?.scrollY ?? 0,
+      },
+      truncated,
+      elements,
+    };
+  }
+
+  #describe(element: Element): SnapshotElement | undefined {
+    const role = elementRole(element);
+    if (role === undefined || !INTERACTIVE_ROLES.has(role)) return undefined;
+    const name = accessibleName(element);
+    const visible = (this.#options.isVisible ?? defaultVisibility)(element);
+    const sensitive = isSensitiveField(element, name);
+    const id = this.#idFor(element);
+    this.#elements.set(id, { element, sensitive });
+    const base: SnapshotElement = { id, role, name, visible };
+    if (sensitive) return { ...base, sensitive: true };
+
+    const region = nearestRegion(element);
+    const group = nearestGroup(element);
+    return {
+      ...base,
+      ...optionalState(element, role),
+      ...(region === undefined ? {} : { region }),
+      ...(group === undefined || group === "" ? {} : { group }),
+    };
+  }
+
+  #idFor(element: Element): number {
+    const existing = this.#ids.get(element);
+    if (existing !== undefined) return existing;
+    const id = this.#nextId++;
+    this.#ids.set(element, id);
+    return id;
+  }
+}
