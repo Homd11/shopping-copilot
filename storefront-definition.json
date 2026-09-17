@@ -1,0 +1,42 @@
+{
+  "v": 1,
+  "name": "Controlled Storefront",
+  "currency": "EGP",
+  "routes": {
+    "home": "/",
+    "category": "/c/{category}",
+    "cart": "/cart",
+    "checkout": "/checkout",
+    "orders": "/account/orders"
+  },
+  "filters": [
+    "q",
+    "type",
+    "min_price",
+    "max_price",
+    "size",
+    "color",
+    "availability",
+    "sort"
+  ],
+  "categories": {
+    "shoes": { "ar": "الأحذية", "en": "Shoes" },
+    "clothing": { "ar": "الملابس", "en": "Clothing" },
+    "bags": { "ar": "الشنط", "en": "Bags" },
+    "electronics": { "ar": "الإلكترونيات", "en": "Electronics" }
+  },
+  "vocabulary": {
+    "availability": {
+      "available": ["available", "in stock", "متاح", "موجود"],
+      "unavailable": ["unavailable", "out of stock", "غير متاح", "خلصان"]
+    },
+    "sort": {
+      "cheapest": ["cheapest", "lowest price", "الأرخص"],
+      "newest": ["newest", "latest", "الأحدث"]
+    }
+  },
+  "url_rules": {
+    "same_origin_only": true,
+    "category_filters_in_query": true
+  }
+}

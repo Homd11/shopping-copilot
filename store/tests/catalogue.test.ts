@@ -1,0 +1,98 @@
+import { describe, expect, it } from "vitest";
+
+import { categories, filterProducts, products } from "../src/catalogue.js";
+
+describe("deterministic bilingual catalogue", () => {
+  it("contains sixty products across four categories with discovery attributes", () => {
+    expect(products).toHaveLength(60);
+    expect(categories).toEqual(["shoes", "clothing", "bags", "electronics"]);
+    expect(new Set(products.map((product) => product.category))).toEqual(
+      new Set(categories),
+    );
+    for (const category of categories) {
+      expect(
+        products.filter((product) => product.category === category),
+      ).toHaveLength(15);
+    }
+    for (const product of products) {
+      expect(product.nameAr.length).toBeGreaterThan(0);
+      expect(product.nameEn.length).toBeGreaterThan(0);
+      expect(product.type.length).toBeGreaterThan(0);
+      expect(product.sizes.length).toBeGreaterThan(0);
+      expect(product.colors.length).toBeGreaterThan(0);
+      expect(product.addedAt).toMatch(/^2026-\d{2}-\d{2}$/);
+    }
+    expect(new Set(products.map((product) => product.available))).toEqual(
+      new Set([true, false]),
+    );
+  });
+
+  it("preserves the tracer's first three available running shoes at or below EGP 2000", () => {
+    expect(
+      filterProducts({
+        category: "shoes",
+        type: "running",
+        maxPrice: 2000,
+      }).map((product) => product.id),
+    ).toEqual(["shoe-01", "shoe-02", "shoe-03"]);
+  });
+
+  it("combines type, inclusive prices, size, color, and availability", () => {
+    expect(
+      filterProducts({
+        category: "clothing",
+        type: "outerwear",
+        minPrice: 1000,
+        maxPrice: 1800,
+        size: "L",
+        color: "black",
+        availability: true,
+      }).map((product) => product.id),
+    ).toEqual(["clothing-01"]);
+  });
+
+  it("searches Arabic and English product text without changing the category", () => {
+    expect(
+      filterProducts({ category: "bags", query: "Nile" }).map(
+        (product) => product.id,
+      ),
+    ).toEqual(["bag-01"]);
+    expect(
+      filterProducts({ category: "electronics", query: "النيل" }).map(
+        (product) => product.id,
+      ),
+    ).toEqual(["electronics-01"]);
+  });
+
+  it("sorts matching products by cheapest with stable id tie-breaking", () => {
+    const result = filterProducts({ category: "bags", sort: "cheapest" });
+
+    expect(result.map((product) => product.price)).toEqual(
+      [...result]
+        .map((product) => product.price)
+        .sort((left, right) => left - right),
+    );
+    expect(result[0]?.id).toBe("bag-06");
+  });
+
+  it("sorts matching products by newest with stable id tie-breaking", () => {
+    const result = filterProducts({ category: "electronics", sort: "newest" });
+
+    expect(result.slice(0, 3).map((product) => product.id)).toEqual([
+      "electronics-15",
+      "electronics-14",
+      "electronics-13",
+    ]);
+  });
+
+  it("keeps a valid zero-result query empty", () => {
+    expect(
+      filterProducts({
+        category: "shoes",
+        size: "99",
+        color: "purple",
+        availability: true,
+      }),
+    ).toEqual([]);
+  });
+});

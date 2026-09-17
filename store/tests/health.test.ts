@@ -60,4 +60,72 @@ describe("Controlled Storefront", () => {
       product_count: 3,
     });
   });
+
+  it("serves all four bilingual category links from the home page", async () => {
+    const response = await request(createApp()).get("/");
+
+    for (const href of [
+      "/c/shoes",
+      "/c/clothing",
+      "/c/bags",
+      "/c/electronics",
+    ]) {
+      expect(response.text).toContain(`href="${href}"`);
+    }
+    expect(response.text).toContain("Shoes");
+    expect(response.text).toContain("الشنط");
+  });
+
+  it("applies generic URL filters and sorting on every category", async () => {
+    const response = await request(createApp()).get(
+      "/c/clothing?q=jacket&type=outerwear&min_price=1000&max_price=1800&size=L&color=black&availability=available&sort=cheapest",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("جاكيت القاهرة");
+    expect(response.text).toContain('name="q"');
+    expect(response.text).toContain('name="availability"');
+    expect(response.text).toContain('name="sort"');
+    expect(response.text.match(/<article /g)).toHaveLength(1);
+  });
+
+  it("reports canonical generic filter state for Evaluation Cases", async () => {
+    const response = await request(createApp()).get(
+      "/__test/state?category=bags&q=Nile&size=M&availability=available&sort=newest",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      category: "bags",
+      filters: {
+        q: "Nile",
+        type: null,
+        min_price: null,
+        max_price: null,
+        size: "M",
+        color: null,
+        availability: "available",
+        sort: "newest",
+      },
+      product_ids: ["bag-01"],
+      product_count: 1,
+    });
+  });
+
+  it("renders an explicit empty state without broadening constraints", async () => {
+    const response = await request(createApp()).get(
+      "/c/shoes?size=99&color=purple&availability=available",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("0 منتجات");
+    expect(response.text).toContain("لا توجد منتجات مطابقة");
+    expect(response.text.match(/<article /g)).toBeNull();
+  });
+
+  it("returns not found for an unknown category instead of guessing", async () => {
+    const response = await request(createApp()).get("/c/toys");
+
+    expect(response.status).toBe(404);
+  });
 });

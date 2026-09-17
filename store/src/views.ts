@@ -1,4 +1,16 @@
-import type { Product, ShoeConstraints } from "./catalogue.js";
+import type {
+  Category,
+  Product,
+  ProductConstraints,
+  ShoeConstraints,
+} from "./catalogue.js";
+
+const categoryNames: Record<Category, { ar: string; en: string }> = {
+  shoes: { ar: "الأحذية", en: "Shoes" },
+  clothing: { ar: "الملابس", en: "Clothing" },
+  bags: { ar: "الشنط", en: "Bags" },
+  electronics: { ar: "الإلكترونيات", en: "Electronics" },
+};
 
 function escapeHtml(value: string): string {
   return value
@@ -39,7 +51,12 @@ export function renderHome(): string {
     "المتجر التجريبي",
     `<h1>تسوّق بسهولة</h1>
     <nav aria-label="الأقسام">
-      <a href="/c/shoes">الأحذية</a>
+      ${Object.entries(categoryNames)
+        .map(
+          ([category, name]) =>
+            `<a href="/c/${category}">${name.ar} <span lang="en">${name.en}</span></a>`,
+        )
+        .join("\n")}
     </nav>`,
   );
 }
@@ -48,40 +65,103 @@ function checked(active: boolean): string {
   return active ? " checked" : "";
 }
 
+function selected(active: boolean): string {
+  return active ? " selected" : "";
+}
+
 function productCard(product: Product): string {
-  return `<article data-product-id="${product.id}" data-product-type="${product.type}">
+  return `<article data-product-id="${product.id}" data-product-type="${escapeHtml(product.type)}" data-product-category="${product.category}">
     <h2>${escapeHtml(product.nameAr)}</h2>
     <p lang="en">${escapeHtml(product.nameEn)}</p>
     <p>${product.price} EGP</p>
     <p>${product.available ? "متاح" : "غير متاح"}</p>
+    <p>المقاسات: ${product.sizes.map(escapeHtml).join("، ")}</p>
+    <p>الألوان: ${product.colors.map(escapeHtml).join("، ")}</p>
   </article>`;
 }
 
-export function renderShoes(
-  products: readonly Product[],
-  constraints: ShoeConstraints,
-): string {
-  const minPrice = constraints.minPrice?.toString() ?? "";
-  const maxPrice = constraints.maxPrice?.toString() ?? "";
-  return layout(
-    "الأحذية",
-    `<h1>الأحذية</h1>
-    <form aria-label="فلترة الأحذية" action="/c/shoes" method="get">
-      <fieldset>
+function emptyState(constraints: ProductConstraints): string {
+  const relaxation =
+    constraints.color !== undefined
+      ? "اللون"
+      : constraints.size !== undefined
+        ? "المقاس"
+        : constraints.maxPrice !== undefined ||
+            constraints.minPrice !== undefined
+          ? "السعر"
+          : constraints.type !== undefined
+            ? "النوع"
+            : constraints.query !== undefined
+              ? "البحث"
+              : "التوفر";
+  return `<p role="status">لا توجد منتجات مطابقة. جرّب إزالة فلتر ${relaxation}.</p>`;
+}
+
+function shoeTypeControls(constraints: ProductConstraints): string {
+  if (constraints.category !== "shoes") {
+    return `<label for="product-type">النوع</label>
+      <input id="product-type" name="type" value="${escapeHtml(constraints.type ?? "")}" />`;
+  }
+  return `<fieldset>
         <legend>نوع الحذاء</legend>
         <label><input type="radio" name="type" value="running"${checked(constraints.type === "running")} /> جري</label>
         <label><input type="radio" name="type" value="casual"${checked(constraints.type === "casual")} /> كاجوال</label>
         <label><input type="radio" name="type" value="football"${checked(constraints.type === "football")} /> كرة قدم</label>
-      </fieldset>
+      </fieldset>`;
+}
+
+export function renderCategory(
+  matchingProducts: readonly Product[],
+  constraints: ProductConstraints,
+): string {
+  const name = categoryNames[constraints.category];
+  const query = escapeHtml(constraints.query ?? "");
+  const minPrice = constraints.minPrice?.toString() ?? "";
+  const maxPrice = constraints.maxPrice?.toString() ?? "";
+  const size = escapeHtml(constraints.size ?? "");
+  const color = escapeHtml(constraints.color ?? "");
+  return layout(
+    name.ar,
+    `<h1>${name.ar} <span lang="en">${name.en}</span></h1>
+    <form aria-label="فلترة ${name.ar}" action="/c/${constraints.category}" method="get">
+      <label for="category-search">بحث</label>
+      <input id="category-search" name="q" type="search" value="${query}" />
+      ${shoeTypeControls(constraints)}
       <label for="min-price">أقل سعر</label>
-      <input id="min-price" name="min_price" inputmode="numeric" value="${minPrice}" />
+      <input id="min-price" name="min_price" inputmode="decimal" value="${minPrice}" />
       <label for="max-price">أقصى سعر</label>
-      <input id="max-price" name="max_price" inputmode="numeric" value="${maxPrice}" />
+      <input id="max-price" name="max_price" inputmode="decimal" value="${maxPrice}" />
+      <label for="size">المقاس</label>
+      <input id="size" name="size" value="${size}" />
+      <label for="color">اللون</label>
+      <input id="color" name="color" value="${color}" />
+      <label for="availability">التوفر</label>
+      <select id="availability" name="availability">
+        <option value="">الكل</option>
+        <option value="available"${selected(constraints.availability === true)}>متاح</option>
+        <option value="unavailable"${selected(constraints.availability === false)}>غير متاح</option>
+      </select>
+      <label for="sort">الترتيب</label>
+      <select id="sort" name="sort">
+        <option value="">الافتراضي</option>
+        <option value="cheapest"${selected(constraints.sort === "cheapest")}>الأرخص</option>
+        <option value="newest"${selected(constraints.sort === "newest")}>الأحدث</option>
+      </select>
       <button type="submit">تطبيق الفلاتر</button>
     </form>
     <section aria-labelledby="results-heading">
-      <h2 id="results-heading">${products.length} منتجات</h2>
-      ${products.map(productCard).join("\n")}
+      <h2 id="results-heading">${matchingProducts.length} منتجات</h2>
+      ${matchingProducts.length === 0 ? emptyState(constraints) : matchingProducts.map(productCard).join("\n")}
     </section>`,
   );
+}
+
+export function renderShoes(
+  matchingProducts: readonly Product[],
+  constraints: ShoeConstraints,
+): string {
+  return renderCategory(matchingProducts, {
+    category: "shoes",
+    ...constraints,
+  });
 }

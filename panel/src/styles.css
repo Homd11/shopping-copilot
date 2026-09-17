@@ -98,6 +98,51 @@ button {
   list-style: none;
 }
 
+#pending-question:not(:empty) {
+  padding: 0 1.4rem 1rem;
+}
+
+.question-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 1rem;
+  background: #fffaf0;
+  border: 1px solid #d6c785;
+  border-inline-start: 0.25rem solid #b28b2e;
+  box-shadow: 0 0.35rem 1rem rgb(18 59 74 / 8%);
+}
+
+.question-card p {
+  flex-basis: 100%;
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.question-card button,
+#takeover-session {
+  padding: 0.55rem 0.8rem;
+  color: #153844;
+  background: #fff;
+  border: 1px solid #397185;
+  border-radius: 0.25rem;
+}
+
+#question-answer-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  flex-basis: 100%;
+  gap: 0.55rem;
+}
+
+#question-answer-input {
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid #8aa0a8;
+  border-radius: 0.25rem;
+}
+
 .message {
   max-width: 88%;
   padding: 0.75rem 0.9rem;

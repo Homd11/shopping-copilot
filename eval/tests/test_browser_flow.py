@@ -1,17 +1,25 @@
 from playwright.sync_api import sync_playwright
 
-from eval.cases import INITIAL_FILTER_CASES, EvaluationAssertion, EvaluationCase
+from eval.cases import DISCOVERY_CASES, EvaluationAssertion, EvaluationCase
 from eval.runner import run_evaluation
 from eval.services import local_services
 
 
-def test_arabic_and_english_filter_cases_run_through_the_real_browser_path() -> None:
+def test_bilingual_discovery_cases_run_through_the_real_browser_path() -> None:
     with local_services(), sync_playwright() as playwright:
-        results = run_evaluation(playwright.chromium, INITIAL_FILTER_CASES)
+        results = run_evaluation(playwright.chromium, DISCOVERY_CASES)
 
-    assert [result.case_id for result in results] == ["filter-ar", "filter-en"]
+    assert [result.case_id for result in results] == [
+        "filter-ar",
+        "filter-en",
+        "filter-franco",
+        "filter-mixed",
+        "filter-unavailable",
+        "filter-empty",
+        "ask-ambiguous",
+    ]
     assert all(result.passed for result in results), [result.failure for result in results]
-    assert all(result.step_count == 1 for result in results)
+    assert [result.step_count for result in results] == [1, 1, 1, 1, 1, 1, 0]
     assert all(result.elapsed_ms > 0 for result in results)
     assert all(result.failure is None for result in results)
 
