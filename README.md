@@ -23,20 +23,31 @@ pnpm install --frozen-lockfile
 Run the services in separate terminals:
 
 ```powershell
-pnpm store
-pnpm agent:win
-pnpm panel
+pnpm run store
+pnpm run agent:win
+pnpm run panel
 ```
+
+If `pnpm` is not installed on your PowerShell `PATH`, prefix the same commands with
+`corepack`, for example `corepack pnpm run store`.
 
 Open the Panel at `http://localhost:4100`. It embeds the Controlled Storefront from
 `http://localhost:4000` and connects to the Agent at `http://localhost:8000`.
 
-The first complete tracer bullet supports these deterministic requests:
+The local bot now supports deterministic discovery in Egyptian Arabic, English,
+Franco-Arabic, and mixed-language input. Good manual checks are:
 
 - `عاوز كوتشي للجري بأقل من ٢٠٠٠`
 - `Show me running shoes under 2000 EGP`
+- `3ayez kootshi running ta7t 2,000 EGP`
+- `عاوز black running shoes مقاس 42 تحت 2500 EGP والأرخص`
+- `Show unavailable bags newest first`
+- `Show me something under 1000 EGP` (asks you to choose a category)
 
-Both requests navigate to the running-shoes category with an inclusive EGP 2000 maximum.
+You can also press **Stop** while a task is active, or refresh the browser during a task.
+Refresh restores the conversation and reconciles the current Storefront without replaying
+an Action whose outcome is uncertain. Opening the same session in another tab requires an
+explicit takeover.
 
 ## Quality checks
 
@@ -47,7 +58,7 @@ pnpm test
 pnpm build
 ```
 
-Install Playwright's pinned Chromium build once, then run the two real-browser Evaluation
+Install Playwright's pinned Chromium build once, then run the seven real-browser Evaluation
 Cases:
 
 ```powershell

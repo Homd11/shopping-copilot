@@ -275,4 +275,49 @@ describe("BridgeRuntime", () => {
       "stale",
     ]);
   });
+
+  it("rejects an Action after the Panel cancels its Shopping Task", async () => {
+    const dom = new JSDOM(
+      '<!doctype html><html><body><button type="button">Add item</button></body></html>',
+      { url: "http://localhost:4000/products" },
+    );
+    let clicks = 0;
+    dom.window.document
+      .querySelector("button")!
+      .addEventListener("click", () => clicks++);
+    const posted: Array<{ type: string; result?: { status: string } }> = [];
+    const runtime = new BridgeRuntime({
+      document: dom.window.document,
+      panelOrigin: "http://localhost:4100",
+      storage: new MemoryStorage(),
+      currentUrl: () => dom.window.location.href,
+      navigate: () => undefined,
+      post: (message) => posted.push(message as (typeof posted)[number]),
+      settle: async () => undefined,
+      isVisible: () => true,
+    });
+    const button = runtime
+      .snapshot()
+      .elements.find((element) => element.role === "button")!;
+
+    await runtime.receive("http://localhost:4100", {
+      type: "cancel_task",
+      task_id: "task-cancelled",
+    });
+    await runtime.receive("http://localhost:4100", {
+      type: "action",
+      action: {
+        v: 1,
+        type: "click",
+        task_id: "task-cancelled",
+        action_id: "late-action",
+        sequence_number: 1,
+        narration: "Too late.",
+        id: button.id,
+      },
+    });
+
+    expect(clicks).toBe(0);
+    expect(posted.map((message) => message.result?.status)).toEqual(["stale"]);
+  });
 });

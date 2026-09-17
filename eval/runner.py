@@ -4,12 +4,12 @@ import time
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from playwright.sync_api import BrowserType, Frame, expect, sync_playwright
 
-from eval.cases import INITIAL_FILTER_CASES, EvaluationAssertion, EvaluationCase
+from eval.cases import DISCOVERY_CASES, EvaluationAssertion, EvaluationCase
 from eval.services import local_services
 
 PANEL_URL = "http://localhost:4100/"
@@ -61,9 +61,19 @@ def _frame_for_storefront(page) -> Frame:
     return frame
 
 
+def authoritative_state_url(frame_url: str) -> str:
+    parts = urlsplit(frame_url)
+    parameters: list[tuple[str, str]] = []
+    path_match = re.fullmatch(r"/c/([^/]+)", parts.path)
+    if path_match is not None:
+        parameters.append(("category", path_match.group(1)))
+    parameters.extend(parse_qsl(parts.query, keep_blank_values=True))
+    query = urlencode(parameters)
+    return f"{STATE_URL}?{query}" if query else STATE_URL
+
+
 def _authoritative_store_state(frame_url: str, timeout_ms: int) -> dict[str, Any]:
-    query = urlsplit(frame_url).query
-    url = f"{STATE_URL}?{query}" if query else STATE_URL
+    url = authoritative_state_url(frame_url)
     with urlopen(url, timeout=max(timeout_ms / 1000, 0.001)) as response:  # noqa: S310
         return json.load(response)
 
@@ -79,11 +89,19 @@ def _assert_store_state(state: Mapping[str, Any], target: str, expected: str | N
 
 
 def _assert_outcome(
+    page,
     frame: Frame,
     assertion: EvaluationAssertion,
     store_state: Mapping[str, Any],
     timeout_ms: int,
 ) -> None:
+    if assertion.kind == "panel_text":
+        locator = page.locator(assertion.target)
+        expect(locator).to_be_visible(timeout=timeout_ms)
+        if assertion.expected is not None:
+            expect(locator).to_have_text(assertion.expected, timeout=timeout_ms)
+        return
+
     if assertion.kind == "url_matches":
         if re.search(assertion.target, frame.url) is None:
             raise AssertionError(f"URL {frame.url!r} did not match {assertion.target!r}")
@@ -140,22 +158,21 @@ def run_evaluation(
                 page.get_by_role("button", name="إرسال").click(
                     timeout=remaining_timeout_ms(deadline)
                 )
-                expect(
-                    page.frame_locator("#storefront-frame").locator("#results-heading")
-                ).to_have_text("3 منتجات", timeout=remaining_timeout_ms(deadline))
+                if case.expected_status == "complete":
+                    expected_status = "اكتملت المهمة" if case.language == "ar" else "Task complete"
+                    expect(page.locator("#task-status")).to_have_text(
+                        expected_status, timeout=remaining_timeout_ms(deadline)
+                    )
                 frame = _frame_for_storefront(page)
                 store_state = _authoritative_store_state(frame.url, remaining_timeout_ms(deadline))
                 for assertion in case.assertions:
                     _assert_outcome(
+                        page,
                         frame,
                         assertion,
                         store_state,
                         remaining_timeout_ms(deadline),
                     )
-                expected_status = "اكتملت المهمة" if case.language == "ar" else "Task complete"
-                expect(page.locator("#task-status")).to_have_text(
-                    expected_status, timeout=remaining_timeout_ms(deadline)
-                )
                 remaining_timeout_ms(deadline)
             except Exception as error:  # Playwright failures must become case results
                 if time.perf_counter() >= deadline:
@@ -183,7 +200,7 @@ def run_evaluation(
 
 def main() -> int:
     with local_services(), sync_playwright() as playwright:
-        results = run_evaluation(playwright.chromium, INITIAL_FILTER_CASES)
+        results = run_evaluation(playwright.chromium, DISCOVERY_CASES)
     for result in results:
         print(json.dumps(result.as_dict(), ensure_ascii=False))
     return 0 if all(result.passed for result in results) else 1

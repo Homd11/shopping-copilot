@@ -23,6 +23,7 @@ export interface BridgeRuntimeOptions extends SnapshotBuilderOptions {
 
 type BridgeMessage =
   | { type: "action"; action: unknown }
+  | { type: "cancel_task"; task_id: string }
   | { type: "request_snapshot" };
 
 interface ActionLedger {
@@ -45,6 +46,8 @@ function isBridgeMessage(value: unknown): value is BridgeMessage {
   if (typeof value !== "object" || value === null || !("type" in value))
     return false;
   if (value.type === "request_snapshot") return true;
+  if (value.type === "cancel_task")
+    return "task_id" in value && typeof value.task_id === "string";
   return value.type === "action" && "action" in value;
 }
 
@@ -105,6 +108,14 @@ function acceptAction(storage: StorageLike, action: Action): boolean {
   return true;
 }
 
+function retireTask(storage: StorageLike, taskId: string): void {
+  const ledger = readLedger(storage);
+  if (!ledger.retiredTaskIds.includes(taskId))
+    ledger.retiredTaskIds.push(taskId);
+  if (ledger.activeTaskId === taskId) ledger.activeTaskId = null;
+  storage.setItem(ACTION_LEDGER_KEY, JSON.stringify(ledger));
+}
+
 export class BridgeRuntime {
   readonly #options: BridgeRuntimeOptions;
   readonly #builder: SnapshotBuilder;
@@ -139,6 +150,10 @@ export class BridgeRuntime {
       return;
     if (payload.type === "request_snapshot") {
       this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
+      return;
+    }
+    if (payload.type === "cancel_task") {
+      retireTask(this.#options.storage, payload.task_id);
       return;
     }
     const action = parseAction(payload.action);

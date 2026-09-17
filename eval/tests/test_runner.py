@@ -1,6 +1,6 @@
 import pytest
 
-from eval.runner import remaining_timeout_ms, state_value
+from eval.runner import authoritative_state_url, remaining_timeout_ms, state_value
 
 
 def test_state_value_reads_nested_authoritative_state() -> None:
@@ -14,3 +14,9 @@ def test_state_value_reads_nested_authoritative_state() -> None:
 def test_remaining_timeout_rejects_an_expired_case() -> None:
     with pytest.raises(TimeoutError, match="Evaluation Case exceeded"):
         remaining_timeout_ms(0.0)
+
+
+def test_authoritative_state_url_includes_the_category_and_filters() -> None:
+    assert authoritative_state_url(
+        "http://localhost:4000/c/bags?availability=unavailable&sort=newest"
+    ) == ("http://localhost:4000/__test/state?category=bags&availability=unavailable&sort=newest")
