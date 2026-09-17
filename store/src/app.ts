@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 import {
   categories,
   filterProducts,
+  money,
   type Category,
+  type Money,
   type ProductConstraints,
   type ProductSort,
 } from "./catalogue.js";
@@ -20,11 +22,14 @@ function nonEmptyQueryValue(value: unknown): string | undefined {
   return text === undefined || text === "" ? undefined : text;
 }
 
-function priceFromQuery(value: unknown): number | undefined {
+function priceFromQuery(value: unknown): Money | undefined {
   const text = nonEmptyQueryValue(value);
   if (text === undefined) return undefined;
-  const amount = Number(text);
-  return Number.isFinite(amount) && amount >= 0 ? amount : undefined;
+  try {
+    return money(text);
+  } catch {
+    return undefined;
+  }
 }
 
 function categoryFromValue(value: unknown): Category | undefined {

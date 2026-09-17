@@ -34,7 +34,7 @@ If `pnpm` is not installed on your PowerShell `PATH`, prefix the same commands w
 Open the Panel at `http://localhost:4100`. It embeds the Controlled Storefront from
 `http://localhost:4000` and connects to the Agent at `http://localhost:8000`.
 
-The local bot now supports deterministic discovery in Egyptian Arabic, English,
+The local Shopping Copilot now supports deterministic discovery in Egyptian Arabic, English,
 Franco-Arabic, and mixed-language input. Good manual checks are:
 
 - `عاوز كوتشي للجري بأقل من ٢٠٠٠`

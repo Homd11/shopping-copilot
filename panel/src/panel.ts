@@ -242,18 +242,26 @@ export class PanelController {
     const conversation =
       this.#root.querySelector<HTMLOListElement>("#conversation");
     conversation?.replaceChildren();
+    this.#root
+      .querySelector<HTMLElement>("#pending-question")
+      ?.replaceChildren();
     for (const message of state.conversation)
       this.#appendMessage(message.role, message.text);
-    if (state.task !== null) this.#activeTaskId = state.task.task_id;
+    const taskIsActive =
+      state.task !== null &&
+      state.task.status !== "completed" &&
+      state.task.status !== "cancelled";
+    this.#activeTaskId = taskIsActive ? state.task?.task_id : undefined;
     if (
+      taskIsActive &&
       state.task?.pending_question !== null &&
       state.task?.pending_question !== undefined
     ) {
       const question = parseAction(state.task.pending_question);
       if (question.type === "ask_shopper") this.#renderQuestion(question);
     }
-    this.#setStatus(state.task === null ? "Ready" : "Reconnected");
-    this.#setInputEnabled(state.task === null);
+    this.#setStatus(taskIsActive ? "Reconnected" : "Ready");
+    this.#setInputEnabled(!taskIsActive);
   }
 
   #renderTakeover(): void {

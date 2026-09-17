@@ -170,7 +170,7 @@ def test_stop_cancels_the_active_task_and_rejects_its_later_result() -> None:
             "action_id": action["action_id"],
             "sequence_number": action["sequence_number"],
             "status": "navigated",
-            "snapshot": home_snapshot(),
+            "snapshot": {**home_snapshot(), "url": f"http://localhost:4000{action['url']}"},
         },
     )
 
@@ -319,7 +319,7 @@ def test_english_task_completion_remains_in_english() -> None:
             "action_id": action["action_id"],
             "sequence_number": action["sequence_number"],
             "status": "navigated",
-            "snapshot": home_snapshot(),
+            "snapshot": {**home_snapshot(), "url": f"http://localhost:4000{action['url']}"},
         },
     )
 
@@ -347,9 +347,55 @@ def test_other_discovery_tasks_use_a_generic_completion_summary() -> None:
             "action_id": action["action_id"],
             "sequence_number": action["sequence_number"],
             "status": "navigated",
-            "snapshot": home_snapshot(),
+            "snapshot": {**home_snapshot(), "url": f"http://localhost:4000{action['url']}"},
         },
     )
 
     events = parse_sse(client.get(f"/sessions/{session_id}/events?after=3&once=true").text)
     assert events[-1]["data"]["summary"] == "Matching products are now shown."
+
+
+def test_navigation_with_missing_expected_state_falls_back_to_a_visible_control() -> None:
+    client = TestClient(create_app())
+    session_id = client.post("/sessions").json()["session_id"]
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Show me running shoes under 2000 EGP", "snapshot": home_snapshot()},
+    )
+    action = parse_sse(client.get(f"/sessions/{session_id}/events?after=0&once=true").text)[-1][
+        "data"
+    ]["action"]
+    unfiltered_snapshot = {
+        **home_snapshot(),
+        "url": "http://localhost:4000/c/shoes",
+        "elements": [
+            {
+                "id": 9,
+                "role": "textbox",
+                "name": "أقصى سعر",
+                "value": "",
+                "visible": True,
+            }
+        ],
+    }
+
+    accepted = client.post(
+        f"/sessions/{session_id}/action-results",
+        json={
+            "v": 1,
+            "task_id": action["task_id"],
+            "action_id": action["action_id"],
+            "sequence_number": action["sequence_number"],
+            "status": "navigated",
+            "snapshot": unfiltered_snapshot,
+        },
+    )
+
+    assert accepted.status_code == 202
+    events = parse_sse(client.get(f"/sessions/{session_id}/events?after=3&once=true").text)
+    assert [event["event"] for event in events] == ["narration", "action"]
+    fallback = events[-1]["data"]["action"]
+    assert fallback["type"] == "type"
+    assert fallback["id"] == 9
+    assert fallback["text"] == "2000"
+    assert fallback["submit"] is True

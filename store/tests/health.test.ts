@@ -55,9 +55,25 @@ describe("Controlled Storefront", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      filters: { type: "running", min_price: null, max_price: 2000 },
+      filters: {
+        type: "running",
+        min_price: null,
+        max_price: { amount: "2000", currency: "EGP" },
+      },
       product_ids: ["shoe-01", "shoe-02", "shoe-03"],
       product_count: 3,
+    });
+  });
+
+  it("reports exact decimal Money in authoritative Storefront state", async () => {
+    const response = await request(createApp()).get(
+      "/__test/state?category=bags&max_price=1500.50",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.filters.max_price).toEqual({
+      amount: "1500.50",
+      currency: "EGP",
     });
   });
 

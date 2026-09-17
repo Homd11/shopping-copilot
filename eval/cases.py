@@ -40,7 +40,8 @@ FILTER_ASSERTIONS = (
         target="filters.type",
         expected="running",
     ),
-    EvaluationAssertion(kind="store_state", target="filters.max_price", expected="2000"),
+    EvaluationAssertion(kind="store_state", target="filters.max_price.amount", expected="2000"),
+    EvaluationAssertion(kind="store_state", target="filters.max_price.currency", expected="EGP"),
     EvaluationAssertion(kind="store_state", target="product_count", expected="3"),
 )
 

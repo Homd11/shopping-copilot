@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
 
 from agent.app import app
-from agent.schemas import parse_action
+from agent.planner import ActionIdentity, ScriptedPlanner
+from agent.schemas import Snapshot, parse_action
+from agent.storefront import parse_storefront_definition
+from agent.tests.test_storefront import valid_definition
 
 
 def home_snapshot() -> dict[str, object]:
@@ -134,6 +137,63 @@ def test_step_preserves_an_explicit_catalogue_search_term() -> None:
         "/step",
         json={
             "message": 'Search bags for "Nile"',
+            "snapshot": home_snapshot(),
+        },
+    )
+
+    action = parse_action(response.json())
+    assert action.type == "navigate"
+    assert action.url == "/c/bags?q=Nile"
+
+
+def test_planner_uses_storefront_definition_vocabulary_instead_of_code_constants() -> None:
+    payload = valid_definition()
+    vocabulary = payload["vocabulary"]
+    assert isinstance(vocabulary, dict)
+    vocabulary["categories"] = {
+        "shoes": ["trainers"],
+        "clothing": ["garments"],
+        "bags": ["satchels"],
+        "electronics": ["devices"],
+    }
+    vocabulary["types"] = {"running": ["sprinting"]}
+    vocabulary["colors"] = {"black": ["onyx"]}
+    vocabulary["availability"] = {
+        "available": ["in-stock"],
+        "unavailable": ["soldout"],
+    }
+    vocabulary["sort"] = {"cheapest": ["budget-first"], "newest": ["recent-first"]}
+    planner = ScriptedPlanner(parse_storefront_definition(payload))
+
+    action = planner.plan(
+        "Show soldout onyx trainers for sprinting recent-first",
+        snapshot=Snapshot.model_validate(home_snapshot()),
+        identity=ActionIdentity("task-1", "action-1", 1),
+    )
+
+    assert action.type == "navigate"
+    assert action.url == ("/c/shoes?type=running&color=black&availability=unavailable&sort=newest")
+
+
+def test_step_supports_an_inclusive_minimum_price() -> None:
+    response = TestClient(app).post(
+        "/step",
+        json={
+            "message": "Show me running shoes at least 1500 EGP",
+            "snapshot": home_snapshot(),
+        },
+    )
+
+    action = parse_action(response.json())
+    assert action.type == "navigate"
+    assert action.url == "/c/shoes?type=running&min_price=1500"
+
+
+def test_step_extracts_an_unquoted_known_product_search() -> None:
+    response = TestClient(app).post(
+        "/step",
+        json={
+            "message": "Find Nile bags",
             "snapshot": home_snapshot(),
         },
     )
