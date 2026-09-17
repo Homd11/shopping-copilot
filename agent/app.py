@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
+from agent.llm import LLMSettings, build_llm_client, load_llm_settings
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
 from agent.sessions import (
@@ -54,8 +55,15 @@ def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
     return f"id: {event_id}\nevent: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
-def create_app(session_store: SessionStore | None = None) -> FastAPI:
+def create_app(
+    session_store: SessionStore | None = None,
+    llm_settings: LLMSettings | None = None,
+) -> FastAPI:
+    settings = llm_settings or load_llm_settings()
+    llm_client = build_llm_client(settings)
     app = FastAPI(title="Shopping Copilot Agent")
+    app.state.llm_settings = settings
+    app.state.llm_client = llm_client
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:4100"],
