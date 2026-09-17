@@ -2,7 +2,7 @@
 
 **What to build:** Distinguish locating from activating while supporting cart, checkout, account, and newest-order guidance with safe authentication handoff.
 
-**Blocked by:** 04 — Evaluate the first complete browser flow.
+**Blocked by:** 07E — Integrate real intent into Shopping Tasks.
 
 **Status:** ready-for-agent
 
