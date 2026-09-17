@@ -34,6 +34,39 @@ def valid_definition() -> dict[str, object]:
             "bags": {"ar": "الشنط", "en": "Bags"},
             "electronics": {"ar": "الإلكترونيات", "en": "Electronics"},
         },
+        "vocabulary": {
+            "categories": {
+                "shoes": ["shoes", "كوتشي"],
+                "clothing": ["clothing", "ملابس"],
+                "bags": ["bags", "شنط"],
+                "electronics": ["electronics", "إلكترونيات"],
+            },
+            "types": {"running": ["running", "جري"]},
+            "colors": {"black": ["black", "أسود"]},
+            "controls": {
+                "q": ["بحث", "search"],
+                "type": ["النوع", "type"],
+                "min_price": ["أقل سعر", "minimum price"],
+                "max_price": ["أقصى سعر", "maximum price"],
+                "size": ["المقاس", "size"],
+                "color": ["اللون", "color"],
+                "availability": ["التوفر", "availability"],
+                "sort": ["الترتيب", "sort"],
+                "submit": ["تطبيق الفلاتر", "apply filters"],
+            },
+            "availability": {
+                "available": ["available", "متاح"],
+                "unavailable": ["unavailable", "غير متاح"],
+            },
+            "sort": {
+                "cheapest": ["cheapest", "الأرخص"],
+                "newest": ["newest", "الأحدث"],
+            },
+        },
+        "url_rules": {
+            "same_origin_only": True,
+            "category_filters_in_query": True,
+        },
     }
 
 
@@ -53,6 +86,14 @@ def test_definition_loads_authoritative_egp_capabilities():
         "sort",
     )
     assert definition.categories["shoes"].ar == "الأحذية"
+    assert definition.vocabulary.categories["shoes"] == ("shoes", "كوتشي")
+    assert definition.vocabulary.types["running"] == ("running", "جري")
+    assert definition.vocabulary.controls["max_price"] == (
+        "أقصى سعر",
+        "maximum price",
+    )
+    assert definition.url_rules.same_origin_only is True
+    assert definition.url_rules.category_filters_in_query is True
 
 
 @pytest.mark.parametrize(
@@ -63,6 +104,8 @@ def test_definition_loads_authoritative_egp_capabilities():
         (lambda value: value.__setitem__("currency", 123), "currency must be a string"),
         (lambda value: value.__setitem__("filters", ["q", "mystery"]), "unsupported filter"),
         (lambda value: value.__setitem__("categories", {}), "categories must not be empty"),
+        (lambda value: value.pop("vocabulary"), "vocabulary is required"),
+        (lambda value: value.pop("url_rules"), "url_rules is required"),
     ],
 )
 def test_definition_rejects_missing_or_malformed_authoritative_configuration(mutation, message):

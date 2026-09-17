@@ -4,10 +4,16 @@ from eval.runner import authoritative_state_url, remaining_timeout_ms, state_val
 
 
 def test_state_value_reads_nested_authoritative_state() -> None:
-    state = {"filters": {"type": "running", "max_price": 2000}, "product_count": 3}
+    state = {
+        "filters": {
+            "type": "running",
+            "max_price": {"amount": "2000", "currency": "EGP"},
+        },
+        "product_count": 3,
+    }
 
     assert state_value(state, "filters.type") == "running"
-    assert state_value(state, "filters.max_price") == 2000
+    assert state_value(state, "filters.max_price.amount") == "2000"
     assert state_value(state, "product_count") == 3
 
 

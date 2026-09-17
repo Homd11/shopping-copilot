@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { categories, filterProducts, products } from "../src/catalogue.js";
+import {
+  categories,
+  compareMoney,
+  filterProducts,
+  money,
+  products,
+} from "../src/catalogue.js";
 
 describe("deterministic bilingual catalogue", () => {
   it("contains sixty products across four categories with discovery attributes", () => {
@@ -32,7 +38,7 @@ describe("deterministic bilingual catalogue", () => {
       filterProducts({
         category: "shoes",
         type: "running",
-        maxPrice: 2000,
+        maxPrice: money("2000"),
       }).map((product) => product.id),
     ).toEqual(["shoe-01", "shoe-02", "shoe-03"]);
   });
@@ -42,8 +48,8 @@ describe("deterministic bilingual catalogue", () => {
       filterProducts({
         category: "clothing",
         type: "outerwear",
-        minPrice: 1000,
-        maxPrice: 1800,
+        minPrice: money("1000"),
+        maxPrice: money("1800"),
         size: "L",
         color: "black",
         availability: true,
@@ -67,10 +73,11 @@ describe("deterministic bilingual catalogue", () => {
   it("sorts matching products by cheapest with stable id tie-breaking", () => {
     const result = filterProducts({ category: "bags", sort: "cheapest" });
 
-    expect(result.map((product) => product.price)).toEqual(
+    expect(result.map((product) => product.price.amount)).toEqual(
       [...result]
         .map((product) => product.price)
-        .sort((left, right) => left - right),
+        .sort(compareMoney)
+        .map((price) => price.amount),
     );
     expect(result[0]?.id).toBe("bag-06");
   });
@@ -94,5 +101,11 @@ describe("deterministic bilingual catalogue", () => {
         availability: true,
       }),
     ).toEqual([]);
+  });
+
+  it("represents catalogue prices and decimal constraints as exact EGP Money", () => {
+    expect(products[0]?.price).toEqual({ amount: "1450", currency: "EGP" });
+    expect(compareMoney(money("0.10"), money("0.2"))).toBeLessThan(0);
+    expect(() => money("1.234")).toThrow(/decimal/);
   });
 });

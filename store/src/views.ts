@@ -73,7 +73,7 @@ function productCard(product: Product): string {
   return `<article data-product-id="${product.id}" data-product-type="${escapeHtml(product.type)}" data-product-category="${product.category}">
     <h2>${escapeHtml(product.nameAr)}</h2>
     <p lang="en">${escapeHtml(product.nameEn)}</p>
-    <p>${product.price} EGP</p>
+    <p>${product.price.amount} ${product.price.currency}</p>
     <p>${product.available ? "متاح" : "غير متاح"}</p>
     <p>المقاسات: ${product.sizes.map(escapeHtml).join("، ")}</p>
     <p>الألوان: ${product.colors.map(escapeHtml).join("، ")}</p>
@@ -116,8 +116,8 @@ export function renderCategory(
 ): string {
   const name = categoryNames[constraints.category];
   const query = escapeHtml(constraints.query ?? "");
-  const minPrice = constraints.minPrice?.toString() ?? "";
-  const maxPrice = constraints.maxPrice?.toString() ?? "";
+  const minPrice = constraints.minPrice?.amount ?? "";
+  const maxPrice = constraints.maxPrice?.amount ?? "";
   const size = escapeHtml(constraints.size ?? "");
   const color = escapeHtml(constraints.color ?? "");
   return layout(

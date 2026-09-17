@@ -430,4 +430,39 @@ describe("PanelController", () => {
       "بانتظار اتصال المتجر…",
     );
   });
+
+  it.each(["completed", "cancelled"])(
+    "restores a %s task without locking Shopper input",
+    async (status) => {
+      const restoredState: SessionView = {
+        session_id: "session-finished",
+        lease: "owned",
+        event_cursor: 6,
+        conversation: [{ role: "copilot", text: "Finished earlier." }],
+        requires_reconciliation: false,
+        task: {
+          task_id: "task-finished",
+          status,
+          pending_question: null,
+        },
+      };
+      const context = setup({
+        savedSessionId: "session-finished",
+        restoredState,
+      });
+
+      await context.controller.start();
+      context.controller.receiveStorefront({ type: "snapshot", snapshot });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(
+        context.root.querySelector<HTMLInputElement>("#shopper-message")
+          ?.disabled,
+      ).toBe(false);
+      expect(context.root.querySelector("#pending-question")?.textContent).toBe(
+        "",
+      );
+    },
+  );
 });

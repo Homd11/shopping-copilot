@@ -34,6 +34,22 @@ class CategoryDefinition:
 
 
 @dataclass(frozen=True)
+class VocabularyDefinition:
+    categories: dict[str, tuple[str, ...]]
+    types: dict[str, tuple[str, ...]]
+    colors: dict[str, tuple[str, ...]]
+    controls: dict[str, tuple[str, ...]]
+    availability: dict[str, tuple[str, ...]]
+    sort: dict[str, tuple[str, ...]]
+
+
+@dataclass(frozen=True)
+class UrlRules:
+    same_origin_only: bool
+    category_filters_in_query: bool
+
+
+@dataclass(frozen=True)
 class StorefrontDefinition:
     v: int
     name: str
@@ -41,6 +57,8 @@ class StorefrontDefinition:
     category_route: str
     filters: tuple[str, ...]
     categories: dict[str, CategoryDefinition]
+    vocabulary: VocabularyDefinition
+    url_rules: UrlRules
 
 
 @dataclass(frozen=True)
@@ -66,6 +84,39 @@ def _required_mapping(payload: dict[str, Any], key: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise StorefrontDefinitionError(f"{key} must be an object")
     return value
+
+
+def _vocabulary_group(
+    vocabulary: dict[str, Any],
+    key: str,
+    *,
+    expected_keys: set[str] | None = None,
+) -> dict[str, tuple[str, ...]]:
+    raw_group = _required_mapping(vocabulary, key)
+    if not raw_group:
+        raise StorefrontDefinitionError(f"vocabulary.{key} must not be empty")
+    if expected_keys is not None and set(raw_group) != expected_keys:
+        raise StorefrontDefinitionError(
+            f"vocabulary.{key} keys must be {', '.join(sorted(expected_keys))}"
+        )
+    group: dict[str, tuple[str, ...]] = {}
+    for canonical, raw_terms in raw_group.items():
+        if (
+            not isinstance(canonical, str)
+            or not isinstance(raw_terms, list)
+            or not raw_terms
+            or not all(isinstance(term, str) and term.strip() for term in raw_terms)
+        ):
+            raise StorefrontDefinitionError(
+                f"vocabulary.{key}.{canonical} must be a non-empty list of strings"
+            )
+        normalized_terms = tuple(term.strip().lower() for term in raw_terms)
+        if len(set(normalized_terms)) != len(normalized_terms):
+            raise StorefrontDefinitionError(
+                f"vocabulary.{key}.{canonical} must not contain duplicates"
+            )
+        group[canonical] = normalized_terms
+    return group
 
 
 def load_storefront_definition(
@@ -135,6 +186,41 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
             raise StorefrontDefinitionError(f"category {slug} must have non-empty ar and en names")
         categories[slug] = CategoryDefinition(ar=ar, en=en)
 
+    if "vocabulary" not in payload:
+        raise StorefrontDefinitionError("vocabulary is required")
+    raw_vocabulary = _required_mapping(payload, "vocabulary")
+    vocabulary = VocabularyDefinition(
+        categories=_vocabulary_group(raw_vocabulary, "categories", expected_keys=set(categories)),
+        types=_vocabulary_group(raw_vocabulary, "types"),
+        colors=_vocabulary_group(raw_vocabulary, "colors"),
+        controls=_vocabulary_group(
+            raw_vocabulary,
+            "controls",
+            expected_keys={*raw_filters, "submit"},
+        ),
+        availability=_vocabulary_group(
+            raw_vocabulary,
+            "availability",
+            expected_keys={"available", "unavailable"},
+        ),
+        sort=_vocabulary_group(
+            raw_vocabulary,
+            "sort",
+            expected_keys={"cheapest", "newest"},
+        ),
+    )
+    if "url_rules" not in payload:
+        raise StorefrontDefinitionError("url_rules is required")
+    raw_url_rules = _required_mapping(payload, "url_rules")
+    if raw_url_rules.get("same_origin_only") is not True:
+        raise StorefrontDefinitionError("url_rules.same_origin_only must be true")
+    if raw_url_rules.get("category_filters_in_query") is not True:
+        raise StorefrontDefinitionError("url_rules.category_filters_in_query must be true")
+    url_rules = UrlRules(
+        same_origin_only=True,
+        category_filters_in_query=True,
+    )
+
     return StorefrontDefinition(
         v=1,
         name=name,
@@ -142,6 +228,8 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
         category_route=category_route,
         filters=tuple(raw_filters),
         categories=categories,
+        vocabulary=vocabulary,
+        url_rules=url_rules,
     )
 
 

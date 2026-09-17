@@ -2,6 +2,34 @@ export const categories = ["shoes", "clothing", "bags", "electronics"] as const;
 
 export type Category = (typeof categories)[number];
 export type ProductSort = "cheapest" | "newest";
+export type Currency = "EGP";
+
+export interface Money {
+  readonly amount: string;
+  readonly currency: Currency;
+}
+
+const MONEY_AMOUNT = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
+
+export function money(amount: string): Money {
+  if (!MONEY_AMOUNT.test(amount))
+    throw new TypeError(
+      "Money amount must be a non-negative decimal with at most two places",
+    );
+  return { amount, currency: "EGP" };
+}
+
+function minorUnits(value: Money): bigint {
+  const [whole, fraction = ""] = value.amount.split(".");
+  return BigInt(whole!) * 100n + BigInt(fraction.padEnd(2, "0"));
+}
+
+export function compareMoney(left: Money, right: Money): number {
+  if (left.currency !== right.currency)
+    throw new TypeError("Money currencies must match");
+  const difference = minorUnits(left) - minorUnits(right);
+  return difference < 0n ? -1 : difference > 0n ? 1 : 0;
+}
 
 export interface Product {
   id: string;
@@ -9,14 +37,14 @@ export interface Product {
   nameAr: string;
   nameEn: string;
   type: string;
-  price: number;
+  price: Money;
   sizes: readonly string[];
   colors: readonly string[];
   available: boolean;
   addedAt: string;
 }
 
-type ProductSeed = Omit<Product, "category">;
+type ProductSeed = Omit<Product, "category" | "price"> & { price: string };
 
 const shoeSeeds: readonly ProductSeed[] = [
   {
@@ -24,7 +52,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "عدّاء النيل",
     nameEn: "Nile Runner",
     type: "running",
-    price: 1450,
+    price: "1450",
     sizes: ["40", "41", "42"],
     colors: ["blue", "black"],
     available: true,
@@ -35,7 +63,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "خطوة سريعة",
     nameEn: "Quick Step",
     type: "running",
-    price: 1750,
+    price: "1750",
     sizes: ["41", "42", "43"],
     colors: ["white", "red"],
     available: true,
@@ -46,7 +74,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "نسمة الصباح",
     nameEn: "Morning Breeze",
     type: "running",
-    price: 2000,
+    price: "2000",
     sizes: ["39", "40", "42"],
     colors: ["gray", "green"],
     available: true,
@@ -57,7 +85,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "ماراثون القاهرة",
     nameEn: "Cairo Marathon",
     type: "running",
-    price: 2450,
+    price: "2450",
     sizes: ["42", "43", "44"],
     colors: ["black", "orange"],
     available: true,
@@ -68,7 +96,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "جري الصحراء",
     nameEn: "Desert Run",
     type: "running",
-    price: 2800,
+    price: "2800",
     sizes: ["41", "43", "45"],
     colors: ["sand", "brown"],
     available: false,
@@ -79,7 +107,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "مشوار وسط البلد",
     nameEn: "Downtown Walk",
     type: "casual",
-    price: 1200,
+    price: "1200",
     sizes: ["39", "40", "41"],
     colors: ["white", "navy"],
     available: true,
@@ -90,7 +118,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "راحة يومية",
     nameEn: "Daily Comfort",
     type: "casual",
-    price: 1350,
+    price: "1350",
     sizes: ["40", "42", "44"],
     colors: ["black", "gray"],
     available: true,
@@ -101,7 +129,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "كلاسيك إسكندرية",
     nameEn: "Alex Classic",
     type: "casual",
-    price: 1550,
+    price: "1550",
     sizes: ["41", "42", "43"],
     colors: ["brown", "white"],
     available: true,
@@ -112,7 +140,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "ممشى النيل",
     nameEn: "Nile Walk",
     type: "casual",
-    price: 1850,
+    price: "1850",
     sizes: ["39", "41", "43"],
     colors: ["blue", "beige"],
     available: true,
@@ -123,7 +151,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "ويك إند",
     nameEn: "Weekend",
     type: "casual",
-    price: 2200,
+    price: "2200",
     sizes: ["40", "42", "44"],
     colors: ["green", "white"],
     available: true,
@@ -134,7 +162,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "هداف",
     nameEn: "Striker",
     type: "football",
-    price: 1650,
+    price: "1650",
     sizes: ["40", "41", "42"],
     colors: ["red", "black"],
     available: true,
@@ -145,7 +173,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "ملعب النجوم",
     nameEn: "Star Pitch",
     type: "football",
-    price: 1950,
+    price: "1950",
     sizes: ["41", "42", "43"],
     colors: ["blue", "yellow"],
     available: true,
@@ -156,7 +184,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "صانع اللعب",
     nameEn: "Playmaker",
     type: "football",
-    price: 2300,
+    price: "2300",
     sizes: ["42", "43", "44"],
     colors: ["white", "black"],
     available: true,
@@ -167,7 +195,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "حارس",
     nameEn: "Keeper",
     type: "football",
-    price: 2600,
+    price: "2600",
     sizes: ["43", "44", "45"],
     colors: ["green", "orange"],
     available: true,
@@ -178,7 +206,7 @@ const shoeSeeds: readonly ProductSeed[] = [
     nameAr: "بطولة",
     nameEn: "Championship",
     type: "football",
-    price: 3100,
+    price: "3100",
     sizes: ["41", "43", "45"],
     colors: ["gold", "black"],
     available: false,
@@ -192,7 +220,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "جاكيت القاهرة",
     nameEn: "Cairo Jacket",
     type: "outerwear",
-    price: 1500,
+    price: "1500",
     sizes: ["M", "L", "XL"],
     colors: ["black"],
     available: true,
@@ -203,7 +231,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "جاكيت شتوي",
     nameEn: "Winter Jacket",
     type: "outerwear",
-    price: 1900,
+    price: "1900",
     sizes: ["L", "XL"],
     colors: ["navy"],
     available: true,
@@ -214,7 +242,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "بالطو النيل",
     nameEn: "Nile Coat",
     type: "outerwear",
-    price: 2600,
+    price: "2600",
     sizes: ["S", "M", "L"],
     colors: ["beige"],
     available: false,
@@ -225,7 +253,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "قميص قطن",
     nameEn: "Cotton Shirt",
     type: "shirts",
-    price: 650,
+    price: "650",
     sizes: ["S", "M", "L"],
     colors: ["white", "blue"],
     available: true,
@@ -236,7 +264,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "قميص رسمي",
     nameEn: "Formal Shirt",
     type: "shirts",
-    price: 900,
+    price: "900",
     sizes: ["M", "L", "XL"],
     colors: ["white", "gray"],
     available: true,
@@ -247,7 +275,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "تيشيرت إسكندرية",
     nameEn: "Alex Tee",
     type: "tops",
-    price: 420,
+    price: "420",
     sizes: ["S", "M", "L"],
     colors: ["blue", "white"],
     available: true,
@@ -258,7 +286,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "تيشيرت شمس",
     nameEn: "Sun Tee",
     type: "tops",
-    price: 480,
+    price: "480",
     sizes: ["M", "L", "XL"],
     colors: ["yellow", "black"],
     available: false,
@@ -269,7 +297,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "بنطلون يومي",
     nameEn: "Everyday Trousers",
     type: "trousers",
-    price: 850,
+    price: "850",
     sizes: ["30", "32", "34"],
     colors: ["black", "khaki"],
     available: true,
@@ -280,7 +308,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "جينز وسط البلد",
     nameEn: "Downtown Jeans",
     type: "trousers",
-    price: 1100,
+    price: "1100",
     sizes: ["30", "32", "36"],
     colors: ["blue"],
     available: true,
@@ -291,7 +319,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "فستان نسمة",
     nameEn: "Breeze Dress",
     type: "dresses",
-    price: 1250,
+    price: "1250",
     sizes: ["S", "M", "L"],
     colors: ["green", "pink"],
     available: true,
@@ -302,7 +330,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "فستان سهرة",
     nameEn: "Evening Dress",
     type: "dresses",
-    price: 2200,
+    price: "2200",
     sizes: ["M", "L"],
     colors: ["black", "red"],
     available: false,
@@ -313,7 +341,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "هودي مريح",
     nameEn: "Comfort Hoodie",
     type: "tops",
-    price: 980,
+    price: "980",
     sizes: ["M", "L", "XL"],
     colors: ["gray", "navy"],
     available: true,
@@ -324,7 +352,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "شورت رياضي",
     nameEn: "Sport Shorts",
     type: "sportswear",
-    price: 550,
+    price: "550",
     sizes: ["S", "M", "L"],
     colors: ["black", "blue"],
     available: true,
@@ -335,7 +363,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "تريننج النيل",
     nameEn: "Nile Tracksuit",
     type: "sportswear",
-    price: 1750,
+    price: "1750",
     sizes: ["M", "L", "XL"],
     colors: ["navy", "white"],
     available: true,
@@ -346,7 +374,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     nameAr: "كارديجان خفيف",
     nameEn: "Light Cardigan",
     type: "outerwear",
-    price: 1350,
+    price: "1350",
     sizes: ["S", "M"],
     colors: ["cream"],
     available: true,
@@ -360,7 +388,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة النيل",
     nameEn: "Nile Bag",
     type: "tote",
-    price: 900,
+    price: "900",
     sizes: ["M"],
     colors: ["blue", "black"],
     available: true,
@@ -371,7 +399,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة القاهرة",
     nameEn: "Cairo Backpack",
     type: "backpack",
-    price: 1250,
+    price: "1250",
     sizes: ["L"],
     colors: ["black"],
     available: true,
@@ -382,7 +410,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة سفر",
     nameEn: "Travel Duffel",
     type: "travel",
-    price: 1800,
+    price: "1800",
     sizes: ["L"],
     colors: ["gray", "navy"],
     available: false,
@@ -393,7 +421,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة لابتوب",
     nameEn: "Laptop Briefcase",
     type: "briefcase",
-    price: 1450,
+    price: "1450",
     sizes: ["M", "L"],
     colors: ["brown", "black"],
     available: true,
@@ -404,7 +432,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة إسكندرية",
     nameEn: "Alex Tote",
     type: "tote",
-    price: 780,
+    price: "780",
     sizes: ["M"],
     colors: ["white", "blue"],
     available: true,
@@ -415,7 +443,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "جراب صغير",
     nameEn: "Mini Pouch",
     type: "pouch",
-    price: 350,
+    price: "350",
     sizes: ["S"],
     colors: ["red", "black"],
     available: true,
@@ -426,7 +454,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة كتف",
     nameEn: "Daily Shoulder Bag",
     type: "shoulder",
-    price: 690,
+    price: "690",
     sizes: ["M"],
     colors: ["beige", "brown"],
     available: true,
@@ -437,7 +465,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة مدرسة",
     nameEn: "School Backpack",
     type: "backpack",
-    price: 820,
+    price: "820",
     sizes: ["M"],
     colors: ["green", "blue"],
     available: true,
@@ -448,7 +476,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة رياضية",
     nameEn: "Gym Duffel",
     type: "travel",
-    price: 990,
+    price: "990",
     sizes: ["L"],
     colors: ["black", "red"],
     available: true,
@@ -459,7 +487,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة عمل",
     nameEn: "Work Briefcase",
     type: "briefcase",
-    price: 1650,
+    price: "1650",
     sizes: ["L"],
     colors: ["black"],
     available: false,
@@ -470,7 +498,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة بحر",
     nameEn: "Beach Tote",
     type: "tote",
-    price: 620,
+    price: "620",
     sizes: ["L"],
     colors: ["yellow", "blue"],
     available: true,
@@ -481,7 +509,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة كاميرا",
     nameEn: "Camera Bag",
     type: "shoulder",
-    price: 1350,
+    price: "1350",
     sizes: ["M"],
     colors: ["black", "gray"],
     available: true,
@@ -492,7 +520,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة يد كلاسيك",
     nameEn: "Classic Handbag",
     type: "handbag",
-    price: 1550,
+    price: "1550",
     sizes: ["M"],
     colors: ["brown", "cream"],
     available: true,
@@ -503,7 +531,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "حقيبة خصر",
     nameEn: "Belt Bag",
     type: "pouch",
-    price: 540,
+    price: "540",
     sizes: ["S"],
     colors: ["black", "green"],
     available: true,
@@ -514,7 +542,7 @@ const bagSeeds: readonly ProductSeed[] = [
     nameAr: "شنطة سفر كبيرة",
     nameEn: "Grand Suitcase",
     type: "travel",
-    price: 3200,
+    price: "3200",
     sizes: ["XL"],
     colors: ["navy", "silver"],
     available: false,
@@ -528,7 +556,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "سماعة النيل",
     nameEn: "Nile Headphones",
     type: "audio",
-    price: 1150,
+    price: "1150",
     sizes: ["standard"],
     colors: ["black", "blue"],
     available: true,
@@ -539,7 +567,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "سماعة جيب",
     nameEn: "Pocket Speaker",
     type: "audio",
-    price: 750,
+    price: "750",
     sizes: ["compact"],
     colors: ["red", "black"],
     available: true,
@@ -550,7 +578,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "شاحن سريع",
     nameEn: "Fast Charger",
     type: "power",
-    price: 420,
+    price: "420",
     sizes: ["standard"],
     colors: ["white"],
     available: true,
@@ -561,7 +589,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "بطارية محمولة",
     nameEn: "Power Bank",
     type: "power",
-    price: 890,
+    price: "890",
     sizes: ["compact"],
     colors: ["black"],
     available: false,
@@ -572,7 +600,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "ساعة القاهرة",
     nameEn: "Cairo Smartwatch",
     type: "wearables",
-    price: 2400,
+    price: "2400",
     sizes: ["40mm", "44mm"],
     colors: ["black", "silver"],
     available: true,
@@ -583,7 +611,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "سوار رياضي",
     nameEn: "Fitness Band",
     type: "wearables",
-    price: 1300,
+    price: "1300",
     sizes: ["standard"],
     colors: ["blue", "black"],
     available: true,
@@ -594,7 +622,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "لوحة مفاتيح",
     nameEn: "Compact Keyboard",
     type: "computer",
-    price: 980,
+    price: "980",
     sizes: ["compact"],
     colors: ["white", "black"],
     available: true,
@@ -605,7 +633,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "ماوس لاسلكي",
     nameEn: "Wireless Mouse",
     type: "computer",
-    price: 560,
+    price: "560",
     sizes: ["standard"],
     colors: ["gray", "black"],
     available: true,
@@ -616,7 +644,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "مصباح مكتب",
     nameEn: "Smart Desk Lamp",
     type: "home",
-    price: 840,
+    price: "840",
     sizes: ["standard"],
     colors: ["white"],
     available: true,
@@ -627,7 +655,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "قابس ذكي",
     nameEn: "Smart Plug",
     type: "home",
-    price: 390,
+    price: "390",
     sizes: ["compact"],
     colors: ["white"],
     available: false,
@@ -638,7 +666,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "كاميرا صغيرة",
     nameEn: "Mini Camera",
     type: "camera",
-    price: 2850,
+    price: "2850",
     sizes: ["compact"],
     colors: ["black"],
     available: true,
@@ -649,7 +677,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "حامل موبايل",
     nameEn: "Phone Stand",
     type: "accessories",
-    price: 260,
+    price: "260",
     sizes: ["standard"],
     colors: ["silver", "black"],
     available: true,
@@ -660,7 +688,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "كابل متين",
     nameEn: "Braided Cable",
     type: "accessories",
-    price: 180,
+    price: "180",
     sizes: ["1m", "2m"],
     colors: ["black", "red"],
     available: true,
@@ -671,7 +699,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "سماعات لاسلكية",
     nameEn: "Wireless Earbuds",
     type: "audio",
-    price: 1650,
+    price: "1650",
     sizes: ["compact"],
     colors: ["white", "black"],
     available: true,
@@ -682,7 +710,7 @@ const electronicsSeeds: readonly ProductSeed[] = [
     nameAr: "قارئ إلكتروني",
     nameEn: "Pocket E-reader",
     type: "computer",
-    price: 3600,
+    price: "3600",
     sizes: ["6-inch"],
     colors: ["black"],
     available: false,
@@ -694,7 +722,7 @@ function inCategory(
   category: Category,
   seeds: readonly ProductSeed[],
 ): Product[] {
-  return seeds.map((seed) => ({ ...seed, category }));
+  return seeds.map((seed) => ({ ...seed, category, price: money(seed.price) }));
 }
 
 export const products: readonly Product[] = [
@@ -712,8 +740,8 @@ export interface ProductConstraints {
   category: Category;
   query?: string;
   type?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  minPrice?: Money;
+  maxPrice?: Money;
   size?: string;
   color?: string;
   availability?: boolean;
@@ -747,12 +775,12 @@ export function filterProducts(constraints: ProductConstraints): Product[] {
       return false;
     if (
       constraints.minPrice !== undefined &&
-      product.price < constraints.minPrice
+      compareMoney(product.price, constraints.minPrice) < 0
     )
       return false;
     if (
       constraints.maxPrice !== undefined &&
-      product.price > constraints.maxPrice
+      compareMoney(product.price, constraints.maxPrice) > 0
     )
       return false;
     if (
@@ -780,7 +808,8 @@ export function filterProducts(constraints: ProductConstraints): Product[] {
   if (constraints.sort === "cheapest") {
     matches.sort(
       (left, right) =>
-        left.price - right.price || left.id.localeCompare(right.id),
+        compareMoney(left.price, right.price) ||
+        left.id.localeCompare(right.id),
     );
   } else if (constraints.sort === "newest") {
     matches.sort(
@@ -794,8 +823,8 @@ export function filterProducts(constraints: ProductConstraints): Product[] {
 
 export interface ShoeConstraints {
   type?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  minPrice?: Money;
+  maxPrice?: Money;
 }
 
 export function filterShoes(constraints: ShoeConstraints): Product[] {

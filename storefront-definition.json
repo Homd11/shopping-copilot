@@ -26,6 +26,44 @@
     "electronics": { "ar": "الإلكترونيات", "en": "Electronics" }
   },
   "vocabulary": {
+    "categories": {
+      "shoes": [
+        "shoe",
+        "shoes",
+        "sneaker",
+        "kootshi",
+        "kotshi",
+        "كوتشي",
+        "حذاء",
+        "أحذية"
+      ],
+      "clothing": ["clothing", "clothes", "jacket", "ملابس", "هدوم", "جاكيت"],
+      "bags": ["bag", "bags", "شنطة", "شنط"],
+      "electronics": ["electronics", "phone", "mobile", "موبايل", "إلكترونيات"]
+    },
+    "types": {
+      "running": ["running", "جري", "للجري", "gari", "gery"],
+      "outerwear": ["jacket", "جاكيت"],
+      "backpack": ["backpack", "حقيبة ظهر"],
+      "headphones": ["headphones", "سماعات"]
+    },
+    "colors": {
+      "black": ["black", "اسود", "أسود"],
+      "blue": ["blue", "ازرق", "أزرق"],
+      "red": ["red", "احمر", "أحمر"],
+      "white": ["white", "ابيض", "أبيض"]
+    },
+    "controls": {
+      "q": ["بحث", "search"],
+      "type": ["نوع الحذاء", "النوع", "type"],
+      "min_price": ["أقل سعر", "minimum price"],
+      "max_price": ["أقصى سعر", "maximum price"],
+      "size": ["المقاس", "size"],
+      "color": ["اللون", "color"],
+      "availability": ["التوفر", "availability"],
+      "sort": ["الترتيب", "sort"],
+      "submit": ["تطبيق الفلاتر", "apply filters"]
+    },
     "availability": {
       "available": ["available", "in stock", "متاح", "موجود"],
       "unavailable": ["unavailable", "out of stock", "غير متاح", "خلصان"]

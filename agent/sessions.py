@@ -3,8 +3,14 @@ from time import monotonic
 from typing import Any, Literal
 from uuid import uuid4
 
-from agent.planner import ActionIdentity, Language, ScriptedPlanner, detect_language
-from agent.schemas import Action, ActionResult, AskShopperAction, Snapshot, to_wire
+from agent.planner import (
+    ActionIdentity,
+    Language,
+    ScriptedPlanner,
+    detect_language,
+    snapshot_matches_url,
+)
+from agent.schemas import Action, ActionResult, AskShopperAction, NavigateAction, Snapshot, to_wire
 
 EventType = Literal["task_started", "narration", "action", "done", "cancelled", "error"]
 TaskStatus = Literal[
@@ -26,6 +32,7 @@ class ActiveTask:
     action: Action
     language: Language
     message: str
+    target_url: str | None = None
     step_count: int = 1
     status: TaskStatus = "awaiting_action_result"
 
@@ -157,6 +164,7 @@ class SessionStore:
             action=action,
             language=detect_language(text),
             message=text,
+            target_url=action.url if isinstance(action, NavigateAction) else None,
         )
         if isinstance(action, AskShopperAction):
             task.status = "awaiting_answer"
@@ -238,6 +246,8 @@ class SessionStore:
             ),
         )
         task.action = action
+        if isinstance(action, NavigateAction):
+            task.target_url = action.url
         task.step_count += 1
         task.status = (
             "awaiting_answer" if isinstance(action, AskShopperAction) else "awaiting_action_result"
@@ -315,6 +325,43 @@ class SessionStore:
             task.status = "awaiting_answer"
             session.last_snapshot = action_result.snapshot
             session.conversation.append({"role": "copilot", "text": narration})
+            self._touch(session)
+            return task
+        if task.target_url is not None and not snapshot_matches_url(
+            action_result.snapshot, task.target_url
+        ):
+            next_action = self._planner.plan_visible_control_fallback(
+                task.target_url,
+                action_result.snapshot,
+                ActionIdentity(
+                    task_id=task.task_id,
+                    action_id=f"action-{uuid4().hex}",
+                    sequence_number=action.sequence_number + 1,
+                ),
+                task.language,
+            )
+            self._append(
+                session,
+                "narration",
+                {"task_id": task.task_id, "text": next_action.narration},
+            )
+            self._append(
+                session,
+                "action",
+                {"task_id": task.task_id, "action": to_wire(next_action)},
+            )
+            session.accepted_results[result_identity] = AcceptedResult(
+                task=task, result=action_result
+            )
+            task.action = next_action
+            task.step_count += 1
+            task.status = (
+                "awaiting_answer"
+                if isinstance(next_action, AskShopperAction)
+                else "awaiting_action_result"
+            )
+            session.last_snapshot = action_result.snapshot
+            session.conversation.append({"role": "copilot", "text": next_action.narration})
             self._touch(session)
             return task
         narration = (
