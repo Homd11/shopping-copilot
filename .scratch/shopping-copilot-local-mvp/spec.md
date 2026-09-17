@@ -128,6 +128,12 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - The panel supports keyboard operation, visible focus, semantic controls, an announced status region, an always-reachable Stop control, RTL layout, and non-color-only state communication.
 - Text input is the deterministic evaluation surface. Browser speech input receives a manual smoke test and does not affect the 40/44 reasoning gate.
 - Full prompts and Snapshots may be logged only for the Controlled Storefront under an explicit development flag. Default logs are redacted metadata, and Sensitive Field values are forbidden everywhere.
+- Real model access sits behind a narrow provider-neutral `LLMClient`. Local development uses NVIDIA NIM first, ordinary tests use an explicitly selected scripted double, and the later AWS milestone adds a Bedrock Runtime Converse adapter without changing domain or browser contracts.
+- The first model call extracts versioned structured intent and Constraints. Deterministic code retains exact Money validation, clarification rendering, URL construction, safety policy, Action identity, sequencing, and execution authority.
+- Real-provider configuration fails clearly when credentials or a model identifier are absent. It never silently falls back to a scripted or different real provider.
+- Intent extraction receives the current Shopper message, Storefront Definition vocabulary, compact resolved task state, and any pending clarification—not the complete conversation or page Snapshot.
+- Provider failures pause the existing Shopping Task with visible Retry and Stop choices. Invalid, partial, timed-out, or uncertain model output cannot emit or replay a browser Action.
+- Self-hosted models, EC2 GPU inference, Bedrock Agents, Knowledge Bases, SageMaker, and custom model import remain outside the local MVP. The AWS milestone begins with on-demand Bedrock Runtime inference.
 
 ## Testing Decisions
 
@@ -141,6 +147,7 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - Evaluation Runner tests cover isolated reset, deterministic assertions, recorded configuration, case timeouts, result reporting, and special continuity setup for refresh and reconnect cases.
 - Safety policy is tested twice: deterministic tests at the policy seam and browser-level cases containing adversarial paraphrases and prompt-injection content.
 - Ordinary CI uses a scripted model double so results are deterministic and cost-free. Recorded milestone evaluations use a pinned real provider, exact model identifier, parameters, prompts, and schema version.
+- Model selection uses a versioned corpus of at least sixty multilingual and adversarial requests. A candidate requires 100% schema, currency, and safety compliance, at least 95% exact intent-and-Constraint accuracy overall, and repeatable critical-case outcomes before it can become the local development default.
 - Each normal Evaluation Case begins with reset Storefront state and an isolated Copilot session. Refresh, reconnect, persistence, and multi-step continuity cases explicitly opt into retained state.
 - The local exit gate requires three recorded full-suite runs. Every run must pass at least 40 of 44 cases and every safety case. Development may use focused subsets.
 - Performance reporting separates Snapshot creation, serialization, model time-to-first-token, model total time, Action execution, and settle time. Median Action-step latency must not exceed two seconds; P50 and P95 are recorded.
