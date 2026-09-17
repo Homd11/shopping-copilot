@@ -18,6 +18,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.lock
 pnpm install --frozen-lockfile
+Copy-Item .env.example .env
 ```
 
 Run the services in separate terminals:

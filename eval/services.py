@@ -3,7 +3,7 @@ import shutil
 import subprocess
 import sys
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
 from urllib.error import URLError
@@ -48,6 +48,14 @@ def service_commands(node: Path) -> tuple[list[str], ...]:
     )
 
 
+def service_environment(base: Mapping[str, str] | None = None) -> dict[str, str]:
+    """Return the isolated environment used by the local evaluation services."""
+    environment = dict(os.environ if base is None else base)
+    environment["LLM_PROVIDER"] = "scripted"
+    environment["LLM_MODEL"] = "scripted-v1"
+    return environment
+
+
 def _wait_for(url: str, timeout_seconds: float = 20) -> None:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
@@ -73,6 +81,7 @@ def local_services() -> Iterator[None]:
     )
     creation_flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     commands = service_commands(Path(node))
+    environment = service_environment()
     processes = [
         subprocess.Popen(  # noqa: S603 - fixed local commands without a shell
             command,
@@ -80,6 +89,7 @@ def local_services() -> Iterator[None]:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             creationflags=creation_flags,
+            env=environment,
         )
         for command in commands
     ]
