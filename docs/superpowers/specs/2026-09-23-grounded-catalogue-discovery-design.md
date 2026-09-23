@@ -1,12 +1,14 @@
-# 07E Grounded Catalogue Discovery — Design for review
+# 07E Grounded Catalogue Discovery — Stage 1 design for review
 
-**Status:** Proposed design; owner approved the feature scope and 07E priority, but has not yet reviewed this written design.
+**Status:** Written Stage 1 design for owner review. The owner approved the four-stage graduation sequence and the controlled Storefront direction, but has not yet reviewed this document as the 07E implementation contract.
 
 ## Intent and scope
 
 The Shopping Copilot must handle goal-oriented requests, not merely translate them into Storefront filters. It should show two or three grounded options immediately, with a short factual reason, and ask about occasion or style only when the available evidence cannot support a useful choice. It must distinguish an Exact Match from an Alternative and from a Styling Suggestion. A broad result must never be described as satisfying a narrower request.
 
-This is a controlled-Storefront, local-MVP extension of Ticket 07E. It uses the existing fictional catalogue and the pinned local model. It introduces no Redis, PostgreSQL, vector store, external commerce catalogue, personalization history, currency conversion, or AWS dependency. Browser Actions and their safety contract remain unchanged.
+This is **Stage 1** of the approved graduation sequence: stabilize grounded discovery on the controlled Storefront and finish its three owner-written browser requests. It uses the existing fictional catalogue, curated explicit attributes, simulated EGP prices and availability, and the pinned local model. It introduces no Redis, PostgreSQL, vector store, external commerce catalogue, personalization history, currency conversion, or AWS dependency. Browser Actions and their safety contract remain unchanged.
+
+The later stages are deliberately separate: Stage 2 adds the product/cart/simulated-checkout browser journey under the approved Confirmation, Undo, Sensitive Field, and refresh-recovery requirements; Stage 3 expands the legally usable fashion-and-shoes catalogue and benchmarks retrieval; Stage 4 deploys and evaluates the proven flow on AWS. Stage 1 must not imply that a cart or checkout route already works: the current Storefront only renders a cart link, with no cart/checkout routes in `store/src/app.ts`. Each stage ends in a working browser demonstration before the next begins.
 
 The three owner-written acceptance requests cover (1) a light summer/beach shirt, (2) black formal leather shoes for a wedding with a non-numeric price preference, and (3) size-43 running shoes suitable for daily workouts and street running. Their exact wording is evaluation input, not a source of new phrase-specific matching rules.
 
@@ -59,6 +61,7 @@ The live browser evaluator currently expects English completion text for a Latin
 - Test the Intent Boundary directly with model outputs that omit wedding material, occasion/formality, color, and soft price preference. Every omission blocks an Exact Match claim and Action rather than broadening silently. Test Arabic, Franco-Arabic, and mixed-language source coverage without hardcoding the three complete sentences into production vocabulary.
 - Test the Panel/Agent browser flow for zero Exact Matches with two or three labelled Alternatives, open-ended black-trousers-to-upper-body suggestions, refresh recovery of suggestions, catalogue failure, Stop, and no unexpected cart mutation. Preserve all existing off-origin, Sensitive Field, Confirmation, stale/duplicate Action, and uncertain-refresh regressions.
 - Rerun the **same three owner-written requests** through the pinned real-model browser path after implementation. Record model metadata, browser state, candidate IDs, labels, unmet requirements, and visible copy without storing credentials or sensitive data. Success requires grounded exact/alternative labels and no silent requirement loss; merely reaching a category page or showing a nonzero product count is insufficient.
+- Deliver a Stage 1 browser demonstration in which a Shopper can see the verified 07E suggestions and explanations for those requests. Product selection may navigate through existing safe Actions, but Stage 1 makes no claim to a working cart or checkout. Cart and simulated checkout receive their own Stage 2 browser gate.
 - Run repository format, lint, unit/integration tests, and production build. Do not mark 07E complete until the three owner requests and existing safety tests pass. Intermittent provider latency is reported separately from semantic accuracy.
 
 ## Decisions still requiring implementation review
