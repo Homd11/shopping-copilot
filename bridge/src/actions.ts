@@ -241,6 +241,12 @@ export async function executeAction(
   if (registered === undefined)
     return result(action, "not_found", environment.builder);
   const { element, sensitive } = registered;
+  if (
+    !environment.builder.isVisibleNow(element) ||
+    element.closest('[inert], [aria-disabled="true"], fieldset[disabled]') ||
+    element.matches(":disabled")
+  )
+    return result(action, "blocked", environment.builder);
   let cartForm: HTMLFormElement | undefined;
   let interactionUrl: string | null;
   try {

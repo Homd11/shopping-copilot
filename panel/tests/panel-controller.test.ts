@@ -27,8 +27,24 @@ function setup(options?: {
   answerStatus?: "resumed" | "awaiting_login";
   answerGate?: Promise<void>;
   reconcileGate?: Promise<void>;
+  speechRecognition?: new () => {
+    lang: string;
+    onresult:
+      | ((event: {
+          results: ArrayLike<ArrayLike<{ transcript: string }>>;
+        }) => void)
+      | null;
+    onerror: (() => void) | null;
+    onend: (() => void) | null;
+    start(): void;
+    abort(): void;
+  };
 }) {
   const dom = new JSDOM('<!doctype html><div id="app"></div>');
+  if (options?.speechRecognition)
+    Object.defineProperty(dom.window, "SpeechRecognition", {
+      value: options.speechRecognition,
+    });
   const submitted: Array<{
     sessionId: string;
     text: string;
@@ -339,6 +355,7 @@ describe("PanelController", () => {
       '[data-question-option="2000 EGP"]',
     )!;
     expect(option).not.toBeNull();
+    expect(context.dom.window.document.activeElement).toBe(option);
     option.click();
     await Promise.resolve();
 
@@ -845,4 +862,71 @@ describe("PanelController", () => {
       );
     },
   );
+
+  it("keeps Stop available and disables speech when the browser lacks recognition", async () => {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(
+      context.root.querySelector<HTMLButtonElement>("#stop-task")?.disabled,
+    ).toBe(false);
+    expect(
+      context.root.querySelector<HTMLButtonElement>("#speech-input")?.disabled,
+    ).toBe(true);
+    context.root.querySelector<HTMLButtonElement>("#stop-task")?.click();
+    expect(context.stopped).toEqual(["session-1"]);
+  });
+
+  it("transcribes selected Arabic or English speech into the editable input without submitting", async () => {
+    const recognitions: Array<{
+      lang: string;
+      onresult:
+        | ((event: {
+            results: ArrayLike<ArrayLike<{ transcript: string }>>;
+          }) => void)
+        | null;
+      onend: (() => void) | null;
+      aborted: boolean;
+    }> = [];
+    class FakeSpeechRecognition {
+      lang = "";
+      onresult:
+        | ((event: {
+            results: ArrayLike<ArrayLike<{ transcript: string }>>;
+          }) => void)
+        | null = null;
+      onerror: (() => void) | null = null;
+      onend: (() => void) | null = null;
+      aborted = false;
+      constructor() {
+        recognitions.push(this);
+      }
+      start() {
+        /* browser mock */
+      }
+      abort() {
+        this.aborted = true;
+        this.onend?.();
+      }
+    }
+    const context = setup({ speechRecognition: FakeSpeechRecognition });
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    expect(recognitions[0]?.lang).toBe("ar-EG");
+    recognitions[0]?.onresult?.({
+      results: [[{ transcript: "عايز كوتشي جري" }]],
+    });
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")?.value,
+    ).toBe("عايز كوتشي جري");
+    expect(context.submitted).toEqual([]);
+    context.root.querySelector<HTMLSelectElement>("#speech-language")!.value =
+      "en-US";
+    recognitions[0]?.onend?.();
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    expect(recognitions[1]?.lang).toBe("en-US");
+    context.root.querySelector<HTMLButtonElement>("#stop-task")?.click();
+    expect(recognitions[1]?.aborted).toBe(true);
+  });
 });

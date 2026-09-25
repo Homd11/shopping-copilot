@@ -8,6 +8,8 @@
   const feedback = document.getElementById("cart-feedback");
   const undoForm = document.getElementById("undo-form");
   const badge = document.querySelector('header a[href="/cart"]');
+  const miniCartCount = document.getElementById("mini-cart-count");
+  const miniCartSummary = document.getElementById("mini-cart-summary");
   const messages = {
     add: ["تمت الإضافة إلى السلة", "Added to cart"],
     quantity: ["تم تحديث الكمية", "Quantity updated"],
@@ -45,6 +47,11 @@
   function render(next, showUndo = true) {
     state = next;
     badge.textContent = `السلة (${next.count})`;
+    if (miniCartCount) miniCartCount.textContent = String(next.count);
+    if (miniCartSummary)
+      miniCartSummary.textContent = next.lines.length
+        ? `السلة فيها ${next.lines.length} منتج، ${next.count} قطعة`
+        : "السلة فارغة";
     const contents = document.getElementById("cart-contents");
     if (contents) contents.innerHTML = next.html;
     document.documentElement.dataset.cartRevision = String(next.revision);

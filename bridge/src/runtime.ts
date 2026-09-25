@@ -61,6 +61,12 @@ async function settleDocument(document: Document): Promise<void> {
     view.requestAnimationFrame(() => resolve()),
   );
   await new Promise<void>((resolve) => view.setTimeout(resolve, 300));
+  const start = Date.now();
+  while (
+    document.querySelector('[aria-busy="true"]') !== null &&
+    Date.now() - start < 3000
+  )
+    await new Promise<void>((resolve) => view.setTimeout(resolve, 25));
 }
 
 function readLedger(storage: StorageLike): ActionLedger {

@@ -140,6 +140,106 @@ header {
   padding: 24px 5%;
   border-bottom: 1px solid var(--line);
 }
+.mobile-menu {
+  display: none;
+}
+.mini-cart {
+  position: relative;
+}
+.mini-cart summary,
+.mobile-menu summary,
+.filter-drawer summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  font-weight: 600;
+}
+.mini-cart[open] > p {
+  position: absolute;
+  z-index: 9;
+  inset-inline-end: 0;
+  width: 220px;
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.mini-cart[open] > p {
+  top: 44px;
+}
+.filter-drawer {
+  display: contents;
+}
+.filter-drawer > summary {
+  display: none;
+}
+.filter-drawer > form {
+  background: var(--surface);
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.sort-native {
+  display: block;
+}
+.sort-custom {
+  display: none;
+  position: relative;
+}
+.sort-custom > button {
+  width: 100%;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: #8e9b8d;
+}
+.sort-custom [role="listbox"] {
+  position: absolute;
+  z-index: 4;
+  inset-inline: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.sort-custom [role="option"] {
+  display: block;
+  width: 100%;
+  background: var(--surface);
+  color: var(--ink);
+  border: 0;
+  text-align: start;
+}
+.sort-custom [aria-selected="true"] {
+  background: var(--sage);
+  font-weight: 700;
+}
+.size-swatches {
+  grid-column: 1/-1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.size-swatches button {
+  min-width: 48px;
+  padding: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.size-swatches [aria-pressed="true"] {
+  border: 2px solid var(--accent);
+  font-weight: 700;
+}
+.detail-link {
+  display: inline-block;
+  min-height: 44px;
+  padding: 8px 0;
+}
+#load-more-products {
+  grid-column: 1/-1;
+  justify-self: center;
+}
 .brand {
   font-size: 20px;
   font-weight: 750;
@@ -324,12 +424,6 @@ main:has(#results-heading) {
 main:has(#results-heading) > h1 {
   grid-column: 1/-1;
   margin-bottom: 0;
-}
-main:has(#results-heading) > form {
-  background: var(--surface);
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
 }
 main:has(#results-heading) form button {
   width: 100%;
@@ -680,6 +774,52 @@ footer span {
   }
 }
 @media (max-width: 600px) {
+  header .mobile-menu {
+    display: block;
+    order: 2;
+  }
+  .mobile-menu nav {
+    position: absolute;
+    z-index: 8;
+    inset-inline: 5%;
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 24px #24362f25;
+  }
+  .mobile-menu nav a {
+    min-height: 44px;
+    padding: 8px;
+  }
+  header nav[aria-label="التنقل الرئيسي"] a[href="/account"] {
+    display: none;
+  }
+  .mini-cart {
+    order: 2;
+  }
+  .filter-drawer {
+    display: block;
+  }
+  .filter-drawer > summary {
+    display: list-item;
+  }
+  .filter-drawer:not([data-mobile-ready]) > form {
+    display: none;
+  }
+  .filter-drawer:not([open]) > form {
+    display: none;
+  }
+  .filter-drawer > form {
+    margin-top: 8px;
+  }
+  .sort-native {
+    display: none;
+  }
+  .sort-custom {
+    display: block;
+  }
   main {
     padding: 26px 5% 42px;
   }
@@ -725,20 +865,21 @@ footer span {
   main:has(#results-heading) {
     grid-template-columns: 1fr;
   }
-  main:has(#results-heading) > form {
+  main:has(#results-heading) .filter-drawer > form {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px 12px;
   }
-  main:has(#results-heading) > form > label {
+  main:has(#results-heading) .filter-drawer > form > label {
     grid-column: 1;
   }
-  main:has(#results-heading) > form > input,
-  main:has(#results-heading) > form > select {
+  main:has(#results-heading) .filter-drawer > form > input,
+  main:has(#results-heading) .filter-drawer > form > select,
+  main:has(#results-heading) .sort-custom {
     grid-column: 2;
   }
-  main:has(#results-heading) > form fieldset,
-  main:has(#results-heading) > form button {
+  main:has(#results-heading) .filter-drawer > form fieldset,
+  main:has(#results-heading) .filter-drawer > form > button {
     grid-column: 1/-1;
   }
   main:has(#results-heading) fieldset label {
