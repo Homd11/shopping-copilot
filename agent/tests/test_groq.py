@@ -96,7 +96,7 @@ def test_groq_client_uses_strict_structured_output_behind_the_llm_interface() ->
     }
 
 
-def test_groq_client_retries_invalid_output_without_exposing_its_key() -> None:
+def test_groq_client_does_not_repeat_invalid_output_or_expose_its_key() -> None:
     settings = load_llm_settings(
         {
             "LLM_PROVIDER": "groq",
@@ -130,6 +130,50 @@ def test_groq_client_retries_invalid_output_without_exposing_its_key() -> None:
     with pytest.raises(ValueError) as captured:
         asyncio.run(collect())
 
-    assert attempts == 2
+    assert attempts == 1
     assert "secret-groq-test-key" not in str(captured.value)
     assert client.call_metadata[-1].failure_category == "invalid_response"
+
+
+def test_rate_limit_stops_immediate_and_manual_retry_until_provider_cooldown():
+    from agent.llm.groq import GroqRateLimitError
+
+    settings = load_llm_settings(
+        {
+            "LLM_PROVIDER": "groq",
+            "LLM_MODEL": "openai/gpt-oss-120b",
+            "GROQ_API_KEY": "test-key",
+            "GROQ_BASE_URL": "https://example.test/openai/v1",
+        }
+    )
+    attempts = 0
+    now = [0.0]
+
+    async def handler(request):
+        nonlocal attempts
+        attempts += 1
+        return httpx.Response(
+            429,
+            headers={"retry-after": "8"},
+            json={"error": {"message": "private provider details"}},
+        )
+
+    client = GroqClient(settings, transport=httpx.MockTransport(handler), clock=lambda: now[0])
+    request = build_intent_request(
+        "Find shoes",
+        storefront=load_storefront_definition(),
+        resolved_state={},
+        pending_clarification=None,
+    )
+
+    async def run():
+        for instant in [0, 2, 8]:
+            now[0] = instant
+            with pytest.raises(GroqRateLimitError) as error:
+                async for _ in client.complete(request):
+                    pass
+            assert error.value.retry_after_seconds == (6 if instant == 2 else 8)
+            assert "private provider details" not in str(error.value)
+
+    asyncio.run(run())
+    assert attempts == 2

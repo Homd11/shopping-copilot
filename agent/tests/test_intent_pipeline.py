@@ -210,7 +210,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert "Do not repeat the input context" in request.system
     assert "v=6" in request.system
     assert '"product_type"' in request.system
-    assert '"max_price": {"amount": "2500", "currency": "EGP"}' in request.system
+    assert '"max_price":{"amount":"2500","currency":"EGP"}' in request.system
     assert "Never infer an unspecified constraint" in request.system
     assert "encode absent optional fields as null" in request.system
     assert "only when missing_fields or conflicting_fields is non-empty" in request.system
@@ -218,10 +218,10 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert "Off-topic and unsupported messages use no constraints" in request.system
     assert "3ayez kootshi gari aswad" in request.system
     assert "عاوز black running shoes" in request.system
-    assert '"shopper": "Where is my cart?"' in request.system
-    assert '"shopper": "Open order history"' in request.system
-    assert '"shopper": "فين السلة؟"' in request.system
-    assert '"shopper": "efta7 el hesab"' in request.system
+    assert '"shopper":"Where is my cart?"' in request.system
+    assert '"shopper":"Open order history"' in request.system
+    assert '"shopper":"فين السلة؟"' in request.system
+    assert '"shopper":"efta7 el hesab"' in request.system
     assert "Example output" in request.system
     context = json.loads(
         request.system.split("\n", maxsplit=1)[0].removeprefix("Shopping Copilot intent context: ")
@@ -230,7 +230,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert context["navigation_destinations"]["orders"]["route"] == "/account/orders"
     assert request.response_schema is not None
-    assert request.prompt_version == "intent-v13"
+    assert request.prompt_version == "intent-v14"
     assert request.schema_version == 6
     assert request.response_schema["properties"]["v"]["const"] == 6
 

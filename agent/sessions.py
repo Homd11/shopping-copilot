@@ -582,7 +582,13 @@ class SessionStore:
         return task
 
     def fail_interpretation(
-        self, session_id: str, task_id: str, call_id: str, reason: InterpretationPauseReason
+        self,
+        session_id: str,
+        task_id: str,
+        call_id: str,
+        reason: InterpretationPauseReason,
+        *,
+        retry_after_seconds: int | None = None,
     ) -> None:
         session = self.get(session_id)
         task = session.active_task
@@ -628,6 +634,14 @@ class SessionStore:
                 "An unexpected error paused the task; the exact cause is unknown. Retry or stop.",
             ),
         }
+        if reason == "throttled" and retry_after_seconds is not None:
+            messages["throttled"] = (
+                f"وصلنا لحد استخدام النموذج. انتظر {retry_after_seconds} ثانية قبل إعادة المحاولة. "
+                "لم يتم تعديل السلة.",
+                f"Model limit reached. Wait {retry_after_seconds} seconds before retrying. "
+                "The cart was not changed.",
+            )
+
         message = messages[reason][0 if task.language == "ar" else 1]
         task.pause_message = message
         self._append(session, "error", {"task_id": task_id, "message": message})

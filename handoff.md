@@ -1,5 +1,13 @@
 # Shopping Copilot — project handoff
 
+## Groq cooldown and live acceptance — 2026-09-25
+
+A direct diagnostic identified the actual failure as Groq's token-per-minute limit: limit 8000, used 4299, requested 4690, Retry-After 8 seconds. The daily allowance was not shown exhausted. The adapter now respects the provider cooldown, blocks early retry HTTP calls, avoids automatically repeating invalid structured output, and reports remaining wait seconds. Prompt JSON and schema annotations were compacted without removing validation. Prompt intent-v14 and current-message written-number validation handle the owner's `اتنين كمان` phrase.
+
+Final complete workspace verification: **137 TypeScript and 333 Python tests passed**; build, ESLint, Ruff lint/format and diff checks passed. Bounded Standards and Spec reviews found no remaining actionable issue. Details: `docs/superpowers/plans/2026-09-25-groq-cooldown.md`.
+
+**Live Groq browser acceptance passed:** from a two-product cart, the exact message `عايزك تضيف اتنين كمان من كوتشي صانع اللعب` completed, changing Playmaker quantity from 1 to 3 and leaving Cairo Jacket at 1. The original two cart quantities were restored after this test. All three services are running with the owner's configured provider/key. A minute limit can still occur; the UI now reports its cooldown rather than repeatedly sending the request. No API key replacement, model fallback, architecture refactor or Ticket 12 work was added.
+
 ## Manual acceptance fixes — 2026-09-25
 
 Owner testing exposed selected-product handback, Arabic variant validation, relative quantity, and manual empty-cart gaps after Ticket 11B. These are fixed: current visible options resolve the model's missing-query response; explicit Arabic size/color evidence is preserved without using owned-item colors; v6 Structured Intent (`intent-v13`) distinguishes set/increase/decrease and validates direction before changing a named line; the manual clear button now presents a cancelable confirmation and uses existing single-use, revision-bound authority. Ordinary Bridge clicks remain blocked, and stale cart confirmation cannot clear the cart.

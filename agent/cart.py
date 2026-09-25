@@ -27,7 +27,10 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
         raise ValueError("Negated cart edit")
     cues = {
         "add": r"\badd\b|ضيف|أضف|اضف|حط",
-        "quantity": r"quantity|change|set|increase|decrease|reduce|كمية|خلي|غير|زود|زوّد|قلل|نقص",
+        "quantity": (
+            r"quantity|change|set|increase|decrease|reduce|add|ضيف|كمية"
+            r"|خلي|غير|زود|زوّد|قلل|نقص"
+        ),
         "remove": r"remove|delete|شيل|احذف|حذف",
         "undo": r"undo|تراجع|رجع",
     }
@@ -92,7 +95,18 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
             raise ValueError("Relative quantity must be explicitly requested")
     if intent.cart_quantity is not None:
         digits = message.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
-        if not re.search(rf"(?<!\d){intent.cart_quantity}(?!\d)", digits):
+        quantity_words = {
+            1: ("one", "واحد", "واحدة"),
+            2: ("two", "اتنين", "اثنين", "إتنين"),
+            3: ("three", "تلاتة", "ثلاثة"),
+            4: ("four", "اربعة", "أربعة"),
+            5: ("five", "خمسة"),
+        }
+        explicit_word = any(
+            re.search(rf"(?<!\w){word}(?!\w)", message, re.I)
+            for word in quantity_words.get(intent.cart_quantity, ())
+        )
+        if not explicit_word and not re.search(rf"(?<!\d){intent.cart_quantity}(?!\d)", digits):
             raise ValueError("Cart quantity must be explicitly requested")
 
     return intent

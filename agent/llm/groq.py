@@ -1,7 +1,8 @@
 import asyncio
-from collections.abc import AsyncIterator, Mapping
+from collections.abc import AsyncIterator, Callable, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
+from math import ceil, isfinite
 from time import monotonic
 from typing import Any
 
@@ -24,6 +25,12 @@ class GroqCallMetadata:
     failure_category: str | None
 
 
+class GroqRateLimitError(Exception):
+    def __init__(self, retry_after_seconds: int) -> None:
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__(f"Model rate limit: retry after {retry_after_seconds} seconds")
+
+
 class GroqClient:
     """Groq adapter with strict structured output for the Intent Interpreter."""
 
@@ -32,9 +39,12 @@ class GroqClient:
         settings: LLMSettings,
         *,
         transport: httpx.AsyncBaseTransport | None = None,
+        clock: Callable[[], float] = monotonic,
     ) -> None:
         if settings.provider != "groq" or settings.api_key is None or settings.endpoint is None:
             raise LLMConfigurationError("Groq settings require a key and endpoint")
+        self._clock = clock
+        self._retry_at = 0.0
         self._settings = settings
         self._transport = transport
         self.call_metadata: list[GroqCallMetadata] = []
@@ -42,6 +52,8 @@ class GroqClient:
     async def complete(self, request: LLMRequest) -> AsyncIterator[LLMChunk]:
         started = monotonic()
         try:
+            if self._clock() < self._retry_at:
+                raise GroqRateLimitError(ceil(self._retry_at - self._clock()))
             chunks, usage = await self._complete_with_retry(request)
         except Exception as error:
             self._record(request, started, usage=None, failure_category=_failure_category(error))
@@ -104,6 +116,15 @@ class GroqClient:
             timeout=self._settings.timeout_seconds,
         ) as client:
             response = await client.post(endpoint, headers=headers, json=payload)
+            if response.status_code == 429:
+                try:
+                    delay = float(response.headers.get("retry-after", "60"))
+                except ValueError:
+                    delay = 60
+                if not isfinite(delay) or delay <= 0:
+                    delay = 60
+                self._retry_at = self._clock() + delay
+                raise GroqRateLimitError(ceil(delay))
             response.raise_for_status()
         chunks, usage = _parse_completion(response.json())
         if request.response_validator is not None:
@@ -146,6 +167,8 @@ def _strict_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
     def visit(value: object) -> None:
         if isinstance(value, dict):
             value.pop("default", None)
+            value.pop("title", None)
+            value.pop("description", None)
             properties = value.get("properties")
             if isinstance(properties, dict):
                 value["additionalProperties"] = False
@@ -183,11 +206,13 @@ def _parse_completion(payload: object) -> tuple[list[LLMChunk], dict[str, int] |
 
 def _is_retryable(error: Exception) -> bool:
     if isinstance(error, httpx.HTTPStatusError):
-        return error.response.status_code == 429 or error.response.status_code >= 500
-    return isinstance(error, httpx.TimeoutException | httpx.TransportError | ValueError)
+        return error.response.status_code >= 500
+    return isinstance(error, httpx.TimeoutException | httpx.TransportError)
 
 
 def _failure_category(error: Exception) -> str:
+    if isinstance(error, GroqRateLimitError):
+        return "throttled"
     if isinstance(error, httpx.HTTPStatusError):
         return "throttled" if error.response.status_code == 429 else "http"
     if isinstance(error, httpx.TimeoutException):

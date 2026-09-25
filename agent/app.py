@@ -14,6 +14,7 @@ from starlette.responses import StreamingResponse
 
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
+from agent.llm.groq import GroqRateLimitError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
 from agent.sessions import (
@@ -66,6 +67,8 @@ def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
+    if isinstance(error, GroqRateLimitError):
+        return "throttled"
     if isinstance(error, httpx.HTTPStatusError):
         return "throttled" if error.response.status_code == 429 else "provider_http"
     if isinstance(error, httpx.TimeoutException):
@@ -182,7 +185,13 @@ def create_app(
                 if phase == "catalogue"
                 else interpretation_pause_reason(error)
             )
-            sessions.fail_interpretation(session_id, task_id, call_id, reason)
+            sessions.fail_interpretation(
+                session_id,
+                task_id,
+                call_id,
+                reason,
+                retry_after_seconds=getattr(error, "retry_after_seconds", None),
+            )
 
     @app.get("/health")
     async def health() -> dict[str, str]:
