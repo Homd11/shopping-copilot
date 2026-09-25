@@ -230,7 +230,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert context["navigation_destinations"]["orders"]["route"] == "/account/orders"
     assert request.response_schema is not None
-    assert request.prompt_version == "intent-v14"
+    assert request.prompt_version == "intent-v15"
     assert request.schema_version == 6
     assert request.response_schema["properties"]["v"]["const"] == 6
 

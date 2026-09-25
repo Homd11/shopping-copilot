@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## Gemini evaluation update — 2026-09-25
+
+The newest status is in PROJECT_CHECKPOINT.md. Gemini adapter and two Egyptian
+Arabic boundary fixes are implemented; prompt is intent-v15. The final live run
+passed 3 cases, then Google's 20 requests/day/model free-tier limit blocked the
+remaining evaluation. Do not claim full live acceptance or switch the demo yet.
+Resume the opt-in `python -m eval.gemini_cart --repeats 2` after quota availability,
+then verify cart edits, guarded clear and Undo in the live browser. See
+`docs/superpowers/plans/2026-09-25-gemini-cart-evaluation.md`. Preserve .env keys.
+
 ## Groq cooldown and live acceptance — 2026-09-25
 
 A direct diagnostic identified the actual failure as Groq's token-per-minute limit: limit 8000, used 4299, requested 4690, Retry-After 8 seconds. The daily allowance was not shown exhausted. The adapter now respects the provider cooldown, blocks early retry HTTP calls, avoids automatically repeating invalid structured output, and reports remaining wait seconds. Prompt JSON and schema annotations were compacted without removing validation. Prompt intent-v14 and current-message written-number validation handle the owner's `اتنين كمان` phrase.

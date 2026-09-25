@@ -103,7 +103,11 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
             5: ("five", "خمسة"),
         }
         explicit_word = any(
-            re.search(rf"(?<!\w){word}(?!\w)", message, re.I)
+            re.search(
+                rf"(?<!\w){'ب?' if re.search('[ء-ي]', word) else ''}{word}(?!\w)",
+                message,
+                re.I,
+            )
             for word in quantity_words.get(intent.cart_quantity, ())
         )
         if not explicit_word and not re.search(rf"(?<!\d){intent.cart_quantity}(?!\d)", digits):

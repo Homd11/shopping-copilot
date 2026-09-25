@@ -14,6 +14,7 @@ from starlette.responses import StreamingResponse
 
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
+from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
@@ -67,7 +68,7 @@ def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
-    if isinstance(error, GroqRateLimitError):
+    if isinstance(error, GroqRateLimitError | GeminiRateLimitError):
         return "throttled"
     if isinstance(error, httpx.HTTPStatusError):
         return "throttled" if error.response.status_code == 429 else "provider_http"
