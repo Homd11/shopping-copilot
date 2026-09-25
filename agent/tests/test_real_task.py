@@ -1636,3 +1636,27 @@ def test_cancelled_model_request_pauses_task_without_action() -> None:
             assert any(event["event"] == "error" for event in events)
 
     asyncio.run(scenario())
+
+
+def test_provider_cooldown_pauses_with_wait_time_and_no_action():
+    from agent.app import interpretation_pause_reason
+    from agent.llm.groq import GroqRateLimitError
+    from agent.schemas import Snapshot
+    from agent.sessions import SessionStore
+    from agent.tests.test_step import home_snapshot
+
+    sessions = SessionStore()
+    session = sessions.create()
+    task = sessions.begin_interpretation(
+        session.session_id, "Find shoes", Snapshot.model_validate(home_snapshot())
+    )
+    sessions.fail_interpretation(
+        session.session_id,
+        task.task_id,
+        task.model_call_id,
+        interpretation_pause_reason(GroqRateLimitError(8)),
+        retry_after_seconds=8,
+    )
+    assert task.status == "paused"
+    assert task.action is None
+    assert "8 seconds" in task.pause_message

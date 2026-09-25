@@ -232,3 +232,18 @@ def test_owned_color_does_not_override_current_selected_variant():
     requested = validate_cart_intent(message, intent(message))
     assert requested.constraints.color is None
     assert [a.type for a in plan_cart_edit(requested, snapshot(), "task-test", 1)] == ["click"]
+
+
+def test_arabic_written_quantity_is_validated_from_current_request():
+    from agent.cart import validate_cart_intent
+
+    source = "عايزك تضيف اتنين كمان من كوتشي صانع اللعب"
+    payload = intent(source).model_dump()
+    payload.update(
+        v=6,
+        cart_operation="quantity",
+        cart_target="صانع اللعب",
+        cart_quantity=2,
+        cart_quantity_mode="increase",
+    )
+    assert validate_cart_intent(source, StructuredIntent.model_validate(payload)).cart_quantity == 2
