@@ -432,7 +432,7 @@ def test_v3_non_navigation_intent_is_not_rewritten_by_navigation_cues(message, i
     assert intent.constraints.target is None
 
 
-def test_live_intent_request_requires_schema_version_five():
+def test_live_intent_request_requires_schema_version_six():
     request = build_intent_request(
         "show shoes",
         storefront=load_storefront_definition(),
@@ -440,7 +440,7 @@ def test_live_intent_request_requires_schema_version_five():
         pending_clarification=None,
     )
 
-    assert request.response_schema["properties"]["v"] == {"const": 5, "type": "integer"}
+    assert request.response_schema["properties"]["v"] == {"const": 6, "type": "integer"}
 
 
 def test_v3_still_blocks_prompt_override_and_mixed_authority():

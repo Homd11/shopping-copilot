@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-09-25
 
+## Manual acceptance fixes — 2026-09-25
+
+Owner testing exposed selected-product handback, Arabic variant validation, relative quantity, and manual empty-cart gaps after Ticket 11B. These are fixed: current visible options resolve the model's missing-query response; explicit Arabic size/color evidence is preserved without using owned-item colors; v6 Structured Intent (`intent-v13`) distinguishes set/increase/decrease and validates direction before changing a named line; the manual clear button now presents a cancelable confirmation and uses existing single-use, revision-bound authority. Ordinary Bridge clicks remain blocked, and stale cart confirmation cannot clear the cart.
+
+Final complete workspace verification: **137 TypeScript and 330 Python tests passed**, including all seven cart browser cases and existing Ticket 09/10 safety cases. Build, ESLint, Ruff lint/format, changed-file Prettier and diff checks passed. Initial stale prompt-version assertions were updated before the final clean run. The independent Standards/Spec review findings were repaired and rechecked; see `docs/superpowers/plans/2026-09-25-manual-cart-repair.md`.
+
+The Agent was restarted to load the owner's updated key. All three manual services are healthy, and the owner's two saved cart lines were restored after isolated tests. Live Groq responses reproduced the original missing-query and dropped-variant gaps; deterministic regressions verify their fixes. No claim of a complete live-provider browser run is made. Ticket 12 remains next; architecture refactors remain deferred.
+
 ## Current frontier: Tickets 11 and 11B resolved (2026-09-25)
 
 The owner deferred architecture-report refactors and prioritized the visible graduation MVP. Implemented available-product add with selected size/color, quantity changes, individual removal (including the last line), optimistic feedback with rollback, and exact ten-second Undo. Consecutive same-line quantity edits retain the original pre-burst state and deadline. Stale/duplicate edits are rejected and ordinary edits invalidate older guarded authority. The Agent uses current visible controls, rejects unsourced variant overrides, and reports success only after Storefront confirmation; uncertain mutations are never automatically repeated. Structured Intent request/schema is now v5 (`intent-v12`).

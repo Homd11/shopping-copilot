@@ -110,7 +110,7 @@ class OwnedItem(IntentModel):
 
 
 class StructuredIntent(IntentModel):
-    v: Literal[1, 2, 3, 4, 5]
+    v: Literal[1, 2, 3, 4, 5, 6]
     language: Language
     dialect: Dialect
     intent: IntentName
@@ -136,6 +136,8 @@ class StructuredIntent(IntentModel):
     cart_target: str | None = None
     cart_quantity: int | None = Field(default=None, ge=1, le=99)
 
+    cart_quantity_mode: Literal["set", "increase", "decrease"] | None = None
+
     @property
     def context_items(self) -> list[OwnedItem]:
         items = list(self.owned_items)
@@ -146,8 +148,18 @@ class StructuredIntent(IntentModel):
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
         if self.intent == "cart_edit":
-            if self.v != 5 or not self.cart_operation or not self.cart_source:
+            if self.v not in {5, 6} or not self.cart_operation or not self.cart_source:
                 raise ValueError("Cart edit needs current sourced intent")
+            if (
+                self.v == 6
+                and self.cart_operation == "quantity"
+                and self.cart_quantity_mode is None
+            ):
+                raise ValueError("Quantity edits require an explicit mode")
+            if self.cart_quantity_mode is not None and (
+                self.v != 6 or self.cart_operation != "quantity" or self.cart_quantity is None
+            ):
+                raise ValueError("Quantity mode requires a v6 quantity edit")
             if any(
                 value is not None
                 for key, value in self.constraints.model_dump().items()
@@ -163,6 +175,7 @@ class StructuredIntent(IntentModel):
                 self.cart_source,
                 self.cart_target,
                 self.cart_quantity,
+                self.cart_quantity_mode,
             )
         ):
             raise ValueError("Only cart edits carry cart parameters")

@@ -406,7 +406,7 @@ class SessionStore:
             }:
                 raise ValueError("Product was not among the verified recommendations")
         if intent.intent == "cart_edit":
-            validate_cart_intent(task.message, intent)
+            intent = validate_cart_intent(task.message, intent)
             task.cart_operation = intent.cart_operation
             task.cart_actions = plan_cart_edit(
                 intent, session.last_snapshot, task_id, task.step_count + 1

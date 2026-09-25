@@ -112,3 +112,123 @@ def test_unsourced_cart_variant_is_rejected(constraints):
     )
     with pytest.raises(ValueError, match="variant"):
         validate_cart_intent("Add this to my cart", requested)
+
+
+def test_current_selected_product_resolves_model_missing_query():
+    from agent.cart import plan_cart_edit
+
+    requested = intent("ضيفلي المنتجده للسلة").model_copy(
+        update={"needs_clarification": True, "missing_fields": ["query"]}
+    )
+    actions = plan_cart_edit(requested, snapshot(), "task-test", 1)
+    assert [a.type for a in actions] == ["click"]
+
+
+def test_arabic_color_evidence_is_valid_for_canonical_variant():
+    from agent.cart import validate_cart_intent
+
+    requested = intent("مقاسي 43 وعايز اللون اسود ضيفه فالعربية")
+    requested.constraints.size = "43"
+    requested.constraints.color = "black"
+    validate_cart_intent(requested.cart_source, requested)
+
+
+def test_named_line_relative_quantity_uses_current_value_in_multi_item_cart():
+    from agent.cart import plan_cart_edit, validate_cart_intent
+
+    payload = intent("زود كمية ممشى النيل 2 كمان").model_dump()
+    payload.update(
+        v=6,
+        cart_operation="quantity",
+        cart_target="ممشى النيل",
+        cart_quantity=2,
+        cart_quantity_mode="increase",
+    )
+    requested = StructuredIntent.model_validate(payload)
+    current = snapshot().model_copy(update={"url": "http://localhost:4000/cart", "elements": []})
+    from agent.schemas import SnapshotElement
+
+    for index, name, qty in [(10, "ممشى النيل", "3"), (20, "صانع اللعب", "1")]:
+        current.elements.extend(
+            [
+                SnapshotElement(
+                    id=index,
+                    role="textbox",
+                    name=f"الكمية — {name}",
+                    value=qty,
+                    visible=True,
+                    group=name,
+                ),
+                SnapshotElement(
+                    id=index + 1,
+                    role="button",
+                    name=f"تحديث الكمية — {name}",
+                    visible=True,
+                    form_action="/cart/quantity",
+                    group=name,
+                ),
+            ]
+        )
+    validate_cart_intent(requested.cart_source, requested)
+    actions = plan_cart_edit(requested, current, "task-test", 1)
+    assert [(a.type, getattr(a, "id", None)) for a in actions] == [("type", 10), ("click", 11)]
+    assert actions[0].text == "5"
+
+
+def test_relative_quantity_cannot_be_interpreted_as_absolute():
+    from agent.cart import validate_cart_intent
+
+    payload = intent("زود كمية ممشى النيل 2 كمان").model_dump()
+    payload.update(
+        v=6,
+        cart_operation="quantity",
+        cart_target="ممشى النيل",
+        cart_quantity=2,
+        cart_quantity_mode="set",
+    )
+    with pytest.raises(ValueError, match="Relative"):
+        validate_cart_intent(payload["cart_source"], StructuredIntent.model_validate(payload))
+
+
+@pytest.mark.parametrize(
+    "source,mode",
+    [
+        ("Increase quantity by 2", "set"),
+        ("Decrease quantity by 2", "set"),
+        ("Decrease quantity by 2", None),
+        ("Increase quantity to 2", "increase"),
+    ],
+)
+def test_quantity_mode_cannot_contradict_explicit_source(source, mode):
+    from agent.cart import validate_cart_intent
+
+    payload = intent(source).model_dump()
+    payload.update(v=6, cart_operation="quantity", cart_quantity=2, cart_quantity_mode=mode)
+    with pytest.raises(ValueError):
+        validate_cart_intent(source, StructuredIntent.model_validate(payload))
+
+
+def test_dropped_explicit_arabic_variants_are_restored_before_current_page_planning():
+    source = "مقاسي 44 وعايز اللون اسود ضيفه فالعربية"
+    store = SessionStore()
+    session = store.create()
+    current = snapshot()
+    current.elements[0].options = ["43", "44"]
+    current.elements[1].options = ["blue", "black"]
+    task = store.begin_interpretation(session.session_id, source, current)
+    store.finish_interpretation(
+        session.session_id, task.task_id, task.model_call_id, intent(source)
+    )
+    assert task.action.type == "select"
+    assert task.action.option == "44"
+    assert task.cart_actions[0].type == "select"
+    assert task.cart_actions[0].option == "black"
+
+
+def test_owned_color_does_not_override_current_selected_variant():
+    from agent.cart import plan_cart_edit, validate_cart_intent
+
+    message = "I own black shoes; add this to my cart"
+    requested = validate_cart_intent(message, intent(message))
+    assert requested.constraints.color is None
+    assert [a.type for a in plan_cart_edit(requested, snapshot(), "task-test", 1)] == ["click"]
