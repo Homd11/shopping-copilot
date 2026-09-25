@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## OpenRouter update — 2026-09-25
+
+The paid evaluation supersedes the free-Gemini wait below: 16/16 live intent cases
+and 4/4 actual cart browser cases passed, including Undo and guarded bulk clearing.
+Provider spend was $0.01594408. The owner set a non-resetting $0.25 key cap; preserve
+it and do not purchase credits or increase spending without authorization.
+The local demo now selects openrouter/google/gemini-2.5-flash. The old free-Gemini
+follow-up is paused. Read PROJECT_CHECKPOINT.md and the OpenRouter evaluation plan
+for newest verification and continuation evidence.
+
 ## Gemini evaluation update — 2026-09-25
 
 The newest status is in PROJECT_CHECKPOINT.md. Gemini adapter and two Egyptian

@@ -2,6 +2,30 @@
 
 **Last updated:** 2026-09-25
 
+## OpenRouter paid evaluation — live cart gate passed
+
+The owner purchased OpenRouter credits and authorized an initial **$0.25 total**
+evaluation allowance. The adapter pins google/gemini-2.5-flash, disables thinking,
+requires structured-output support, caps provider pricing, checks the remote key's
+non-resetting allowance before every paid call and never automatically retries.
+The owner corrected the key limit from $100, then daily $0.25, to total $0.25.
+
+**16/16 live intent cases and 4/4 live browser cases passed** with intent-v15 and
+schema6. Browser proof covers add, named relative quantity in a mixed cart, one-line
+removal and confirmation-bound bulk clear; exact Undo passed for all reversible
+edits. Provider-reported spend: **$0.01594408**, remaining key allowance **$0.23405592**.
+See `docs/superpowers/plans/2026-09-25-openrouter-cart-evaluation.md` for evidence and
+review. This proves the tested batch, not arbitrary language or the complete MVP.
+
+The local demo configuration now selects OpenRouter/Gemini 2.5 Flash. Preserve
+the non-resetting $0.25 key cap and all local credentials. The superseded free-Gemini
+follow-up is paused. Ticket 12 remains the next ordered product work.
+
+Verification: **496 tests passed (137 TypeScript, 359 Python)**; build, ESLint,
+Ruff lint/format and diff checks passed. Standards review's report-directory setup
+finding was fixed; Spec review had no findings. Services are healthy and the
+owner's cart is restored. No credentials were committed.
+
 ## Gemini cart evaluation — adapter ready, live selection gate incomplete
 
 The owner requested Gemini Flash evaluation instead of assuming another Groq fix

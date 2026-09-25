@@ -43,6 +43,7 @@ TaskStatus = Literal[
     "interpreting", "awaiting_action_result", "awaiting_answer", "completed", "cancelled", "paused"
 ]
 InterpretationPauseReason = Literal[
+    "budget",
     "throttled",
     "timeout",
     "network",
@@ -599,6 +600,11 @@ class SessionStore:
         task.status = "paused"
         task.model_call_id = None
         messages = {
+            "budget": (
+                "توقفنا قبل إرسال الطلب للحفاظ على ميزانية التجربة. راجع حد الإنفاق المتاح.",
+                "Stopped before sending the request to protect the trial budget. "
+                "Check the available spending allowance.",
+            ),
             "throttled": (
                 "وصلنا لحد الطلبات المؤقت لخدمة النموذج. جرّب تاني بعد شوية أو أوقف المهمة.",
                 "The model service reached a temporary request limit. "

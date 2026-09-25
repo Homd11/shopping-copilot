@@ -90,8 +90,8 @@ def acceptable_intent(actual, expected):
     )
 
 
-async def run(repeats: int, model: str, output: Path):
-    values = {**dotenv_values(".env"), "LLM_PROVIDER": "gemini", "LLM_MODEL": model}
+async def run(repeats: int, model: str, output: Path, provider: str = "gemini"):
+    values = {**dotenv_values(".env"), "LLM_PROVIDER": provider, "LLM_MODEL": model}
     client = build_llm_client(load_llm_settings(values))
     storefront = load_storefront_definition()
     rows = []
@@ -149,23 +149,24 @@ async def run(repeats: int, model: str, output: Path):
                 encoding="utf-8",
             )
             print(f"{case_id} [{repeat + 1}]: {stage}", flush=True)
-            if row["metadata"]["failure_category"] in {"throttled", "http"}:
+            if row["metadata"]["failure_category"] in {"throttled", "http", "budget"}:
                 print("Stopping live calls after provider rejection.", flush=True)
                 return
-            await asyncio.sleep(15)
+            await asyncio.sleep(15 if provider == "gemini" else 1)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repeats", type=int, choices=range(1, 4), default=2)
     parser.add_argument("--model", default="gemini-2.5-flash")
+    parser.add_argument("--provider", choices=["gemini", "openrouter"], default="gemini")
     parser.add_argument(
         "--output",
         type=Path,
         default=Path(f"eval/reports/gemini-cart-{datetime.now(UTC):%Y%m%dT%H%M%SZ}.json"),
     )
     args = parser.parse_args()
-    asyncio.run(run(args.repeats, args.model, args.output))
+    asyncio.run(run(args.repeats, args.model, args.output, args.provider))
 
 
 if __name__ == "__main__":
