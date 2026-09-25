@@ -14,7 +14,7 @@ class LLMConfigurationError(ValueError):
 
 @dataclass(frozen=True)
 class LLMSettings:
-    provider: Literal["scripted", "nvidia", "groq", "gemini", "bedrock"]
+    provider: Literal["scripted", "nvidia", "groq", "gemini", "openrouter", "bedrock"]
     model: str
     api_key: SecretStr | None = None
     endpoint: str | None = None
@@ -33,11 +33,13 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     model = values.get("LLM_MODEL", "").strip()
     if not model:
         raise LLMConfigurationError("LLM_MODEL is required")
-    if provider not in {"scripted", "nvidia", "groq", "gemini", "bedrock"}:
+    if provider not in {"scripted", "nvidia", "groq", "gemini", "openrouter", "bedrock"}:
         raise LLMConfigurationError(f"Unsupported LLM_PROVIDER: {provider}")
     api_key_name = "GROQ_API_KEY" if provider == "groq" else "NVIDIA_API_KEY"
     if provider == "gemini":
         api_key_name = "GEMINI_API_KEY"
+    if provider == "openrouter":
+        api_key_name = "OPENROUTER_API_KEY"
     api_key_text = values.get(api_key_name, "").strip()
     if provider == "nvidia" and not api_key_text:
         raise LLMConfigurationError("NVIDIA_API_KEY is required for the nvidia provider")
@@ -47,6 +49,11 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     timeout_seconds = 20.0
     stream = False
     reasoning_effort = None
+    if provider == "openrouter":
+        if not api_key_text:
+            raise LLMConfigurationError("OPENROUTER_API_KEY is required")
+        endpoint = "https://openrouter.ai/api/v1"
+        timeout_seconds = 30.0
     if provider == "gemini":
         if not api_key_text:
             raise LLMConfigurationError("GEMINI_API_KEY is required for the gemini provider")

@@ -16,6 +16,7 @@ from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catal
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
+from agent.llm.openrouter import OpenRouterBudgetError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
 from agent.sessions import (
@@ -68,6 +69,8 @@ def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
+    if isinstance(error, OpenRouterBudgetError):
+        return "budget"
     if isinstance(error, GroqRateLimitError | GeminiRateLimitError):
         return "throttled"
     if isinstance(error, httpx.HTTPStatusError):

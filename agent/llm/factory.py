@@ -3,6 +3,7 @@ from agent.llm.contract import LLMClient, ScriptedLLMClient
 from agent.llm.gemini import GeminiClient
 from agent.llm.groq import GroqClient
 from agent.llm.nvidia import NvidiaNIMClient
+from agent.llm.openrouter import OpenRouterClient
 
 
 def build_llm_client(settings: LLMSettings) -> LLMClient:
@@ -14,6 +15,8 @@ def build_llm_client(settings: LLMSettings) -> LLMClient:
         return GroqClient(settings)
     if settings.provider == "gemini":
         return GeminiClient(settings)
+    if settings.provider == "openrouter":
+        return OpenRouterClient(settings)
     raise LLMConfigurationError(
         f"The {settings.provider} LLM adapter is not available in this build"
     )
