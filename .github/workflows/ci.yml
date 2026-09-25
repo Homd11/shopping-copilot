@@ -26,6 +26,9 @@ jobs:
       - run: make ci
       - name: HTTP health checks
         shell: bash
+        env:
+          LLM_PROVIDER: scripted
+          LLM_MODEL: scripted-v1
         run: |
           pnpm --filter @shopping-copilot/store start &
           python -m uvicorn agent.app:app --host 127.0.0.1 --port 8000 &
