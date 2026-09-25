@@ -178,7 +178,7 @@ export interface AgentTransport {
     snapshot: Snapshot,
   ): Promise<"resumed" | "awaiting_login">;
   stop(sessionId: string): Promise<void>;
-  retry(sessionId: string, taskId: string): Promise<void>;
+  retry(sessionId: string, taskId: string, snapshot: Snapshot): Promise<void>;
 }
 
 export interface StorefrontChannel {
@@ -201,6 +201,8 @@ export class PanelController {
   readonly #cancelledTaskIds = new Set<string>();
   readonly #questionActionIds = new Set<string>();
   #reconnecting = false;
+  #recoveryInFlight = false;
+  #recoverySnapshot: Snapshot | undefined;
   #waitingForLoginUrl: string | undefined;
 
   constructor(
@@ -283,7 +285,8 @@ export class PanelController {
         );
       }
       if (this.#reconnecting && this.#sessionId !== undefined) {
-        void this.#completeRecovery(message.snapshot);
+        this.#recoverySnapshot = message.snapshot;
+        if (!this.#recoveryInFlight) void this.#completeRecovery();
         return;
       }
       if (this.#activeTaskId === undefined && !this.#submitting) {
@@ -300,16 +303,31 @@ export class PanelController {
     }
   }
 
-  async #completeRecovery(snapshot: Snapshot): Promise<void> {
+  async #completeRecovery(): Promise<void> {
     if (this.#sessionId === undefined) return;
-    const state = await this.#agent.reconcile(
-      this.#sessionId,
-      this.#tabId,
-      snapshot,
-    );
-    this.#restoreView(state);
-    this.#subscribe(state.event_cursor);
-    this.#reconnecting = false;
+    this.#recoveryInFlight = true;
+    try {
+      let state: SessionView | undefined;
+      while (this.#recoverySnapshot !== undefined) {
+        const snapshot = this.#recoverySnapshot;
+        this.#recoverySnapshot = undefined;
+        state = await this.#agent.reconcile(
+          this.#sessionId,
+          this.#tabId,
+          snapshot,
+        );
+      }
+      if (state === undefined) return;
+      this.#restoreView(state);
+      this.#subscribe(state.event_cursor);
+      this.#reconnecting = false;
+    } catch {
+      this.#setStatus(
+        "تعذر استعادة المهمة. أعد تحميل الصفحة للمحاولة مرة أخرى.",
+      );
+    } finally {
+      this.#recoveryInFlight = false;
+    }
   }
 
   #subscribe(after: number): void {
@@ -436,11 +454,19 @@ export class PanelController {
     button.type = "button";
     button.textContent = "حاول تاني / Retry";
     button.addEventListener("click", () => {
-      if (this.#sessionId === undefined || this.#activeTaskId === undefined)
+      if (
+        this.#sessionId === undefined ||
+        this.#activeTaskId === undefined ||
+        this.#snapshot === undefined
+      )
         return;
       container.replaceChildren();
       this.#setStatus("بحاول تاني…");
-      void this.#agent.retry(this.#sessionId, this.#activeTaskId);
+      void this.#agent.retry(
+        this.#sessionId,
+        this.#activeTaskId,
+        this.#snapshot,
+      );
     });
     container.replaceChildren(button);
   }

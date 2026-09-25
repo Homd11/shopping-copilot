@@ -129,8 +129,14 @@ class HttpAgentTransport implements AgentTransport {
     await this.#post(`/sessions/${sessionId}/stop`, {});
   }
 
-  async retry(sessionId: string, taskId: string): Promise<void> {
-    await this.#post(`/sessions/${sessionId}/tasks/${taskId}/retry`, {});
+  async retry(
+    sessionId: string,
+    taskId: string,
+    snapshot: Snapshot,
+  ): Promise<void> {
+    await this.#post(`/sessions/${sessionId}/tasks/${taskId}/retry`, {
+      snapshot,
+    });
   }
 
   async #post(path: string, body: object): Promise<void> {

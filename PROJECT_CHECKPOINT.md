@@ -2,6 +2,12 @@
 
 **Last updated:** 2026-09-25
 
+## Ticket 12 — refresh recovery resolved
+
+Ticket 12 preserves the pending Shopper question and task identity after refresh. The active Undo toast reloads with only its remaining time and restores the exact prior multi-product cart. Refresh invalidates an unused Confirmation; Retry derives a new one from the current Storefront cart revision. Retry now carries the latest Snapshot so direct cart and filter changes made while paused are authoritative. Overlapping Snapshot messages are reconciled in order. Refresh during navigation or field entry permits fresh-state Retry; an in-flight or unverified Reversible or Guarded Mutation offers Stop and a fresh request, never re-planning the old mutation. Checkout uncertainty tells the Shopper to inspect fictional order history. Tests cover interruption before, during and after each mutation class. No live model calls were needed for this ticket.
+
+Verification: **512 tests passed (138 TypeScript, 374 Python)**, including real-browser Undo refresh and unverified-add recovery. Build, ESLint, Ruff lint/format, changed-file Prettier and diff checks passed. Repository-wide Prettier flags six untouched existing files. Independent Standards and Spec review gaps were fixed. **Ticket 13 — mobile controls and interaction traps** is next. The $0.25 total OpenRouter cap remains unchanged. Sol 6 High was sufficient; Astra was not needed.
+
 ## OpenRouter paid evaluation — live cart gate passed
 
 The owner purchased OpenRouter credits and authorized an initial **$0.25 total**

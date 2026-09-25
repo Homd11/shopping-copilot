@@ -1,5 +1,9 @@
 # Shopping Copilot — project handoff
 
+## Ticket 12 refresh recovery — 2026-09-25
+
+Ticket 12 is resolved. A pending Shopper question keeps its identity across refresh; active Undo keeps only the server's remaining time and restores the exact prior cart. Unused Confirmation is invalidated and a fresh card must be requested from the current Storefront. Retry now sends the latest Snapshot, including direct cart or filter changes made while paused. Overlapping recovery snapshots are serialized. Refresh during navigation or field entry permits fresh-state Retry; an in-flight or unverified Reversible or Guarded Mutation cannot replay and offers Stop plus a new request. Checkout uncertainty directs the Shopper to fictional order history. Tests cover mutation interruption before, during and after execution. The full suite passed 138 TypeScript and 374 Python tests, including real-browser Undo refresh and unverified-add recovery. Build, ESLint, Ruff lint/format, changed-file Prettier and diff checks passed; repository-wide Prettier still flags six untouched files. Ticket 13 is the next ordered step. OpenRouter's non-resetting $0.25 cap is unchanged. Sol 6 High was sufficient.
+
 ## OpenRouter update — 2026-09-25
 
 The paid evaluation supersedes the free-Gemini wait below: 16/16 live intent cases
@@ -54,7 +58,7 @@ Final verification on 2026-09-25: **304 Python tests** (including five Ticket 10
 
 **As of:** 2026-09-25 (Africa/Cairo)\
 **Workspace:** `D:\agent depi`\
-**Current frontier:** Tickets 01–11B are resolved for their local scope; Ticket 12 is the next ordered implementation task.\
+**Current frontier:** Tickets 01–12 are resolved for their local scope; Ticket 13 is the next ordered implementation task.\
 **Purpose:** Give a new contributor the product intent, actual working state, decisions, evidence, failed approaches, and safe continuation path without mistaking historical plans for shipped behavior.
 
 ## Read this first

@@ -250,7 +250,9 @@ def test_guarded_result_from_another_origin_is_never_reported_as_success() -> No
         ),
     )
 
-    assert task.status == "paused"
+    assert task.status == "awaiting_answer"
+    assert isinstance(task.action, AskShopperAction)
+    assert task.action.options == ["Stop"]
 
 
 def test_agent_api_registers_only_the_exact_shopper_confirmed_mutation() -> None:

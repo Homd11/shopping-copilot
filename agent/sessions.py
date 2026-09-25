@@ -29,6 +29,7 @@ from agent.schemas import (
     Action,
     ActionResult,
     AskShopperAction,
+    ClickAction,
     GuardedClickAction,
     NavigateAction,
     Snapshot,
@@ -205,6 +206,48 @@ class SessionStore:
 
     def _touch(self, session: Session) -> None:
         session.last_activity_at = self._clock()
+
+    def _ask_to_stop_uncertain_mutation(
+        self, session: Session, task: ActiveTask, action: Action
+    ) -> None:
+        if task.mutation_kind == "submit_checkout":
+            narration = (
+                "مش متأكد إذا الطلب الخيالي اتسجل. راجع سجل الطلبات؛ مش هقدمه تاني تلقائيًا."
+                if task.language == "ar"
+                else "I can't verify whether the fictional order was submitted. "
+                "Check order history; I won't submit it again automatically."
+            )
+        else:
+            narration = (
+                "مش متأكد إذا تعديل السلة اكتمل. راجع السلة الحالية؛ مش هكرره تلقائيًا."
+                if task.language == "ar"
+                else "I can't verify whether the cart changed. Review the current cart; "
+                "I won't repeat the change automatically."
+            )
+        question = (
+            "أوقف المهمة دي، واطلب التعديل من جديد لو لسه محتاجه."
+            if task.language == "ar"
+            else "Stop this task, then make a new request only if the change is still needed."
+        )
+        stop = AskShopperAction(
+            v=1,
+            type="ask_shopper",
+            task_id=task.task_id,
+            action_id=f"question-{uuid4().hex}",
+            sequence_number=action.sequence_number + 1,
+            narration=narration,
+            question=question,
+            options=["إيقاف"] if task.language == "ar" else ["Stop"],
+        )
+        task.action = stop
+        task.step_count += 1
+        task.status = "awaiting_answer"
+        task.pause_message = None
+        task.cart_actions.clear()
+        task.mutation_proposal = None
+        self._append(session, "narration", {"task_id": task.task_id, "text": narration})
+        self._append(session, "action", {"task_id": task.task_id, "action": to_wire(stop)})
+        session.conversation.append({"role": "copilot", "text": narration})
 
     def _offer_mutation(
         self, task: ActiveTask, snapshot: Snapshot, sequence: int
@@ -653,12 +696,22 @@ class SessionStore:
         self._append(session, "error", {"task_id": task_id, "message": message})
         self._touch(session)
 
-    def retry_interpretation(self, session_id: str, task_id: str, tab_id: str | None) -> ActiveTask:
+    def retry_interpretation(
+        self, session_id: str, task_id: str, tab_id: str | None, snapshot: Snapshot
+    ) -> ActiveTask:
         session = self.get(session_id)
         self.assert_lease(session, tab_id)
         task = session.active_task
         if task is None or task.task_id != task_id or task.status != "paused":
             raise TaskConflict("This Shopping Task is not awaiting Retry")
+        previous = urlsplit(session.last_snapshot.url) if session.last_snapshot else None
+        current = urlsplit(snapshot.url)
+        if previous is None or (previous.scheme, previous.netloc) != (
+            current.scheme,
+            current.netloc,
+        ):
+            raise TaskConflict("Retry requires the current Storefront origin")
+        session.last_snapshot = snapshot
         task.status = "interpreting"
         task.model_call_id = f"call-{uuid4().hex}"
         task.pause_message = None
@@ -776,8 +829,8 @@ class SessionStore:
             or task.action.action_id != question_id
         ):
             raise ActionResultMismatch("Answer does not match the pending Shopper question")
-        if task.action.options == ["Stop"]:
-            if text != "Stop":
+        if task.action.options in (["Stop"], ["إيقاف"]):
+            if text != task.action.options[0]:
                 raise ActionResultMismatch("Choose Stop to end this Shopping Task")
             task.status = "cancelled"
             session.last_task = task
@@ -979,7 +1032,7 @@ class SessionStore:
             and task.task_id == task_id
             and isinstance(task.action, AskShopperAction)
             and task.action.action_id == question_id
-            and task.action.options == ["Stop"]
+            and task.action.options in (["Stop"], ["إيقاف"])
         )
 
     def accept_result(
@@ -1044,17 +1097,20 @@ class SessionStore:
                     {"task_id": task.task_id, "summary": summary, "language": task.language},
                 )
             else:
-                task.status = "paused"
-                task.action = None
-                task.cart_actions.clear()
-                task.pause_message = (
-                    "تعذر تأكيد تعديل السلة؛ لن أكرره تلقائيًا."
-                    if task.language == "ar"
-                    else "Cart change was not confirmed; I will not repeat it automatically."
-                )
-                self._append(
-                    session, "error", {"task_id": task.task_id, "message": task.pause_message}
-                )
+                if isinstance(action, ClickAction):
+                    self._ask_to_stop_uncertain_mutation(session, task, action)
+                else:
+                    task.status = "paused"
+                    task.action = None
+                    task.cart_actions.clear()
+                    task.pause_message = (
+                        "تعذر تجهيز تعديل السلة. حاول تاني من الحالة الحالية."
+                        if task.language == "ar"
+                        else "Could not prepare the cart change. Retry from the current state."
+                    )
+                    self._append(
+                        session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                    )
             self._touch(session)
             return task
         if isinstance(action, GuardedClickAction):
@@ -1098,18 +1154,7 @@ class SessionStore:
             )
             session.last_snapshot = action_result.snapshot
             if not verified:
-                task.status = "paused"
-                task.action = None
-                task.pause_message = (
-                    "لم أتحقق من نتيجة الإجراء؛ لن أكرره تلقائيًا."
-                    if task.language == "ar"
-                    else "I couldn't verify the result and won't repeat this action automatically."
-                )
-                self._append(
-                    session,
-                    "error",
-                    {"task_id": task.task_id, "message": task.pause_message},
-                )
+                self._ask_to_stop_uncertain_mutation(session, task, action)
             else:
                 summary = (
                     "تم إفراغ السلة."
@@ -1567,35 +1612,56 @@ class SessionStore:
             and task.action is not None
             and not isinstance(task.action, AskShopperAction)
         ):
-            narration = (
-                "بعد التحديث مش متأكد إذا الإجراء السابق اكتمل. مش هكرره تلقائيًا."
-                if task.language == "ar"
-                else (
-                    "After refresh, I can't prove the previous action completed, "
-                    "so I won't replay it."
+            action = task.action
+            if isinstance(action, GuardedClickAction) or (
+                task.cart_operation and isinstance(action, ClickAction)
+            ):
+                self._ask_to_stop_uncertain_mutation(session, task, action)
+            elif task.cart_operation or task.mutation_kind:
+                task.action = None
+                task.cart_actions.clear()
+                task.status = "paused"
+                task.pause_message = (
+                    "اتحدثت الصفحة قبل تعديل السلة أو الطلب. حاول تاني من الحالة الحالية."
+                    if task.language == "ar"
+                    else "The page refreshed before the cart or order change. "
+                    "Retry from the current Storefront state."
                 )
-            )
-            question = (
-                "نكمل من الصفحة الحالية ولا نوقف المهمة؟"
-                if task.language == "ar"
-                else "Continue from the current page or stop this task?"
-            )
-            uncertain = AskShopperAction(
-                v=1,
-                type="ask_shopper",
-                task_id=task.task_id,
-                action_id=f"question-{uuid4().hex}",
-                sequence_number=task.action.sequence_number + 1,
-                narration=narration,
-                question=question,
-                options=["Continue", "Stop"] if task.language == "en" else ["كمّل", "إيقاف"],
-            )
-            task.action = uncertain
-            task.status = "awaiting_answer"
-            task.step_count += 1
-            self._append(session, "narration", {"task_id": task.task_id, "text": narration})
-            self._append(session, "action", {"task_id": task.task_id, "action": to_wire(uncertain)})
-            session.conversation.append({"role": "copilot", "text": narration})
+                self._append(
+                    session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                )
+            else:
+                narration = (
+                    "بعد التحديث مش متأكد إذا الإجراء السابق اكتمل. مش هكرره تلقائيًا."
+                    if task.language == "ar"
+                    else (
+                        "After refresh, I can't prove the previous action completed, "
+                        "so I won't replay it."
+                    )
+                )
+                question = (
+                    "نكمل من الصفحة الحالية ولا نوقف المهمة؟"
+                    if task.language == "ar"
+                    else "Continue from the current page or stop this task?"
+                )
+                uncertain = AskShopperAction(
+                    v=1,
+                    type="ask_shopper",
+                    task_id=task.task_id,
+                    action_id=f"question-{uuid4().hex}",
+                    sequence_number=action.sequence_number + 1,
+                    narration=narration,
+                    question=question,
+                    options=["Continue", "Stop"] if task.language == "en" else ["كمّل", "إيقاف"],
+                )
+                task.action = uncertain
+                task.status = "awaiting_answer"
+                task.step_count += 1
+                self._append(session, "narration", {"task_id": task.task_id, "text": narration})
+                self._append(
+                    session, "action", {"task_id": task.task_id, "action": to_wire(uncertain)}
+                )
+                session.conversation.append({"role": "copilot", "text": narration})
         session.last_snapshot = snapshot
         session.requires_reconciliation = False
         self._touch(session)

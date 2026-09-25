@@ -56,6 +56,10 @@ class ReconcileRequest(BaseModel):
     snapshot: Snapshot
 
 
+class RetryRequest(BaseModel):
+    snapshot: Snapshot
+
+
 class TakeoverRequest(BaseModel):
     tab_id: str
 
@@ -266,10 +270,13 @@ def create_app(
 
     @app.post("/sessions/{session_id}/tasks/{task_id}/retry", status_code=202)
     async def retry_task(
-        session_id: str, task_id: str, x_tab_id: str | None = Header(default=None)
+        session_id: str,
+        task_id: str,
+        request: RetryRequest,
+        x_tab_id: str | None = Header(default=None),
     ) -> dict[str, str]:
         try:
-            task = sessions.retry_interpretation(session_id, task_id, x_tab_id)
+            task = sessions.retry_interpretation(session_id, task_id, x_tab_id, request.snapshot)
             await run_interpretation(session_id, task_id, task.model_call_id or "")
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
