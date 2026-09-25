@@ -17,7 +17,7 @@ def valid_definition() -> dict[str, object]:
         "v": 1,
         "name": "Controlled Storefront",
         "currency": "EGP",
-        "routes": {"category": "/c/{category}"},
+        "routes": {"category": "/c/{category}", "product": "/p/{product_id}"},
         "filters": [
             "q",
             "type",
@@ -62,6 +62,9 @@ def valid_definition() -> dict[str, object]:
                 "cheapest": ["cheapest", "الأرخص"],
                 "newest": ["newest", "الأحدث"],
             },
+            "features": {"leather": ["leather", "جلد"]},
+            "suitable_for": {"formal_events": ["formal", "فرح"]},
+            "soft_preferences": {"lower_price": ["affordable", "مش غالي"]},
         },
         "url_rules": {
             "same_origin_only": True,
@@ -94,6 +97,25 @@ def test_definition_loads_authoritative_egp_capabilities():
     )
     assert definition.url_rules.same_origin_only is True
     assert definition.url_rules.category_filters_in_query is True
+
+
+def test_destination_routes_are_validated_as_same_origin_paths() -> None:
+    payload = valid_definition()
+    payload["routes"] = {"category": "/c/{category}", "product": "/p/{product_id}", "cart": "/cart"}
+    assert parse_storefront_definition(payload).destination_routes["cart"] == "/cart"
+    payload["routes"] = {
+        "category": "/c/{category}",
+        "product": "/p/{product_id}",
+        "cart": "https://outside.test/cart",
+    }
+    with pytest.raises(StorefrontDefinitionError, match="routes.cart"):
+        parse_storefront_definition(payload)
+    payload["routes"] = {
+        "category": "https://outside.test/c/{category}",
+        "product": "/p/{product_id}",
+    }
+    with pytest.raises(StorefrontDefinitionError, match="routes.category"):
+        parse_storefront_definition(payload)
 
 
 @pytest.mark.parametrize(

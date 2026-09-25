@@ -33,6 +33,7 @@ describe("Agent event contract", () => {
       "task_started",
       "narration",
       "action",
+      "suggestions",
       "done",
       "cancelled",
       "error",

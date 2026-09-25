@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 SUPPORTED_FILTERS = (
     "q",
@@ -41,6 +42,9 @@ class VocabularyDefinition:
     controls: dict[str, tuple[str, ...]]
     availability: dict[str, tuple[str, ...]]
     sort: dict[str, tuple[str, ...]]
+    features: dict[str, tuple[str, ...]]
+    suitable_for: dict[str, tuple[str, ...]]
+    soft_preferences: dict[str, tuple[str, ...]]
 
 
 @dataclass(frozen=True)
@@ -55,10 +59,12 @@ class StorefrontDefinition:
     name: str
     currency: str
     category_route: str
+    product_route: str
     filters: tuple[str, ...]
     categories: dict[str, CategoryDefinition]
     vocabulary: VocabularyDefinition
     url_rules: UrlRules
+    destination_routes: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -159,6 +165,36 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
     category_route = routes.get("category")
     if not isinstance(category_route, str) or category_route.count("{category}") != 1:
         raise StorefrontDefinitionError("routes.category must contain one {category} placeholder")
+    category_parts = urlsplit(category_route)
+    if (
+        not category_route.startswith("/")
+        or category_route.startswith("//")
+        or category_parts.scheme
+        or category_parts.netloc
+        or category_parts.query
+        or category_parts.fragment
+    ):
+        raise StorefrontDefinitionError("routes.category must be a same-origin path")
+    product_route = routes.get("product")
+    if product_route != "/p/{product_id}":
+        raise StorefrontDefinitionError("routes.product must be /p/{product_id} for the local MVP")
+    destination_routes: dict[str, str] = {}
+    for route_name, route_path in routes.items():
+        if route_name in {"category", "product"}:
+            continue
+        if not isinstance(route_path, str):
+            raise StorefrontDefinitionError(f"routes.{route_name} must be a same-origin path")
+        parsed_route = urlsplit(route_path)
+        if (
+            not route_path.startswith("/")
+            or route_path.startswith("//")
+            or parsed_route.scheme
+            or parsed_route.netloc
+            or parsed_route.query
+            or parsed_route.fragment
+        ):
+            raise StorefrontDefinitionError(f"routes.{route_name} must be a same-origin path")
+        destination_routes[route_name] = route_path
 
     raw_filters = payload.get("filters")
     if not isinstance(raw_filters, list) or not all(isinstance(item, str) for item in raw_filters):
@@ -208,6 +244,9 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
             "sort",
             expected_keys={"cheapest", "newest"},
         ),
+        features=_vocabulary_group(raw_vocabulary, "features"),
+        suitable_for=_vocabulary_group(raw_vocabulary, "suitable_for"),
+        soft_preferences=_vocabulary_group(raw_vocabulary, "soft_preferences"),
     )
     if "url_rules" not in payload:
         raise StorefrontDefinitionError("url_rules is required")
@@ -226,10 +265,12 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
         name=name,
         currency=currency,
         category_route=category_route,
+        product_route=product_route,
         filters=tuple(raw_filters),
         categories=categories,
         vocabulary=vocabulary,
         url_rules=url_rules,
+        destination_routes=destination_routes,
     )
 
 

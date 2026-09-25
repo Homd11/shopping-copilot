@@ -42,9 +42,20 @@ export interface Product {
   colors: readonly string[];
   available: boolean;
   addedAt: string;
+  features: readonly string[];
+  suitableFor: readonly string[];
+  wearPosition: "upper" | "lower" | null;
 }
 
-type ProductSeed = Omit<Product, "category" | "price"> & { price: string };
+type ProductSeed = Omit<
+  Product,
+  "category" | "price" | "features" | "suitableFor" | "wearPosition"
+> & {
+  price: string;
+  features?: readonly string[];
+  suitableFor?: readonly string[];
+  wearPosition?: Product["wearPosition"];
+};
 
 const shoeSeeds: readonly ProductSeed[] = [
   {
@@ -68,6 +79,8 @@ const shoeSeeds: readonly ProductSeed[] = [
     colors: ["white", "red"],
     available: true,
     addedAt: "2026-01-08",
+    features: ["cushioned"],
+    suitableFor: ["daily_workouts", "road_running"],
   },
   {
     id: "shoe-03",
@@ -90,6 +103,8 @@ const shoeSeeds: readonly ProductSeed[] = [
     colors: ["black", "orange"],
     available: true,
     addedAt: "2026-02-01",
+    features: ["cushioned", "grip"],
+    suitableFor: ["daily_workouts", "road_running"],
   },
   {
     id: "shoe-05",
@@ -123,6 +138,8 @@ const shoeSeeds: readonly ProductSeed[] = [
     colors: ["black", "gray"],
     available: true,
     addedAt: "2026-03-02",
+    features: ["leather"],
+    suitableFor: ["everyday_wear"],
   },
   {
     id: "shoe-08",
@@ -134,6 +151,8 @@ const shoeSeeds: readonly ProductSeed[] = [
     colors: ["brown", "white"],
     available: true,
     addedAt: "2026-03-12",
+    features: ["leather"],
+    suitableFor: ["formal_events"],
   },
   {
     id: "shoe-09",
@@ -258,6 +277,15 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["white", "blue"],
     available: true,
     addedAt: "2026-02-15",
+    features: [
+      "cotton",
+      "lightweight",
+      "breathable",
+      "comfortable",
+      "light_color",
+    ],
+    suitableFor: ["hot_weather", "beach"],
+    wearPosition: "upper",
   },
   {
     id: "clothing-05",
@@ -269,6 +297,9 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["white", "gray"],
     available: true,
     addedAt: "2026-03-01",
+    features: ["cotton"],
+    suitableFor: ["formal_events"],
+    wearPosition: "upper",
   },
   {
     id: "clothing-06",
@@ -280,6 +311,9 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["blue", "white"],
     available: true,
     addedAt: "2026-03-14",
+    features: ["lightweight", "light_color"],
+    suitableFor: ["hot_weather", "beach"],
+    wearPosition: "upper",
   },
   {
     id: "clothing-07",
@@ -302,6 +336,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["black", "khaki"],
     available: true,
     addedAt: "2026-04-06",
+    wearPosition: "lower",
   },
   {
     id: "clothing-09",
@@ -313,6 +348,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["blue"],
     available: true,
     addedAt: "2026-04-20",
+    wearPosition: "lower",
   },
   {
     id: "clothing-10",
@@ -346,6 +382,7 @@ const clothingSeeds: readonly ProductSeed[] = [
     colors: ["gray", "navy"],
     available: true,
     addedAt: "2026-06-03",
+    wearPosition: "upper",
   },
   {
     id: "clothing-13",
@@ -722,7 +759,14 @@ function inCategory(
   category: Category,
   seeds: readonly ProductSeed[],
 ): Product[] {
-  return seeds.map((seed) => ({ ...seed, category, price: money(seed.price) }));
+  return seeds.map((seed) => ({
+    ...seed,
+    category,
+    price: money(seed.price),
+    features: seed.features ?? [],
+    suitableFor: seed.suitableFor ?? [],
+    wearPosition: seed.wearPosition ?? null,
+  }));
 }
 
 export const products: readonly Product[] = [

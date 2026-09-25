@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from eval.services import ROOT, service_commands, service_environment
 
 
@@ -13,9 +15,28 @@ def test_node_services_are_launched_as_owned_processes() -> None:
     assert commands[2][2] == str(ROOT / "panel")
 
 
+def test_local_evaluation_services_bind_only_to_loopback() -> None:
+    commands = service_commands(Path("node"))
+
+    assert commands[0][commands[0].index("--host") + 1] == "127.0.0.1"
+    assert commands[2][commands[2].index("--host") + 1] == "127.0.0.1"
+
+
 def test_local_evaluation_explicitly_selects_the_scripted_model() -> None:
     environment = service_environment({"PATH": "test-path"})
 
     assert environment["PATH"] == "test-path"
     assert environment["LLM_PROVIDER"] == "scripted"
     assert environment["LLM_MODEL"] == "scripted-v1"
+
+
+def test_real_browser_evaluation_requires_explicit_real_provider_selection() -> None:
+    selected = service_environment(
+        {"LLM_PROVIDER": "groq", "LLM_MODEL": "openai/gpt-oss-120b"}, real_model=True
+    )
+    assert selected["LLM_PROVIDER"] == "groq"
+    assert selected["LLM_MODEL"] == "openai/gpt-oss-120b"
+    with pytest.raises(ValueError, match="real provider"):
+        service_environment(
+            {"LLM_PROVIDER": "scripted", "LLM_MODEL": "scripted-v1"}, real_model=True
+        )

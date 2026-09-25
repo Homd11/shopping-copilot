@@ -14,5 +14,6 @@ coverage/
 
 work/
 outputs/
+eval/reports/
 .DS_Store
 Thumbs.db

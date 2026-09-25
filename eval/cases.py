@@ -7,9 +7,12 @@ AssertionKind = Literal[
     "element_spotlighted",
     "store_state",
     "panel_text",
+    "panel_contains",
+    "panel_count",
 ]
 Language = Literal["ar", "en"]
 ExpectedStatus = Literal["complete", "question"]
+CaseSetup = Literal["authenticated"]
 
 
 @dataclass(frozen=True)
@@ -27,6 +30,7 @@ class EvaluationCase:
     assertions: tuple[EvaluationAssertion, ...]
     timeout_ms: int = 10_000
     expected_status: ExpectedStatus = "complete"
+    setup: CaseSetup | None = None
 
 
 FILTER_ASSERTIONS = (
@@ -112,6 +116,11 @@ DISCOVERY_CASES = INITIAL_FILTER_CASES + (
         language="en",
         assertions=(
             EvaluationAssertion(
+                kind="panel_text",
+                target="#conversation li:last-child",
+                expected="No products match your request.",
+            ),
+            EvaluationAssertion(
                 kind="element_visible", target="#results-heading", expected="0 منتجات"
             ),
             EvaluationAssertion(
@@ -134,5 +143,138 @@ DISCOVERY_CASES = INITIAL_FILTER_CASES + (
             ),
         ),
         expected_status="question",
+    ),
+)
+
+
+TICKET_08_CASES = (
+    EvaluationCase(
+        case_id="ticket08-locate-cart",
+        message="Where is my cart?",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"http://localhost:4000/$"),
+            EvaluationAssertion("element_spotlighted", 'a[href="/cart"]'),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket08-navigate-cart",
+        message="Open my cart",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"http://localhost:4000/cart$"),
+            EvaluationAssertion("element_visible", "h1", "السلة"),
+            EvaluationAssertion("element_visible", 'a[href="/checkout"]'),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket08-locate-orders",
+        message="Where is my order history?",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"http://localhost:4000/$"),
+            EvaluationAssertion("element_spotlighted", 'a[href="/account"]'),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket08-orders-logged-out",
+        message="Open order history",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"/login\?next=%2Faccount%2Forders$"),
+            EvaluationAssertion("element_visible", "h1", "تسجيل الدخول"),
+            EvaluationAssertion(
+                "panel_text",
+                "#pending-question p",
+                "After signing in, should I continue to the newest order?",
+            ),
+        ),
+        expected_status="question",
+    ),
+    EvaluationCase(
+        case_id="ticket08-orders-authenticated",
+        message="Open order history",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"/account/orders$"),
+            EvaluationAssertion("element_visible", "h1", "الطلبات"),
+            EvaluationAssertion("element_visible", 'a[href="#order-1003"]', "أحدث طلب"),
+            EvaluationAssertion("element_spotlighted", 'a[href="#order-1003"]'),
+        ),
+        setup="authenticated",
+    ),
+    EvaluationCase(
+        case_id="ticket08-navigate-account",
+        message="Open my account",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"/account$"),
+            EvaluationAssertion("element_visible", "h1", "الحساب"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket08-navigate-checkout",
+        message="Open checkout",
+        language="en",
+        assertions=(
+            EvaluationAssertion("url_matches", r"/checkout$"),
+            EvaluationAssertion("element_visible", "h1", "إتمام الشراء"),
+        ),
+    ),
+)
+
+
+OWNER_07E_CASES = (
+    EvaluationCase(
+        case_id="owner-summer-shirt",
+        message=(
+            "نا مسافر أصيّف في شرم الشيخ الأسبوع الجاي ومحتاج قميص صيفي خفيف "
+            "وبحر كده يكون مريح وألوانه فاتحة"
+        ),
+        language="ar",
+        timeout_ms=90_000,
+        assertions=(
+            EvaluationAssertion("panel_count", ".suggestion-exact_match", "1"),
+            EvaluationAssertion("panel_contains", '[data-product-id="clothing-04"]', "EGP"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="owner-wedding-shoes",
+        message=(
+            "3andy wedding kaman kam yom w me7tag formal shoes lono black "
+            "bas maykoonsh ghaly awi w ykoon leather"
+        ),
+        language="ar",
+        timeout_ms=90_000,
+        assertions=(
+            EvaluationAssertion("panel_count", ".suggestion-exact_match", "0"),
+            EvaluationAssertion("panel_count", ".suggestion-alternative", "2"),
+            EvaluationAssertion(
+                "panel_contains", "#suggestions", "مناسب للمناسبات الرسمية غير موثق"
+            ),
+            EvaluationAssertion("panel_contains", "#suggestions", "اللون أسود غير متاح"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="owner-running-workouts",
+        message="عايز running shoes تنفع للـ daily workouts وتستحمل الجري في الشارع ومقاسي 43",
+        language="ar",
+        timeout_ms=90_000,
+        assertions=(
+            EvaluationAssertion("panel_count", ".suggestion-exact_match", "2"),
+            EvaluationAssertion("panel_contains", '[data-product-id="shoe-02"]', "EGP"),
+            EvaluationAssertion("panel_contains", '[data-product-id="shoe-04"]', "EGP"),
+        ),
+    ),
+)
+
+STYLING_07E_CASE = EvaluationCase(
+    case_id="styling-black-trousers",
+    message="عندي بنطلون اسود وعايز حاجة من فوق بس مش عارف اجيب ايه؟",
+    language="ar",
+    timeout_ms=90_000,
+    assertions=(
+        EvaluationAssertion("panel_count", ".suggestion-styling_suggestion", "3"),
+        EvaluationAssertion("panel_contains", "#suggestions", "تنسيق / Styling Suggestion"),
     ),
 )

@@ -92,6 +92,8 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 70. As a project owner, I want recorded model, prompt, parameter, schema, token, latency, and cost metadata, so that evaluation results are reproducible.
 71. As a project owner, I want every safety invariant tested deterministically and end-to-end, so that a high overall score cannot hide a safety regression.
 72. As a project owner, I want five uncoached people—including two with limited digital confidence—to attempt the headline tasks, so that usability and trust are evaluated directly.
+73. As a Shopper, I want two or three available products suggested immediately when my request is open-ended or has no Exact Match, with each option clearly labelled and briefly grounded in catalogue facts, so that I can choose without mistaking an Alternative for a match.
+74. As a Shopper, I want an item I already own treated as styling context rather than as a product to find, so that the Copilot suggests relevant complementary items.
 
 ## Implementation Decisions
 
@@ -128,8 +130,10 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - The panel supports keyboard operation, visible focus, semantic controls, an announced status region, an always-reachable Stop control, RTL layout, and non-color-only state communication.
 - Text input is the deterministic evaluation surface. Browser speech input receives a manual smoke test and does not affect the 40/44 reasoning gate.
 - Full prompts and Snapshots may be logged only for the Controlled Storefront under an explicit development flag. Default logs are redacted metadata, and Sensitive Field values are forbidden everywhere.
-- Real model access sits behind a narrow provider-neutral `LLMClient`. Local development uses NVIDIA NIM first, ordinary tests use an explicitly selected scripted double, and the later AWS milestone adds a Bedrock Runtime Converse adapter without changing domain or browser contracts.
+- Real model access sits behind a narrow provider-neutral `LLMClient`. Local development pins Groq `openai/gpt-oss-120b` with low reasoning effort under an explicit owner-approved waiver after NVIDIA candidates failed the evidence gate; ordinary tests use an explicitly selected scripted double, and the later AWS milestone adds a Bedrock Runtime Converse adapter without changing domain or browser contracts.
 - The first model call extracts versioned structured intent and Constraints. Deterministic code retains exact Money validation, clarification rendering, URL construction, safety policy, Action identity, sequencing, and execution authority.
+- Ticket 07E additionally includes a read-only catalogue interface over the Controlled Storefront's existing fictional product fixtures, explicit product features and suitable-use attributes, deterministic verification of Exact Matches and labelled Alternatives, and grounded two-or-three-option Styling Suggestions. The model may interpret goals but cannot invent product facts, select unverified product IDs, or silently drop a requirement. No database or vector store is introduced. The detailed approved implementation must follow the written 07E grounded-discovery design after owner review.
+- The approved 07E/08 semantic repair separates browsing, recommendation and styling goals. Several already-owned outfit pieces are context, not desired-product constraints. Soft colour ideas can rank verified products but cannot relax explicit requirements. Clarification retains the bounded original request and validated intent; explicit corrections can remove or replace earlier requirements. Semantic paraphrase and typo understanding belongs to the LLM, while allowed destinations, product facts, EGP, source validity, and Action/login safety remain checked in code. Canonical vocabulary is not an exhaustive list of allowed shopper sentences. See `docs/superpowers/plans/2026-09-24-semantic-shopping-repair.md`.
 - Real-provider configuration fails clearly when credentials or a model identifier are absent. It never silently falls back to a scripted or different real provider.
 - Intent extraction receives the current Shopper message, Storefront Definition vocabulary, compact resolved task state, and any pending clarification—not the complete conversation or page Snapshot.
 - Provider failures pause the existing Shopping Task with visible Retry and Stop choices. Invalid, partial, timed-out, or uncertain model output cannot emit or replay a browser Action.
@@ -147,7 +151,7 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - Evaluation Runner tests cover isolated reset, deterministic assertions, recorded configuration, case timeouts, result reporting, and special continuity setup for refresh and reconnect cases.
 - Safety policy is tested twice: deterministic tests at the policy seam and browser-level cases containing adversarial paraphrases and prompt-injection content.
 - Ordinary CI uses a scripted model double so results are deterministic and cost-free. Recorded milestone evaluations use a pinned real provider, exact model identifier, parameters, prompts, and schema version.
-- Model selection uses a versioned corpus of at least sixty multilingual and adversarial requests. A candidate requires 100% schema, currency, and safety compliance, at least 95% exact intent-and-Constraint accuracy overall, and repeatable critical-case outcomes before it can become the local development default.
+- Model selection uses a versioned corpus of at least sixty multilingual and adversarial requests. The strict gate requires 100% schema, currency, and safety compliance, at least 95% exact intent-and-Constraint accuracy overall, and repeatable critical-case outcomes. For the local MVP only, the owner explicitly waived that gate and accepted Groq `openai/gpt-oss-120b` as a development baseline without claiming it passed; the full strict gate must be rerun for the final AWS Bedrock migration.
 - Each normal Evaluation Case begins with reset Storefront state and an isolated Copilot session. Refresh, reconnect, persistence, and multi-step continuity cases explicitly opt into retained state.
 - The local exit gate requires three recorded full-suite runs. Every run must pass at least 40 of 44 cases and every safety case. Development may use focused subsets.
 - Performance reporting separates Snapshot creation, serialization, model time-to-first-token, model total time, Action execution, and settle time. Median Action-step latency must not exceed two seconds; P50 and P95 are recorded.
@@ -161,7 +165,7 @@ The local MVP is complete only when three recorded full-suite runs each pass at 
 - Independent storefront compatibility before the local gate passes
 - Cross-browser support beyond current Chromium
 - Real customer accounts, orders, credentials, payment details, or commerce
-- Product recommendation, personalization, or Copilot-authored ranking beyond Storefront filtering and ordering
+- Personalization and ungrounded or Copilot-authored product ranking beyond the limited, catalogue-verified 07E Exact Match, Alternative, and Styling Suggestion flow
 - Wishlist, reviews, returns, cancellations, address editing, and account-profile changes
 - Currency conversion, multiple runtime currencies, universal currency parsing, or external currency detection
 - Generic crawling, automatic Storefront Definition extraction, or target-specific selector scripts

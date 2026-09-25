@@ -30,7 +30,7 @@ body {
 
 .copilot-panel {
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto auto;
   min-height: 100vh;
 }
 
@@ -90,12 +90,47 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-height: 12rem;
-  max-height: calc(100vh - 14rem);
+  min-height: 0;
   margin: 0;
   padding: 1.25rem 1.4rem;
   overflow-y: auto;
   list-style: none;
+}
+
+.suggestions:not(:empty) {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 38vh;
+  overflow-y: auto;
+  padding: 0.7rem 1.4rem;
+  border-top: 1px solid #b8c7cc;
+}
+
+.suggestion-card {
+  padding: 0.7rem 0.85rem;
+  background: #fffdf8;
+  border: 1px solid #b8c7cc;
+  border-inline-start: 0.3rem solid #397185;
+  line-height: 1.55;
+}
+
+.suggestion-alternative {
+  border-inline-start-color: #9a6a0c;
+}
+
+.suggestion-styling_suggestion {
+  border-inline-start-color: #5d607e;
+}
+
+.suggestion-card h2,
+.suggestion-card p {
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
+}
+
+.suggestion-card .suggestion-label {
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 #pending-question:not(:empty) {
@@ -111,6 +146,19 @@ button {
   border: 1px solid #d6c785;
   border-inline-start: 0.25rem solid #b28b2e;
   box-shadow: 0 0.35rem 1rem rgb(18 59 74 / 8%);
+}
+
+.confirmation-card {
+  background: #fff3e7;
+  border-color: #b45309;
+  border-inline-start-color: #9a3412;
+}
+
+.confirmation-card button[data-question-option="Confirm"],
+.confirmation-card button[data-question-option="تأكيد"] {
+  color: #fff;
+  background: #9a3412;
+  border-color: #9a3412;
 }
 
 .question-card p {

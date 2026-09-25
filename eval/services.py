@@ -41,18 +41,30 @@ def service_commands(node: Path) -> tuple[list[str], ...]:
             str(ROOT / "panel" / "node_modules" / "vite" / "bin" / "vite.js"),
             str(ROOT / "panel"),
             "--host",
-            "0.0.0.0",
+            "127.0.0.1",
             "--port",
             "4100",
         ],
     )
 
 
-def service_environment(base: Mapping[str, str] | None = None) -> dict[str, str]:
+def service_environment(
+    base: Mapping[str, str] | None = None, *, real_model: bool = False, test_clock: bool = False
+) -> dict[str, str]:
     """Return the isolated environment used by the local evaluation services."""
     environment = dict(os.environ if base is None else base)
+    if real_model:
+        if environment.get("LLM_PROVIDER") in {None, "scripted"} or not environment.get(
+            "LLM_MODEL"
+        ):
+            raise ValueError(
+                "Real browser evaluation requires an explicitly selected real provider"
+            )
+        return environment
     environment["LLM_PROVIDER"] = "scripted"
     environment["LLM_MODEL"] = "scripted-v1"
+    if test_clock:
+        environment["EVAL_TEST_CLOCK"] = "1"
     return environment
 
 
@@ -69,7 +81,7 @@ def _wait_for(url: str, timeout_seconds: float = 20) -> None:
 
 
 @contextmanager
-def local_services() -> Iterator[None]:
+def local_services(*, real_model: bool = False, test_clock: bool = False) -> Iterator[None]:
     pnpm = _pnpm_command()
     node = shutil.which("node")
     if node is None:
@@ -81,7 +93,7 @@ def local_services() -> Iterator[None]:
     )
     creation_flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     commands = service_commands(Path(node))
-    environment = service_environment()
+    environment = service_environment(real_model=real_model, test_clock=test_clock)
     processes = [
         subprocess.Popen(  # noqa: S603 - fixed local commands without a shell
             command,

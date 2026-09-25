@@ -1,6 +1,6 @@
 # 07E Grounded Catalogue Discovery — Stage 1 design for review
 
-**Status:** Written Stage 1 design for owner review. The owner approved the four-stage graduation sequence and the controlled Storefront direction, but has not yet reviewed this document as the 07E implementation contract.
+**Status:** Owner-approved Stage 1 design, implemented and verified in Ticket 07E on 2026-09-23. The browser evidence and remaining provider-throughput caveat are recorded in `PROJECT_CHECKPOINT.md`.
 
 ## Intent and scope
 

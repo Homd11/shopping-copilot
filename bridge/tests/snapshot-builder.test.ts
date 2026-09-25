@@ -73,10 +73,135 @@ describe("SnapshotBuilder", () => {
     expect(snapshot.elements).toEqual([
       expect.objectContaining({
         role: "textbox",
-        name: "Card number",
+        name: "Sensitive field",
         sensitive: true,
       }),
     ]);
     expect(snapshot.elements[0]).not.toHaveProperty("value");
+  });
+
+  it("excludes a login identifier value when autocomplete identifies it", () => {
+    const dom = new JSDOM(
+      `<!doctype html><html><body>
+      <form><input name="username" type="email" autocomplete="username" value="shopper@example.test">
+      <input name="password" type="password" value="private-password"></form>
+      </body></html>`,
+      { url: "http://localhost:4000/login" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+
+    expect(snapshot.elements).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: "textbox", sensitive: true }),
+        expect.objectContaining({ role: "textbox", sensitive: true }),
+      ]),
+    );
+    expect(JSON.stringify(snapshot)).not.toContain("shopper@example.test");
+    expect(JSON.stringify(snapshot)).not.toContain("private-password");
+    expect(
+      snapshot.elements.filter((element) => element.sensitive),
+    ).toHaveLength(2);
+  });
+
+  it("recognizes login email fields without treating newsletter or search email as sensitive", () => {
+    const dom = new JSDOM(
+      `<!doctype html><html><body>
+      <form id="sign-in"><label for="login-email">Login email</label>
+        <input id="login-email" type="email" name="email" value="login@example.test">
+        <input type="password" value="private-password"></form>
+      <form id="newsletter"><label for="newsletter-email">Newsletter email</label>
+        <input id="newsletter-email" type="email" name="email" value="news@example.test"></form>
+      <form role="search"><label for="search-email">Email search</label>
+        <input id="search-email" type="email" name="email" value="query@example.test"></form>
+      </body></html>`,
+      { url: "http://localhost:4000/account/login" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+    expect(snapshot.elements[0]).toMatchObject({ sensitive: true });
+    expect(snapshot.elements[0]).not.toHaveProperty("value");
+    expect(snapshot.elements.at(-1)).toMatchObject({
+      value: "query@example.test",
+    });
+    expect(JSON.stringify(snapshot)).not.toContain("login@example.test");
+    expect(JSON.stringify(snapshot)).toContain("news@example.test");
+  });
+
+  it("recognizes a plain-text username in a login form", () => {
+    const dom = new JSDOM(
+      `<!doctype html><html><body>
+      <form><label for="account-name">Username</label>
+        <input id="account-name" name="username" value="shopper-name">
+        <input type="password" value="private-password"></form>
+      </body></html>`,
+      { url: "http://localhost:4000/login" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+
+    expect(snapshot.elements[0]).toMatchObject({ sensitive: true });
+    expect(snapshot.elements[0]).not.toHaveProperty("value");
+    expect(JSON.stringify(snapshot)).not.toContain("shopper-name");
+  });
+
+  it("excludes one-time-code values and their input state", () => {
+    const dom = new JSDOM(
+      `<!doctype html><html><body>
+      <label for="otp">Verification code</label>
+      <input id="otp" name="code" autocomplete="one-time-code" value="123456">
+      </body></html>`,
+      { url: "http://localhost:4000/login/verify" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+
+    expect(snapshot.elements).toEqual([
+      expect.objectContaining({
+        role: "textbox",
+        name: "Sensitive field",
+        sensitive: true,
+      }),
+    ]);
+    expect(snapshot.elements[0]).not.toHaveProperty("value");
+    expect(snapshot.elements[0]).not.toHaveProperty("disabled");
+    expect(JSON.stringify(snapshot)).not.toContain("123456");
+  });
+
+  it("does not expose a secret repeated in a Sensitive Field label", () => {
+    const secret = "4111111111111111";
+    const dom = new JSDOM(
+      `<!doctype html><input autocomplete="cc-number" aria-label="Card ${secret}" value="${secret}">`,
+      { url: "http://localhost:4000/checkout" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+
+    expect(snapshot.elements[0]).toMatchObject({ sensitive: true });
+    expect(JSON.stringify(snapshot)).not.toContain(secret);
+  });
+
+  it("redacts Sensitive Field values carried by a textarea", () => {
+    const dom = new JSDOM(
+      '<textarea name="card_number">4111111111111111</textarea>',
+      { url: "http://localhost:4000/checkout" },
+    );
+
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+
+    expect(snapshot.elements[0]).toMatchObject({ sensitive: true });
+    expect(JSON.stringify(snapshot)).not.toContain("4111111111111111");
   });
 });

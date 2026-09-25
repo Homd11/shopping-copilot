@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host 0.0.0.0 --port 4100",
+    "dev": "vite --host 127.0.0.1 --port 4100",
     "test": "vitest run --passWithNoTests --pool=threads --maxWorkers=1"
   },
   "devDependencies": {

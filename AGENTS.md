@@ -3,6 +3,8 @@
 ## Start here
 
 - Read `CONTEXT.md` before naming or changing domain concepts.
+- Read `PROJECT_CHECKPOINT.md` before implementation work to recover the current frontier and verified evidence.
+- Read `handoff.md` when joining the project or resuming after a context reset; use `PROJECT_CHECKPOINT.md` for the newest status when historical sections differ.
 - Use `MVP_PLAN.md` as the local MVP scope and `IMPLEMENTATION_PLAN_FINAL (1).md` as the ordered execution plan.
 - Read `.scratch/shopping-copilot-local-mvp/spec.md` before product work. Its approved behaviour decisions override older plan wording when they conflict.
 - Work on the next incomplete plan step unless the user explicitly reprioritizes the work.

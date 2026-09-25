@@ -119,13 +119,18 @@ function retireTask(storage: StorageLike, taskId: string): void {
 export class BridgeRuntime {
   readonly #options: BridgeRuntimeOptions;
   readonly #builder: SnapshotBuilder;
+  readonly #storefrontOrigin: string;
 
   constructor(options: BridgeRuntimeOptions) {
     this.#options = options;
     this.#builder = new SnapshotBuilder(options.document, options);
+    this.#storefrontOrigin = new URL(options.currentUrl()).origin;
   }
 
   start(): void {
+    this.#options.document.addEventListener("change", () => {
+      this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
+    });
     const pending = this.#options.storage.getItem(PENDING_NAVIGATION_KEY);
     if (pending === null) {
       this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
@@ -173,6 +178,7 @@ export class BridgeRuntime {
     const result = await executeAction(action, {
       builder: this.#builder,
       currentUrl: this.#options.currentUrl,
+      storefrontOrigin: this.#storefrontOrigin,
       navigate: async (url) => {
         navigationStarted = true;
         this.#options.storage.setItem(
@@ -180,6 +186,13 @@ export class BridgeRuntime {
           JSON.stringify(action),
         );
         this.#options.navigate(url);
+      },
+      armGuardedNavigation: (confirmed) => {
+        navigationStarted = true;
+        this.#options.storage.setItem(
+          PENDING_NAVIGATION_KEY,
+          JSON.stringify(confirmed),
+        );
       },
       settle:
         this.#options.settle ?? (() => settleDocument(this.#options.document)),
