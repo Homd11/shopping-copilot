@@ -23,7 +23,7 @@ from agent.navigation import (
 )
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError, normalize_money
 
-PROMPT_VERSION = "intent-v14"
+PROMPT_VERSION = "intent-v15"
 
 _FOREIGN_CURRENCY = re.compile(
     r"(?:\$|€|£|\bUSD\b|\bEUR\b|\bGBP\b|\bSAR\b|ر\s*\.\s*س|ريال(?:\s+سعودي)?)",
@@ -255,6 +255,11 @@ def build_intent_request(
             "Copy cart_source "
             "verbatim from the current message, never rephrase it. Add on a product page uses "
             "cart_quantity_mode=null, not set. "
+            "For every cart_edit, constraints may contain ONLY size and color; category, "
+            "query, product_type, target and all other discovery constraints must be null. "
+            "A named product belongs in cart_target, never constraints.query. "
+            "cart_target must be the product-name span alone, without generic category words "
+            "such as كوتشي before صانع اللعب. "
             "Current-item references need no product name: leave cart_target null "
             "and missing_fields "
             "empty; deterministic planning checks the current page and selected options. "

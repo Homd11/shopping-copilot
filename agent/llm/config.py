@@ -1,5 +1,6 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
+from math import isfinite
 from os import environ
 from typing import Literal
 
@@ -13,7 +14,7 @@ class LLMConfigurationError(ValueError):
 
 @dataclass(frozen=True)
 class LLMSettings:
-    provider: Literal["scripted", "nvidia", "groq", "bedrock"]
+    provider: Literal["scripted", "nvidia", "groq", "gemini", "bedrock"]
     model: str
     api_key: SecretStr | None = None
     endpoint: str | None = None
@@ -32,9 +33,11 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     model = values.get("LLM_MODEL", "").strip()
     if not model:
         raise LLMConfigurationError("LLM_MODEL is required")
-    if provider not in {"scripted", "nvidia", "groq", "bedrock"}:
+    if provider not in {"scripted", "nvidia", "groq", "gemini", "bedrock"}:
         raise LLMConfigurationError(f"Unsupported LLM_PROVIDER: {provider}")
     api_key_name = "GROQ_API_KEY" if provider == "groq" else "NVIDIA_API_KEY"
+    if provider == "gemini":
+        api_key_name = "GEMINI_API_KEY"
     api_key_text = values.get(api_key_name, "").strip()
     if provider == "nvidia" and not api_key_text:
         raise LLMConfigurationError("NVIDIA_API_KEY is required for the nvidia provider")
@@ -44,6 +47,16 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     timeout_seconds = 20.0
     stream = False
     reasoning_effort = None
+    if provider == "gemini":
+        if not api_key_text:
+            raise LLMConfigurationError("GEMINI_API_KEY is required for the gemini provider")
+        endpoint = "https://generativelanguage.googleapis.com/v1beta"
+        try:
+            timeout_seconds = float(values.get("LLM_TIMEOUT_SECONDS", "30"))
+        except ValueError as error:
+            raise LLMConfigurationError("LLM_TIMEOUT_SECONDS must be a number") from error
+        if not isfinite(timeout_seconds) or timeout_seconds <= 0:
+            raise LLMConfigurationError("LLM_TIMEOUT_SECONDS must be finite and positive")
     if provider == "nvidia":
         endpoint = values.get("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1").strip()
         if not endpoint:
