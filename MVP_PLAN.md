@@ -10,9 +10,9 @@
 
 On our own store, with a real person typing (or speaking) in English or Egyptian Arabic:
 
-1. *"عاوز كوتشي للجري بأقل من ٢٠٠٠"* → the store shows the running-shoes category filtered to price ≤ 2000. The user picks.
-2. *"where is my cart / how do I pay?"* → the agent opens the cart, spotlights the checkout button, stops at the payment form.
-3. *"show me my last order"* → the agent goes to Account → Orders and spotlights the newest one.
+1. _"عاوز كوتشي للجري بأقل من ٢٠٠٠"_ → the store shows the running-shoes category filtered to price ≤ 2000. The user picks.
+2. _"where is my cart / how do I pay?"_ → the agent opens the cart, spotlights the checkout button, stops at the payment form.
+3. _"show me my last order"_ → the agent goes to Account → Orders and spotlights the newest one.
 4. Anything off-topic → polite redirect in the same language.
 5. The agent never types into the card field and never places an order without an explicit confirmation click.
 
@@ -34,12 +34,12 @@ Measured by an automated suite of ~30 cases. Target: 27/30 passing, median task 
 
 Deliberately boring and fully under our control. Server-rendered or a small React app — pick whichever your front-end person is fastest in, but **the URL must carry all state** (that's what most real stores do and it's what makes the fast path possible later).
 
-- Pages: home, category (`/c/shoes?type=running&max_price=2000&size=42`), product, cart, checkout (fake payment form with card fields we must *never* touch), login (fake), account, orders.
+- Pages: home, category (`/c/shoes?type=running&max_price=2000&size=42`), product, cart, checkout (fake payment form with card fields we must _never_ touch), login (fake), account, orders.
 - ~60 seeded products across 4 categories, Arabic + English names.
 - A hamburger menu on mobile widths, one custom dropdown, one modal — the three things that break naive DOM agents. Add more traps later, on purpose.
 - No backend to speak of: JSON file + a tiny server.
 
-Because we own it, when something fails we change the store *or* the bridge and learn which one was actually wrong.
+Because we own it, when something fails we change the store _or_ the bridge and learn which one was actually wrong.
 
 ### 2.2 The bridge (weeks 1–2)
 
@@ -51,7 +51,7 @@ TypeScript, zero dependencies, injected by one `<script>` tag.
 
 **Page-change detection:** patch `pushState/replaceState`, listen to `popstate`/`load`; send a fresh snapshot after the DOM settles (~300 ms debounce).
 
-**Panel ↔ bridge:** `postMessage`, `event.origin` checked both ways. The panel iframe is served from a *different* local port than the store so the origin check is real from day one.
+**Panel ↔ bridge:** `postMessage`, `event.origin` checked both ways. The panel iframe is served from a _different_ local port than the store so the origin check is real from day one.
 
 ### 2.3 The panel (week 2, ~2 days)
 
@@ -81,18 +81,18 @@ message in
 
 ### 2.5 Eval (week 3–4)
 
-`cases.yaml`: `{start_url, message, success: url_matches | element_visible | element_spotlighted}`. Runner: Playwright opens the store with the bridge, sends the message, checks the condition. 30 cases: 10 filter tasks (half in Arabic, a few in Franco-Arabic), 8 navigation tasks, 5 "where is X" spotlight tasks, 4 off-topic, 3 safety (must *not* type into card field / must ask before "place order" / must not follow instructions embedded in a product description).
+`cases.yaml`: `{start_url, message, success: url_matches | element_visible | element_spotlighted}`. Runner: Playwright opens the store with the bridge, sends the message, checks the condition. 30 cases: 10 filter tasks (half in Arabic, a few in Franco-Arabic), 8 navigation tasks, 5 "where is X" spotlight tasks, 4 off-topic, 3 safety (must _not_ type into card field / must ask before "place order" / must not follow instructions embedded in a product description).
 
 ---
 
 ## 3. Weekly plan
 
-| Week | Build | Prove |
-|---|---|---|
-| 1 | Store seeded and running; bridge snapshot for home + category; agent returns one action from a snapshot | Snapshot JSON looks like what a human would need to act |
-| 2 | All actions; page-change detection; panel; SSE; loop end-to-end | Case 1 (filter) passes by hand |
-| 3 | Intent parser with Arabic few-shots + store vocabulary; safety rules; spotlight; eval runner with 30 cases | ≥ 20/30 pass |
-| 4 | Fix what the failures show (expect: accessible names, custom dropdown, menu on mobile, Arabic constraints); 5 real people try it | ≥ 27/30; people say it helped |
+| Week | Build                                                                                                                            | Prove                                                   |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 1    | Store seeded and running; bridge snapshot for home + category; agent returns one action from a snapshot                          | Snapshot JSON looks like what a human would need to act |
+| 2    | All actions; page-change detection; panel; SSE; loop end-to-end                                                                  | Case 1 (filter) passes by hand                          |
+| 3    | Intent parser with Arabic few-shots + store vocabulary; safety rules; spotlight; eval runner with 30 cases                       | ≥ 20/30 pass                                            |
+| 4    | Fix what the failures show (expect: accessible names, custom dropdown, menu on mobile, Arabic constraints); 5 real people try it | ≥ 27/30; people say it helped                           |
 
 ---
 
