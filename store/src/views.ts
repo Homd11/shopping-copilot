@@ -39,10 +39,16 @@ function layout(title: string, content: string): string {
         <label for="store-search">بحث المنتجات</label>
         <input id="store-search" name="q" type="search" />
       </form>
+      <details class="mobile-menu" aria-label="قائمة المتجر"><summary>القائمة</summary>
+        <nav aria-label="أقسام المتجر"><a href="/c/shoes">الأحذية</a><a href="/c/clothing">الملابس</a><a href="/c/bags">الشنط</a><a href="/c/electronics">الإلكترونيات</a><a href="/account/orders">الطلبات</a></nav>
+      </details>
       <nav aria-label="التنقل الرئيسي">
         <a href="/cart">السلة (0)</a>
         <a href="/account">الحساب</a>
       </nav>
+      <details class="mini-cart"><summary aria-label="ملخص السلة">السلة: <span id="mini-cart-count">0</span></summary>
+        <p id="mini-cart-summary" aria-live="polite">السلة فارغة</p>
+      </details>
     </header>
     <main>${content}</main>
     <footer><strong>اختيارات ليومك، على ذوقك.</strong><p>كتالوج خيالي بأسعار بالجنيه المصري. الرسومات توضيحية، ولا تتم أي عملية دفع.</p><span lang="en">SHOPPING COPILOT / LOCAL DEMO</span></footer>
@@ -53,6 +59,7 @@ function layout(title: string, content: string): string {
       <span id="undo-timer" aria-hidden="true"></span>
     </form>
     <script src="/assets/cart.js" defer></script>
+    <script src="/assets/interactions.js" defer></script>
     <script type="module" src="/bridge/runtime.js"></script>
   </body>
 </html>`;
@@ -237,7 +244,7 @@ function selected(active: boolean): string {
 }
 
 function productCard(product: Product): string {
-  return `<article data-product-id="${product.id}" data-product-type="${escapeHtml(product.type)}" data-product-category="${product.category}">
+  return `<article role="group" aria-label="${escapeHtml(product.nameAr)} / ${escapeHtml(product.nameEn)}" data-product-id="${product.id}" data-product-type="${escapeHtml(product.type)}" data-product-category="${product.category}">
     <a class="product-picture" href="/p/${encodeURIComponent(product.id)}" tabindex="-1" aria-hidden="true"><img src="/assets/${product.category}.svg" width="400" height="300" loading="lazy" alt=""></a>
     <h2><a href="/p/${encodeURIComponent(product.id)}">${escapeHtml(product.nameAr)}</a></h2>
     <p lang="en">${escapeHtml(product.nameEn)}</p>
@@ -245,6 +252,7 @@ function productCard(product: Product): string {
     <p class="stock ${product.available ? "available" : "unavailable"}">${product.available ? "متاح" : "غير متاح"}</p>
     <p>المقاسات: ${product.sizes.map(escapeHtml).join("، ")}</p>
     <p>الألوان: ${product.colors.map(escapeHtml).join("، ")}</p>
+    <a class="detail-link" href="/p/${encodeURIComponent(product.id)}">عرض التفاصيل</a>
   </article>`;
 }
 
@@ -264,6 +272,7 @@ export function renderProduct(product: Product): string {
           ? `<form action="/cart/items" method="post" data-cart-edit="add">
         <input type="hidden" name="product_id" value="${product.id}">
         <label for="product-size">المقاس</label><select id="product-size" name="size" required><option value="">اختر المقاس</option>${product.sizes.map((size) => `<option>${escapeHtml(size)}</option>`).join("")}</select>
+        <div class="size-swatches" role="group" aria-label="مقاسات ${escapeHtml(product.nameAr)}">${product.sizes.map((size) => `<button type="button" data-size-swatch="${escapeHtml(size)}" aria-pressed="false" aria-label="مقاس ${escapeHtml(size)}">${escapeHtml(size)}</button>`).join("")}</div>
         <label for="product-color">اللون</label><select id="product-color" name="color" required><option value="">اختر اللون</option>${product.colors.map((color) => `<option>${escapeHtml(color)}</option>`).join("")}</select>
         <label for="product-quantity">الكمية</label><input id="product-quantity" name="quantity" type="number" min="1" max="99" value="1" required>
         <button type="submit" data-testid="add-to-cart" data-reversible-mutation="add">أضف إلى السلة</button>
@@ -318,6 +327,7 @@ export function renderCategory(
   return layout(
     name.ar,
     `<h1>${name.ar} <span lang="en">${name.en}</span></h1>
+    <details class="filter-drawer" id="filter-drawer" open><summary>الفلاتر والترتيب</summary>
     <form aria-label="فلترة ${name.ar}" action="/c/${constraints.category}" method="get">
       <label for="category-search">بحث</label>
       <input id="category-search" name="q" type="search" value="${query}" />
@@ -337,16 +347,18 @@ export function renderCategory(
         <option value="unavailable"${selected(constraints.availability === false)}>غير متاح</option>
       </select>
       <label for="sort">الترتيب</label>
-      <select id="sort" name="sort">
+      <select id="sort" name="sort" class="sort-native">
         <option value="">الافتراضي</option>
         <option value="cheapest"${selected(constraints.sort === "cheapest")}>الأرخص</option>
         <option value="newest"${selected(constraints.sort === "newest")}>الأحدث</option>
       </select>
+      <div class="sort-custom" role="group" aria-label="الترتيب"><button type="button" id="sort-trigger" aria-expanded="false" aria-controls="sort-options">${constraints.sort === "cheapest" ? "الأرخص" : constraints.sort === "newest" ? "الأحدث" : "الافتراضي"}</button><div id="sort-options" role="listbox" aria-label="خيارات الترتيب" hidden><button type="button" role="option" data-sort-value="" aria-selected="${constraints.sort === undefined}">الافتراضي</button><button type="button" role="option" data-sort-value="cheapest" aria-selected="${constraints.sort === "cheapest"}">الأرخص</button><button type="button" role="option" data-sort-value="newest" aria-selected="${constraints.sort === "newest"}">الأحدث</button></div></div>
       <button type="submit">تطبيق الفلاتر</button>
-    </form>
-    <section aria-labelledby="results-heading">
+    </form></details>
+    <section aria-labelledby="results-heading" id="product-results">
       <h2 id="results-heading">${matchingProducts.length} منتجات</h2>
-      ${matchingProducts.length === 0 ? emptyState(constraints) : matchingProducts.map(productCard).join("\n")}
+      ${matchingProducts.length === 0 ? emptyState(constraints) : matchingProducts.slice(0, 6).map(productCard).join("\n")}
+      ${matchingProducts.length > 6 ? `<template id="remaining-products">${matchingProducts.slice(6).map(productCard).join("\n")}</template><button type="button" id="load-more-products">تحميل المزيد من المنتجات</button><p id="loading-products" role="status" hidden>جارٍ تحميل المنتجات…</p>` : ""}
     </section>`,
   );
 }

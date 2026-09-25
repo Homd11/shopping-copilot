@@ -4,6 +4,38 @@ import { describe, expect, it } from "vitest";
 import { SnapshotBuilder } from "../src/snapshot.js";
 
 describe("SnapshotBuilder", () => {
+  it("marks controls disabled by an ancestor before the Agent plans an Action", () => {
+    const dom = new JSDOM(
+      '<fieldset disabled><button>Submit</button></fieldset><div aria-disabled="true"><button>Continue</button></div>',
+      { url: "http://localhost:4000/cart" },
+    );
+    const buttons = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    })
+      .build()
+      .elements.filter((item) => item.role === "button");
+    expect(buttons).toEqual([
+      expect.objectContaining({ name: "Submit", disabled: true }),
+      expect.objectContaining({ name: "Continue", disabled: true }),
+    ]);
+  });
+  it("exposes form actions only on submit buttons, not size swatches", () => {
+    const dom = new JSDOM(
+      '<form action="/cart/items"><button type="button" aria-label="مقاس 43">43</button><button type="submit">أضف إلى السلة</button></form>',
+      { url: "http://localhost:4000/p/shoe-09" },
+    );
+    const buttons = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    })
+      .build()
+      .elements.filter((item) => item.role === "button");
+    expect(
+      buttons.find((item) => item.name === "مقاس 43")?.form_action,
+    ).toBeUndefined();
+    expect(
+      buttons.find((item) => item.name === "أضف إلى السلة")?.form_action,
+    ).toBe("/cart/items");
+  });
   it("describes Arabic category controls using their accessible names", () => {
     const dom = new JSDOM(
       `<!doctype html><html lang="ar"><head><title>الأحذية</title></head><body>

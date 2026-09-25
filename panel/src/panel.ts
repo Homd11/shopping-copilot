@@ -187,6 +187,19 @@ export interface StorefrontChannel {
   requestSnapshot(): void;
 }
 
+interface BrowserSpeechRecognition {
+  lang: string;
+  onresult:
+    | ((event: {
+        results: ArrayLike<ArrayLike<{ transcript: string }>>;
+      }) => void)
+    | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  abort(): void;
+}
+
 export class PanelController {
   readonly #root: HTMLElement;
   readonly #agent: AgentTransport;
@@ -204,6 +217,7 @@ export class PanelController {
   #recoveryInFlight = false;
   #recoverySnapshot: Snapshot | undefined;
   #waitingForLoginUrl: string | undefined;
+  #recognition: BrowserSpeechRecognition | undefined;
 
   constructor(
     root: HTMLElement,
@@ -487,6 +501,7 @@ export class PanelController {
         <div id="pending-question"></div>
         <form class="message-form">
           <label for="shopper-message">ماذا تبحث عنه؟</label>
+          <div class="speech-controls"><label for="speech-language">لغة الكلام</label><select id="speech-language"><option value="ar-EG">العربية المصرية</option><option value="en-US">English</option></select><button id="speech-input" type="button" aria-label="ابدأ الإدخال الصوتي" aria-pressed="false">🎙 إدخال صوتي</button></div>
           <div class="input-row">
             <input id="shopper-message" name="message" autocomplete="off" required disabled />
             <button type="submit">إرسال</button>
@@ -521,9 +536,65 @@ export class PanelController {
           });
       });
 
+    const view = this.#root.ownerDocument.defaultView as
+      | (Window & {
+          SpeechRecognition?: new () => BrowserSpeechRecognition;
+          webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+        })
+      | null;
+    const SpeechRecognition =
+      view?.SpeechRecognition ?? view?.webkitSpeechRecognition;
+    const speechButton =
+      this.#root.querySelector<HTMLButtonElement>("#speech-input");
+    if (!SpeechRecognition && speechButton) {
+      speechButton.disabled = true;
+      speechButton.title = "الإدخال الصوتي غير متاح في هذا المتصفح";
+    }
+    speechButton?.addEventListener("click", () => {
+      if (!SpeechRecognition || speechButton.disabled) return;
+      if (this.#recognition) {
+        this.#recognition.abort();
+        this.#recognition = undefined;
+        speechButton.setAttribute("aria-pressed", "false");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang =
+        this.#root.querySelector<HTMLSelectElement>("#speech-language")
+          ?.value ?? "ar-EG";
+      recognition.onresult = (event) => {
+        const transcript = event.results[0]?.[0]?.transcript?.trim();
+        const input =
+          this.#root.querySelector<HTMLInputElement>("#shopper-message");
+        if (transcript && input) {
+          input.value = transcript;
+          input.focus();
+          this.#setStatus("راجع النص ثم اضغط إرسال.");
+        }
+      };
+      recognition.onerror = () =>
+        this.#setStatus("تعذر التقاط الصوت. يمكنك كتابة طلبك.");
+      recognition.onend = () => {
+        if (this.#recognition === recognition) this.#recognition = undefined;
+        speechButton.setAttribute("aria-pressed", "false");
+      };
+      this.#recognition = recognition;
+      speechButton.setAttribute("aria-pressed", "true");
+      this.#setStatus("أستمع الآن…");
+      try {
+        recognition.start();
+      } catch {
+        this.#recognition = undefined;
+        speechButton.setAttribute("aria-pressed", "false");
+        this.#setStatus("تعذر بدء الإدخال الصوتي. يمكنك كتابة طلبك.");
+      }
+    });
+
     this.#root
       .querySelector<HTMLButtonElement>("#stop-task")
       ?.addEventListener("click", () => {
+        this.#recognition?.abort();
+        this.#recognition = undefined;
         if (this.#sessionId === undefined) return;
         if (this.#activeTaskId !== undefined) {
           this.#cancelledTaskIds.add(this.#activeTaskId);
@@ -627,6 +698,7 @@ export class PanelController {
       card.append(form);
     }
     container.append(card);
+    (card.querySelector("button") ?? card.querySelector("input"))?.focus();
   }
 
   #registerQuestion(action: Extract<Action, { type: "ask_shopper" }>): void {
@@ -681,6 +753,8 @@ export class PanelController {
     const input =
       this.#root.querySelector<HTMLInputElement>("#shopper-message");
     if (input !== null) input.disabled = !enabled;
+    const speech = this.#root.querySelector<HTMLButtonElement>("#speech-input");
+    if (speech !== null && !speech.title) speech.disabled = !enabled;
   }
 
   #appendMessage(role: "shopper" | "copilot", message: string): void {

@@ -1,6 +1,12 @@
 # Project checkpoint
 
-**Last updated:** 2026-09-25
+**Last updated:** 2026-09-26
+
+## Ticket 13 — mobile controls and interaction traps implemented
+
+The Controlled Storefront now has a mobile menu and filter disclosure, a custom mobile sort list, size swatches tied to the canonical select, a live mini-cart summary, and incrementally loaded product cards. Repeated detail links have product group context. The Bridge recognizes disclosure controls, waits for bounded delayed content, rechecks visibility and disabled state before an Action, and exposes form actions only for submit controls. The Panel keeps Stop fixed and reachable on mobile, moves keyboard focus to Shopper questions, and offers Arabic/English browser speech input that fills editable text without sending it. Unsupported speech browsers keep typed input available.
+
+Verification: **521 automated tests passed (144 TypeScript, 377 Python)**, including desktop/mobile browser trap cases and existing cart, recovery, and safety flows. Build, ESLint, Ruff lint/format, repository-wide Prettier, and diff checks passed. Browser screenshots checked the narrow category and filter layouts. No paid model calls were made. A real microphone/permission smoke test remains for the owner; the exact Arabic and English steps are in `docs/ticket13-speech-smoke.md`. Ticket 14 is the next implementation step. The OpenRouter total $0.25 cap remains unchanged. Sol 6 High was sufficient.
 
 ## Ticket 12 — refresh recovery resolved
 

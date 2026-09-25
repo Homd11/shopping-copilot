@@ -12,6 +12,7 @@ from playwright.sync_api import BrowserContext, BrowserType, Frame, expect, sync
 from eval.cases import (
     DISCOVERY_CASES,
     TICKET_08_CASES,
+    TICKET_13_CASES,
     EvaluationAssertion,
     EvaluationCase,
 )
@@ -105,6 +106,31 @@ def _prepare_case_setup(context: BrowserContext, case: EvaluationCase, timeout_m
         raise AssertionError("Fictional authenticated Evaluation Case setup failed")
 
 
+def _prepare_storefront_controls(page, case: EvaluationCase, timeout_ms: int) -> None:
+    if case.setup not in {"selected_swatch", "disabled_product", "loaded_catalogue"}:
+        return
+    frame = page.frame_locator("#storefront-frame")
+    destination = "/c/shoes" if case.setup == "loaded_catalogue" else "/p/shoe-09"
+    frame.locator("body").evaluate("(body, path) => { location.href = path; }", destination)
+    if case.setup == "loaded_catalogue":
+        expect(frame.locator("#results-heading")).to_have_text("15 منتجات", timeout=timeout_ms)
+        load_more = frame.locator("#load-more-products")
+        load_more.evaluate("button => button.click()")
+        expect(frame.locator("[data-product-id]")).to_have_count(12, timeout=timeout_ms)
+        load_more.evaluate("button => button.click()")
+        expect(frame.locator("[data-product-id]")).to_have_count(15, timeout=timeout_ms)
+        return
+    expect(frame.locator("#product-size")).to_be_visible(timeout=timeout_ms)
+    expect(frame.locator("html")).to_have_attribute("data-cart-revision", "0", timeout=timeout_ms)
+    frame.get_by_role("button", name="مقاس 43").click(timeout=timeout_ms)
+    frame.locator("#product-color").select_option("blue", timeout=timeout_ms)
+    if case.setup == "disabled_product":
+        frame.locator("form[data-cart-edit='add']").evaluate(
+            "form => { form.setAttribute('aria-disabled', 'true'); "
+            "document.dispatchEvent(new Event('change')); }"
+        )
+
+
 def _assert_store_state(state: Mapping[str, Any], target: str, expected: str | None) -> None:
     if expected is None:
         raise AssertionError("Storefront state assertion requires an expected value")
@@ -183,7 +209,11 @@ def run_evaluation(
                 time.sleep(inter_case_delay_seconds)
             started = time.perf_counter()
             deadline = started + (case.timeout_ms / 1000)
-            context = browser.new_context()
+            context = browser.new_context(
+                viewport={"width": case.viewport[0], "height": case.viewport[1]}
+                if case.viewport is not None
+                else None
+            )
             page = context.new_page()
             step_count = 0
 
@@ -202,6 +232,7 @@ def run_evaluation(
                     wait_until="domcontentloaded",
                     timeout=remaining_timeout_ms(deadline),
                 )
+                _prepare_storefront_controls(page, case, remaining_timeout_ms(deadline))
                 page.locator("#shopper-message").fill(
                     case.message, timeout=remaining_timeout_ms(deadline)
                 )
@@ -268,9 +299,11 @@ def run_evaluation(
 
 def main() -> int:
     with local_services(), sync_playwright() as playwright:
-        results = run_evaluation(playwright.chromium, DISCOVERY_CASES + TICKET_08_CASES)
+        results = run_evaluation(
+            playwright.chromium, DISCOVERY_CASES + TICKET_08_CASES + TICKET_13_CASES
+        )
     for result in results:
-        print(json.dumps(result.as_dict(), ensure_ascii=False))
+        print(json.dumps(result.as_dict(), ensure_ascii=True))
     return 0 if all(result.passed for result in results) else 1
 
 

@@ -12,7 +12,7 @@ AssertionKind = Literal[
 ]
 Language = Literal["ar", "en"]
 ExpectedStatus = Literal["complete", "question"]
-CaseSetup = Literal["authenticated"]
+CaseSetup = Literal["authenticated", "selected_swatch", "disabled_product", "loaded_catalogue"]
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,7 @@ class EvaluationCase:
     timeout_ms: int = 10_000
     expected_status: ExpectedStatus = "complete"
     setup: CaseSetup | None = None
+    viewport: tuple[int, int] | None = None
 
 
 FILTER_ASSERTIONS = (
@@ -276,5 +277,60 @@ STYLING_07E_CASE = EvaluationCase(
     assertions=(
         EvaluationAssertion("panel_count", ".suggestion-styling_suggestion", "3"),
         EvaluationAssertion("panel_contains", "#suggestions", "تنسيق / Styling Suggestion"),
+    ),
+)
+
+TICKET_13_CASES = (
+    EvaluationCase(
+        case_id="ticket13-mobile-filter",
+        message="عاوز كوتشي للجري بأقل من ٢٠٠٠",
+        language="ar",
+        viewport=(390, 844),
+        assertions=FILTER_ASSERTIONS,
+    ),
+    EvaluationCase(
+        case_id="ticket13-mobile-cart-destination",
+        message="Open my cart",
+        language="en",
+        viewport=(390, 844),
+        assertions=(
+            EvaluationAssertion("url_matches", r"/cart$"),
+            EvaluationAssertion("element_visible", "h1", "السلة"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket13-mobile-swatch-add",
+        message="Add this to my cart",
+        language="en",
+        viewport=(390, 844),
+        setup="selected_swatch",
+        assertions=(
+            EvaluationAssertion("element_visible", "#mini-cart-count", "1"),
+            EvaluationAssertion("element_visible", "#cart-feedback", "تمت الإضافة إلى السلة"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket13-disabled-add-handback",
+        message="Add this to my cart",
+        language="en",
+        viewport=(390, 844),
+        setup="disabled_product",
+        expected_status="question",
+        assertions=(
+            EvaluationAssertion("panel_contains", "#pending-question", "Choose the item"),
+            EvaluationAssertion("element_visible", "#mini-cart-count", "0"),
+        ),
+    ),
+    EvaluationCase(
+        case_id="ticket13-desktop-loaded-catalogue",
+        message="Where is my cart?",
+        language="en",
+        viewport=(1280, 800),
+        setup="loaded_catalogue",
+        assertions=(
+            EvaluationAssertion("url_matches", r"/c/shoes$"),
+            EvaluationAssertion("element_spotlighted", 'header a[href="/cart"]'),
+            EvaluationAssertion("element_visible", "#results-heading", "15 منتجات"),
+        ),
     ),
 )

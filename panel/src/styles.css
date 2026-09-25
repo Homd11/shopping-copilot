@@ -61,7 +61,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -70,11 +71,38 @@ button {
 }
 
 .stop-button {
+  min-height: 44px;
   padding: 0.55rem 0.8rem;
   color: #fff;
   background: transparent;
   border: 1px solid #d9c27a;
   border-radius: 0.25rem;
+}
+.speech-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+.speech-controls label {
+  margin: 0;
+}
+.speech-controls select,
+.speech-controls button {
+  min-height: 44px;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid #8aa0a8;
+  border-radius: 0.25rem;
+  background: #fbfcfc;
+  color: #153844;
+}
+.speech-controls button[aria-pressed="true"] {
+  border: 2px solid #9a3f20;
+  font-weight: 700;
+}
+.speech-controls button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
 }
 
 .status-ribbon {
@@ -246,7 +274,9 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+.storefront-frame:focus-visible {
   outline: 3px solid #d5a928;
   outline-offset: 2px;
 }
@@ -259,6 +289,16 @@ input:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .stop-button {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 20;
+    background: #123b4a;
+  }
+  .panel-header {
+    padding-left: 5rem;
+  }
   .workspace {
     grid-template-columns: 1fr;
   }

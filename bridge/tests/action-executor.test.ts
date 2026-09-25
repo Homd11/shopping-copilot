@@ -209,6 +209,74 @@ describe("executeAction", () => {
     expect(clicked).not.toHaveBeenCalled();
   });
 
+  it("blocks a target hidden after its snapshot was taken", async () => {
+    const dom = new JSDOM(
+      '<div><button type="button">تطبيق الفلاتر</button></div>',
+      {
+        url: "http://localhost:4000/c/shoes",
+      },
+    );
+    const builder = new SnapshotBuilder(dom.window.document, {
+      isVisible: (element) => !element.closest("[hidden]"),
+    });
+    const button = dom.window.document.querySelector("button")!;
+    const clicked = vi.fn();
+    button.addEventListener("click", clicked);
+    const id = builder
+      .build()
+      .elements.find((item) => item.role === "button")!.id;
+    button.parentElement!.hidden = true;
+
+    const outcome = await executeAction(
+      { ...actionBase(), type: "click", id },
+      {
+        builder,
+        currentUrl: () => "http://localhost:4000/c/shoes",
+        storefrontOrigin: "http://localhost:4000",
+        navigate: async () => undefined,
+        settle: async () => undefined,
+      },
+    );
+
+    expect(outcome.status).toBe("blocked");
+    expect(clicked).not.toHaveBeenCalled();
+  });
+
+  it("blocks a control when its parent becomes inert or aria-disabled", async () => {
+    const dom = new JSDOM(
+      '<div><button type="button">تحميل المزيد</button></div>',
+      {
+        url: "http://localhost:4000/c/shoes",
+      },
+    );
+    const builder = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    });
+    const button = dom.window.document.querySelector("button")!;
+    const parent = button.parentElement!;
+    const clicked = vi.fn();
+    button.addEventListener("click", clicked);
+    const id = builder
+      .build()
+      .elements.find((item) => item.role === "button")!.id;
+    for (const attribute of ["inert", "aria-disabled"] as const) {
+      parent.setAttribute(attribute, "true");
+      const outcome = await executeAction(
+        { ...actionBase(), type: "click", id },
+        {
+          builder,
+          currentUrl: () => "http://localhost:4000/c/shoes",
+          storefrontOrigin: "http://localhost:4000",
+          navigate: async () => undefined,
+          settle: async () => undefined,
+        },
+      );
+      expect(outcome.status).toBe("blocked");
+      parent.removeAttribute(attribute);
+    }
+    expect(clicked).not.toHaveBeenCalled();
+  });
+
   it("refuses to type into a Sensitive Field", async () => {
     const dom = new JSDOM(
       `<!doctype html><html><body>

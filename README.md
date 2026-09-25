@@ -26,6 +26,8 @@ retailers and production readiness have not been demonstrated.
 | Guarded changes         | Explicit bulk cart clearing and fictional checkout submission require a visible, action-specific confirmation.                       |
 | Refresh recovery        | Restores conversation and pending questions, reconciles the current page, and preserves only the remaining Undo time.                |
 | Stop and tab ownership  | Cancels active work and requires explicit takeover before another tab can execute actions.                                           |
+| Mobile interaction      | Offers mobile menu and filters, custom sorting, size swatches, mini-cart status, delayed product loading, and reachable Stop.        |
+| Optional speech input   | Transcribes Egyptian Arabic or English into editable text when the browser supports recognition; sending remains explicit.           |
 
 Examples of supported requests:
 
@@ -92,8 +94,8 @@ The Agent checks the result before advancing or reporting completion.
 
 ## Verification and evidence
 
-As of **25 September 2026**, the complete automated suite passed **512 tests:
-138 TypeScript and 374 Python**, including browser regressions. The
+As of **26 September 2026**, the complete local automated suite passed **521 tests:
+144 TypeScript and 377 Python**, including desktop and mobile browser regressions. The
 [verified GitHub Actions run](https://github.com/Homd11/shopping-copilot/actions/runs/36162368824)
 also passed formatting, lint, build, and HTTP health checks.
 
@@ -220,11 +222,11 @@ the evaluation record.
 
 ## Scope and remaining work
 
-**Implemented through Ticket 12; the local MVP is not yet complete.**
+**Implemented through Ticket 13; the local MVP is not yet complete.**
 
 | Stage     | Remaining goal                                                                                                                                    |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ticket 13 | Mobile menus, custom controls, delayed content, repeated labels, accessibility, and manual speech-input checks.                                   |
+| Manual QA | Run the documented [Arabic/English microphone smoke test](docs/ticket13-speech-smoke.md) on a real device.                                        |
 | Ticket 14 | SPA navigation, controlled inputs, and event-stream reconnection under the same behavior and safety contract.                                     |
 | Ticket 15 | The complete 44-case gate: three recorded runs with at least 40/44 passing per run, every safety case passing, and measured step/latency targets. |
 | Ticket 16 | Five-person uncoached usability study, evidence-backed fixes, and published MVP results.                                                          |
@@ -232,7 +234,7 @@ the evaluation record.
 The original [MVP plan](MVP_PLAN.md) describes a narrower starting point. Approved
 scope subsequently added cart Undo, confirmation, refresh recovery, and tab
 ownership to make shopper control testable. Those additions do not imply a move to
-a general commerce platform. Mobile/SPA stress cases, the full evaluation gate,
+a general commerce platform. SPA stress cases, the full evaluation gate,
 and the participant study still have to be completed.
 
 Current limits:

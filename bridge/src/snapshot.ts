@@ -52,6 +52,7 @@ function implicitRole(element: Element): string | undefined {
   const tag = element.tagName.toLowerCase();
   if (tag === "a" && element.hasAttribute("href")) return "link";
   if (tag === "button") return "button";
+  if (tag === "summary") return "button";
   if (tag === "textarea") return "textbox";
   if (tag === "select")
     return element.hasAttribute("multiple") ? "listbox" : "combobox";
@@ -119,12 +120,29 @@ function accessibleName(element: Element): string {
 }
 
 function defaultVisibility(element: Element): boolean {
-  if (!element.isConnected || element.closest('[hidden], [aria-hidden="true"]'))
+  if (
+    !element.isConnected ||
+    element.closest('[hidden], [aria-hidden="true"], [inert]') ||
+    (element.closest("dialog") !== null &&
+      !element.closest("dialog")!.hasAttribute("open"))
+  )
+    return false;
+  const disclosure = element.closest("details:not([open])");
+  if (
+    disclosure !== null &&
+    element !== disclosure.querySelector(":scope > summary")
+  )
     return false;
   const view = element.ownerDocument.defaultView;
   if (view === null) return false;
-  const style = view.getComputedStyle(element);
-  if (style.display === "none" || style.visibility === "hidden") return false;
+  for (
+    let node: Element | null = element;
+    node !== null;
+    node = node.parentElement
+  ) {
+    const style = view.getComputedStyle(node);
+    if (style.display === "none" || style.visibility === "hidden") return false;
+  }
   const rect = element.getBoundingClientRect();
   return rect.width > 0 && rect.height > 0;
 }
@@ -214,7 +232,8 @@ function optionalState(
   if (role === "link") state.href = element.getAttribute("href") ?? undefined;
   if (role === "button") {
     const form = element.closest("form");
-    if (form !== null) {
+    const buttonType = (element.getAttribute("type") ?? "submit").toLowerCase();
+    if (form !== null && buttonType === "submit") {
       state.form_action =
         element.getAttribute("formaction") ??
         form.getAttribute("action") ??
@@ -244,6 +263,11 @@ function optionalState(
   ) {
     state.disabled = element.disabled;
   }
+  if (
+    element.matches(":disabled") ||
+    element.closest('[aria-disabled="true"], [inert], fieldset[disabled]')
+  )
+    state.disabled = true;
   if (role === "heading") state.level = Number(element.tagName.slice(1));
   return state;
 }
@@ -266,6 +290,10 @@ export class SnapshotBuilder {
 
   isSensitiveNow(element: Element): boolean {
     return isSensitiveField(element, accessibleName(element));
+  }
+
+  isVisibleNow(element: Element): boolean {
+    return (this.#options.isVisible ?? defaultVisibility)(element);
   }
 
   build(): Snapshot {
@@ -318,7 +346,7 @@ export class SnapshotBuilder {
     const role = elementRole(element);
     if (role === undefined || !INTERACTIVE_ROLES.has(role)) return undefined;
     const name = accessibleName(element);
-    const visible = (this.#options.isVisible ?? defaultVisibility)(element);
+    const visible = this.isVisibleNow(element);
     const sensitive = isSensitiveField(element, name);
     const id = this.#idFor(element);
     this.#elements.set(id, { element, sensitive });
