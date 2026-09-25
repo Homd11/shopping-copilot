@@ -80,7 +80,10 @@ def test_cart_task_completes_only_after_storefront_confirmation(confirmed):
         }
     )
     store.accept_result(session.session_id, result)
-    assert task.status == ("completed" if confirmed else "paused")
+    assert task.status == ("completed" if confirmed else "awaiting_answer")
+    if not confirmed:
+        assert isinstance(task.action, AskShopperAction)
+        assert task.action.options == ["Stop"]
 
 
 def test_missing_product_options_hands_back_without_add():

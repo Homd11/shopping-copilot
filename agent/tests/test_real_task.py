@@ -1474,7 +1474,10 @@ def test_invalid_model_output_pauses_task_until_retry_without_action() -> None:
         for event in events
     )
 
-    retry = client.post(f"/sessions/{session_id}/tasks/{response.json()['task_id']}/retry")
+    retry = client.post(
+        f"/sessions/{session_id}/tasks/{response.json()['task_id']}/retry",
+        json={"snapshot": home_snapshot()},
+    )
     assert retry.status_code == 202
     events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
     assert len([event for event in events if event["event"] == "action"]) == 1

@@ -84,6 +84,56 @@ def test_undo_expires_after_ten_seconds_in_browser(page):
     assert state(page)["undo"] is None
 
 
+def test_refresh_keeps_only_remaining_undo_time_and_restores_exact_cart(page):
+    frame = add(page)
+    second = page.request.post(
+        "http://localhost:4000/cart/items",
+        data={
+            "product_id": "shoe-14",
+            "size": "43",
+            "color": "green",
+            "quantity": 2,
+            "revision": 1,
+            "operation_id": "second-product-before-refresh",
+        },
+    )
+    assert second.status == 200
+    frame.locator('header a[href="/cart"]').click()
+    expect(frame.locator("[data-cart-line]")).to_have_count(2)
+    before = state(page)["lines"]
+    frame.locator('input[name="quantity"]').first.fill("3")
+    frame.locator('[data-cart-edit="quantity"] button').first.click()
+    expect(frame.locator('input[name="quantity"]').first).to_have_value("3")
+    remaining_before = state(page)["undo"]["remaining_ms"]
+
+    page.wait_for_timeout(1200)
+    page.reload()
+
+    expect(frame.locator('[data-testid="undo-cart"]')).to_be_visible()
+    remaining_after = state(page)["undo"]["remaining_ms"]
+    assert 0 < remaining_after < remaining_before - 800
+    frame.locator('[data-testid="undo-cart"]').click()
+    assert state(page)["lines"] == before
+
+
+def test_unverified_copilot_add_requires_new_request_after_refresh(page):
+    page.route(
+        "**/cart/items",
+        lambda route: route.fulfill(status=409, body="{}", content_type="application/json"),
+    )
+    page.locator("#shopper-message").fill("Add this to my cart")
+    page.get_by_role("button", name="إرسال").click()
+    expect(page.locator('.question-card [data-question-option="Stop"]')).to_be_visible()
+    expect(page.locator("#retry-task")).to_have_count(0)
+    assert state(page)["lines"] == []
+
+    page.reload()
+
+    expect(page.locator('.question-card [data-question-option="Stop"]')).to_be_visible()
+    expect(page.locator("#retry-task")).to_have_count(0)
+    assert state(page)["lines"] == []
+
+
 def test_copilot_add_quantity_remove_and_undo_only_reports_verified_success(page):
     frame = page.frame_locator("#storefront-frame")
 

@@ -26,6 +26,7 @@ function setup(options?: {
   restoreError?: Error;
   answerStatus?: "resumed" | "awaiting_login";
   answerGate?: Promise<void>;
+  reconcileGate?: Promise<void>;
 }) {
   const dom = new JSDOM('<!doctype html><div id="app"></div>');
   const submitted: Array<{
@@ -57,6 +58,7 @@ function setup(options?: {
     },
     reconcile: async (sessionId, _tabId, currentSnapshot) => {
       reconciliations.push({ sessionId, snapshot: currentSnapshot });
+      await options?.reconcileGate;
       return {
         session_id: sessionId,
         lease: "owned",
@@ -100,8 +102,8 @@ function setup(options?: {
     stop: async (sessionId) => {
       stopped.push(sessionId);
     },
-    retry: async (sessionId, taskId) => {
-      retries.push({ sessionId, taskId });
+    retry: async (sessionId, taskId, currentSnapshot) => {
+      retries.push({ sessionId, taskId, snapshot: currentSnapshot });
     },
   };
   const actions: unknown[] = [];
@@ -228,7 +230,7 @@ describe("PanelController", () => {
     context.root.querySelector<HTMLButtonElement>("#retry-task")?.click();
     await Promise.resolve();
     expect(context.retries).toEqual([
-      { sessionId: "session-1", taskId: "task-retry" },
+      { sessionId: "session-1", taskId: "task-retry", snapshot },
     ]);
     expect(
       context.root.querySelector<HTMLButtonElement>("#stop-task"),
@@ -685,6 +687,35 @@ describe("PanelController", () => {
     );
   });
 
+  it("reconciles the latest Storefront Snapshot once when reload delivers overlapping snapshots", async () => {
+    let release!: () => void;
+    const reconcileGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const context = setup({
+      savedSessionId: "session-restored",
+      reconcileGate,
+    });
+    await context.controller.start();
+    const latest = { ...snapshot, url: "http://localhost:4000/cart" };
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.controller.receiveStorefront({
+      type: "snapshot",
+      snapshot: latest,
+    });
+
+    expect(context.reconciliations).toEqual([
+      { sessionId: "session-restored", snapshot },
+    ]);
+    release();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(context.reconciliations).toEqual([
+      { sessionId: "session-restored", snapshot },
+      { sessionId: "session-restored", snapshot: latest },
+    ]);
+  });
+
   it("requires explicit takeover before another tab can reconnect", async () => {
     const restoredState: SessionView = {
       session_id: "session-owned-elsewhere",
@@ -740,10 +771,18 @@ describe("PanelController", () => {
     expect(context.root.querySelector("#task-status")?.textContent).toContain(
       "timed out",
     );
+    const changed = {
+      ...snapshot,
+      url: "http://localhost:4000/c/shoes?type=running",
+    };
+    context.controller.receiveStorefront({
+      type: "snapshot",
+      snapshot: changed,
+    });
     retry?.click();
     await Promise.resolve();
     expect(context.retries).toEqual([
-      { sessionId: "session-paused", taskId: "task-paused" },
+      { sessionId: "session-paused", taskId: "task-paused", snapshot: changed },
     ]);
   });
 
