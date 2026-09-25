@@ -32,6 +32,30 @@ _Avoid_: Job, workflow, prompt
 A Shopper-supplied condition that narrows acceptable results, such as category, use, price, or size.
 _Avoid_: Filter when referring to the Shopper's intent
 
+**Catalogue Fact**:
+An explicit Storefront assertion about a product's identity, availability, property, or suitable use. An absent fact is unverified, not a fact the Shopping Copilot may infer from a product name.
+_Avoid_: Model guess, implicit product knowledge
+
+**Exact Match**:
+An available catalogue product for which every explicit non-negotiable Shopper requirement is verified by authoritative product facts.
+_Avoid_: Search hit, plausible product
+
+**Alternative**:
+An available catalogue product offered despite one or more named unmet or unverified Shopper requirements, never presented as an Exact Match.
+_Avoid_: Match, silent fallback
+
+**Styling Suggestion**:
+An available catalogue product proposed for an open-ended coordination goal. Its product details and explicit requirements are verified; its colour-coordination advice is a styling opinion, not a product fact or a guarantee.
+_Avoid_: Personalized recommendation, model guess
+
+**Owned Outfit Context**:
+The garments and footwear a Shopper already has and wants to coordinate with. Their properties describe the owned items, not requirements for the product being sought.
+_Avoid_: Desired product filters, shopping history
+
+**Styling Preference**:
+A soft coordination idea, such as a neutral or complementary colour, used to rank otherwise acceptable products. It cannot silently replace or relax a Shopper's explicit Constraint.
+_Avoid_: Mandatory filter, verified suitability
+
 **Snapshot**:
 A semantic description of the current Storefront state that contains only the information needed to understand available interactions.
 _Avoid_: DOM dump, page scrape
@@ -71,3 +95,19 @@ _Avoid_: Rollback, cancel
 **Money**:
 An exact decimal amount paired with the ISO currency configured by the Storefront Definition.
 _Avoid_: Price number, floating-point amount
+
+**Intent Interpreter**:
+The Agent-side model boundary that converts one current Shopper message into a versioned, validated Intent and Constraints. It has no authority to select or execute an Action.
+_Avoid_: Brain, autonomous planner, action model
+
+**Structured Intent**:
+The versioned result of Intent interpretation: language, dialect, intent kind, canonical Constraints, browsing or recommendation goal, Owned Outfit Context, and clarification state.
+_Avoid_: Raw model response, free-form plan
+
+**Intent Boundary**:
+The deterministic validation point between model output and Shopping Task planning. It rejects malformed output, unsupported Money, vocabulary values outside the Storefront Definition, and conversational-only outcomes before they can become Actions.
+_Avoid_: Model safety, implicit guardrail
+
+## Project references
+
+- [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md) records the current execution frontier, verified evidence, and the next safe continuation point.

@@ -70,6 +70,12 @@ describe("deterministic bilingual catalogue", () => {
     ).toEqual(["electronics-01"]);
   });
 
+  it("does not return other clothing for a brown shirt request", () => {
+    expect(
+      filterProducts({ category: "clothing", type: "shirts", color: "brown" }),
+    ).toEqual([]);
+  });
+
   it("sorts matching products by cheapest with stable id tie-breaking", () => {
     const result = filterProducts({ category: "bags", sort: "cheapest" });
 

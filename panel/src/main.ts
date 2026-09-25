@@ -105,16 +105,32 @@ class HttpAgentTransport implements AgentTransport {
     questionId: string,
     text: string,
     snapshot: Snapshot,
-  ): Promise<void> {
-    await this.#post(`/sessions/${sessionId}/tasks/${taskId}/answers`, {
-      question_id: questionId,
-      text,
-      snapshot,
-    });
+  ): Promise<"resumed" | "awaiting_login"> {
+    const response = await fetch(
+      `${AGENT_ORIGIN}/sessions/${sessionId}/tasks/${taskId}/answers`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-tab-id": this.#tabId,
+        },
+        body: JSON.stringify({ question_id: questionId, text, snapshot }),
+      },
+    );
+    if (!response.ok)
+      throw new Error(`Agent request failed with ${response.status}`);
+    const result = (await response.json()) as {
+      status: "resumed" | "awaiting_login";
+    };
+    return result.status;
   }
 
   async stop(sessionId: string): Promise<void> {
     await this.#post(`/sessions/${sessionId}/stop`, {});
+  }
+
+  async retry(sessionId: string, taskId: string): Promise<void> {
+    await this.#post(`/sessions/${sessionId}/tasks/${taskId}/retry`, {});
   }
 
   async #post(path: string, body: object): Promise<void> {

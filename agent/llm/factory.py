@@ -1,10 +1,16 @@
 from agent.llm.config import LLMConfigurationError, LLMSettings
 from agent.llm.contract import LLMClient, ScriptedLLMClient
+from agent.llm.groq import GroqClient
+from agent.llm.nvidia import NvidiaNIMClient
 
 
 def build_llm_client(settings: LLMSettings) -> LLMClient:
     if settings.provider == "scripted":
         return ScriptedLLMClient()
+    if settings.provider == "nvidia":
+        return NvidiaNIMClient(settings)
+    if settings.provider == "groq":
+        return GroqClient(settings)
     raise LLMConfigurationError(
         f"The {settings.provider} LLM adapter is not available in this build"
     )

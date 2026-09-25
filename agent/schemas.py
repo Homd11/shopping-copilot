@@ -41,6 +41,8 @@ class SnapshotElement(WireModel):
     name: str
     visible: bool
     href: str | None = None
+    form_action: str | None = None
+    mutation_state: str | None = None
     value: str | None = None
     options: list[str] | None = None
     checked: bool | None = None
@@ -54,6 +56,8 @@ class SnapshotElement(WireModel):
     def exclude_sensitive_value(self) -> Self:
         sensitive_state = (
             self.href,
+            self.form_action,
+            self.mutation_state,
             self.value,
             self.options,
             self.checked,
@@ -95,6 +99,17 @@ class ClickAction(ActionBase):
     id: JsonInteger
 
 
+class GuardedClickAction(ActionBase):
+    type: Literal["guarded_click"]
+    id: JsonInteger
+    confirmation_id: str = Field(pattern=r"^confirmation-[0-9a-f]{32}$")
+    mutation_kind: Literal["clear_cart", "submit_checkout"]
+    target_signature: str = Field(min_length=1)
+    state_signature: str = Field(pattern=r"^cart:\d+$")
+    cart_revision: JsonInteger = Field(ge=0)
+    effect: str = Field(min_length=1)
+
+
 class TypeAction(ActionBase):
     type: Literal["type"]
     id: JsonInteger
@@ -123,6 +138,7 @@ class AskShopperAction(ActionBase):
     type: Literal["ask_shopper"]
     question: str
     options: list[str]
+    kind: Literal["confirmation"] | None = None
 
 
 class DoneAction(ActionBase):
@@ -133,6 +149,7 @@ class DoneAction(ActionBase):
 Action = Annotated[
     NavigateAction
     | ClickAction
+    | GuardedClickAction
     | TypeAction
     | SelectAction
     | ScrollToAction

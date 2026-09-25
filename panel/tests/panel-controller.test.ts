@@ -24,6 +24,8 @@ function setup(options?: {
   savedSessionId?: string;
   restoredState?: SessionView;
   restoreError?: Error;
+  answerStatus?: "resumed" | "awaiting_login";
+  answerGate?: Promise<void>;
 }) {
   const dom = new JSDOM('<!doctype html><div id="app"></div>');
   const submitted: Array<{
@@ -36,6 +38,7 @@ function setup(options?: {
   const answers: unknown[] = [];
   const reconciliations: unknown[] = [];
   const takeovers: unknown[] = [];
+  const retries: unknown[] = [];
   let eventHandler: ((event: AgentEvent) => void) | undefined;
   const agent: AgentTransport = {
     createSession: async () => "session-1",
@@ -91,9 +94,14 @@ function setup(options?: {
         text,
         snapshot: currentSnapshot,
       });
+      await options?.answerGate;
+      return options?.answerStatus ?? "resumed";
     },
     stop: async (sessionId) => {
       stopped.push(sessionId);
+    },
+    retry: async (sessionId, taskId) => {
+      retries.push({ sessionId, taskId });
     },
   };
   const actions: unknown[] = [];
@@ -137,12 +145,95 @@ function setup(options?: {
     cancelledTasks,
     reconciliations,
     takeovers,
+    retries,
     snapshotRequests: () => snapshotRequests,
     emit: (event: AgentEvent) => eventHandler?.(event),
   };
 }
 
 describe("PanelController", () => {
+  it("shows labelled grounded suggestions and restores them without a browser Action", async () => {
+    const suggestions = {
+      exact_count: 0,
+      suggestions: [
+        {
+          id: "shoe-07",
+          label: "alternative" as const,
+          name: "راحة يومية",
+          price: "1350",
+          currency: "EGP" as const,
+          reason: "بديل؛ لا يمكن تأكيد مناسبة الفرح.",
+          unmet: ["suitable_for: formal_events"],
+        },
+      ],
+    };
+    const context = setup();
+    await context.controller.start();
+    context.emit({ type: "task_started", data: { task_id: "task-1" } });
+    context.emit({ type: "suggestions", data: suggestions });
+    context.emit({
+      type: "done",
+      data: { summary: "No exact match", language: "ar" },
+    });
+    expect(context.actions).toHaveLength(0);
+    expect(
+      context.root.querySelector('[data-product-id="shoe-07"]')?.textContent,
+    ).toContain("Alternative");
+    expect(
+      context.root.querySelector('[data-product-id="shoe-07"]')?.textContent,
+    ).toContain("formal_events");
+    expect(
+      context.root
+        .querySelector("#task-status")
+        ?.getAttribute("data-task-state"),
+    ).toBe("completed");
+
+    const restored = setup({
+      savedSessionId: "session-1",
+      restoredState: {
+        session_id: "session-1",
+        lease: "owned",
+        event_cursor: 3,
+        conversation: [{ role: "copilot", text: "No exact match" }],
+        requires_reconciliation: false,
+        task: {
+          task_id: "task-1",
+          status: "completed",
+          pending_question: null,
+          suggestions,
+        },
+      },
+    });
+    await restored.controller.start();
+    restored.controller.receiveStorefront({ type: "snapshot", snapshot });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(restored.root.querySelectorAll(".suggestion-card")).toHaveLength(1);
+    expect(restored.actions).toHaveLength(0);
+  });
+  it("keeps a failed interpretation active and offers Retry and Stop", async () => {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.emit({ type: "task_started", data: { task_id: "task-retry" } });
+    context.emit({
+      type: "error",
+      data: { message: "Couldn't interpret the request." },
+    });
+
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")
+        ?.disabled,
+    ).toBe(true);
+    context.root.querySelector<HTMLButtonElement>("#retry-task")?.click();
+    await Promise.resolve();
+    expect(context.retries).toEqual([
+      { sessionId: "session-1", taskId: "task-retry" },
+    ]);
+    expect(
+      context.root.querySelector<HTMLButtonElement>("#stop-task"),
+    ).not.toBeNull();
+  });
   it("shows the task surface and submits a Shopper message with the current Snapshot", async () => {
     const context = setup();
     await context.controller.start();
@@ -162,6 +253,9 @@ describe("PanelController", () => {
       }),
     );
     await Promise.resolve();
+
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(input.disabled).toBe(true);
 
     expect(context.root.querySelector('[role="status"]')).not.toBeNull();
     expect(context.root.querySelector("#stop-task")).not.toBeNull();
@@ -246,7 +340,14 @@ describe("PanelController", () => {
     option.click();
     await Promise.resolve();
 
-    expect(context.actions).toEqual([]);
+    expect(context.actions).toEqual([
+      expect.objectContaining({
+        type: "ask_shopper",
+        task_id: "task-1",
+        action_id: "question-1",
+        sequence_number: 1,
+      }),
+    ]);
     expect(context.answers).toEqual([
       {
         sessionId: "session-1",
@@ -255,6 +356,203 @@ describe("PanelController", () => {
         text: "2000 EGP",
         snapshot,
       },
+    ]);
+  });
+
+  it("shows a distinct exact-effect Confirmation card and sends the chosen option", async () => {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.emit({ type: "task_started", data: { task_id: "task-clear" } });
+    context.emit({
+      type: "action",
+      data: {
+        action: {
+          v: 1,
+          type: "ask_shopper",
+          kind: "confirmation",
+          task_id: "task-clear",
+          action_id: "confirmation-1234567890abcdef1234567890abcdef",
+          sequence_number: 1,
+          narration: "Confirm this action.",
+          question:
+            "Confirm this action: Remove every item from the current cart. Continue?",
+          options: ["Confirm", "Stop"],
+        },
+      },
+    });
+
+    const card = context.root.querySelector<HTMLElement>(".confirmation-card");
+    expect(card?.getAttribute("aria-label")).toBe("Confirm Guarded Mutation");
+    expect(card?.textContent).toContain(
+      "Remove every item from the current cart",
+    );
+    card
+      ?.querySelector<HTMLButtonElement>('[data-question-option="Confirm"]')
+      ?.click();
+    await Promise.resolve();
+    expect(context.answers).toEqual([
+      expect.objectContaining({
+        questionId: "confirmation-1234567890abcdef1234567890abcdef",
+        text: "Confirm",
+      }),
+    ]);
+  });
+
+  it("keeps the sign-in handoff visible without repeating Continue until the page changes", async () => {
+    const context = setup({ answerStatus: "awaiting_login" });
+    await context.controller.start();
+    const login = {
+      ...snapshot,
+      url: "http://localhost:4000/login?next=%2Faccount%2Forders",
+    };
+    context.controller.receiveStorefront({ type: "snapshot", snapshot: login });
+    context.emit({ type: "task_started", data: { task_id: "task-orders" } });
+    context.emit({
+      type: "action",
+      data: {
+        action: {
+          v: 1,
+          type: "ask_shopper",
+          task_id: "task-orders",
+          action_id: "question-login",
+          sequence_number: 2,
+          narration: "Sign in yourself first.",
+          question: "After signing in, should I continue?",
+          options: ["Continue", "Stop"],
+        },
+      },
+    });
+
+    context.root
+      .querySelector<HTMLButtonElement>('[data-question-option="Continue"]')!
+      .click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const continueButton = context.root.querySelector<HTMLButtonElement>(
+      '[data-question-option="Continue"]',
+    )!;
+    expect(continueButton.disabled).toBe(true);
+    expect(
+      context.root.querySelector("#pending-question")?.textContent,
+    ).toContain("سجّل الدخول");
+    continueButton.click();
+    expect(context.answers).toHaveLength(1);
+    expect(
+      context.root.querySelector<HTMLButtonElement>(
+        '[data-question-option="Stop"]',
+      )?.disabled,
+    ).toBe(false);
+
+    context.controller.receiveStorefront({
+      type: "snapshot",
+      snapshot: { ...snapshot, url: "http://localhost:4000/account/orders" },
+    });
+    expect(continueButton.disabled).toBe(false);
+  });
+
+  it("does not re-lock Continue if sign-in completes before the waiting response arrives", async () => {
+    let releaseAnswer!: () => void;
+    const answerGate = new Promise<void>((resolve) => {
+      releaseAnswer = resolve;
+    });
+    const context = setup({ answerStatus: "awaiting_login", answerGate });
+    await context.controller.start();
+    context.controller.receiveStorefront({
+      type: "snapshot",
+      snapshot: {
+        ...snapshot,
+        url: "http://localhost:4000/login?next=%2Faccount%2Forders",
+      },
+    });
+    context.emit({ type: "task_started", data: { task_id: "task-orders" } });
+    context.emit({
+      type: "action",
+      data: {
+        action: {
+          v: 1,
+          type: "ask_shopper",
+          task_id: "task-orders",
+          action_id: "question-login",
+          sequence_number: 2,
+          narration: "Sign in yourself first.",
+          question: "After signing in, should I continue?",
+          options: ["Continue", "Stop"],
+        },
+      },
+    });
+    const continueButton = context.root.querySelector<HTMLButtonElement>(
+      '[data-question-option="Continue"]',
+    )!;
+    continueButton.click();
+    context.controller.receiveStorefront({
+      type: "snapshot",
+      snapshot: { ...snapshot, url: "http://localhost:4000/account/orders" },
+    });
+    releaseAnswer();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(continueButton.disabled).toBe(false);
+  });
+
+  it("registers a clarification in Bridge without treating its receipt as a Shopper answer", async () => {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.emit({ type: "task_started", data: { task_id: "task-cart" } });
+    const question = {
+      v: 1 as const,
+      type: "ask_shopper" as const,
+      task_id: "task-cart",
+      action_id: "question-cart",
+      sequence_number: 1,
+      narration: "Which page?",
+      question: "Which page should I open?",
+      options: ["افتح السلة"],
+    };
+    context.emit({ type: "action", data: { action: question } });
+    expect(context.actions).toEqual([question]);
+
+    context.controller.receiveStorefront({
+      type: "action_result",
+      result: {
+        v: 1,
+        task_id: "task-cart",
+        action_id: "question-cart",
+        sequence_number: 1,
+        status: "ok",
+        snapshot,
+      },
+    });
+    await Promise.resolve();
+    expect(context.results).toHaveLength(0);
+
+    const navigate = {
+      v: 1 as const,
+      type: "navigate" as const,
+      task_id: "task-cart",
+      action_id: "open-cart",
+      sequence_number: 2,
+      narration: "Opening cart",
+      url: "/cart",
+    };
+    context.emit({ type: "action", data: { action: navigate } });
+    expect(context.actions).toEqual([question, navigate]);
+    context.controller.receiveStorefront({
+      type: "action_result",
+      result: {
+        v: 1,
+        task_id: "task-cart",
+        action_id: "open-cart",
+        sequence_number: 2,
+        status: "navigated",
+        snapshot,
+      },
+    });
+    await Promise.resolve();
+    expect(context.results).toEqual([
+      expect.objectContaining({ action_id: "open-cart", status: "navigated" }),
     ]);
   });
 
@@ -417,19 +715,62 @@ describe("PanelController", () => {
     ]);
   });
 
-  it("starts a fresh session when the saved session has expired", async () => {
-    const context = setup({
-      savedSessionId: "session-expired",
-      restoreError: new Error("Session restore failed with 410"),
-    });
-
+  it("restores Retry for a paused model call after refresh", async () => {
+    const restoredState: SessionView = {
+      session_id: "session-paused",
+      lease: "owned",
+      event_cursor: 3,
+      conversation: [{ role: "shopper", text: "عاوز حذاء" }],
+      requires_reconciliation: false,
+      task: {
+        task_id: "task-paused",
+        status: "paused",
+        pending_question: null,
+        pause_message: "The model service timed out. Retry or stop the task.",
+      },
+    };
+    const context = setup({ savedSessionId: "session-paused", restoredState });
     await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    await Promise.resolve();
+    await Promise.resolve();
 
-    expect(context.snapshotRequests()).toBe(1);
-    expect(context.root.querySelector("#task-status")?.textContent).toBe(
-      "بانتظار اتصال المتجر…",
+    const retry = context.root.querySelector<HTMLButtonElement>("#retry-task");
+    expect(retry).not.toBeNull();
+    expect(context.root.querySelector("#task-status")?.textContent).toContain(
+      "timed out",
     );
+    retry?.click();
+    await Promise.resolve();
+    expect(context.retries).toEqual([
+      { sessionId: "session-paused", taskId: "task-paused" },
+    ]);
   });
+
+  it.each([404, 410])(
+    "starts a fresh session when saved session restore returns %i",
+    async (status) => {
+      const context = setup({
+        savedSessionId: "session-expired",
+        restoreError: new Error(`Session restore failed with ${status}`),
+      });
+
+      await context.controller.start();
+
+      expect(context.snapshotRequests()).toBe(1);
+      expect(context.root.querySelector("#task-status")?.textContent).toBe(
+        "بانتظار اتصال المتجر…",
+      );
+      expect(
+        context.root.querySelector("#conversation")?.textContent,
+      ).toContain("بدأت جلسة جديدة");
+      context.controller.receiveStorefront({ type: "snapshot", snapshot });
+      expect(
+        context.root.querySelector<HTMLInputElement>("#shopper-message")
+          ?.disabled,
+      ).toBe(false);
+    },
+  );
 
   it.each(["completed", "cancelled"])(
     "restores a %s task without locking Shopper input",

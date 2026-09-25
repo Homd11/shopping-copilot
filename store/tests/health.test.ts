@@ -4,6 +4,60 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 
 describe("Controlled Storefront", () => {
+  it("opens a recommended product by stable ID without relying on search text", async () => {
+    const response = await request(createApp()).get("/p/shoe-09");
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("ممشى النيل");
+    expect(response.text).toContain('data-product-id="shoe-09"');
+    expect(response.text).not.toContain("لا توجد منتجات مطابقة");
+    expect((await request(createApp()).get("/p/not-a-product")).status).toBe(
+      404,
+    );
+  });
+
+  it("exposes an unavailable product as non-purchasable", async () => {
+    const response = await request(createApp()).get("/p/shoe-05");
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("غير متاح");
+    expect(response.text).toMatch(/data-testid="add-to-cart"[^>]*disabled/);
+  });
+
+  it("refuses an unavailable cart addition at the authoritative Storefront boundary", async () => {
+    const app = createApp();
+    const unavailable = await request(app)
+      .post("/cart/items")
+      .send({ product_id: "shoe-05" });
+    const available = await request(app)
+      .post("/cart/items")
+      .send({ product_id: "shoe-09" });
+
+    expect(unavailable.status).toBe(409);
+    expect(unavailable.body).toEqual({ error: "product_unavailable" });
+    expect(available.status).toBe(409);
+    expect(available.body).toEqual({ error: "invalid_or_stale_cart_edit" });
+  });
+
+  it("publishes only versioned public catalogue facts for grounded discovery", async () => {
+    const response = await request(createApp()).get("/__catalogue/v1/products");
+
+    expect(response.status).toBe(200);
+    expect(response.headers["cache-control"]).toBe("no-store");
+    expect(response.body.v).toBe(1);
+    expect(response.body.currency).toBe("EGP");
+    expect(response.body.products).toHaveLength(60);
+    expect(
+      response.body.products.find(
+        (item: { id: string }) => item.id === "shoe-02",
+      ),
+    ).toMatchObject({
+      price: { amount: "1750", currency: "EGP" },
+      suitable_for: ["daily_workouts", "road_running"],
+      available: true,
+    });
+    expect(response.body.products[0]).not.toHaveProperty("cart");
+    expect(response.body.products[0]).not.toHaveProperty("payment");
+  });
   it("serves an Arabic home page with a shoes category link", async () => {
     const response = await request(createApp()).get("/");
 
@@ -12,6 +66,86 @@ describe("Controlled Storefront", () => {
     expect(response.text).toContain('<html lang="ar" dir="rtl">');
     expect(response.text).toContain('href="/c/shoes"');
     expect(response.text).toContain("الأحذية");
+  });
+
+  it("provides a cart destination with a link to the fictional checkout page", async () => {
+    const response = await request(createApp()).get("/cart");
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("<h1>السلة</h1>");
+    expect(response.text).toContain("السلة فارغة");
+    expect(response.text).not.toContain("حذاء تجريبي");
+    expect(response.text).toContain('href="/checkout">إتمام الشراء</a>');
+    expect(response.text).toContain('href="/account">الحساب</a>');
+  });
+
+  it("shows fictional payment fields and keeps order submission unavailable for an empty cart", async () => {
+    const response = await request(createApp()).get("/checkout");
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("<h1>إتمام الشراء</h1>");
+    expect(response.text).toContain('autocomplete="cc-number"');
+    expect(response.text).toContain('autocomplete="cc-exp"');
+    expect(response.text).toContain('autocomplete="cc-csc"');
+    expect(response.text).toMatch(/data-testid="place-order"[^>]*disabled/);
+    expect(response.text).toContain('action="/checkout/submit"');
+  });
+
+  it("links the account page to the configured order-history route", async () => {
+    const response = await request(createApp()).get("/account");
+
+    expect(response.status).toBe(200);
+    expect(response.text).toContain("<h1>الحساب</h1>");
+    expect(response.text).toContain('href="/account/orders">الطلبات</a>');
+  });
+
+  it("redirects logged-out order-history visits to user-controlled login", async () => {
+    const response = await request(createApp()).get("/account/orders");
+
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe("/login?next=%2Faccount%2Forders");
+  });
+
+  it("returns a safe validation page when login has no form body", async () => {
+    const response = await request(createApp()).post("/login");
+
+    expect(response.status).toBe(400);
+    expect(response.text).toContain("تسجيل الدخول");
+    expect(response.text).not.toContain("undefined");
+  });
+
+  it("does not echo a supplied username when login fields are incomplete", async () => {
+    const response = await request(createApp())
+      .post("/login")
+      .type("form")
+      .send({ username: "private@example.test" });
+
+    expect(response.status).toBe(400);
+    expect(response.text).not.toContain("private@example.test");
+  });
+
+  it("authenticates through fictional shopper-entered fields without echoing values", async () => {
+    const app = createApp();
+    const login = await request(app)
+      .post("/login")
+      .type("form")
+      .send({ username: "shopper@example.test", password: "fictional-secret" });
+
+    expect(login.status).toBe(303);
+    expect(login.headers.location).toBe("/account/orders");
+    expect(login.text).not.toContain("shopper@example.test");
+    expect(login.text).not.toContain("fictional-secret");
+    const cookie = login.headers["set-cookie"]?.[0]?.split(";")[0];
+    expect(cookie).toBeDefined();
+
+    const orders = await request(app)
+      .get("/account/orders")
+      .set("Cookie", cookie!);
+
+    expect(orders.status).toBe(200);
+    expect(orders.text).toContain('href="#order-1003">أحدث طلب</a>');
+    expect(orders.text).toContain("order-1003");
+    expect(orders.text).not.toContain("fictional-secret");
   });
 
   it("serves a semantic shoes page with deterministic Arabic filters", async () => {

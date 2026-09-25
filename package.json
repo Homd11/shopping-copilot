@@ -8,7 +8,7 @@
     "pnpm": "11.19.0"
   },
   "scripts": {
-    "agent:win": "python -m uvicorn agent.app:app --host 0.0.0.0 --port 8000 --reload",
+    "agent:win": "python -m uvicorn agent.app:app --host 127.0.0.1 --port 8000 --reload",
     "build": "pnpm --recursive build",
     "eval:browser": "python -m eval.runner",
     "eval:win": "python -m pytest eval/tests",

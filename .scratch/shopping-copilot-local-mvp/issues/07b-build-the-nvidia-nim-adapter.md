@@ -4,16 +4,16 @@
 
 **Blocked by:** 07A — Define the provider-neutral LLM contract.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] The adapter calls NVIDIA from the Python Agent only and reads its API key exclusively from local environment configuration.
-- [ ] The configured endpoint and model identifier are explicit and recorded with every model call.
-- [ ] Requests use a configurable timeout that defaults to twenty seconds for development.
-- [ ] Transient network failures, throttling, and invalid structured output receive at most one retry with short exponential backoff and jitter.
-- [ ] Partial, timed-out, or invalid responses can never emit a browser Action.
-- [ ] Usage metadata records latency, tokens when reported, model identifier, parameters, prompt version, schema version, and failure category without recording the credential.
-- [ ] Mocked adapter tests cover successful output, timeout, throttling, malformed output, retry exhaustion, and secret-safe logs.
-- [ ] Real-provider smoke tests require an explicit opt-in flag and never run in ordinary test or CI commands.
+- [x] The adapter calls NVIDIA from the Python Agent only and reads its API key exclusively from local environment configuration.
+- [x] The configured endpoint and model identifier are explicit and recorded with every model call.
+- [x] Requests use a configurable timeout that defaults to twenty seconds for development.
+- [x] Transient network failures, throttling, and invalid structured output receive at most one retry with short exponential backoff and jitter.
+- [x] Partial, timed-out, or invalid responses can never emit a browser Action.
+- [x] Usage metadata records latency, tokens when reported, model identifier, parameters, prompt version, schema version, and failure category without recording the credential.
+- [x] Mocked adapter tests cover successful output, timeout, throttling, malformed output, retry exhaustion, and secret-safe logs.
+- [x] Real-provider smoke tests require an explicit opt-in flag and never run in ordinary test or CI commands.
 
 ## Comments
 

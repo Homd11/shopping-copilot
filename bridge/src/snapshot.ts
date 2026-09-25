@@ -19,6 +19,7 @@ const INTERACTIVE_ROLES = new Set([
   "main",
   "contentinfo",
   "dialog",
+  "status",
 ]);
 
 export interface SnapshotBuilderOptions {
@@ -34,6 +35,17 @@ export interface RegisteredElement {
 
 function compactText(value: string | null | undefined): string {
   return (value ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function textWithoutFieldValues(node: Node): string {
+  if (node.nodeType === node.TEXT_NODE) return node.textContent ?? "";
+  if (node.nodeType === node.ELEMENT_NODE) {
+    const element = node as Element;
+    if (["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
+      return "";
+    if (element.closest("select") !== null) return "";
+  }
+  return [...node.childNodes].map(textWithoutFieldValues).join("");
 }
 
 function implicitRole(element: Element): string | undefined {
@@ -70,7 +82,10 @@ function labelledByText(element: Element): string {
   const ids = element.getAttribute("aria-labelledby")?.split(/\s+/) ?? [];
   return compactText(
     ids
-      .map((id) => element.ownerDocument.getElementById(id)?.textContent ?? "")
+      .map((id) => {
+        const label = element.ownerDocument.getElementById(id);
+        return label === null ? "" : textWithoutFieldValues(label);
+      })
       .join(" "),
   );
 }
@@ -83,16 +98,20 @@ function labelText(element: Element): string {
       ? (element.labels as NodeListOf<HTMLLabelElement> | null)
       : null;
   return compactText(
-    labels ? [...labels].map((label) => label.textContent).join(" ") : "",
+    labels ? [...labels].map(textWithoutFieldValues).join(" ") : "",
   );
 }
 
 function accessibleName(element: Element): string {
+  const textContent =
+    element.tagName.toLowerCase() === "option" && !isSensitiveField(element, "")
+      ? element.textContent
+      : textWithoutFieldValues(element);
   return (
     labelledByText(element) ||
     compactText(element.getAttribute("aria-label")) ||
     labelText(element) ||
-    compactText(element.textContent) ||
+    compactText(textContent) ||
     compactText(element.getAttribute("alt")) ||
     compactText(element.getAttribute("title")) ||
     compactText(element.getAttribute("placeholder"))
@@ -120,24 +139,70 @@ function nearestRegion(element: Element): string | undefined {
 
 function nearestGroup(element: Element): string | undefined {
   const fieldset = element.closest("fieldset");
-  if (fieldset !== null)
-    return compactText(fieldset.querySelector("legend")?.textContent);
+  if (fieldset !== null) {
+    const legend = fieldset.querySelector("legend");
+    return compactText(legend === null ? "" : textWithoutFieldValues(legend));
+  }
   const group = element.closest('[role="group"], [role="radiogroup"]');
   return group === null ? undefined : accessibleName(group);
 }
 
 function isSensitiveField(element: Element, name: string): boolean {
-  if (element.tagName.toLowerCase() !== "input") return false;
+  if (element.tagName.toLowerCase() === "option") {
+    const select = element.closest("select");
+    return select !== null && isSensitiveField(select, accessibleName(select));
+  }
+  if (!["input", "textarea", "select"].includes(element.tagName.toLowerCase()))
+    return false;
   const type = (element.getAttribute("type") ?? "").toLowerCase();
-  const autocomplete = (
-    element.getAttribute("autocomplete") ?? ""
-  ).toLowerCase();
-  const identity = `${element.getAttribute("name") ?? ""} ${name}`;
+  const autocomplete = (element.getAttribute("autocomplete") ?? "")
+    .toLowerCase()
+    .split(/\s+/);
+  const identity = [
+    element.getAttribute("name"),
+    element.getAttribute("id"),
+    element.getAttribute("aria-label"),
+    element.getAttribute("placeholder"),
+    name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const loginIdentifierName =
+    /(?:^|[^a-z0-9])(?:e-?mail(?:[-_ ]address)?|user(?:name|_name)?|login(?:[-_ ]id)?)(?:$|[^a-z0-9])/i.test(
+      identity,
+    );
+  const form = element.closest("form");
+  const formIdentity =
+    form === null
+      ? ""
+      : [
+          form.getAttribute("id"),
+          form.getAttribute("name"),
+          form.getAttribute("aria-label"),
+          form.getAttribute("action"),
+        ]
+          .filter(Boolean)
+          .join(" ");
+  const loginForm =
+    form !== null &&
+    (form.querySelector('input[type="password"]') !== null ||
+      /(?:^|[^a-z0-9])(?:log[-_ ]?in|sign[-_ ]?in|auth(?:entication)?)(?:$|[^a-z0-9])/i.test(
+        formIdentity,
+      ));
   return (
     type === "password" ||
-    autocomplete.startsWith("cc-") ||
-    autocomplete === "one-time-code" ||
-    /card|cvv|cvc|expir/i.test(identity)
+    autocomplete.some(
+      (token) =>
+        token.startsWith("cc-") ||
+        [
+          "one-time-code",
+          "username",
+          "current-password",
+          "new-password",
+        ].includes(token),
+    ) ||
+    /card|cvv|cvc|expir/i.test(identity) ||
+    (["", "email", "text"].includes(type) && loginIdentifierName && loginForm)
   );
 }
 
@@ -147,6 +212,20 @@ function optionalState(
 ): Partial<SnapshotElement> {
   const state: Partial<SnapshotElement> = {};
   if (role === "link") state.href = element.getAttribute("href") ?? undefined;
+  if (role === "button") {
+    const form = element.closest("form");
+    if (form !== null) {
+      state.form_action =
+        element.getAttribute("formaction") ??
+        form.getAttribute("action") ??
+        undefined;
+    }
+    if (element.hasAttribute("data-guarded-mutation")) {
+      const revision = element.getAttribute("data-cart-revision");
+      if (revision !== null && /^\d+$/.test(revision))
+        state.mutation_state = `cart:${revision}`;
+    }
+  }
   if (element instanceof element.ownerDocument.defaultView!.HTMLInputElement) {
     state.value = element.value;
     if (role === "checkbox" || role === "radio")
@@ -183,6 +262,10 @@ export class SnapshotBuilder {
 
   resolve(id: number): RegisteredElement | undefined {
     return this.#elements.get(id);
+  }
+
+  isSensitiveNow(element: Element): boolean {
+    return isSensitiveField(element, accessibleName(element));
   }
 
   build(): Snapshot {
@@ -240,7 +323,7 @@ export class SnapshotBuilder {
     const id = this.#idFor(element);
     this.#elements.set(id, { element, sensitive });
     const base: SnapshotElement = { id, role, name, visible };
-    if (sensitive) return { ...base, sensitive: true };
+    if (sensitive) return { ...base, name: "Sensitive field", sensitive: true };
 
     const region = nearestRegion(element);
     const group = nearestGroup(element);

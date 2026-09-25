@@ -319,7 +319,13 @@ def test_english_task_completion_remains_in_english() -> None:
             "action_id": action["action_id"],
             "sequence_number": action["sequence_number"],
             "status": "navigated",
-            "snapshot": {**home_snapshot(), "url": f"http://localhost:4000{action['url']}"},
+            "snapshot": {
+                **home_snapshot(),
+                "url": f"http://localhost:4000{action['url']}",
+                "elements": [
+                    {"id": 1, "role": "heading", "name": "3 منتجات", "level": 2, "visible": True}
+                ],
+            },
         },
     )
 
@@ -347,7 +353,13 @@ def test_other_discovery_tasks_use_a_generic_completion_summary() -> None:
             "action_id": action["action_id"],
             "sequence_number": action["sequence_number"],
             "status": "navigated",
-            "snapshot": {**home_snapshot(), "url": f"http://localhost:4000{action['url']}"},
+            "snapshot": {
+                **home_snapshot(),
+                "url": f"http://localhost:4000{action['url']}",
+                "elements": [
+                    {"id": 1, "role": "heading", "name": "3 منتجات", "level": 2, "visible": True}
+                ],
+            },
         },
     )
 

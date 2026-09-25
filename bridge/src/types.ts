@@ -10,6 +10,8 @@ export interface SnapshotElement {
   name: string;
   visible: boolean;
   href?: string;
+  form_action?: string;
+  mutation_state?: string;
   value?: string;
   options?: string[];
   checked?: boolean;
@@ -48,6 +50,17 @@ export interface ClickAction extends ActionBase {
   id: number;
 }
 
+export interface GuardedClickAction extends ActionBase {
+  type: "guarded_click";
+  id: number;
+  confirmation_id: string;
+  mutation_kind: "clear_cart" | "submit_checkout";
+  target_signature: string;
+  state_signature: string;
+  cart_revision: number;
+  effect: string;
+}
+
 export interface TypeAction extends ActionBase {
   type: "type";
   id: number;
@@ -76,6 +89,7 @@ export interface AskShopperAction extends ActionBase {
   type: "ask_shopper";
   question: string;
   options: string[];
+  kind?: "confirmation";
 }
 
 export interface DoneAction extends ActionBase {
@@ -86,6 +100,7 @@ export interface DoneAction extends ActionBase {
 export type Action =
   | NavigateAction
   | ClickAction
+  | GuardedClickAction
   | TypeAction
   | SelectAction
   | ScrollToAction
@@ -211,6 +226,8 @@ function validateSnapshotElement(value: unknown, index: number): void {
       "name",
       "visible",
       "href",
+      "form_action",
+      "mutation_state",
       "value",
       "options",
       "checked",
@@ -227,7 +244,14 @@ function validateSnapshotElement(value: unknown, index: number): void {
   requireString(element, "name", label);
   requireBoolean(element, "visible", label);
 
-  for (const key of ["href", "value", "group", "region"] as const) {
+  for (const key of [
+    "href",
+    "form_action",
+    "mutation_state",
+    "value",
+    "group",
+    "region",
+  ] as const) {
     validateOptionalString(element, key, label);
   }
   for (const key of ["checked", "disabled"] as const) {
@@ -250,6 +274,8 @@ function validateSnapshotElement(value: unknown, index: number): void {
   }
   const sensitiveStateKeys = [
     "href",
+    "form_action",
+    "mutation_state",
     "value",
     "options",
     "checked",
@@ -316,6 +342,50 @@ export function parseAction(payload: unknown): Action {
       requireOnlyKeys(action, [...ACTION_BASE_KEYS, "id"], "Action");
       requireInteger(action, "id", "Action");
       break;
+    case "guarded_click":
+      requireOnlyKeys(
+        action,
+        [
+          ...ACTION_BASE_KEYS,
+          "id",
+          "confirmation_id",
+          "mutation_kind",
+          "target_signature",
+          "state_signature",
+          "cart_revision",
+          "effect",
+        ],
+        "Action",
+      );
+      requireInteger(action, "id", "Action");
+      requireInteger(action, "cart_revision", "Action");
+      for (const key of [
+        "confirmation_id",
+        "mutation_kind",
+        "target_signature",
+        "state_signature",
+        "effect",
+      ])
+        requireString(action, key, "Action");
+      if (
+        !["clear_cart", "submit_checkout"].includes(
+          action.mutation_kind as string,
+        )
+      )
+        throw new TypeError("Action.mutation_kind is unsupported");
+      if (!/^confirmation-[0-9a-f]{32}$/.test(action.confirmation_id as string))
+        throw new TypeError("Action.confirmation_id is invalid");
+      if (
+        !(action.target_signature as string).trim() ||
+        !(action.effect as string).trim()
+      )
+        throw new TypeError("Guarded Action needs a target and effect");
+      if (
+        (action.cart_revision as number) < 0 ||
+        action.state_signature !== `cart:${action.cart_revision}`
+      )
+        throw new TypeError("Guarded Action has an invalid cart revision");
+      break;
     case "type":
       requireOnlyKeys(
         action,
@@ -339,7 +409,7 @@ export function parseAction(payload: unknown): Action {
     case "ask_shopper":
       requireOnlyKeys(
         action,
-        [...ACTION_BASE_KEYS, "question", "options"],
+        [...ACTION_BASE_KEYS, "question", "options", "kind"],
         "Action",
       );
       requireString(action, "question", "Action");
@@ -348,6 +418,9 @@ export function parseAction(payload: unknown): Action {
         !action.options.every((option) => typeof option === "string")
       ) {
         throw new TypeError("Action.options must be an array of strings");
+      }
+      if (action.kind !== undefined && action.kind !== "confirmation") {
+        throw new TypeError("Action.kind is unsupported");
       }
       break;
     case "done":

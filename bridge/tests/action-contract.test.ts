@@ -23,6 +23,20 @@ describe("v1 Action contract", () => {
     expect(parseAction(payload)).toEqual(payload);
   });
 
+  it("does not allow a model-authored read Action against any field", () => {
+    expect(() =>
+      parseAction({
+        v: 1,
+        type: "read",
+        task_id: "task-safety",
+        action_id: "action-read",
+        sequence_number: 1,
+        narration: "Read card number",
+        id: 1,
+      }),
+    ).toThrow(TypeError);
+  });
+
   it.each([
     "invalid/action-wrong-version.json",
     "invalid/action-missing-task-id.json",

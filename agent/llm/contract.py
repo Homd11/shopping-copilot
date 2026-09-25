@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator, Iterable, Mapping
+from collections.abc import AsyncIterator, Callable, Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
@@ -39,6 +39,11 @@ class LLMRequest:
     messages: tuple[LLMMessage, ...]
     tools: tuple[ToolSpec, ...] = ()
     response_schema: Mapping[str, Any] | None = None
+    response_validator: Callable[[str], object] | None = None
+    prompt_version: str = "unversioned"
+    schema_version: int | None = None
+    temperature: float = 0
+    max_tokens: int = 512
 
 
 class LLMClient(Protocol):
