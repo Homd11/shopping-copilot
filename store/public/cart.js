@@ -62,6 +62,60 @@
       ? "تعذر تحميل السلة. أعد تحميل الصفحة."
       : "Cart unavailable. Reload the page.";
   });
+  const clearDialog = document.getElementById("manual-clear-dialog");
+  let confirmingClear = false;
+  document.addEventListener("click", async (event) => {
+    if (!event.isTrusted || !clearDialog) return;
+    const trigger = event.target.closest('[data-testid="empty-cart"]');
+    if (trigger) {
+      event.preventDefault();
+      if (busy || !state?.lines.length) return;
+      const form = document.getElementById("manual-clear-form");
+      form.elements.cart_revision.value = String(state.revision);
+      form.elements.copilot_confirmation.value = "";
+      document.getElementById("confirm-manual-clear").dataset.cartRevision =
+        String(state.revision);
+      document.getElementById("manual-clear-summary").textContent =
+        `عدد المنتجات: ${state.count}`;
+      clearDialog.showModal();
+    }
+    if (event.target.closest("#cancel-manual-clear")) {
+      event.preventDefault();
+      if (!confirmingClear) clearDialog.close();
+    }
+    if (event.target.closest("#confirm-manual-clear")) {
+      event.preventDefault();
+      if (confirmingClear || busy) return;
+      confirmingClear = true;
+      const form = document.getElementById("manual-clear-form");
+      const button = document.getElementById("confirm-manual-clear");
+      button.disabled = true;
+      try {
+        const token = `confirmation-${crypto.randomUUID().replaceAll("-", "")}`;
+        const response = await fetch("/__copilot/confirmations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token,
+            task_id: `task-manual-${crypto.randomUUID()}`,
+            kind: "clear_cart",
+            cart_revision: Number(form.elements.cart_revision.value),
+          }),
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!response.ok) throw new Error("Stale cart confirmation");
+        if (!clearDialog.open) return;
+        form.elements.copilot_confirmation.value = token;
+        form.requestSubmit();
+      } catch {
+        document.getElementById("manual-clear-summary").textContent =
+          "تغيّرت السلة أو تعذر تأكيد الطلب. أغلق الرسالة وأعد تحميل السلة قبل المحاولة مجددًا.";
+      } finally {
+        confirmingClear = false;
+        button.disabled = false;
+      }
+    }
+  });
   document.addEventListener("submit", async (event) => {
     const form = event.target;
     if (!form.matches("form[data-cart-edit]")) return;

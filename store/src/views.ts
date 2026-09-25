@@ -88,7 +88,18 @@ export function renderCart(
     `<h1>السلة</h1>
     ${error ? `<p role="alert">${escapeHtml(error)}</p>` : ""}
     <div id="cart-contents">${renderCartContents(lines, revision)}</div>
-    <a href="/checkout">إتمام الشراء</a>`,
+    <a href="/checkout">إتمام الشراء</a>
+    <dialog id="manual-clear-dialog" aria-labelledby="manual-clear-title">
+      <h2 id="manual-clear-title">إفراغ السلة بالكامل؟</h2>
+      <p>سيتم حذف كل المنتجات من السلة. لا يمكن التراجع عن هذا الإجراء.</p>
+      <p id="manual-clear-summary"></p>
+      <form action="/cart/clear" method="post" id="manual-clear-form">
+        <input type="hidden" name="cart_revision" value="${revision}">
+        <input type="hidden" name="copilot_confirmation" value="">
+        <button type="button" id="cancel-manual-clear" autofocus>إلغاء</button>
+        <button type="submit" id="confirm-manual-clear" data-guarded-mutation="clear_cart" data-cart-revision="${revision}">نعم، إفراغ السلة</button>
+      </form>
+    </dialog>`,
   );
 }
 
@@ -106,7 +117,7 @@ export function renderCartContents(
         const fields = `<input type="hidden" name="product_id" value="${escapeHtml(line.product_id)}">
           <input type="hidden" name="size" value="${escapeHtml(line.size ?? "")}">
           <input type="hidden" name="color" value="${escapeHtml(line.color ?? "")}">`;
-        return `<li data-unit-price="${product?.price.amount ?? "0"}" data-cart-line="${escapeHtml(lineKey(line))}"><img class="cart-image" src="/assets/${product?.category ?? "shoes"}.svg" width="120" height="100" alt=""><a href="/p/${line.product_id}">${name}</a>
+        return `<li data-unit-price="${product?.price.amount ?? "0"}" data-cart-line="${escapeHtml(lineKey(line))}"><div role="group" aria-label="${name} / ${escapeHtml(product?.nameEn ?? "")} — ${escapeHtml(line.size ?? "")} / ${escapeHtml(line.color ?? "")}"><img class="cart-image" src="/assets/${product?.category ?? "shoes"}.svg" width="120" height="100" alt=""><a href="/p/${line.product_id}">${name}</a>
           <p>${escapeHtml(line.size ?? "—")} / ${escapeHtml(line.color ?? "—")} · ${product?.price.amount ?? "0"} EGP</p>
           <form action="/cart/quantity" method="post" data-cart-edit="quantity">${fields}
             <label for="qty-${escapeHtml(lineKey(line))}">الكمية — ${name}</label>
@@ -115,7 +126,7 @@ export function renderCartContents(
           </form>
           <form action="/cart/remove" method="post" data-cart-edit="remove">${fields}
             <button type="submit" data-reversible-mutation="remove">حذف المنتج — ${name}</button>
-          </form></li>`;
+          </form></div></li>`;
       })
       .join(
         "",

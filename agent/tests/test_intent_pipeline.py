@@ -208,7 +208,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert "EGP" in request.system
     assert "Return exactly one StructuredIntent JSON object" in request.system
     assert "Do not repeat the input context" in request.system
-    assert "v=5" in request.system
+    assert "v=6" in request.system
     assert '"product_type"' in request.system
     assert '"max_price": {"amount": "2500", "currency": "EGP"}' in request.system
     assert "Never infer an unspecified constraint" in request.system
@@ -230,9 +230,9 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert context["navigation_destinations"]["orders"]["route"] == "/account/orders"
     assert request.response_schema is not None
-    assert request.prompt_version == "intent-v12"
-    assert request.schema_version == 5
-    assert request.response_schema["properties"]["v"]["const"] == 5
+    assert request.prompt_version == "intent-v13"
+    assert request.schema_version == 6
+    assert request.response_schema["properties"]["v"]["const"] == 6
 
 
 def test_wedding_request_cannot_silently_drop_formality_leather_or_price_preference() -> None:

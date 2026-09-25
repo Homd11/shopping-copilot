@@ -778,3 +778,23 @@ footer span {
     scroll-behavior: auto !important;
   }
 }
+
+#manual-clear-dialog {
+  max-width: min(520px, calc(100% - 32px));
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 24px;
+}
+#manual-clear-dialog::backdrop {
+  background: #24362f88;
+}
+#manual-clear-form {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.cart-lines > li > [role="group"] {
+  display: contents;
+}
