@@ -1,6 +1,11 @@
 import { executeAction } from "./actions.js";
 import { SnapshotBuilder, type SnapshotBuilderOptions } from "./snapshot.js";
 import { parseAction, type Action, type ActionResult } from "./types.js";
+import {
+  documentIsBusy,
+  observeDocument,
+  settleDocument,
+} from "./observation.js";
 
 const PENDING_NAVIGATION_KEY = "shopping-copilot.pending-navigation";
 const ACTION_LEDGER_KEY = "shopping-copilot.action-ledger";
@@ -49,24 +54,6 @@ function isBridgeMessage(value: unknown): value is BridgeMessage {
   if (value.type === "cancel_task")
     return "task_id" in value && typeof value.task_id === "string";
   return value.type === "action" && "action" in value;
-}
-
-async function settleDocument(document: Document): Promise<void> {
-  const view = document.defaultView;
-  if (view === null) return;
-  await new Promise<void>((resolve) =>
-    view.requestAnimationFrame(() => resolve()),
-  );
-  await new Promise<void>((resolve) =>
-    view.requestAnimationFrame(() => resolve()),
-  );
-  await new Promise<void>((resolve) => view.setTimeout(resolve, 300));
-  const start = Date.now();
-  while (
-    document.querySelector('[aria-busy="true"]') !== null &&
-    Date.now() - start < 3000
-  )
-    await new Promise<void>((resolve) => view.setTimeout(resolve, 25));
 }
 
 function readLedger(storage: StorageLike): ActionLedger {
@@ -126,6 +113,10 @@ export class BridgeRuntime {
   readonly #options: BridgeRuntimeOptions;
   readonly #builder: SnapshotBuilder;
   readonly #storefrontOrigin: string;
+  #stopObserving?: () => void;
+  #observationPending = false;
+  #lastSnapshot = "";
+  #routeRevision = 0;
 
   constructor(options: BridgeRuntimeOptions) {
     this.#options = options;
@@ -134,12 +125,38 @@ export class BridgeRuntime {
   }
 
   start(): void {
-    this.#options.document.addEventListener("change", () => {
-      this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
-    });
+    if (this.#stopObserving) return;
+    this.#stopObserving = observeDocument(
+      this.#options.document,
+      (route, committed) => {
+        if (route) this.#routeRevision++;
+        // Preserve committed manual choices for a message sent immediately afterward.
+        // Loading/optimistic state still waits, and the settled pass catches later renders.
+        if (committed && !documentIsBusy(this.#options.document))
+          this.#options.post({
+            type: "snapshot",
+            snapshot: this.#builder.build(),
+          });
+        void this.#observeSettled();
+      },
+    );
+    if (documentIsBusy(this.#options.document)) {
+      void (
+        this.#options.settle ?? (() => settleDocument(this.#options.document))
+      )().then(() => {
+        if (this.#stopObserving) this.#publishInitial();
+      });
+    } else this.#publishInitial();
+  }
+
+  #publishInitial(): void {
     const pending = this.#options.storage.getItem(PENDING_NAVIGATION_KEY);
     if (pending === null) {
-      this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
+      if (!documentIsBusy(this.#options.document))
+        this.#options.post({
+          type: "snapshot",
+          snapshot: this.#builder.build(),
+        });
       return;
     }
 
@@ -150,17 +167,47 @@ export class BridgeRuntime {
       task_id: action.task_id,
       action_id: action.action_id,
       sequence_number: action.sequence_number,
-      status: "navigated",
+      status: documentIsBusy(this.#options.document) ? "blocked" : "navigated",
       snapshot: this.#builder.build(),
     };
     this.#options.post({ type: "action_result", result });
+  }
+
+  async #observeSettled(): Promise<void> {
+    if (this.#observationPending) return;
+    this.#observationPending = true;
+    try {
+      await (
+        this.#options.settle ?? (() => settleDocument(this.#options.document))
+      )();
+      if (!this.#stopObserving || documentIsBusy(this.#options.document))
+        return;
+      const snapshot = this.#builder.build();
+      const serialized = JSON.stringify(snapshot);
+      if (serialized !== this.#lastSnapshot) {
+        this.#lastSnapshot = serialized;
+        this.#options.post({ type: "snapshot", snapshot });
+      }
+    } finally {
+      this.#observationPending = false;
+    }
+  }
+
+  stop(): void {
+    this.#stopObserving?.();
+    this.#stopObserving = undefined;
   }
 
   async receive(origin: string, payload: unknown): Promise<void> {
     if (origin !== this.#options.panelOrigin || !isBridgeMessage(payload))
       return;
     if (payload.type === "request_snapshot") {
-      this.#options.post({ type: "snapshot", snapshot: this.#builder.build() });
+      if (documentIsBusy(this.#options.document)) await this.#observeSettled();
+      else
+        this.#options.post({
+          type: "snapshot",
+          snapshot: this.#builder.build(),
+        });
       return;
     }
     if (payload.type === "cancel_task") {
@@ -181,6 +228,8 @@ export class BridgeRuntime {
       return;
     }
     let navigationStarted = false;
+    const beforeUrl = this.#options.currentUrl();
+    const beforeRevision = this.#routeRevision;
     const result = await executeAction(action, {
       builder: this.#builder,
       currentUrl: this.#options.currentUrl,
@@ -191,7 +240,7 @@ export class BridgeRuntime {
           PENDING_NAVIGATION_KEY,
           JSON.stringify(action),
         );
-        this.#options.navigate(url);
+        await this.#options.navigate(url);
       },
       armGuardedNavigation: (confirmed) => {
         navigationStarted = true;
@@ -203,7 +252,22 @@ export class BridgeRuntime {
       settle:
         this.#options.settle ?? (() => settleDocument(this.#options.document)),
     });
-    if (!navigationStarted)
+    if (action.type === "navigate" && result.status === "blocked") {
+      this.#options.storage.removeItem(PENDING_NAVIGATION_KEY);
+      navigationStarted = false;
+    }
+    // A SPA retains this runtime. A document navigation delivers its result from start().
+    if (
+      navigationStarted &&
+      (this.#options.currentUrl() !== beforeUrl ||
+        this.#routeRevision !== beforeRevision)
+    ) {
+      const pending = this.#options.storage.getItem(PENDING_NAVIGATION_KEY);
+      if (pending === JSON.stringify(action)) {
+        this.#options.storage.removeItem(PENDING_NAVIGATION_KEY);
+        this.#options.post({ type: "action_result", result });
+      }
+    } else if (!navigationStarted)
       this.#options.post({ type: "action_result", result });
   }
 
@@ -228,7 +292,18 @@ if (typeof window !== "undefined" && window.parent !== window) {
     panelOrigin,
     storage: window.sessionStorage,
     currentUrl: () => window.location.href,
-    navigate: (url) => window.location.assign(url),
+    navigate: (url) => {
+      const navigation = (
+        window as Window & {
+          navigation?: {
+            navigate: (url: string) => { finished: Promise<unknown> };
+          };
+        }
+      ).navigation;
+      if (navigation)
+        return navigation.navigate(url.href).finished.then(() => undefined);
+      window.location.assign(url);
+    },
     post: (message) => window.parent.postMessage(message, panelOrigin),
   });
   window.addEventListener("message", (event) => {

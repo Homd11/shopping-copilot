@@ -317,7 +317,9 @@ TICKET_13_CASES = (
         setup="disabled_product",
         expected_status="question",
         assertions=(
-            EvaluationAssertion("panel_contains", "#pending-question", "Choose the item"),
+            EvaluationAssertion(
+                "panel_contains", '#pending-question [data-question-option="Stop"]', "Stop"
+            ),
             EvaluationAssertion("element_visible", "#mini-cart-count", "0"),
         ),
     ),

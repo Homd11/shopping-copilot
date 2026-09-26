@@ -402,6 +402,12 @@ def create_app(
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
 
+        last_event_id = request.headers.get("last-event-id")
+        if last_event_id is not None:
+            if not last_event_id.isascii() or not last_event_id.isdecimal():
+                raise HTTPException(status_code=400, detail="Invalid event cursor")
+            after = max(after, int(last_event_id))
+
         async def event_stream() -> AsyncIterator[str]:
             cursor = after
             while True:

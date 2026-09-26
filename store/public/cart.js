@@ -76,9 +76,12 @@
       ? "تعذر تحميل السلة. أعد تحميل الصفحة."
       : "Cart unavailable. Reload the page.";
   });
-  const clearDialog = document.getElementById("manual-clear-dialog");
+  document.addEventListener("storefront:render", (event) => {
+    event.detail.waitUntil(refresh());
+  });
   let confirmingClear = false;
   document.addEventListener("click", async (event) => {
+    const clearDialog = document.getElementById("manual-clear-dialog");
     if (!event.isTrusted || !clearDialog) return;
     const trigger = event.target.closest('[data-testid="empty-cart"]');
     if (trigger) {

@@ -58,6 +58,7 @@ function layout(title: string, content: string): string {
       <button type="submit" data-testid="undo-cart" aria-describedby="undo-description">تراجع</button>
       <span id="undo-timer" aria-hidden="true"></span>
     </form>
+    <script src="/assets/spa.js" defer></script>
     <script src="/assets/cart.js" defer></script>
     <script src="/assets/interactions.js" defer></script>
     <script type="module" src="/bridge/runtime.js"></script>
@@ -324,6 +325,24 @@ export function renderCategory(
   const maxPrice = constraints.maxPrice?.amount ?? "";
   const size = escapeHtml(constraints.size ?? "");
   const color = escapeHtml(constraints.color ?? "");
+  const applied = new URLSearchParams();
+  for (const [key, value] of Object.entries({
+    q: constraints.query,
+    type: constraints.type,
+    min_price: constraints.minPrice?.amount,
+    max_price: constraints.maxPrice?.amount,
+    size: constraints.size,
+    color: constraints.color,
+    availability:
+      constraints.availability === undefined
+        ? undefined
+        : constraints.availability
+          ? "available"
+          : "unavailable",
+    sort: constraints.sort,
+  }))
+    if (value) applied.set(key, value);
+  const resultsUrl = `/c/${constraints.category}${applied.size ? `?${applied}` : ""}`;
   return layout(
     name.ar,
     `<h1>${name.ar} <span lang="en">${name.en}</span></h1>
@@ -356,6 +375,7 @@ export function renderCategory(
       <button type="submit">تطبيق الفلاتر</button>
     </form></details>
     <section aria-labelledby="results-heading" id="product-results">
+      <a href="${escapeHtml(resultsUrl)}" aria-label="النتائج الحالية">النتائج الحالية</a>
       <h2 id="results-heading">${matchingProducts.length} منتجات</h2>
       ${matchingProducts.length === 0 ? emptyState(constraints) : matchingProducts.slice(0, 6).map(productCard).join("\n")}
       ${matchingProducts.length > 6 ? `<template id="remaining-products">${matchingProducts.slice(6).map(productCard).join("\n")}</template><button type="button" id="load-more-products">تحميل المزيد من المنتجات</button><p id="loading-products" role="status" hidden>جارٍ تحميل المنتجات…</p>` : ""}

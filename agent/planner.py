@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import Literal
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 from agent.discovery import DiscoveryConstraints, build_discovery_url
 from agent.llm.intent import StructuredIntent
@@ -129,11 +129,36 @@ def _element_named(
     )
 
 
+def observed_results_url(snapshot: Snapshot) -> str | None:
+    """Controlled-store adapter: the visible link describes applied, not draft, filters."""
+    links = [
+        e
+        for e in snapshot.elements
+        if e.role == "link" and e.name == "النتائج الحالية" and e.visible and not e.sensitive
+    ]
+    if not links:
+        return snapshot.url
+    if len(links) != 1 or not links[0].href or links[0].disabled:
+        return None
+    applied = urlsplit(urljoin(snapshot.url, links[0].href))
+    current = urlsplit(snapshot.url)
+    if (applied.scheme, applied.netloc, applied.path) != (
+        current.scheme,
+        current.netloc,
+        current.path,
+    ):
+        return None
+    return applied.geturl()
+
+
 def snapshot_matches_url(
     snapshot: Snapshot, expected_url: str, origin_snapshot: Snapshot | None = None
 ) -> bool:
     expected = urlsplit(expected_url)
-    actual = urlsplit(snapshot.url)
+    observed = observed_results_url(snapshot)
+    if observed is None:
+        return False
+    actual = urlsplit(observed)
     return (
         (origin_snapshot is None or _same_origin(snapshot, origin_snapshot))
         and actual.path == expected.path
@@ -749,7 +774,7 @@ class ScriptedPlanner:
         language: Language,
     ) -> Action:
         expected = urlsplit(expected_url)
-        actual = urlsplit(snapshot.url)
+        actual = urlsplit(observed_results_url(snapshot) or snapshot.url)
         target = parse_qs(expected.query)
         current = parse_qs(actual.query)
         narration = (

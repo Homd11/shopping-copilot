@@ -273,6 +273,9 @@ function optionalState(
 }
 
 export class SnapshotBuilder {
+  isBusy(): boolean {
+    return documentIsBusy(this.#document);
+  }
   readonly #document: Document;
   readonly #options: SnapshotBuilderOptions;
   readonly #ids = new WeakMap<Element, number>();
@@ -285,7 +288,12 @@ export class SnapshotBuilder {
   }
 
   resolve(id: number): RegisteredElement | undefined {
-    return this.#elements.get(id);
+    const registered = this.#elements.get(id);
+    if (registered && !registered.element.isConnected) {
+      this.#elements.delete(id);
+      return undefined;
+    }
+    return registered;
   }
 
   isSensitiveNow(element: Element): boolean {
@@ -297,6 +305,8 @@ export class SnapshotBuilder {
   }
 
   build(): Snapshot {
+    for (const [id, registered] of this.#elements)
+      if (!registered.element.isConnected) this.#elements.delete(id);
     const elements = [...this.#document.querySelectorAll("*")]
       .map((element) => this.#describe(element))
       .filter((element): element is SnapshotElement => element !== undefined);
@@ -371,3 +381,4 @@ export class SnapshotBuilder {
     return id;
   }
 }
+import { documentIsBusy } from "./observation.js";
