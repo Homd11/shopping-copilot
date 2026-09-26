@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## Exploratory user-flow acceptance — 2026-09-26
+
+Before further owner testing, a bounded real-model/browser exploration exercised ambiguous same-product variants, changing a quantity decision, negated selective removal with Undo, cancelling bulk clear, oversized quantities, vague references, self-correction, material exclusions with a budget, and misspelled navigation. The initial run passed six of eight cases (nine submitted requests). It exposed two real failures: arbitrary size selection and an invalid quantity presented as a model-format error.
+
+Prompt `intent-v20` now receives separate observed cart rows and product memory retains both variant labels. The model owns interpretation and ambiguity; no shopper phrase matching was added. Finite fractional/out-of-range quantity proposals reach runtime bounds validation, which asks for a whole quantity from 1 to 99 without dispatching a mutation or spending a repair call. Safe clarification proposals remain questions before target planning.
+
+Focused live reruns passed both failures: the three-request ambiguous-size/answer/change-of-mind sequence affected only the selected line, and the 1,000-unit request asked a useful quantity question without changing the cart. There were 13 submitted requests across the exploration and focused reruns; provider repair attempts are not included in that submission count. Original failures and focused results remain separate in ignored `eval/reports/exploratory-user-flows*.json`. This was not a clean all-cases rerun or an exhaustive language guarantee. Repeat with `LLM_EXPLORATORY_EVAL=1 python -m eval.exploratory_live`; the runner caps submissions at 12, permits a focused case selection, checks task-specific events and exact cart contents, and restores the starting cart.
+
+Independent Spec and Standards reviews found no remaining runtime issue. The Standards review caught missing report-directory creation on a fresh checkout; it was fixed before final verification. Ticket 14 remains on hold. Preserve the $0.75 total non-resetting provider cap, credentials and unrelated proposal files.
+
+Final verification: **383 Python and 150 TypeScript tests passed**, including the complete scripted browser suite. Repository-wide Prettier, ESLint, Ruff lint/format and all builds passed. Updated services are running at http://localhost:4100 and the original local cart has been restored. No further paid model calls were made for the full checks.
+
 ## Product continuity and conversation acceptance — 2026-09-26
 
 Manual testing found a remaining hardcoded eligibility rule: product opening was restricted to the immediately preceding recommendation batch, even when a product link was currently visible in the cart. The session also discarded recommendations across unrelated completed tasks. The exact cart-to-shirt return failed in a live reproduction with `Product ID was not among verified recommendations`.

@@ -19,7 +19,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v19"
+PROMPT_VERSION = "intent-v20"
 
 
 def snapshot_context(snapshot: Snapshot | None) -> dict[str, Any] | None:
@@ -46,11 +46,30 @@ def snapshot_context(snapshot: Snapshot | None) -> dict[str, Any] | None:
         ):
             item["value"] = element.value
         controls.append(item)
+    cart_lines = [
+        {
+            "label": group,
+            "quantity_inputs": [
+                {"id": e.id, "value": e.value}
+                for e in elements
+                if e.group == group and e.role == "textbox"
+            ],
+            "operation_buttons": [
+                {"id": e.id, "operation": e.form_action}
+                for e in elements
+                if e.group == group
+                and e.role == "button"
+                and e.form_action in {"/cart/quantity", "/cart/remove"}
+            ],
+        }
+        for group in dict.fromkeys(e.group for e in elements if e.group in cart_groups)
+    ]
     return {
         "url": snapshot.url,
         "title": snapshot.title,
         "truncated": snapshot.truncated,
         "elements": controls,
+        "cart_lines": cart_lines,
     }
 
 
@@ -162,6 +181,12 @@ def build_intent_request(
             "/cart/undo for undo. "
             "Read group labels and current quantity values to identify the right line and "
             "variant, including in a multi-item cart. "
+            "current_snapshot.cart_lines lists every cart variant separately. Product memory "
+            "is for navigation and does not select a cart variant. If the same product has "
+            "multiple lines, compare all of them against the current request and conversational "
+            "choices. Without a unique choice, ask for clarification before any edit. "
+            "A requested change amount is not evidence that the shopper selected a line "
+            "whose current quantity happens to equal that amount. "
             "cart_target must be null: select by observed ID, never by a name that another "
             "parser would need to interpret. "
             "If quantity/removal is requested while the cart is not visible, leave "
@@ -172,8 +197,9 @@ def build_intent_request(
             "clarification. Never arbitrarily choose "
             "between two sizes/colors of the same product. Current-item pronouns may use the "
             "sole applicable item. "
-            "cart_quantity is an explicit amount (1..99). For quantity, cart_quantity_mode "
-            "is set (final value), increase "
+            "cart_quantity preserves the requested amount; runtime only executes whole "
+            "quantities within 1..99 and asks about invalid values. For quantity, "
+            "cart_quantity_mode is set (final value), increase "
             "or decrease (delta). More means a delta, not the final total. For add, "
             "cart_quantity sets the product form's units to add; its mode may be set or null, "
             "never increase/decrease. Remove and undo have null quantity mode. "
@@ -274,6 +300,8 @@ def _validate_interpreted_intent(
             money.to_money()
             if money.currency != storefront.currency:
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
+    if intent.intent == "cart_edit":
+        intent = validate_cart_intent(message, intent, snapshot)
     if intent.needs_clarification:
         return intent
     # These are executable/catalogue capabilities, not allowed Shopper spellings.
@@ -302,8 +330,6 @@ def _validate_interpreted_intent(
             raise ValueError("Unsupported owned-item color")
     if any(color not in storefront.vocabulary.colors for color in intent.preferred_colors):
         raise ValueError("Unsupported preferred color")
-    if intent.intent == "cart_edit":
-        return validate_cart_intent(message, intent, snapshot)
     if intent.intent == "mutate":
         validate_mutation_interpretation(message, intent)
     if (
@@ -391,6 +417,13 @@ def trusted_clarification(
         raise ValueError("A clarification requires clarification state")
     is_arabic = intent.language == "ar"
     if intent.intent == "cart_edit":
+        if "cart_quantity" in intent.missing_fields:
+            return (
+                "الكمية لازم تكون عدد صحيح من 1 إلى 99. تحب تخليها كام؟"
+                if is_arabic
+                else "Quantity must be a whole number from 1 to 99. What quantity would you like?",
+                [],
+            )
         return (
             "تقصد أنهي منتج أو مقاس في السلة؟"
             if is_arabic

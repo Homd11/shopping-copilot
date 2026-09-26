@@ -35,8 +35,21 @@ def validate_cart_intent(
     del message
     if intent.cart_operation not in CART_ROUTES:
         raise ValueError("Unsupported cart operation")
-    if intent.cart_quantity is not None and not 1 <= intent.cart_quantity <= 99:
-        raise ValueError("Quantity outside Storefront bounds")
+    if intent.cart_quantity is not None and (
+        not 1 <= intent.cart_quantity <= 99 or int(intent.cart_quantity) != intent.cart_quantity
+    ):
+        return intent.model_copy(
+            update={
+                "cart_quantity": None,
+                "cart_quantity_mode": None,
+                "needs_clarification": True,
+                "missing_fields": ["cart_quantity"],
+            }
+        )
+    if intent.cart_quantity is not None:
+        intent = intent.model_copy(update={"cart_quantity": int(intent.cart_quantity)})
+    if intent.needs_clarification:
+        return intent
     if intent.cart_target_id is not None:
         targets = (
             []

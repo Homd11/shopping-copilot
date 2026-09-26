@@ -311,3 +311,35 @@ def test_origin_change_cannot_resume_an_old_task_or_send_its_context(continuatio
         )
         assert result.status_code == 409
         assert len(model.requests) == before
+
+
+def test_product_memory_preserves_both_variant_labels_instead_of_only_the_last():
+    model = Model(decision("help"))
+    with TestClient(
+        create_app(llm_settings=LLMSettings(provider="groq", model="test"), llm_client=model)
+    ) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        current = snapshot_at(
+            "/cart",
+            dict(
+                id=1,
+                role="link",
+                name="Shirt",
+                group="Shirt M white",
+                href="/p/shirt",
+                visible=True,
+            ),
+            dict(
+                id=2,
+                role="link",
+                name="Shirt",
+                group="Shirt L white",
+                href="/p/shirt",
+                visible=True,
+            ),
+        )
+        submit(client, sid, "hello", current)
+        context = json.loads(model.requests[-1].system.split("\n", 1)[0].split(": ", 1)[1])
+        assert len(context["known_products"]) == 1
+        assert "Shirt M white" in context["known_products"][0]["name"]
+        assert "Shirt L white" in context["known_products"][0]["name"]

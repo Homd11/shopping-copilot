@@ -45,7 +45,12 @@ def observed_products(snapshot: Snapshot, storefront: StorefrontDefinition) -> l
             snapshot.title,
         )
         references.append({"id": current["id"], "name": heading[:200]})
-    return references
+    labels: dict[str, list[str]] = {}
+    for reference in references:
+        names = labels.setdefault(reference["id"], [])
+        if reference["name"] not in names:
+            names.append(reference["name"])
+    return [{"id": product_id, "name": " | ".join(names)} for product_id, names in labels.items()]
 
 
 def require_known_product(
