@@ -464,8 +464,9 @@ class SessionStore:
                 session.last_snapshot,
                 self._planner.storefront,
             )
-        if intent.intent == "cart_edit" and not intent.needs_clarification:
+        if intent.intent == "cart_edit":
             intent = validate_cart_intent(task.message, intent, session.last_snapshot)
+        if intent.intent == "cart_edit" and not intent.needs_clarification:
             task.cart_operation = intent.cart_operation
             if (
                 intent.cart_operation in {"quantity", "remove"}

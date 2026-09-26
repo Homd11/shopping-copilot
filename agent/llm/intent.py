@@ -34,6 +34,7 @@ ConstraintField = Literal[
     "catalogue",
     "price_preference",
     "product_id",
+    "cart_quantity",
 ]
 RevisionField = Literal[
     "category",
@@ -144,14 +145,15 @@ class StructuredIntent(IntentModel):
             "Never a product ID, link ID, or quantity textbox ID."
         ),
     )
-    cart_quantity: int | None = Field(
+    cart_quantity: int | float | None = Field(
         default=None,
-        ge=1,
-        le=99,
+        allow_inf_nan=False,
         description=(
             "For increase/decrease: the number of units requested to add/remove, not the "
             "resulting total. Runtime computes current quantity plus/minus this amount. "
             "For set: the requested final quantity. For add: units to put in the product form."
+            " Preserve an out-of-range or fractional request rather than changing its value; "
+            "runtime will ask for a whole quantity within 1..99."
         ),
     )
 

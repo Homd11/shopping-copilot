@@ -291,3 +291,37 @@ def test_delta_mode_is_not_executable_as_another_cart_operation(operation):
     payload.update(v=8, cart_operation=operation, cart_quantity_mode="increase")
     with pytest.raises(ValueError, match="Quantity mode"):
         interpret("request", payload, Snapshot.model_validate(cart_snapshot(3)))
+
+
+@pytest.mark.parametrize("quantity", [-2, 0, 1.5, 1000])
+def test_unexecutable_quantity_gets_a_useful_question_without_a_model_retry(quantity):
+    from fastapi.testclient import TestClient
+
+    from agent.app import create_app
+    from agent.llm import LLMSettings
+    from agent.tests.test_sessions import parse_sse
+
+    calls = []
+
+    class Model:
+        async def complete(self, request):
+            calls.append(request)
+            payload = quantity_payload("requested quantity", None)
+            payload.update(v=8, cart_target_id=13, cart_quantity=quantity, cart_quantity_mode="set")
+            yield LLMChunk(text=json.dumps(payload))
+
+    with TestClient(
+        create_app(llm_settings=LLMSettings(provider="groq", model="test"), llm_client=Model())
+    ) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        response = client.post(
+            f"/sessions/{sid}/messages",
+            json={"text": "requested quantity", "snapshot": cart_snapshot(3)},
+        )
+        assert response.status_code == 202
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+        actions = [e["data"]["action"] for e in events if e["event"] == "action"]
+        assert len(calls) == 1
+        assert [a["type"] for a in actions] == ["ask_shopper"]
+        assert "99" in actions[0]["question"]
+        assert actions[0]["options"] == []
