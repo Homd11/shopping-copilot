@@ -2,8 +2,19 @@ import { JSDOM } from "jsdom";
 import { describe, expect, it } from "vitest";
 
 import { SnapshotBuilder } from "../src/snapshot.js";
+import { parseSnapshot } from "../src/types.js";
 
 describe("SnapshotBuilder", () => {
+  it("emits a valid wire snapshot after fractional browser scrolling", () => {
+    const dom = new JSDOM("<button>Add</button>", {
+      url: "http://localhost:4000/p/clothing-02",
+    });
+    Object.defineProperty(dom.window, "scrollY", { value: 211.42857360839844 });
+    const snapshot = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    }).build();
+    expect(() => parseSnapshot(snapshot)).not.toThrow();
+  });
   it("marks controls disabled by an ancestor before the Agent plans an Action", () => {
     const dom = new JSDOM(
       '<fieldset disabled><button>Submit</button></fieldset><div aria-disabled="true"><button>Continue</button></div>',

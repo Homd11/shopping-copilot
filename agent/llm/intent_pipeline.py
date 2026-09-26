@@ -21,6 +21,7 @@ from agent.navigation import (
     destination_label,
     destination_mentions,
 )
+from agent.product_reference import names_product as _names_product
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError, normalize_money
 
 PROMPT_VERSION = "intent-v17"
@@ -361,19 +362,6 @@ async def interpret_message(
     return _enforce_request_coverage(message, intent, storefront)
 
 
-def _product_name_tokens(text: str) -> str:
-    text = re.sub(r"[\u064b-\u065f\u0670\u0640]", "", text.casefold())
-    return " ".join(
-        token[2:] if token.startswith("ال") and len(token) > 3 else token
-        for token in re.findall(r"\w+", text)
-    )
-
-
-def _names_product(message: str, name: str) -> bool:
-    normalized = _product_name_tokens(name)
-    return bool(normalized and f" {normalized} " in f" {_product_name_tokens(message)} ")
-
-
 def _recover_named_product_page_followup(
     message: str, intent: StructuredIntent, resolved_state: Mapping[str, Any]
 ) -> StructuredIntent:
@@ -451,7 +439,7 @@ def _validate_recommended_product_reference(
         or re.search(r"\bshow\b|(?<!\w)(?:وريني|توريني|عرض|اعرض)(?!\w)", evidence, re.I)
     ) and not LOCATE_CUE.search(evidence)
     negated = re.search(
-        r"\b(?:not|never|don't|dont)\b|(?<!\w)(?:لا|مش|ماتفتح|متفتح|ما\s+تفتح)\w*",
+        r"\b(?:not|never|don't|dont)\b|(?<!\w)(?:لا|مش|ما|مت)\w*",
         evidence,
         re.IGNORECASE,
     )
