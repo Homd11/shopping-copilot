@@ -23,7 +23,7 @@ from agent.navigation import (
 )
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError, normalize_money
 
-PROMPT_VERSION = "intent-v15"
+PROMPT_VERSION = "intent-v16"
 
 _FOREIGN_CURRENCY = re.compile(
     r"(?:\$|€|£|\bUSD\b|\bEUR\b|\bGBP\b|\bSAR\b|ر\s*\.\s*س|ريال(?:\s+سعودي)?)",
@@ -197,8 +197,10 @@ def build_intent_request(
             'Use decimal Money e.g. max_price: {"amount": "2500", "currency": "EGP"}. '
             "Never infer an unspecified constraint: no invented budget, size, availability, "
             "colour or use case. Infer the obvious category from the requested product "
-            "(sneakers mean shoes, shirt means clothing); do not ask a redundant category "
-            "question. "
+            "type (sneakers mean shoes, shirt means clothing); do not ask a redundant "
+            "category question. A running shoe request alone is not a daily-workout or "
+            "road-running use case: 'عايز كوتشي للجري' means shoes/running with no "
+            "catalogue_requirements. "
             "Do not invent product IDs, product facts, URLs, selectors or actions. "
             "query is only a literal product-name search when requested, not a copy of the "
             "shopping sentence or a substitute for canonical attributes. "
@@ -759,6 +761,8 @@ def _validate_catalogue_interpretation(
             )
         )
         if anchored_source is None:
+            if _invented_workout_from_running_type(message, intent, requirement, storefront):
+                continue
             raise ValueError(
                 "Catalogue requirement source does not support its value: "
                 f"{requirement.kind}:{requirement.value}"
@@ -794,6 +798,29 @@ def _validate_catalogue_interpretation(
         raise ValueError("Styling requires owned-item context")
     return intent.model_copy(
         update={"catalogue_requirements": requirements, "price_preference": preference}
+    )
+
+
+def _invented_workout_from_running_type(
+    message: str,
+    intent: StructuredIntent,
+    requirement: CatalogueRequirement,
+    storefront: StorefrontDefinition,
+) -> bool:
+    """Discard only a daily-workout guess sourced solely from a running-shoe type."""
+    if (
+        requirement.kind != "suitable_for"
+        or requirement.value != "daily_workouts"
+        or intent.intent != "find_products"
+        or intent.constraints.category != "shoes"
+        or intent.constraints.product_type != "running"
+        or re.search(r"يومي|يوميا|كل يوم|daily|every day", message, re.IGNORECASE)
+    ):
+        return False
+    return any(
+        requirement.source.casefold() == source.casefold()
+        for term in storefront.vocabulary.types["running"]
+        if (source := _matching_source(message, term)) is not None
     )
 
 

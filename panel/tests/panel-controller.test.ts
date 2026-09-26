@@ -39,17 +39,29 @@ function setup(options?: {
     start(): void;
     abort(): void;
   };
+  mediaRecorder?: typeof MediaRecorder;
+  getUserMedia?: () => Promise<MediaStream>;
+  speechAvailable?: boolean;
 }) {
   const dom = new JSDOM('<!doctype html><div id="app"></div>');
   if (options?.speechRecognition)
     Object.defineProperty(dom.window, "SpeechRecognition", {
       value: options.speechRecognition,
     });
+  if (options?.mediaRecorder)
+    Object.defineProperty(dom.window, "MediaRecorder", {
+      value: options.mediaRecorder,
+    });
+  if (options?.getUserMedia)
+    Object.defineProperty(dom.window.navigator, "mediaDevices", {
+      value: { getUserMedia: options.getUserMedia },
+    });
   const submitted: Array<{
     sessionId: string;
     text: string;
     snapshot: unknown;
   }> = [];
+  const transcribed: Array<{ audio: Blob; language: string }> = [];
   const results: unknown[] = [];
   const stopped: string[] = [];
   const answers: unknown[] = [];
@@ -95,6 +107,11 @@ function setup(options?: {
     submitMessage: async (sessionId, text, currentSnapshot) => {
       submitted.push({ sessionId, text, snapshot: currentSnapshot });
     },
+    transcribeSpeech: async (audio, language) => {
+      transcribed.push({ audio, language });
+      return "عايز كوتشي جري";
+    },
+    speechAvailable: async () => options?.speechAvailable ?? true,
     submitActionResult: async (_sessionId, result) => {
       results.push(result);
     },
@@ -156,6 +173,7 @@ function setup(options?: {
     root,
     controller,
     submitted,
+    transcribed,
     results,
     stopped,
     answers,
@@ -967,5 +985,98 @@ describe("PanelController", () => {
     expect(context.root.querySelector("#task-status")?.textContent).toBe(
       "Microphone access was blocked. Check browser and system permissions, then retry.",
     );
+  });
+
+  it("uses an explicit short recording after browser speech network failure without submitting", async () => {
+    const recognitions: FakeSpeechRecognition[] = [];
+    class FakeSpeechRecognition {
+      lang = "";
+      onresult = null;
+      onerror: ((event: { error: string }) => void) | null = null;
+      onend: (() => void) | null = null;
+      constructor() {
+        recognitions.push(this);
+      }
+      start() {
+        /* browser mock */
+      }
+      abort() {
+        this.onend?.();
+      }
+    }
+    let trackStopped = false;
+    const stream = {
+      getTracks: () => [{ stop: () => (trackStopped = true) }],
+    } as unknown as MediaStream;
+    class FakeMediaRecorder {
+      state: RecordingState = "inactive";
+      ondataavailable: ((event: BlobEvent) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({
+          data: new Blob([new Uint8Array([0x1a, 0x45, 0xdf, 0xa3, 1])]),
+        } as BlobEvent);
+        this.onstop?.();
+      }
+    }
+    const context = setup({
+      speechRecognition: FakeSpeechRecognition,
+      mediaRecorder: FakeMediaRecorder as unknown as typeof MediaRecorder,
+      getUserMedia: async () => stream,
+    });
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    recognitions[0]?.onerror?.({ error: "network" });
+    await Promise.resolve();
+    const area = context.root.querySelector<HTMLElement>(
+      "#speech-fallback-area",
+    )!;
+    expect(area.hidden).toBe(false);
+    const button =
+      context.root.querySelector<HTMLButtonElement>("#speech-fallback")!;
+    button.click();
+    await Promise.resolve();
+    expect(button.getAttribute("aria-pressed")).toBe("true");
+    button.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(trackStopped).toBe(true);
+    expect(context.transcribed).toHaveLength(1);
+    expect(context.transcribed[0]?.language).toBe("ar");
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")?.value,
+    ).toBe("عايز كوتشي جري");
+    expect(context.submitted).toEqual([]);
+  });
+
+  it("does not offer paid recording when the key has no audio allowance", async () => {
+    class FailedSpeechRecognition {
+      lang = "";
+      onresult = null;
+      onerror: ((event: { error: string }) => void) | null = null;
+      onend = null;
+      start() {
+        this.onerror?.({ error: "network" });
+      }
+      abort() {
+        /* browser mock */
+      }
+    }
+    const context = setup({
+      speechRecognition: FailedSpeechRecognition,
+      mediaRecorder: class {} as unknown as typeof MediaRecorder,
+      getUserMedia: async () => ({}) as MediaStream,
+      speechAvailable: false,
+    });
+    await context.controller.start();
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    await Promise.resolve();
+    expect(
+      context.root.querySelector<HTMLElement>("#speech-fallback-area")?.hidden,
+    ).toBe(true);
   });
 });

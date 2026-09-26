@@ -132,6 +132,97 @@ def test_named_page_request_with_new_colour_does_not_discard_the_constraint() ->
     assert intent.constraints.color == "black"
 
 
+@pytest.mark.parametrize(
+    ("message", "source"),
+    [("عايز كوتشي للجري", "للجري"), ("عايز كوتشي جري", "جري")],
+)
+def test_running_shoe_request_does_not_gain_a_daily_workout_requirement(
+    message: str, source: str
+) -> None:
+    payload = {
+        "v": 6,
+        "language": "ar",
+        "dialect": "egyptian_arabic",
+        "intent": "find_products",
+        "request_mode": "browse",
+        "constraints": {"category": "shoes", "product_type": "running"},
+        "missing_fields": [],
+        "conflicting_fields": [],
+        "needs_clarification": False,
+        "catalogue_requirements": [
+            {"kind": "suitable_for", "value": "daily_workouts", "source": source}
+        ],
+    }
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload, ensure_ascii=False))]]),
+            message,
+            storefront=load_storefront_definition(),
+            resolved_state={"_original_message": message, "_answers": []},
+            pending_clarification=None,
+        )
+    )
+    assert intent.constraints.product_type == "running"
+    assert intent.catalogue_requirements == []
+
+
+def test_explicit_daily_workout_requirement_is_preserved() -> None:
+    message = "عايز كوتشي للجري والتمرين اليومي"
+    payload = {
+        "v": 6,
+        "language": "ar",
+        "dialect": "egyptian_arabic",
+        "intent": "find_products",
+        "request_mode": "browse",
+        "constraints": {"category": "shoes", "product_type": "running"},
+        "missing_fields": [],
+        "conflicting_fields": [],
+        "needs_clarification": False,
+        "catalogue_requirements": [
+            {"kind": "suitable_for", "value": "daily_workouts", "source": "للجري"}
+        ],
+    }
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload, ensure_ascii=False))]]),
+            message,
+            storefront=load_storefront_definition(),
+            resolved_state={"_original_message": message, "_answers": []},
+            pending_clarification=None,
+        )
+    )
+    assert [r.value for r in intent.catalogue_requirements] == ["daily_workouts"]
+    assert "تمرين" in intent.catalogue_requirements[0].source
+
+
+def test_daily_running_phrase_is_not_silently_relaxed() -> None:
+    message = "عايز كوتشي جري يوميا"
+    payload = {
+        "v": 6,
+        "language": "ar",
+        "dialect": "egyptian_arabic",
+        "intent": "find_products",
+        "request_mode": "browse",
+        "constraints": {"category": "shoes", "product_type": "running"},
+        "missing_fields": [],
+        "conflicting_fields": [],
+        "needs_clarification": False,
+        "catalogue_requirements": [
+            {"kind": "suitable_for", "value": "daily_workouts", "source": "جري"}
+        ],
+    }
+    with pytest.raises(ValueError, match="Catalogue requirement source"):
+        asyncio.run(
+            interpret_message(
+                ScriptedLLMClient([[LLMChunk(text=json.dumps(payload, ensure_ascii=False))]]),
+                message,
+                storefront=load_storefront_definition(),
+                resolved_state={"_original_message": message, "_answers": []},
+                pending_clarification=None,
+            )
+        )
+
+
 def navigation_payload(intent: str = "navigate", target: str | None = "cart") -> str:
     return json.dumps(
         {
@@ -230,7 +321,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert context["navigation_destinations"]["orders"]["route"] == "/account/orders"
     assert request.response_schema is not None
-    assert request.prompt_version == "intent-v15"
+    assert request.prompt_version == "intent-v16"
     assert request.schema_version == 6
     assert request.response_schema["properties"]["v"]["const"] == 6
 

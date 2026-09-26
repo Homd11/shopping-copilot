@@ -98,13 +98,13 @@ class OpenRouterClient:
                         isinstance(v, int | float) and not isinstance(v, bool) and isfinite(v)
                         for v in (limit, remaining)
                     )
-                    or not 0 < limit <= 0.25
+                    or not 0 < limit <= self._settings.openrouter_total_limit
                     or remaining < reserve
                     or key.get("limit_reset") is not None
                 ):
                     raise OpenRouterBudgetError(
                         "OpenRouter evaluation budget requires a non-resetting key limit "
-                        "<= $0.25 and sufficient remaining credit"
+                        "within the configured total cap and sufficient remaining credit"
                     )
                 response = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions", json=payload

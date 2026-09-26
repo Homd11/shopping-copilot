@@ -3,6 +3,7 @@ import json
 import os
 from collections.abc import AsyncIterator, Callable
 from time import monotonic
+from typing import Literal
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -29,6 +30,7 @@ from agent.sessions import (
     SessionStore,
     TaskConflict,
 )
+from agent.speech import MAX_AUDIO_BYTES, OpenRouterSpeechTranscriber, SpeechTranscriber
 
 
 class StepRequest(BaseModel):
@@ -124,6 +126,7 @@ def create_app(
     llm_client: LLMClient | None = None,
     catalogue_reader: CatalogueReader | None = None,
     confirmation_registrar: Callable[[str, str, str, str, int], bool] | None = None,
+    speech_transcriber: SpeechTranscriber | None = None,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
     llm_client = llm_client or build_llm_client(settings)
@@ -204,6 +207,40 @@ def create_app(
     @app.get("/health")
     async def health() -> dict[str, str]:
         return {"status": "ok", "service": "agent"}
+
+    @app.get("/speech/availability")
+    async def speech_availability() -> dict[str, bool]:
+        if settings.provider != "openrouter" and speech_transcriber is None:
+            return {"available": False}
+        transcriber = speech_transcriber or OpenRouterSpeechTranscriber(settings)
+        try:
+            return {"available": await transcriber.available()}
+        except (httpx.HTTPError, ValueError):
+            return {"available": False}
+
+    @app.post("/speech/transcribe")
+    async def transcribe_speech(request: Request, language: Literal["ar", "en"]) -> dict[str, str]:
+        if request.headers.get("content-type", "").split(";", 1)[0] != "audio/webm":
+            raise HTTPException(status_code=415, detail="WebM audio is required")
+        content_length = request.headers.get("content-length", "0")
+        if not content_length.isdecimal():
+            raise HTTPException(status_code=400, detail="Invalid recording length")
+        if int(content_length) > MAX_AUDIO_BYTES:
+            raise HTTPException(status_code=413, detail="Audio recording is too large")
+        audio = await request.body()
+        if len(audio) > MAX_AUDIO_BYTES:
+            raise HTTPException(status_code=413, detail="Audio recording is too large")
+        if not audio.startswith(b"\x1a\x45\xdf\xa3"):
+            raise HTTPException(status_code=400, detail="Invalid WebM recording")
+        if settings.provider != "openrouter" and speech_transcriber is None:
+            raise HTTPException(status_code=503, detail="Speech transcription is unavailable")
+        transcriber = speech_transcriber or OpenRouterSpeechTranscriber(settings)
+        try:
+            return {"text": await transcriber.transcribe(audio, language)}
+        except OpenRouterBudgetError as error:
+            raise HTTPException(status_code=429, detail="Speech budget is unavailable") from error
+        except (httpx.HTTPError, ValueError) as error:
+            raise HTTPException(status_code=502, detail="Speech transcription failed") from error
 
     if test_clock_enabled:
 

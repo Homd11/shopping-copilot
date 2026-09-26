@@ -179,6 +179,8 @@ export interface AgentTransport {
   ): Promise<"resumed" | "awaiting_login">;
   stop(sessionId: string): Promise<void>;
   retry(sessionId: string, taskId: string, snapshot: Snapshot): Promise<void>;
+  speechAvailable(): Promise<boolean>;
+  transcribeSpeech(audio: Blob, language: "ar" | "en"): Promise<string>;
 }
 
 export interface StorefrontChannel {
@@ -245,6 +247,8 @@ export class PanelController {
   #recoverySnapshot: Snapshot | undefined;
   #waitingForLoginUrl: string | undefined;
   #recognition: BrowserSpeechRecognition | undefined;
+  #recorder: MediaRecorder | undefined;
+  #speechVersion = 0;
 
   constructor(
     root: HTMLElement,
@@ -529,6 +533,7 @@ export class PanelController {
         <form class="message-form">
           <label for="shopper-message">ماذا تبحث عنه؟</label>
           <div class="speech-controls"><label for="speech-language">لغة الكلام</label><select id="speech-language"><option value="ar-EG">العربية المصرية</option><option value="en-US">English</option></select><button id="speech-input" type="button" aria-label="ابدأ الإدخال الصوتي" aria-pressed="false">🎙 إدخال صوتي</button></div>
+          <div id="speech-fallback-area" hidden><button id="speech-fallback" type="button" aria-pressed="false">🎙 تسجيل قصير عبر OpenRouter</button><p>بالضغط على الزر، يُرسل تسجيل صوتي (حتى 10 ثوانٍ) إلى OpenRouter للتفريغ. راجع النص قبل إرساله.</p></div>
           <div class="input-row">
             <input id="shopper-message" name="message" autocomplete="off" required disabled />
             <button type="submit">إرسال</button>
@@ -567,15 +572,42 @@ export class PanelController {
       | (Window & {
           SpeechRecognition?: new () => BrowserSpeechRecognition;
           webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+          MediaRecorder?: typeof MediaRecorder;
         })
       | null;
     const SpeechRecognition =
       view?.SpeechRecognition ?? view?.webkitSpeechRecognition;
+    const MediaRecorderConstructor = view?.MediaRecorder;
     const speechButton =
       this.#root.querySelector<HTMLButtonElement>("#speech-input");
+    const fallbackArea = this.#root.querySelector<HTMLElement>(
+      "#speech-fallback-area",
+    );
+    const fallbackButton =
+      this.#root.querySelector<HTMLButtonElement>("#speech-fallback");
+    const canRecord = Boolean(
+      MediaRecorderConstructor && view?.navigator.mediaDevices?.getUserMedia,
+    );
+    const offerRecording = () => {
+      if (!canRecord || !fallbackArea) return;
+      void this.#agent
+        .speechAvailable()
+        .then((available) => {
+          if (!available) return;
+          fallbackArea.hidden = false;
+          this.#setStatus(
+            this.#root.querySelector<HTMLSelectElement>("#speech-language")
+              ?.value === "en-US"
+              ? "Browser speech is unavailable. You can use the short recording button and review the text."
+              : "خدمة الصوت في المتصفح غير متاحة. يمكنك استخدام زر التسجيل القصير ثم مراجعة النص.",
+          );
+        })
+        .catch(() => undefined);
+    };
     if (!SpeechRecognition && speechButton) {
       speechButton.disabled = true;
       speechButton.title = "الإدخال الصوتي غير متاح في هذا المتصفح";
+      offerRecording();
     }
     speechButton?.addEventListener("click", () => {
       if (!SpeechRecognition || speechButton.disabled) return;
@@ -601,6 +633,8 @@ export class PanelController {
       };
       recognition.onerror = (event) => {
         if (event.error === "aborted") return;
+        if (event.error === "network" || event.error === "service-not-allowed")
+          offerRecording();
         const locale = recognition.lang === "en-US" ? "en" : "ar";
         this.#setStatus(
           SPEECH_ERROR_MESSAGES[event.error]?.[locale] ??
@@ -625,11 +659,117 @@ export class PanelController {
       }
     });
 
+    fallbackButton?.addEventListener("click", () => {
+      if (
+        !canRecord ||
+        !view ||
+        !MediaRecorderConstructor ||
+        fallbackButton.disabled
+      )
+        return;
+      this.#recognition?.abort();
+      this.#recognition = undefined;
+      speechButton?.setAttribute("aria-pressed", "false");
+      if (this.#recorder) {
+        if (this.#recorder.state !== "inactive") this.#recorder.stop();
+        return;
+      }
+      const version = ++this.#speechVersion;
+      void (async () => {
+        let stream: MediaStream | undefined;
+        try {
+          stream = await view.navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          if (version !== this.#speechVersion) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          const recorder = new MediaRecorderConstructor(stream, {
+            mimeType: "audio/webm",
+          });
+          const chunks: Blob[] = [];
+          let recordingFailed = false;
+          this.#recorder = recorder;
+          fallbackButton.setAttribute("aria-pressed", "true");
+          fallbackButton.textContent = "إيقاف التسجيل وإظهار النص";
+          this.#setStatus("أسجل الآن…");
+          recorder.ondataavailable = (event) => {
+            if (event.data.size) chunks.push(event.data);
+          };
+          recorder.onerror = () => {
+            recordingFailed = true;
+            if (recorder.state !== "inactive") recorder.stop();
+            this.#setStatus("تعذر التسجيل. يمكنك كتابة طلبك.");
+          };
+          const timer = view.setTimeout(() => {
+            if (recorder.state !== "inactive") recorder.stop();
+          }, 10_000);
+          recorder.onstop = () => {
+            view.clearTimeout(timer);
+            stream?.getTracks().forEach((track) => track.stop());
+            if (this.#recorder === recorder) this.#recorder = undefined;
+            fallbackButton.setAttribute("aria-pressed", "false");
+            fallbackButton.textContent = "🎙 تسجيل قصير عبر OpenRouter";
+            if (version !== this.#speechVersion) return;
+            if (recordingFailed) return;
+            const audio = new Blob(chunks, { type: "audio/webm" });
+            if (!audio.size || audio.size > 750_000) {
+              this.#setStatus("التسجيل فارغ أو طويل جدًا. حاول ثانية.");
+              return;
+            }
+            fallbackButton.disabled = true;
+            this.#setStatus("أحول التسجيل إلى نص…");
+            const language =
+              this.#root.querySelector<HTMLSelectElement>("#speech-language")
+                ?.value === "en-US"
+                ? "en"
+                : "ar";
+            void this.#agent
+              .transcribeSpeech(audio, language)
+              .then((text) => {
+                if (version !== this.#speechVersion) return;
+                const input =
+                  this.#root.querySelector<HTMLInputElement>(
+                    "#shopper-message",
+                  );
+                if (input) {
+                  input.value = text;
+                  input.focus();
+                  this.#setStatus("راجع النص ثم اضغط إرسال.");
+                }
+              })
+              .catch(() => {
+                if (version === this.#speechVersion)
+                  this.#setStatus("تعذر تفريغ التسجيل. يمكنك كتابة طلبك.");
+              })
+              .finally(() => {
+                fallbackButton.disabled = false;
+              });
+          };
+          recorder.start();
+        } catch {
+          stream?.getTracks().forEach((track) => track.stop());
+          if (version === this.#speechVersion) {
+            this.#recorder = undefined;
+            fallbackButton.setAttribute("aria-pressed", "false");
+            fallbackButton.textContent = "🎙 تسجيل قصير عبر OpenRouter";
+            this.#setStatus(
+              "تعذر بدء التسجيل. راجع إذن الميكروفون أو اكتب طلبك.",
+            );
+          }
+        }
+      })();
+    });
+
     this.#root
       .querySelector<HTMLButtonElement>("#stop-task")
       ?.addEventListener("click", () => {
         this.#recognition?.abort();
         this.#recognition = undefined;
+        this.#speechVersion++;
+        if (this.#recorder && this.#recorder.state !== "inactive")
+          this.#recorder.stop();
         if (this.#sessionId === undefined) return;
         if (this.#activeTaskId !== undefined) {
           this.#cancelledTaskIds.add(this.#activeTaskId);

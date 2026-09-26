@@ -21,6 +21,7 @@ class LLMSettings:
     timeout_seconds: float = 20
     stream: bool = False
     reasoning_effort: str | None = None
+    openrouter_total_limit: float = 0.25
 
 
 def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettings:
@@ -49,11 +50,18 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     timeout_seconds = 20.0
     stream = False
     reasoning_effort = None
+    openrouter_total_limit = 0.25
     if provider == "openrouter":
         if not api_key_text:
             raise LLMConfigurationError("OPENROUTER_API_KEY is required")
         endpoint = "https://openrouter.ai/api/v1"
         timeout_seconds = 30.0
+        try:
+            openrouter_total_limit = float(values.get("OPENROUTER_TOTAL_CAP_DOLLARS", "0.25"))
+        except ValueError as error:
+            raise LLMConfigurationError("OPENROUTER_TOTAL_CAP_DOLLARS must be a number") from error
+        if not isfinite(openrouter_total_limit) or not 0 < openrouter_total_limit <= 0.75:
+            raise LLMConfigurationError("OpenRouter total cap must be between $0 and $0.75")
     if provider == "gemini":
         if not api_key_text:
             raise LLMConfigurationError("GEMINI_API_KEY is required for the gemini provider")
@@ -99,4 +107,5 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
         timeout_seconds=timeout_seconds,
         stream=stream,
         reasoning_effort=reasoning_effort,
+        openrouter_total_limit=openrouter_total_limit,
     )

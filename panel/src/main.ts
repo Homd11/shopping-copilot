@@ -92,6 +92,28 @@ class HttpAgentTransport implements AgentTransport {
     await this.#post(`/sessions/${sessionId}/messages`, { text, snapshot });
   }
 
+  async speechAvailable(): Promise<boolean> {
+    const response = await fetch(`${AGENT_ORIGIN}/speech/availability`);
+    if (!response.ok) return false;
+    const result = (await response.json()) as { available: boolean };
+    return result.available === true;
+  }
+
+  async transcribeSpeech(audio: Blob, language: "ar" | "en"): Promise<string> {
+    const response = await fetch(
+      `${AGENT_ORIGIN}/speech/transcribe?language=${language}`,
+      {
+        method: "POST",
+        headers: { "content-type": "audio/webm" },
+        body: audio,
+      },
+    );
+    if (!response.ok)
+      throw new Error(`Speech transcription failed with ${response.status}`);
+    const result = (await response.json()) as { text: string };
+    return result.text;
+  }
+
   async submitActionResult(
     sessionId: string,
     result: ActionResult,
