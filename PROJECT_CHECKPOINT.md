@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-09-26
 
+## Cart conversation repairs — 2026-09-26
+
+Ticket 14 remains on hold. The owner's exact `عايز 3 كمان من تيشرت اسكندرية` produced a correct live quantity/increase/3 intent that our verb whitelist rejected. Quantified relative requests now preserve the explicit amount and direction. Shared conservative name normalization handles `تيشرت اسكندرية` against `تيشيرت إسكندرية`; `وديني` is recognized as opening. Quantity/removal requests outside the cart navigate there and plan from a fresh same-origin Snapshot.
+
+Fractional browser scroll offsets now round at Snapshot production. Failed result delivery no longer leaves the Panel silently busy; it blocks replay and asks the Shopper to inspect the cart and Stop. A full browser run exposed another race: initial cart hydration detached unchanged server-rendered controls after the Bridge observed them. Identical markup now preserves controls. Invalid model drafts get one rephrasing attempt, then a Stop handback instead of a repeated question loop.
+
+Evidence: 150 TypeScript tests passed; full Python run had 423 passes and one failure exposing the hydration race. After fixing it, all 10 cart browser tests passed, plus the final 59-test affected Agent subset (including 17 new conversation tests). Full Python was not rerun after the focused repair. Format, lint, typechecking and builds passed. Independent review findings on relative direction and off-origin test coverage were fixed; final review was clear. Live exact opening, add with completion, and increase from 1 to 4 passed. The live recommendation setup still unnecessarily asked for an already supplied 500 EGP budget; this separate coverage issue remains open. Do not claim general language reliability or a fully accepted MVP. See `docs/superpowers/plans/2026-09-26-cart-conversation-repair.md`.
+
+The $0.75 total non-resetting API cap and credentials are unchanged. Unrelated proposal files are untouched.
+
 ## Recommendation follow-up and interpretation recovery — 2026-09-26
 
 The owner's sister's `افتح صفحة القميص الرسمي` failure was reproduced with the live provider: it selected the correct verified product but omitted redundant `navigation_source` metadata. Product opening now grounds the requested name against verified suggestions and current Shopper words, normalizing Arabic definite articles and diacritics. Missing model quotations no longer veto an independently grounded request. Ambiguous references ask which verified product to open; an exact answer resolves locally without another model call. Locate requests, negation, conflicting names and unknown IDs cannot silently authorize navigation.

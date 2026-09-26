@@ -22,7 +22,7 @@ LOCATE_CUE = re.compile(
 OPEN_CUE = re.compile(
     r"\b(?:open|go\s+to|navigate\s+to|take\s+me\s+to)\b|"
     r"(?<!\w)(?:افتح(?:ي|لي)?|افتح(?:ه|ها)(?:لي|لى)|"
-    r"تفتح(?:ه|ها)?(?:لي|لى)|ادخل(?:ي)?|روح(?:ي)?)(?!\w)|"
+    r"تفتح(?:ه|ها)?(?:لي|لى)|ادخل(?:ي)?|روح(?:ي)?|وديني|خدني)(?!\w)|"
     r"\b(?:efta7(?:ly|li)?|ed5ol|ro7)\b",
     re.IGNORECASE,
 )

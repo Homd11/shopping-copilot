@@ -156,6 +156,33 @@ def test_copilot_add_quantity_remove_and_undo_only_reports_verified_success(page
     assert state(page)["lines"][0]["quantity"] == 3
 
 
+def test_fractional_scrolling_add_finishes_and_next_cart_request_is_available(page):
+    frame = page.frame_locator("#storefront-frame")
+    # Browser zoom/smooth scrolling can expose subpixel CSS offsets. Exercise
+    # the real Bridge -> Panel -> HTTP result, not a handcrafted wire result.
+    frame.locator("body").evaluate(
+        "() => Object.defineProperty(window, 'scrollY', {get: () => 211.42857360839844})"
+    )
+    page.locator("#shopper-message").fill("Add this to my cart")
+    page.get_by_role("button", name="إرسال").click()
+    expect(frame.locator("#cart-feedback")).to_have_text("تمت الإضافة إلى السلة")
+    expect(page.locator("#task-status")).to_have_attribute(
+        "data-task-state", "completed", timeout=12000
+    )
+    expect(page.locator("#shopper-message")).to_be_enabled()
+    # Stay on the product page: the Copilot must open the cart itself and read
+    # its current quantity before incrementing. Undo restores the single add.
+    page.locator("#shopper-message").fill("Increase quantity by 3 for ممشى النيل")
+    page.get_by_role("button", name="إرسال").click()
+    expect(frame.locator('input[name="quantity"]')).to_have_value("4", timeout=12000)
+    expect(page.locator("#task-status")).to_have_attribute(
+        "data-task-state", "completed", timeout=12000
+    )
+    assert state(page)["lines"][0]["quantity"] == 4
+    frame.locator('[data-testid="undo-cart"]').click()
+    expect(frame.locator('input[name="quantity"]')).to_have_value("1")
+
+
 def test_manual_clear_requires_confirmation_and_cancel_keeps_cart(page):
     frame = add(page)
     frame.locator('header a[href="/cart"]').click()

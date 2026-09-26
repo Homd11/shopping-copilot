@@ -27,6 +27,7 @@ function setup(options?: {
   answerStatus?: "resumed" | "awaiting_login";
   answerGate?: Promise<void>;
   reconcileGate?: Promise<void>;
+  resultError?: Error;
   speechRecognition?: new () => {
     lang: string;
     onresult:
@@ -114,6 +115,7 @@ function setup(options?: {
     speechAvailable: async () => options?.speechAvailable ?? true,
     submitActionResult: async (_sessionId, result) => {
       results.push(result);
+      if (options?.resultError) throw options.resultError;
     },
     submitAnswer: async (
       sessionId,
@@ -188,6 +190,33 @@ function setup(options?: {
 }
 
 describe("PanelController", () => {
+  it("shows uncertain delivery without replaying a cart change when result submission fails", async () => {
+    const context = setup({ resultError: new Error("HTTP 422") });
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.emit({ type: "task_started", data: { task_id: "task-1" } });
+    context.controller.receiveStorefront({
+      type: "action_result",
+      result: {
+        v: 1,
+        task_id: "task-1",
+        action_id: "action-1",
+        sequence_number: 1,
+        status: "ok",
+        snapshot,
+      },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(context.root.querySelector("#task-status")?.textContent).toContain(
+      "راجع السلة",
+    );
+    expect(context.root.querySelector("#retry-task")).toBeNull();
+    expect(context.results).toHaveLength(1);
+    expect(context.cancelledTasks).toEqual(["task-1"]);
+    expect(
+      context.root.querySelector<HTMLButtonElement>("#stop-task")?.disabled,
+    ).toBe(false);
+  });
   it("fills an editable example without sending and hides the welcome after submission", async () => {
     const context = setup();
     await context.controller.start();

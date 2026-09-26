@@ -201,7 +201,7 @@ def test_single_suggestion_does_not_authorize_an_unrelated_or_negated_page_reque
 
 
 def test_repeated_invalid_drafts_end_with_working_stop_instead_of_an_unanswerable_question():
-    client = real_client([[LLMChunk(text="not json")]] * 8)
+    client = real_client([[LLMChunk(text="not json")]] * 2)
     session = client.post("/sessions").json()["session_id"]
     task = client.post(
         f"/sessions/{session}/messages",
@@ -210,10 +210,10 @@ def test_repeated_invalid_drafts_end_with_working_stop_instead_of_an_unanswerabl
             "snapshot": home_snapshot(),
         },
     ).json()["task_id"]
-    for attempt in range(8):
+    for attempt in range(2):
         state = client.get(f"/sessions/{session}/state?tab_id=tab-local").json()
         question = state["task"]["pending_question"]
-        if attempt < 7:
+        if attempt < 1:
             assert question["options"] == []
             text = "عايز حذاء"
         else:

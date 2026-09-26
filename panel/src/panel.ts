@@ -344,7 +344,21 @@ export class PanelController {
     const questionKey = `${message.result.task_id}:${message.result.action_id}`;
     if (this.#questionActionIds.delete(questionKey)) return;
     if (this.#sessionId !== undefined) {
-      void this.#agent.submitActionResult(this.#sessionId, message.result);
+      void this.#agent
+        .submitActionResult(this.#sessionId, message.result)
+        .catch(() => {
+          if (this.#activeTaskId !== message.result.task_id) return;
+          this.#cancelledTaskIds.add(message.result.task_id);
+          this.#storefront.cancelTask(message.result.task_id);
+          this.#setTaskState("paused");
+          this.#setInputEnabled(false);
+          this.#root
+            .querySelector<HTMLElement>("#pending-question")
+            ?.replaceChildren();
+          this.#setStatus(
+            "تعذر تأكيد نتيجة الإجراء. راجع السلة قبل أي تعديل آخر، ثم اضغط إيقاف. لن أكرر الإجراء تلقائيًا.",
+          );
+        });
     }
   }
 

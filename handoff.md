@@ -1,5 +1,9 @@
 # Shopping Copilot — project handoff
 
+## Cart conversation repairs — 2026-09-26
+
+Read PROJECT_CHECKPOINT.md for current evidence. Exact owner page-opening/add/three-more requests were repaired and passed live. Changes address relative wording, shared product-name normalization, cart navigation before edits, fractional scroll wire values, failed result delivery, and unchanged cart hydration detaching observed controls. One rephrase attempt now bounds invalid-draft loops. Safety guards remain enforced. The full Python run exposed the hydration race (423 passes, one failure); final focused 10 browser cart tests and 59 Agent tests passed after fixes. All 150 TypeScript tests and format/lint/type/build checks passed. Reviews are resolved. **Ticket 14 remains on hold:** live setup exposed a separate redundant budget clarification for an already supplied 500 EGP value. Preserve that known limitation and avoid claiming the entire MVP is accepted. Preserve credentials, the $0.75 cap, and unrelated proposal files.
+
 ## Recommendation follow-up and interpretation recovery — 2026-09-26
 
 Read `PROJECT_CHECKPOINT.md` for the latest evidence. The sister's product-opening failure was a correct verified product ID rejected for missing model source metadata and brittle Arabic name matching. The boundary now independently grounds the product name and opening request; ambiguity offers verified choices, resolved locally without a model call. Unusable drafts ask for rephrasing while discarding unvalidated authority, rather than trapping the Shopper in Retry. Negated/locate requests cannot silently open a page, and mutation/Confirmation/stale-answer safeguards remain strict. Recovery does not promise every phrase will be interpreted correctly.

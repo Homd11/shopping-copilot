@@ -53,7 +53,14 @@
         ? `السلة فيها ${next.lines.length} منتج، ${next.count} قطعة`
         : "السلة فارغة";
     const contents = document.getElementById("cart-contents");
-    if (contents) contents.innerHTML = next.html;
+    if (contents) {
+      const incoming = document.createElement("div");
+      incoming.innerHTML = next.html;
+      // Initial state hydration must not detach controls already observed by
+      // the Bridge when the server-rendered cart is unchanged.
+      if (contents.innerHTML !== incoming.innerHTML)
+        contents.replaceChildren(...incoming.childNodes);
+    }
     document.documentElement.dataset.cartRevision = String(next.revision);
     toast(showUndo ? next.undo : null);
     restoreFocus();

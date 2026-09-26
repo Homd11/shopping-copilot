@@ -126,6 +126,7 @@ class ActiveTask:
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
     needs_rephrasing: bool = False
+    invalid_draft_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -453,9 +454,28 @@ class SessionStore:
         if intent.intent == "cart_edit":
             intent = validate_cart_intent(task.message, intent)
             task.cart_operation = intent.cart_operation
-            task.cart_actions = plan_cart_edit(
-                intent, session.last_snapshot, task_id, task.step_count + 1
-            )
+            if (
+                intent.cart_operation in {"quantity", "remove"}
+                and session.last_snapshot is not None
+                and urlsplit(session.last_snapshot.url).path != "/cart"
+            ):
+                task.cart_actions = [
+                    NavigateAction(
+                        v=1,
+                        type="navigate",
+                        task_id=task_id,
+                        action_id=f"action-{uuid4().hex}",
+                        sequence_number=task.step_count + 1,
+                        narration="هفتح السلة عشان أعدّل المنتج المطلوب."
+                        if intent.language == "ar"
+                        else "I'll open the cart to find the requested item.",
+                        url="/cart",
+                    )
+                ]
+            else:
+                task.cart_actions = plan_cart_edit(
+                    intent, session.last_snapshot, task_id, task.step_count + 1
+                )
             action = task.cart_actions.pop(0)
         elif intent.intent == "mutate":
             validate_mutation_interpretation(task.message, intent)
@@ -708,7 +728,8 @@ class SessionStore:
             task.pending_clarification = None
             task.pause_message = None
             task.step_count += 1
-            capped = task.step_count >= 8
+            task.invalid_draft_count += 1
+            capped = task.step_count >= 8 or task.invalid_draft_count >= 2
             if capped:
                 question = (
                     "لم أتمكن من فهم الطلب بعد عدة محاولات. أوقف المهمة وابدأ طلبًا جديدًا."
@@ -1167,6 +1188,40 @@ class SessionStore:
                 == urlsplit(action_result.snapshot.url).scheme
             )
             session.last_snapshot = action_result.snapshot
+            if isinstance(action, NavigateAction):
+                if (
+                    same_origin
+                    and action_result.status in {"ok", "navigated"}
+                    and urlsplit(action_result.snapshot.url).path == "/cart"
+                ):
+                    intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
+                    task.cart_actions = plan_cart_edit(
+                        intent, action_result.snapshot, task.task_id, task.step_count + 1
+                    )
+                    task.action = task.cart_actions.pop(0)
+                    task.step_count += 1
+                    task.status = (
+                        "awaiting_answer"
+                        if isinstance(task.action, AskShopperAction)
+                        else "awaiting_action_result"
+                    )
+                    self._append(
+                        session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
+                    )
+                else:
+                    task.status = "paused"
+                    task.action = None
+                    task.cart_actions.clear()
+                    task.pause_message = (
+                        "تعذر فتح السلة. حاول تاني."
+                        if task.language == "ar"
+                        else "Could not open the cart. Retry."
+                    )
+                    self._append(
+                        session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                    )
+                self._touch(session)
+                return task
             success = action_result.status == "ok" and same_origin
             if success and task.cart_actions:
                 task.action = task.cart_actions.pop(0)

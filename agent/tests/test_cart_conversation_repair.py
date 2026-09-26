@@ -1,0 +1,205 @@
+import asyncio
+import json
+
+import pytest
+
+from agent.llm import LLMChunk, ScriptedLLMClient, interpret_message
+from agent.storefront import load_storefront_definition
+from agent.tests.test_real_task import real_client, snapshot_at
+from agent.tests.test_sessions import parse_sse
+
+
+def quantity_payload(message, target):
+    # Shape captured from the live provider for the owner's failing sentence.
+    return dict(
+        v=7,
+        language="ar",
+        dialect="egyptian_arabic",
+        intent="cart_edit",
+        constraints={},
+        missing_fields=[],
+        needs_clarification=False,
+        cart_operation="quantity",
+        cart_source=message,
+        cart_target=target,
+        cart_quantity=3,
+        cart_quantity_mode="increase",
+    )
+
+
+def cart_snapshot(count):
+    elements = []
+    for index, name in enumerate(["تيشيرت إسكندرية", "قميص رسمي", "جاكيت القاهرة"][:count]):
+        group = f"{name} — M / blue"
+        elements.extend(
+            [
+                dict(
+                    id=10 + index * 2,
+                    role="textbox",
+                    name=f"الكمية — {name}",
+                    value="1",
+                    group=group,
+                    visible=True,
+                ),
+                dict(
+                    id=11 + index * 2,
+                    role="button",
+                    name=f"تحديث الكمية — {name}",
+                    form_action="/cart/quantity",
+                    group=group,
+                    visible=True,
+                ),
+            ]
+        )
+    return snapshot_at("/cart", *elements)
+
+
+@pytest.mark.parametrize("count,from_product", [(1, False), (3, False), (3, True)])
+def test_more_three_completes_without_questions_and_only_changes_named_line(count, from_product):
+    message = "عايز 3 كمان من تيشرت اسكندرية"
+    client = real_client([[LLMChunk(text=json.dumps(quantity_payload(message, "تيشرت اسكندرية")))]])
+    session = client.post("/sessions").json()["session_id"]
+    current = snapshot_at("/p/clothing-06") if from_product else cart_snapshot(count)
+    client.post(f"/sessions/{session}/messages", json={"text": message, "snapshot": current})
+
+    def latest():
+        events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+        actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+        assert all(action["type"] != "ask_shopper" for action in actions)
+        return actions[-1]
+
+    def report(action, snapshot, status="ok"):
+        result = dict(
+            v=1,
+            task_id=action["task_id"],
+            action_id=action["action_id"],
+            sequence_number=action["sequence_number"],
+            status=status,
+            snapshot=snapshot,
+        )
+        assert client.post(f"/sessions/{session}/action-results", json=result).status_code == 202
+        return result
+
+    action = latest()
+    if from_product:
+        assert action["type"] == "navigate" and action["url"] == "/cart"
+        current = cart_snapshot(count)
+        report(action, current, "navigated")
+        action = latest()
+    assert action["type"] == "type" and action["id"] == 10 and action["text"] == "4"
+    current["elements"][0]["value"] = "4"
+    report(action, current)
+    action = latest()
+    assert action["type"] == "click" and action["id"] == 11
+    current["elements"].append(dict(id=90, role="status", name="تم تحديث الكمية", visible=True))
+    result = report(action, current)
+    view = client.get(f"/sessions/{session}/state?tab_id=tab-local").json()
+    assert view["task"]["status"] == "completed"
+    # Duplicate result must not issue another increment or click.
+    assert client.post(f"/sessions/{session}/action-results", json=result).status_code == 202
+    assert [e["value"] for e in current["elements"] if e["role"] == "textbox"] == ["4"] + ["1"] * (
+        count - 1
+    )
+
+
+def test_named_egyptian_take_me_to_product_does_not_ask_again():
+    message = "وديني لصفحة تيشرت اسكندرية"
+    payload = dict(
+        v=7,
+        language="ar",
+        dialect="egyptian_arabic",
+        intent="open_product",
+        product_id="clothing-06",
+        constraints={},
+        missing_fields=[],
+        needs_clarification=False,
+    )
+    result = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
+            message,
+            storefront=load_storefront_definition(),
+            resolved_state={
+                "_previous_suggestions": [
+                    {"id": "clothing-06", "name": "تيشيرت إسكندرية"},
+                    {"id": "clothing-05", "name": "قميص رسمي"},
+                ]
+            },
+            pending_clarification=None,
+        )
+    )
+    assert not result.needs_clarification
+    assert result.product_id == "clothing-06"
+
+
+@pytest.mark.parametrize(
+    "message",
+    ["مش عايز 3 كمان من تيشرت اسكندرية", "Don’t add 3 more", "عايز 2 كمان من تيشرت اسكندرية"],
+)
+def test_negative_or_wrong_quantity_cannot_authorize_three_more(message):
+    with pytest.raises(ValueError):
+        asyncio.run(
+            interpret_message(
+                ScriptedLLMClient([[LLMChunk(text=json.dumps(quantity_payload(message, None)))]]),
+                message,
+                storefront=load_storefront_definition(),
+                resolved_state={},
+                pending_clarification=None,
+            )
+        )
+
+
+@pytest.mark.parametrize(
+    "message,correct",
+    [
+        ("I want 3 less of Formal Shirt", "decrease"),
+        ("عايز 3 أقل من القميص الرسمي", "decrease"),
+        ("عايز 3 زيادة من القميص الرسمي", "increase"),
+    ],
+)
+@pytest.mark.parametrize("mode", ["set", "increase", "decrease"])
+def test_relative_direction_cannot_be_reinterpreted(message, correct, mode):
+    from agent.cart import validate_cart_intent
+    from agent.llm.intent import StructuredIntent
+
+    payload = quantity_payload(message, None)
+    payload["cart_quantity_mode"] = mode
+    intent = StructuredIntent.model_validate(payload)
+    if mode == correct:
+        assert validate_cart_intent(message, intent).cart_quantity_mode == correct
+    else:
+        with pytest.raises(ValueError):
+            validate_cart_intent(message, intent)
+
+
+def test_cart_navigation_to_foreign_origin_never_continues_with_an_edit():
+    message = "عايز 3 كمان من تيشرت اسكندرية"
+    client = real_client([[LLMChunk(text=json.dumps(quantity_payload(message, "تيشرت اسكندرية")))]])
+    session = client.post("/sessions").json()["session_id"]
+    client.post(
+        f"/sessions/{session}/messages",
+        json={"text": message, "snapshot": snapshot_at("/p/clothing-06")},
+    )
+    events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+    action = [e["data"]["action"] for e in events if e["event"] == "action"][-1]
+    assert action["type"] == "navigate"
+    foreign = cart_snapshot(3)
+    foreign["url"] = "https://outside.example/cart"
+    response = client.post(
+        f"/sessions/{session}/action-results",
+        json=dict(
+            v=1,
+            task_id=action["task_id"],
+            action_id=action["action_id"],
+            sequence_number=action["sequence_number"],
+            status="navigated",
+            snapshot=foreign,
+        ),
+    )
+    assert response.status_code == 202
+    events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+    assert [e["data"]["action"]["type"] for e in events if e["event"] == "action"] == ["navigate"]
+    assert (
+        client.get(f"/sessions/{session}/state?tab_id=tab-local").json()["task"]["status"]
+        == "paused"
+    )

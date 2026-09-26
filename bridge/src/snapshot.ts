@@ -335,7 +335,7 @@ export class SnapshotBuilder {
       viewport: this.#options.viewport ?? {
         w: view?.innerWidth ?? 0,
         h: view?.innerHeight ?? 0,
-        scrollY: view?.scrollY ?? 0,
+        scrollY: Math.round(view?.scrollY ?? 0),
       },
       truncated,
       elements,

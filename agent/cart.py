@@ -6,6 +6,7 @@ import re
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+from agent.product_reference import names_product
 from agent.schemas import Action, AskShopperAction, ClickAction, SelectAction, Snapshot, TypeAction
 from agent.storefront import load_storefront_definition
 
@@ -23,7 +24,10 @@ MESSAGES = {
 def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIntent:
     if not intent.cart_source or intent.cart_source.casefold() not in message.casefold():
         raise ValueError("Cart edits require current Shopper source")
-    if re.search(r"\b(?:not|never|don't|without)\b|(?:^|\s)(?:لا|مش|ما)(?=\s|\w)", message, re.I):
+    evidence = re.sub(r"[\u064b-\u065f\u0670\u0640]", "", message).replace("’", "'")
+    if re.search(
+        r"\b(?:not|never|don't|without)\b|(?:^|\s)(?:لا|مش|ما|مت)(?=\s|\w)", evidence, re.I
+    ):
         raise ValueError("Negated cart edit")
     cues = {
         "add": r"\badd\b|ضيف|أضف|اضف|حط",
@@ -34,9 +38,23 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
         "remove": r"remove|delete|شيل|احذف|حذف",
         "undo": r"undo|تراجع|رجع",
     }
-    if not re.search(cues[intent.cart_operation], intent.cart_source, re.I):
+    relative_request = (
+        intent.cart_operation == "quantity"
+        and intent.cart_quantity is not None
+        and bool(
+            re.search(
+                r"\b(?:want|need)\b|(?<!\w)(?:عايز(?:ة)?|عاوز(?:ة)?|محتاج(?:ة)?)(?!\w)",
+                evidence,
+                re.I,
+            )
+        )
+        and bool(re.search(r"\b(?:more|fewer|less)\b|كمان|زيادة|أقل|اقل", evidence, re.I))
+    )
+    if not relative_request and not re.search(
+        cues[intent.cart_operation], intent.cart_source, re.I
+    ):
         raise ValueError("Cart operation needs an explicit request")
-    if intent.cart_target and intent.cart_target.casefold() not in message.casefold():
+    if intent.cart_target and not names_product(message, intent.cart_target):
         raise ValueError("Cart target must be sourced from the Shopper")
     normalized = message.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
     colors = load_storefront_definition().vocabulary.colors
@@ -76,9 +94,15 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
     if intent.cart_operation == "quantity":
         mode = intent.cart_quantity_mode
         absolute = bool(re.search(r"\bto\s+\d|(?:إلى|الى)\s*\d", normalized, re.I))
-        increase = bool(re.search(r"\bmore\b|كمان|\bincrease\b.*\bby\b|زود|زوّد", normalized, re.I))
+        increase = bool(
+            re.search(r"\bmore\b|كمان|زيادة|\bincrease\b.*\bby\b|زود|زوّد", normalized, re.I)
+        )
         decrease = bool(
-            re.search(r"\b(?:decrease|reduce)\b.*\bby\b|\bfewer\b|قلل|نقص", normalized, re.I)
+            re.search(
+                r"\b(?:decrease|reduce)\b.*\bby\b|\b(?:fewer|less)\b|قلل|نقص|أقل|اقل",
+                normalized,
+                re.I,
+            )
         )
         expected = (
             "set" if absolute else "increase" if increase else "decrease" if decrease else None
@@ -89,7 +113,7 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
         cue = (
             r"increase|add|more|زود|زوّد|كمان|زيادة"
             if intent.cart_quantity_mode == "increase"
-            else r"decrease|reduce|less|fewer|قلل|نقص"
+            else r"decrease|reduce|less|fewer|قلل|نقص|أقل|اقل"
         )
         if not re.search(cue, intent.cart_source, re.I):
             raise ValueError("Relative quantity must be explicitly requested")
@@ -130,13 +154,11 @@ def plan_cart_edit(
     if intent.cart_target:
         if intent.cart_operation == "add":
             headings = [e.name.casefold() for e in elements if e.role == "heading"]
-            if not any(intent.cart_target.casefold() in name for name in headings):
+            if not any(names_product(name, intent.cart_target) for name in headings):
                 buttons = []
         else:
             buttons = [
-                e
-                for e in buttons
-                if intent.cart_target.casefold() in f"{e.name} {e.group or ''}".casefold()
+                e for e in buttons if names_product(f"{e.name} {e.group or ''}", intent.cart_target)
             ]
     actions: list[Action] = []
 
