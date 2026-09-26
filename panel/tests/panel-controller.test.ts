@@ -34,7 +34,7 @@ function setup(options?: {
           results: ArrayLike<ArrayLike<{ transcript: string }>>;
         }) => void)
       | null;
-    onerror: (() => void) | null;
+    onerror: ((event: { error: string }) => void) | null;
     onend: (() => void) | null;
     start(): void;
     abort(): void;
@@ -928,5 +928,44 @@ describe("PanelController", () => {
     expect(recognitions[1]?.lang).toBe("en-US");
     context.root.querySelector<HTMLButtonElement>("#stop-task")?.click();
     expect(recognitions[1]?.aborted).toBe(true);
+  });
+
+  it("reports the browser's speech failure reason while preserving typed input", async () => {
+    const recognitions: FakeSpeechRecognition[] = [];
+    class FakeSpeechRecognition {
+      lang = "";
+      onresult = null;
+      onerror: ((event: { error: string }) => void) | null = null;
+      onend: (() => void) | null = null;
+      constructor() {
+        recognitions.push(this);
+      }
+      start() {
+        /* browser mock */
+      }
+      abort() {
+        this.onend?.();
+      }
+    }
+    const context = setup({ speechRecognition: FakeSpeechRecognition });
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    const input =
+      context.root.querySelector<HTMLInputElement>("#shopper-message")!;
+    input.value = "عايز كوتشي";
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    recognitions[0]?.onerror?.({ error: "network" });
+    expect(context.root.querySelector("#task-status")?.textContent).toBe(
+      "خدمة التعرف على الصوت غير متاحة الآن. جرّب Chrome أو اكتب طلبك.",
+    );
+    expect(input.value).toBe("عايز كوتشي");
+    recognitions[0]?.onend?.();
+    context.root.querySelector<HTMLSelectElement>("#speech-language")!.value =
+      "en-US";
+    context.root.querySelector<HTMLButtonElement>("#speech-input")?.click();
+    recognitions[1]?.onerror?.({ error: "not-allowed" });
+    expect(context.root.querySelector("#task-status")?.textContent).toBe(
+      "Microphone access was blocked. Check browser and system permissions, then retry.",
+    );
   });
 });
