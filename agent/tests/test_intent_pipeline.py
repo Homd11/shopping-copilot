@@ -13,7 +13,7 @@ from agent.llm.intent_pipeline import (
 from agent.storefront import UnsupportedCurrencyError, load_storefront_definition
 
 
-def test_recommended_product_id_must_match_a_named_prior_suggestion() -> None:
+def test_product_id_without_observed_reference_is_rejected() -> None:
     message = "وريني صفحة كوتشي ممشى النيل"
     state = {"_previous_suggestions": [{"id": "shoe-09", "name": "ممشى النيل"}]}
     payload = {
@@ -27,7 +27,7 @@ def test_recommended_product_id_must_match_a_named_prior_suggestion() -> None:
         "missing_fields": [],
         "needs_clarification": False,
     }
-    with pytest.raises(ValueError, match="verified recommendations"):
+    with pytest.raises(ValueError, match="observed Storefront reference"):
         asyncio.run(
             interpret_message(
                 ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
