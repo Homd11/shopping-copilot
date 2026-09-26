@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from agent.llm.config import LLMConfigurationError, LLMSettings
-from agent.llm.contract import LLMChunk, LLMRequest
+from agent.llm.contract import LLMChunk, LLMInvalidResponseError, LLMRequest
 
 
 @dataclass(frozen=True)
@@ -126,7 +126,11 @@ class GroqClient:
                 self._retry_at = self._clock() + delay
                 raise GroqRateLimitError(ceil(delay))
             response.raise_for_status()
-        chunks, usage = _parse_completion(response.json())
+        try:
+            body = response.json()
+        except ValueError as error:
+            raise LLMInvalidResponseError("Groq response body is not JSON") from error
+        chunks, usage = _parse_completion(body)
         if request.response_validator is not None:
             request.response_validator("".join(chunk.text or "" for chunk in chunks))
         return chunks, usage
@@ -187,9 +191,9 @@ def _parse_completion(payload: object) -> tuple[list[LLMChunk], dict[str, int] |
     try:
         content = payload["choices"][0]["message"]["content"]
     except (IndexError, KeyError, TypeError) as error:
-        raise ValueError("Groq response contains an invalid completion") from error
+        raise LLMInvalidResponseError("Groq response contains an invalid completion") from error
     if not isinstance(content, str) or not content:
-        raise ValueError("Groq response contains empty non-text content")
+        raise LLMInvalidResponseError("Groq response contains empty non-text content")
     raw_usage = payload.get("usage") if isinstance(payload, dict) else None
     usage = (
         {

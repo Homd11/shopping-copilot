@@ -2,9 +2,9 @@ import re
 from decimal import Decimal
 from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
-from agent.llm.contract import LLMClient, LLMRequest
+from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMRequest
 from agent.storefront import Money
 
 Language = Literal["ar", "en"]
@@ -252,13 +252,25 @@ class StructuredIntent(IntentModel):
         return self
 
 
+class StructuredIntentDraftError(ValueError):
+    """The provider replied, but its draft cannot enter the trusted intent boundary."""
+
+
 async def collect_structured_intent(client: LLMClient, request: LLMRequest) -> StructuredIntent:
     text_parts: list[str] = []
-    async for chunk in client.complete(request):
-        if chunk.tool_call is not None:
-            raise ValueError("Structured intent cannot contain a tool call")
-        if chunk.text is not None:
-            text_parts.append(chunk.text)
+    try:
+        async for chunk in client.complete(request):
+            if chunk.tool_call is not None:
+                raise StructuredIntentDraftError("Structured intent cannot contain a tool call")
+            if chunk.text is not None:
+                text_parts.append(chunk.text)
+    except ValidationError as error:
+        raise StructuredIntentDraftError(str(error)) from error
+    except LLMInvalidResponseError as error:
+        raise StructuredIntentDraftError(str(error)) from error
     if not text_parts:
-        raise ValueError("Structured intent response was empty")
-    return StructuredIntent.model_validate_json("".join(text_parts))
+        raise StructuredIntentDraftError("Structured intent response was empty")
+    try:
+        return StructuredIntent.model_validate_json("".join(text_parts))
+    except ValidationError as error:
+        raise StructuredIntentDraftError(str(error)) from error

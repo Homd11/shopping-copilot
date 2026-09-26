@@ -2,6 +2,7 @@ from agent.llm.config import LLMConfigurationError, LLMSettings, load_llm_settin
 from agent.llm.contract import (
     LLMChunk,
     LLMClient,
+    LLMInvalidResponseError,
     LLMMessage,
     LLMRequest,
     LLMToolCall,
@@ -29,6 +30,7 @@ __all__ = [
     "LLMChunk",
     "LLMClient",
     "LLMConfigurationError",
+    "LLMInvalidResponseError",
     "LLMMessage",
     "LLMRequest",
     "LLMSettings",

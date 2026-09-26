@@ -1,6 +1,7 @@
 import json
 import re
 from collections.abc import Mapping
+from dataclasses import replace
 from typing import Any
 
 from agent.cart import validate_cart_intent
@@ -12,6 +13,7 @@ from agent.llm.intent import (
     OwnedItem,
     PricePreference,
     StructuredIntent,
+    StructuredIntentDraftError,
     collect_structured_intent,
 )
 from agent.navigation import (
@@ -314,31 +316,72 @@ async def interpret_message(
     pending_clarification: str | None,
 ) -> StructuredIntent:
     requires_budget_clarification = _requires_budget_clarification(message)
-    try:
-        intent = await collect_structured_intent(
-            client,
-            build_intent_request(
-                message,
-                storefront=storefront,
-                resolved_state=resolved_state,
-                pending_clarification=pending_clarification,
-            ),
-        )
-    except ValueError:
-        if not requires_budget_clarification:
-            raise
-        return _safe_budget_clarification(message)
-    intent = _restore_clarification(intent, resolved_state, pending_clarification, message)
-    if requires_budget_clarification:
-        intent = _force_egp_budget_clarification(intent)
     if _PROMPT_OVERRIDE.search(message):
         raise ValueError("prompt override cannot authorize an Action")
+    request = build_intent_request(
+        message,
+        storefront=storefront,
+        resolved_state=resolved_state,
+        pending_clarification=pending_clarification,
+    )
+    first_invalid_draft: ValueError | None = None
+    for attempt in range(2):
+        current_request = request
+        if attempt:
+            current_request = replace(
+                request,
+                system=(
+                    request.system
+                    + "\nYour previous draft failed local validation. Reconsider the Shopper's "
+                    "current request from scratch and return one complete corrected Structured "
+                    "Intent. Do not copy assumptions from the rejected draft."
+                ),
+                prompt_version=f"{PROMPT_VERSION}-repair",
+            )
+        try:
+            intent = await collect_structured_intent(client, current_request)
+        except StructuredIntentDraftError as error:
+            if requires_budget_clarification:
+                return _safe_budget_clarification(message)
+            first_invalid_draft = first_invalid_draft or error
+            if attempt == 0:
+                continue
+            raise first_invalid_draft from error
+        except RuntimeError as error:
+            if first_invalid_draft is not None:
+                raise first_invalid_draft from error
+            raise
+        try:
+            intent = _restore_clarification(intent, resolved_state, pending_clarification, message)
+            if requires_budget_clarification:
+                intent = _force_egp_budget_clarification(intent)
+            return _validate_interpreted_intent(
+                message,
+                intent,
+                storefront,
+                resolved_state,
+                pending_clarification,
+            )
+        except ValueError as error:
+            first_invalid_draft = first_invalid_draft or error
+            if attempt == 0:
+                continue
+            raise first_invalid_draft from error
+    raise AssertionError("Intent repair loop did not return or raise")
+
+
+def _validate_interpreted_intent(
+    message: str,
+    intent: StructuredIntent,
+    storefront: StorefrontDefinition,
+    resolved_state: Mapping[str, Any],
+    pending_clarification: str | None,
+) -> StructuredIntent:
     if intent.intent == "mutate":
         validate_mutation_interpretation(message, intent)
         return intent
     if intent.intent == "cart_edit":
-        intent = validate_cart_intent(message, intent)
-        return intent
+        return validate_cart_intent(message, intent)
     intent = _recover_named_product_page_followup(message, intent, resolved_state)
     if intent.intent == "open_product":
         return _validate_recommended_product_reference(message, intent, resolved_state)

@@ -9,7 +9,7 @@ from urllib.parse import quote
 import httpx
 
 from agent.llm.config import LLMConfigurationError, LLMSettings
-from agent.llm.contract import LLMChunk, LLMRequest
+from agent.llm.contract import LLMChunk, LLMInvalidResponseError, LLMRequest
 
 
 @dataclass(frozen=True)
@@ -92,12 +92,15 @@ class GeminiClient:
                 self._retry_at = self._clock() + delay
                 raise GeminiRateLimitError(ceil(delay))
             response.raise_for_status()
-            body = response.json()
+            try:
+                body = response.json()
+            except ValueError as error:
+                raise LLMInvalidResponseError("Gemini response body is not JSON") from error
             if not isinstance(body, dict):
-                raise ValueError("Gemini response must be an object")
+                raise LLMInvalidResponseError("Gemini response must be an object")
             raw_usage = body.get("usageMetadata", {})
             if not isinstance(raw_usage, dict):
-                raise ValueError("Gemini response contains invalid usage metadata")
+                raise LLMInvalidResponseError("Gemini response contains invalid usage metadata")
             usage = {
                 target: raw_usage[source]
                 for source, target in (
@@ -110,16 +113,18 @@ class GeminiClient:
             try:
                 candidate = body["candidates"][0]
                 if candidate.get("finishReason") != "STOP":
-                    raise ValueError("Gemini response did not finish successfully")
+                    raise LLMInvalidResponseError("Gemini response did not finish successfully")
                 text = "".join(
                     p["text"]
                     for p in candidate["content"]["parts"]
                     if not p.get("thought") and isinstance(p.get("text"), str)
                 )
             except (KeyError, IndexError, TypeError, AttributeError) as error:
-                raise ValueError("Gemini response contains no valid text completion") from error
+                raise LLMInvalidResponseError(
+                    "Gemini response contains no valid text completion"
+                ) from error
             if not text:
-                raise ValueError("Gemini response contains no valid text completion")
+                raise LLMInvalidResponseError("Gemini response contains no valid text completion")
             if request.response_validator is not None:
                 request.response_validator(text)
             yield LLMChunk(text=text)

@@ -67,57 +67,25 @@ def test_verified_product_reference_does_not_depend_on_model_source_metadata(mes
         ),
     ],
 )
-def test_unusable_interpretation_asks_without_action_and_accepts_a_fresh_request(bad_output):
-    client = real_client(
-        [
-            [LLMChunk(text=bad_output)],
-            [LLMChunk(text=intent_payload(category="shoes"))],
-        ]
-    )
+def test_two_unusable_interpretations_pause_without_telling_the_shopper_to_rephrase(bad_output):
+    client = real_client([[LLMChunk(text=bad_output)], [LLMChunk(text=bad_output)]])
 
     session = client.post("/sessions").json()["session_id"]
-    submitted = client.post(
+    client.post(
         f"/sessions/{session}/messages",
         json={
             "text": "Open my cart",
             "snapshot": home_snapshot(),
         },
     )
-    task_id = submitted.json()["task_id"]
     state = client.get(f"/sessions/{session}/state?tab_id=tab-local").json()
-    assert state["task"]["status"] == "awaiting_answer"
-    question = state["task"]["pending_question"]
-    assert question["type"] == "ask_shopper"
-    assert question["options"] == []
-    assert not any(
-        e["event"] == "error"
-        for e in parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
-    )
-    answer = client.post(
-        f"/sessions/{session}/tasks/{task_id}/answers",
-        json={
-            "question_id": question["action_id"],
-            "text": "عايز حذاء",
-            "snapshot": home_snapshot(),
-        },
-    )
-    assert answer.status_code == 202
+    assert state["task"]["status"] == "paused"
+    assert state["task"]["pending_question"] is None
     events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
-    actions = [e["data"]["action"] for e in events if e["event"] == "action"]
-    assert [a["type"] for a in actions] == ["ask_shopper", "navigate"]
-    assert actions[-1]["url"] == "/c/shoes"
-    # The old question never authorizes a second action.
-    assert (
-        client.post(
-            f"/sessions/{session}/tasks/{task_id}/answers",
-            json={
-                "question_id": question["action_id"],
-                "text": "عايز حذاء",
-                "snapshot": home_snapshot(),
-            },
-        ).status_code
-        == 409
-    )
+    assert not any(event["event"] == "action" for event in events)
+    errors = [event["data"]["message"] for event in events if event["event"] == "error"]
+    assert len(errors) == 1
+    assert "model response" in errors[0].lower()
 
 
 def test_ambiguous_verified_product_choice_survives_refresh_without_another_model_call():
@@ -200,8 +168,14 @@ def test_single_suggestion_does_not_authorize_an_unrelated_or_negated_page_reque
     assert result.product_id is None
 
 
-def test_repeated_invalid_drafts_end_with_working_stop_instead_of_an_unanswerable_question():
-    client = real_client([[LLMChunk(text="not json")]] * 2)
+def test_manual_retry_after_two_invalid_drafts_can_recover_without_a_new_shopper_message():
+    client = real_client(
+        [
+            [LLMChunk(text="not json")],
+            [LLMChunk(text="still not json")],
+            [LLMChunk(text=intent_payload(category="shoes"))],
+        ]
+    )
     session = client.post("/sessions").json()["session_id"]
     task = client.post(
         f"/sessions/{session}/messages",
@@ -210,25 +184,17 @@ def test_repeated_invalid_drafts_end_with_working_stop_instead_of_an_unanswerabl
             "snapshot": home_snapshot(),
         },
     ).json()["task_id"]
-    for attempt in range(2):
-        state = client.get(f"/sessions/{session}/state?tab_id=tab-local").json()
-        question = state["task"]["pending_question"]
-        if attempt < 1:
-            assert question["options"] == []
-            text = "عايز حذاء"
-        else:
-            assert question["options"] == ["إيقاف"]
-            text = "إيقاف"
-        response = client.post(
-            f"/sessions/{session}/tasks/{task}/answers",
-            json={
-                "question_id": question["action_id"],
-                "text": text,
-                "snapshot": home_snapshot(),
-            },
-        )
-        assert response.status_code == 202
     assert (
         client.get(f"/sessions/{session}/state?tab_id=tab-local").json()["task"]["status"]
-        == "cancelled"
+        == "paused"
     )
+
+    response = client.post(
+        f"/sessions/{session}/tasks/{task}/retry",
+        json={"snapshot": home_snapshot()},
+    )
+    assert response.status_code == 202
+    events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert [action["type"] for action in actions] == ["navigate"]
+    assert actions[0]["url"] == "/c/shoes"

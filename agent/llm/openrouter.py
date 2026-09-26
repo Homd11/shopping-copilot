@@ -10,7 +10,7 @@ from time import monotonic
 import httpx
 
 from agent.llm.config import LLMConfigurationError, LLMSettings
-from agent.llm.contract import LLMChunk, LLMRequest
+from agent.llm.contract import LLMChunk, LLMInvalidResponseError, LLMRequest
 
 
 @dataclass(frozen=True)
@@ -110,7 +110,10 @@ class OpenRouterClient:
                     "https://openrouter.ai/api/v1/chat/completions", json=payload
                 )
                 response.raise_for_status()
-            body = response.json()
+            try:
+                body = response.json()
+            except ValueError as error:
+                raise LLMInvalidResponseError("OpenRouter response body is not JSON") from error
             try:
                 raw_usage = body.get("usage", {})
                 usage = {
@@ -122,9 +125,11 @@ class OpenRouterClient:
                 choice = body["choices"][0]
                 text = choice["message"]["content"]
                 if choice.get("finish_reason") != "stop" or not isinstance(text, str) or not text:
-                    raise ValueError("OpenRouter returned incomplete or non-text output")
+                    raise LLMInvalidResponseError(
+                        "OpenRouter returned incomplete or non-text output"
+                    )
             except (KeyError, IndexError, TypeError, AttributeError) as error:
-                raise ValueError("OpenRouter returned invalid output") from error
+                raise LLMInvalidResponseError("OpenRouter returned invalid output") from error
             if request.response_validator:
                 request.response_validator(text)
             yield LLMChunk(text=text)

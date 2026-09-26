@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-09-26
 
+## LLM draft self-repair — 2026-09-26
+
+Ticket 14 remains on hold. Manual testing showed that a clear named cart request could receive a transient invalid Structured Intent and enter a Shopper rephrasing loop. The Agent still delegates interpretation to the configured LLM; no command phrases, product names, or cart decisions were moved into a deterministic parser. A rejected model draft now gets one bounded LLM reconsideration of the same Shopper request. The second draft receives the complete schema and must pass every existing grounding, quantity-direction, cart-line, mutation, navigation, and safety check before it can issue an Action.
+
+If both drafts fail, the task pauses without a browser Action and offers the existing Retry/Stop recovery instead of blaming the Shopper or repeatedly asking for a clearer sentence. Manual Retry preserves the original request and current Snapshot. Prompt-override requests are rejected before a provider call. A live diagnostic of the exact `زودلي 3 كمان من قميص رسمي` request produced a valid quantity/increase/3 decision; it cost **$0.0014027**. The non-resetting key limit remains $0.75, with $0.643938956 reported remaining after verification.
+
+Verification: **150 TypeScript + 439 Python = 589 tests passed**. Repository-wide Prettier, ESLint, Ruff lint/format, and all builds passed. The first browser-suite attempt collided with already-running manual services and was stopped; the clean isolated scripted browser run then passed all 53 cases without provider calls. No safety validator was removed or bypassed. Independent Standards and Spec reviews found no remaining actionable issue after malformed-provider-response and duplicate-retry findings were fixed.
+
 ## Cart conversation repairs — 2026-09-26
 
 Ticket 14 remains on hold. The owner's exact `عايز 3 كمان من تيشرت اسكندرية` produced a correct live quantity/increase/3 intent that our verb whitelist rejected. Quantified relative requests now preserve the explicit amount and direction. Shared conservative name normalization handles `تيشرت اسكندرية` against `تيشيرت إسكندرية`; `وديني` is recognized as opening. Quantity/removal requests outside the cart navigate there and plan from a fresh same-origin Snapshot.

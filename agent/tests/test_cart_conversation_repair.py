@@ -2,8 +2,17 @@ import asyncio
 import json
 
 import pytest
+from fastapi.testclient import TestClient
 
-from agent.llm import LLMChunk, ScriptedLLMClient, interpret_message
+from agent.app import create_app
+from agent.llm import (
+    LLMChunk,
+    LLMInvalidResponseError,
+    LLMSettings,
+    LLMToolCall,
+    ScriptedLLMClient,
+    interpret_message,
+)
 from agent.storefront import load_storefront_definition
 from agent.tests.test_real_task import real_client, snapshot_at
 from agent.tests.test_sessions import parse_sse
@@ -52,6 +61,70 @@ def cart_snapshot(count):
             ]
         )
     return snapshot_at("/cart", *elements)
+
+
+@pytest.mark.parametrize(
+    "invalid_draft",
+    [
+        [LLMChunk(text="not valid structured output")],
+        [],
+        [LLMChunk(tool_call=LLMToolCall(id="call-1", name="unexpected", arguments={}))],
+    ],
+)
+def test_invalid_model_draft_is_reconsidered_without_asking_the_shopper_again(invalid_draft):
+    message = "زودلي 3 كمان من قميص رسمي"
+    client = real_client(
+        [
+            invalid_draft,
+            [LLMChunk(text=json.dumps(quantity_payload(message, "قميص رسمي")))],
+        ]
+    )
+    session = client.post("/sessions").json()["session_id"]
+
+    response = client.post(
+        f"/sessions/{session}/messages",
+        json={"text": message, "snapshot": cart_snapshot(3)},
+    )
+
+    assert response.status_code == 202
+    events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert [action["type"] for action in actions] == ["type"]
+    assert actions[0]["id"] == 12
+    assert actions[0]["text"] == "4"
+
+
+def test_incomplete_provider_response_gets_the_same_bounded_reconsideration():
+    message = "زودلي 3 كمان من قميص رسمي"
+
+    class IncompleteThenValid:
+        calls = 0
+
+        async def complete(self, request):
+            del request
+            self.calls += 1
+            if self.calls == 1:
+                raise LLMInvalidResponseError("provider returned an incomplete completion")
+            yield LLMChunk(text=json.dumps(quantity_payload(message, "قميص رسمي")))
+
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=IncompleteThenValid(),
+        )
+    )
+    session = client.post("/sessions").json()["session_id"]
+
+    response = client.post(
+        f"/sessions/{session}/messages",
+        json={"text": message, "snapshot": cart_snapshot(3)},
+    )
+
+    assert response.status_code == 202
+    events = parse_sse(client.get(f"/sessions/{session}/events?once=true").text)
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert [action["type"] for action in actions] == ["type"]
+    assert actions[0]["id"] == 12
 
 
 @pytest.mark.parametrize("count,from_product", [(1, False), (3, False), (3, True)])

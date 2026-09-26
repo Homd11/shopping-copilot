@@ -50,6 +50,10 @@ class LLMClient(Protocol):
     def complete(self, request: LLMRequest) -> AsyncIterator[LLMChunk]: ...
 
 
+class LLMInvalidResponseError(ValueError):
+    """The provider answered, but the completion cannot be interpreted as model output."""
+
+
 class ScriptedLLMClient:
     def __init__(self, responses: Iterable[Iterable[LLMChunk]] = ()) -> None:
         self._responses = iter(tuple(tuple(response) for response in responses))

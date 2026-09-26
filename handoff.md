@@ -1,5 +1,9 @@
 # Shopping Copilot — project handoff
 
+## LLM draft self-repair — 2026-09-26
+
+The Agent continues to use the configured LLM for intent decisions. It does not hardcode Arabic cart phrases. One invalid Structured Intent now triggers one bounded LLM reconsideration of the same request; only a fully revalidated second draft may act. Two invalid drafts pause with Retry/Stop and no browser Action instead of asking the Shopper to repeat a clear request. Prompt overrides are blocked before provider invocation. The exact `زودلي 3 كمان من قميص رسمي` diagnostic returned a valid model decision. Final local verification passed 150 TypeScript and 439 Python tests plus format, lint, and builds. Independent Standards and Spec reviews are clear after their provider-response findings were fixed. The $0.75 non-resetting cap is unchanged; the read-only key check reported $0.643938956 remaining. Ticket 14 remains on hold pending manual acceptance.
+
 ## Cart conversation repairs — 2026-09-26
 
 Read PROJECT_CHECKPOINT.md for current evidence. Exact owner page-opening/add/three-more requests were repaired and passed live. Changes address relative wording, shared product-name normalization, cart navigation before edits, fractional scroll wire values, failed result delivery, and unchanged cart hydration detaching observed controls. One rephrase attempt now bounds invalid-draft loops. Safety guards remain enforced. The full Python run exposed the hydration race (423 passes, one failure); final focused 10 browser cart tests and 59 Agent tests passed after fixes. All 150 TypeScript tests and format/lint/type/build checks passed. Reviews are resolved. **Ticket 14 remains on hold:** live setup exposed a separate redundant budget clarification for an already supplied 500 EGP value. Preserve that known limitation and avoid claiming the entire MVP is accepted. Preserve credentials, the $0.75 cap, and unrelated proposal files.

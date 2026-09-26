@@ -12,7 +12,7 @@ Ticket 14 is on hold while fixing the owner's three manual failures: a completed
 
 ## Behavior and boundaries
 
-SnapshotBuilder rounds scroll offsets at the producer. Rejected result delivery visibly reports uncertainty and stops queued execution without replaying the mutation. The Shopper can inspect the cart and Stop. Cart quantities retain explicit amount and direction validation; model output cannot turn a relative delta into an absolute total. Opening an explicitly named verified product no longer needs a redundant question for the repaired request. Unusable model drafts get at most one rephrasing attempt, followed by an explicit Stop handback; this is bounded failure, not a claim that interpretation always succeeds.
+SnapshotBuilder rounds scroll offsets at the producer. Rejected result delivery visibly reports uncertainty and stops queued execution without replaying the mutation. The Shopper can inspect the cart and Stop. Cart quantities retain explicit amount and direction validation; model output cannot turn a relative delta into an absolute total. Opening an explicitly named verified product no longer needs a redundant question for the repaired request. An unusable model draft gets one bounded LLM reconsideration of the same request. If both drafts fail, the task pauses with Retry/Stop and no browser Action; this is bounded failure, not a claim that interpretation always succeeds.
 
 Scope excludes Ticket 14, broad architecture refactors, model/provider changes, and spending-cap increases. Unrelated proposal documents and the user's generation script are preserved.
 
@@ -27,3 +27,9 @@ The full Python run exposed a cart hydration race (423 passes, one failure): the
 Live verification passed `وديني لصفحة تيشرت اسكندرية`, `ضيفهولي فالعربية` with completion, and `عايز 3 كمان من تيشرت اسكندرية` from the product page, reaching quantity 4 from 1. Recommendation setup unnecessarily asked for the supplied budget again; that separate known limitation remains open rather than being hidden by a green cart result.
 
 The same live increase request also passed with three products: clothing-06 changed 4 → 7 while shoe-09 and clothing-05 stayed at 1 each. Demo services remain running with this clearly test-created cart. Six live requests were used for this verification (including the repeated budget answer), plus one earlier captured diagnostic request; subsequent diagnostic replays used the saved response without spending.
+
+## Follow-up: model-draft recovery
+
+A later manual run of `زودلي 3 كمان من قميص رسمي` exposed provider variance rather than an unknown command. A single live diagnostic returned a valid quantity/increase/3 Structured Intent, while the failed browser conversation had entered generic invalid-response recovery. The application no longer asks the Shopper to rewrite a clear request after one rejected draft. It gives the LLM one bounded reconsideration of the same request, applies the full validator again, and permits an Action only from the validated result. Two rejected drafts pause with Retry/Stop and no Action. This is model-driven recovery; no phrase or product exception was added.
+
+The final local run passed 150 TypeScript and 439 Python tests, including the complete isolated scripted browser suite. Format, lint, and builds passed. Independent Standards and Spec reviews found no remaining actionable issue after provider-response findings were fixed. The one live diagnostic cost $0.0014027; the $0.75 non-resetting key cap remains unchanged.
