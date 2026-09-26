@@ -125,6 +125,7 @@ class ActiveTask:
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
+    needs_rephrasing: bool = False
 
 
 @dataclass(frozen=True)
@@ -504,6 +505,16 @@ class SessionStore:
             if intent.needs_clarification and (intent.missing_fields or intent.conflicting_fields)
             else None
         )
+        if (
+            intent.intent == "open_product"
+            and task.pending_clarification == "product_id"
+            and isinstance(action, AskShopperAction)
+        ):
+            action.options = [
+                item["name"]
+                for item in task.resolved_state.get("_previous_suggestions", [])
+                if isinstance(item, dict) and isinstance(item.get("name"), str)
+            ][:3]
         self._append(session, "narration", {"task_id": task_id, "text": action.narration})
         self._append(session, "action", {"task_id": task_id, "action": to_wire(action)})
         session.conversation.append({"role": "copilot", "text": action.narration})
@@ -604,6 +615,24 @@ class SessionStore:
             raise ActionResultMismatch("Answer does not match the pending Shopper question")
         if task.step_count >= 8:
             raise TaskConflict("Shopping Task step limit reached")
+        selected = None
+        if task.intent_kind == "open_product" and task.pending_clarification == "product_id":
+            candidates = [
+                item
+                for item in task.resolved_state.get("_previous_suggestions", [])
+                if isinstance(item, dict) and item.get("name") == text
+            ]
+            if len(candidates) == 1 and text in task.action.options:
+                selected = candidates[0]
+        if task.needs_rephrasing:
+            task.resolved_state = {
+                "_previous_suggestions": task.resolved_state.get("_previous_suggestions", []),
+                "_original_message": text[:_CONTEXT_TEXT_LIMIT],
+                "_answers": [],
+            }
+            task.pending_clarification = None
+            task.needs_rephrasing = False
+            task.language = detect_language(text)
         task.message = text
         answers = _bounded_answers(task.resolved_state.get("_answers"))
         task.resolved_state["_answers"] = [*answers, text[:_CONTEXT_TEXT_LIMIT]][
@@ -623,6 +652,23 @@ class SessionStore:
             },
         )
         self._touch(session)
+        if selected is not None:
+            # The answer is bound to this question's verified choices. No model
+            # is needed to reinterpret an exact product button selection.
+            intent = StructuredIntent.model_validate(
+                {
+                    "v": 7,
+                    "language": task.language,
+                    "dialect": "unknown",
+                    "intent": "open_product",
+                    "constraints": {},
+                    "product_id": selected["id"],
+                    "navigation_source": text,
+                    "missing_fields": [],
+                    "needs_clarification": False,
+                }
+            )
+            self.finish_interpretation(session_id, task_id, task.model_call_id, intent)
         return task
 
     def fail_interpretation(
@@ -639,6 +685,52 @@ class SessionStore:
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
         if task.status != "interpreting":
+            return
+        if reason == "invalid_response":
+            # An unusable draft has no authority. Keep the conversation alive
+            # through a fresh Shopper request instead of replaying the same draft.
+            question = (
+                "ممكن توضّح طلبك بكلمات تانية؟ اكتب اسم المنتج وما تريد فعله. لم أنفّذ أي إجراء."
+                if task.language == "ar"
+                else "Could you rephrase your request? Name the item and what you'd like to do. "
+                "I haven't taken any action."
+            )
+            task.model_call_id = None
+            task.needs_rephrasing = True
+            task.target_url = None
+            task.intent_kind = None
+            task.target_name = None
+            task.cart_operation = None
+            task.cart_actions = []
+            task.mutation_kind = None
+            task.mutation_proposal = None
+            task.confirmation = None
+            task.pending_clarification = None
+            task.pause_message = None
+            task.step_count += 1
+            capped = task.step_count >= 8
+            if capped:
+                question = (
+                    "لم أتمكن من فهم الطلب بعد عدة محاولات. أوقف المهمة وابدأ طلبًا جديدًا."
+                    if task.language == "ar"
+                    else "I couldn't understand after several attempts. "
+                    "Stop and start a new request."
+                )
+            task.action = AskShopperAction(
+                v=1,
+                type="ask_shopper",
+                task_id=task_id,
+                action_id=f"action-{uuid4().hex}",
+                sequence_number=task.step_count,
+                narration=question,
+                question=question,
+                options=(["إيقاف"] if task.language == "ar" else ["Stop"]) if capped else [],
+            )
+            task.status = "awaiting_answer"
+            self._append(session, "narration", {"task_id": task_id, "text": question})
+            self._append(session, "action", {"task_id": task_id, "action": to_wire(task.action)})
+            session.conversation.append({"role": "copilot", "text": question})
+            self._touch(session)
             return
         task.status = "paused"
         task.model_call_id = None

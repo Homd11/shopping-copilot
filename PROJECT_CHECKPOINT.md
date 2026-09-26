@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-09-26
 
+## Recommendation follow-up and interpretation recovery — 2026-09-26
+
+The owner's sister's `افتح صفحة القميص الرسمي` failure was reproduced with the live provider: it selected the correct verified product but omitted redundant `navigation_source` metadata. Product opening now grounds the requested name against verified suggestions and current Shopper words, normalizing Arabic definite articles and diacritics. Missing model quotations no longer veto an independently grounded request. Ambiguous references ask which verified product to open; an exact answer resolves locally without another model call. Locate requests, negation, conflicting names and unknown IDs cannot silently authorize navigation.
+
+More generally, an unusable model draft now produces an editable clarification question instead of a Retry loop. Its unvalidated execution authority is discarded, and the answer starts a fresh interpretation with verified recommendation context. Repeated failures reach a working Stop at the task limit. Provider/budget failures retain their existing paused flow. Bound Confirmation, stale-answer rejection, origin checks and uncertain-mutation recovery remain enforced. This is graceful recovery for unseen failures, not a guarantee of perfect language interpretation.
+
+Verification: the complete workspace run passed **148 TypeScript and 413 Python tests**. Review then added three locate/negation regressions; the final affected suites passed **135 tests**, including all **14 recovery tests**. Final clarification-copy changes passed the 86-test interpreter/recovery subset. Format, lint, typechecking and builds passed. Independent Standards review had no findings; two Spec findings were fixed and the follow-up review found none remaining. A fresh live browser replay of the sister's exact recommendation request followed by `افتح صفحة القميص الرسمي` completed both tasks and opened `/p/clothing-05`. See `docs/superpowers/plans/2026-09-26-interpretation-recovery.md`.
+
+All three demo services are running. **Ticket 14 remains next.** Preserve the $0.75 total non-resetting key cap, ignored credentials, and unrelated proposal documents/script. No broad architecture refactor or provider change was made.
+
 ## Soft preferences and chat redesign — 2026-09-26
 
 The owner confirmed that OpenRouter transcription works on the real device, then prioritized softer recommendation interpretation and chat usability before Ticket 14. Schema 7 / `intent-v17` separates optional subjective preferences from concrete requirements. Vague quality phrases no longer invent mandatory comfort or other product features. Discarding an invented requirement requires positively identified subjective wording; unsupported concrete or mixed phrases remain rejected. Explicit requirements, budgets, cart quantities and guarded authority stay validated. Recommendation explanations use verified catalogue facts, prices, and honest alternatives, with no extra model call. Two bounded live interpretations passed for the owner's exact vague football-shoe request and an explicit comfort request; this is not a claim that every paraphrase will succeed.

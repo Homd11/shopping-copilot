@@ -1,5 +1,11 @@
 # Shopping Copilot — project handoff
 
+## Recommendation follow-up and interpretation recovery — 2026-09-26
+
+Read `PROJECT_CHECKPOINT.md` for the latest evidence. The sister's product-opening failure was a correct verified product ID rejected for missing model source metadata and brittle Arabic name matching. The boundary now independently grounds the product name and opening request; ambiguity offers verified choices, resolved locally without a model call. Unusable drafts ask for rephrasing while discarding unvalidated authority, rather than trapping the Shopper in Retry. Negated/locate requests cannot silently open a page, and mutation/Confirmation/stale-answer safeguards remain strict. Recovery does not promise every phrase will be interpreted correctly.
+
+The full workspace run passed 148 TypeScript and 413 Python tests; three subsequent review regressions also passed in the final 135-test affected suites (14 recovery tests). Final question-copy changes passed the 86-test interpreter/recovery subset. Format, lint, typechecking and builds passed; Standards review was clear and both Spec findings were fixed and re-reviewed. The exact two-turn Arabic recommendation-to-formal-shirt flow passed in the live in-app browser and reached `/p/clothing-05`. All three services are running. See `docs/superpowers/plans/2026-09-26-interpretation-recovery.md`. Ticket 14 remains next; keep the $0.75 non-resetting cap and unrelated proposal files unchanged.
+
 ## Soft preferences and chat redesign — 2026-09-26
 
 Read `PROJECT_CHECKPOINT.md` for the newest frontier. The owner confirmed real-device transcription works. Schema 7 / `intent-v17` now treats vague quality wording as optional recommendation context while keeping concrete features, budgets, quantities, and mutation authority strict. Product explanations are grounded in catalogue facts; no additional prose-model call is used. The owner's vague football request and explicit comfort request passed bounded live interpretation checks.
