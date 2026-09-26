@@ -136,10 +136,34 @@ class StructuredIntent(IntentModel):
     cart_operation: Literal["add", "quantity", "remove", "undo"] | None = None
     cart_source: str | None = None
     cart_target: str | None = None
-    cart_target_id: int | None = Field(default=None, ge=1)
-    cart_quantity: int | None = Field(default=None, ge=1, le=99)
+    cart_target_id: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Numeric ID of the observed enabled BUTTON for the selected cart operation. "
+            "Never a product ID, link ID, or quantity textbox ID."
+        ),
+    )
+    cart_quantity: int | None = Field(
+        default=None,
+        ge=1,
+        le=99,
+        description=(
+            "For increase/decrease: the number of units requested to add/remove, not the "
+            "resulting total. Runtime computes current quantity plus/minus this amount. "
+            "For set: the requested final quantity. For add: units to put in the product form."
+        ),
+    )
 
-    cart_quantity_mode: Literal["set", "increase", "decrease"] | None = None
+    cart_quantity_mode: Literal["set", "increase", "decrease"] | None = Field(
+        default=None,
+        description=(
+            "Use increase/decrease for a requested change relative to the current cart "
+            "quantity. Use set only for an explicitly requested final quantity (or add-form "
+            "quantity). Interpret intent in the Shopper's language; do not compute a "
+            "different amount to compensate for a wrong mode."
+        ),
+    )
 
     @field_validator("subjective_preferences", mode="before")
     @classmethod

@@ -15,10 +15,11 @@ from agent.llm.intent import (
     collect_structured_intent,
 )
 from agent.navigation import DESTINATION_TERMS, destination_label
+from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v18"
+PROMPT_VERSION = "intent-v19"
 
 
 def snapshot_context(snapshot: Snapshot | None) -> dict[str, Any] | None:
@@ -77,8 +78,15 @@ def build_intent_request(
             )
         },
         "navigation_destinations": dict(storefront.destination_routes),
-        "resolved_state": dict(resolved_state),
+        "product_route": storefront.product_route,
+        "resolved_state": {
+            key: value
+            for key, value in resolved_state.items()
+            if key not in {"_known_products", "_recent_conversation", "_previous_suggestions"}
+        },
         "previous_suggestions": resolved_state.get("_previous_suggestions", []),
+        "known_products": resolved_state.get("_known_products", []),
+        "recent_conversation": resolved_state.get("_recent_conversation", []),
         "previous_destination": resolved_state.get("_previous_target"),
         "pending_clarification": pending_clarification,
         "current_snapshot": snapshot_context(snapshot),
@@ -133,8 +141,14 @@ def build_intent_request(
             "from navigation_destinations. "
             "Use previous_destination for an unambiguous follow-up, but never treat history "
             "as new mutation permission. "
-            "Opening a previously recommended product uses open_product with its exact "
-            "previous_suggestions ID. "
+            "Opening a product uses open_product with its exact verified ID from "
+            "known_products, previous_suggestions, or a current visible product link. "
+            "Product links follow the Storefront product route in current_snapshot. "
+            "Known products include earlier recommendations and visits; previous_suggestions "
+            "is only the latest recommendation batch. Use recent_conversation to resolve "
+            "references across different tasks without reviving completed actions. "
+            "If the requested product is unknown, use find_products to search by name "
+            "or ask for clarification; never guess a product ID. "
             "Resolve names, typos and pronouns yourself; ask product_id clarification only "
             "when genuinely ambiguous. "
             "Do not invent IDs. Product discovery uses find_products, an inferred "
@@ -298,13 +312,7 @@ def _validate_interpreted_intent(
     ):
         raise ValueError("Unconfigured Storefront destination")
     if intent.intent == "open_product":
-        allowed = {
-            item.get("id")
-            for item in state.get("_previous_suggestions", [])
-            if isinstance(item, dict)
-        }
-        if intent.product_id not in allowed:
-            raise ValueError("Product ID was not among verified recommendations")
+        require_known_product(intent.product_id, state, snapshot, storefront)
     return intent
 
 

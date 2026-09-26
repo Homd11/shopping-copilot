@@ -24,6 +24,7 @@ from agent.planner import (
     is_expected_login_redirect,
     snapshot_matches_url,
 )
+from agent.product_context import ProductContext, require_known_product
 from agent.schemas import (
     Action,
     ActionResult,
@@ -91,6 +92,11 @@ def _intent_context(task: "ActiveTask", intent: StructuredIntent) -> dict[str, A
             if "_previous_suggestions" in task.resolved_state
             else {}
         ),
+        **{
+            key: task.resolved_state[key]
+            for key in ("_known_products", "_recent_conversation")
+            if key in task.resolved_state
+        },
     }
 
 
@@ -119,6 +125,7 @@ class ActiveTask:
     awaiting_newest_order_spotlight: bool = False
     suggestions: dict[str, object] | None = None
     pause_message: str | None = None
+    origin_url: str | None = None
     confirmation: ConfirmationLedger | None = None
     mutation_proposal: MutationProposal | None = None
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
@@ -145,6 +152,7 @@ class Session:
     lease_tab_id: str | None = None
     last_activity_at: float = 0.0
     requires_reconciliation: bool = False
+    product_context: ProductContext = field(default_factory=ProductContext)
 
 
 class SessionNotFound(KeyError):
@@ -203,8 +211,20 @@ class SessionStore:
             raise SessionExpired(session_id)
         return session
 
+    def _record_snapshot(self, session: Session, snapshot: Snapshot) -> None:
+        session.last_snapshot = snapshot
+        session.product_context.observe(
+            snapshot, self._planner.storefront, len(session.conversation)
+        )
+
     def _touch(self, session: Session) -> None:
         session.last_activity_at = self._clock()
+
+    def _require_task_origin(self, task: ActiveTask, snapshot: Snapshot) -> None:
+        if task.origin_url is not None:
+            original, current = urlsplit(task.origin_url), urlsplit(snapshot.url)
+            if (original.scheme, original.netloc) != (current.scheme, current.netloc):
+                raise TaskConflict("Continuing a task requires its original Storefront origin")
 
     def _ask_to_stop_uncertain_mutation(
         self, session: Session, task: ActiveTask, action: Action
@@ -345,19 +365,11 @@ class SessionStore:
         }
         if previous_target is not None:
             resolved_state["_previous_target"] = previous_target
-        previous_suggestions = (
-            session.last_task.suggestions.get("suggestions", [])
-            if session.last_task is not None and session.last_task.suggestions
-            else []
+        resolved_state.update(
+            session.product_context.prepare(
+                snapshot, self._planner.storefront, session.conversation
+            )
         )
-        if previous_suggestions:
-            resolved_state["_previous_suggestions"] = [
-                {"id": item["id"], "name": item["name"]}
-                for item in previous_suggestions[:3]
-                if isinstance(item, dict)
-                and isinstance(item.get("id"), str)
-                and isinstance(item.get("name"), str)
-            ]
         if followup_target is not None:
             resolved_state["target"] = followup_target
         task = ActiveTask(
@@ -367,13 +379,14 @@ class SessionStore:
             message=text,
             step_count=0,
             status="interpreting",
+            origin_url=snapshot.url,
             model_call_id=f"call-{uuid4().hex}",
             resolved_state=resolved_state,
             pending_clarification="target" if followup_target else None,
         )
         session.active_task = task
         session.last_task = task
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         session.conversation.append({"role": "shopper", "text": text})
         self._append(session, "task_started", {"task_id": task.task_id})
         self._append(
@@ -402,6 +415,8 @@ class SessionStore:
             return None
         if task.status != "interpreting" or session.requires_reconciliation:
             return None
+        if session.last_snapshot is not None:
+            self._require_task_origin(task, session.last_snapshot)
         if (
             task.resolved_state
             and "_intent" not in task.resolved_state
@@ -443,11 +458,12 @@ class SessionStore:
             self._touch(session)
             return task
         if intent.intent == "open_product" and not intent.needs_clarification:
-            allowed = task.resolved_state.get("_previous_suggestions", [])
-            if intent.product_id not in {
-                item.get("id") for item in allowed if isinstance(item, dict)
-            }:
-                raise ValueError("Product was not among the verified recommendations")
+            require_known_product(
+                intent.product_id,
+                task.resolved_state,
+                session.last_snapshot,
+                self._planner.storefront,
+            )
         if intent.intent == "cart_edit" and not intent.needs_clarification:
             intent = validate_cart_intent(task.message, intent, session.last_snapshot)
             task.cart_operation = intent.cart_operation
@@ -559,6 +575,7 @@ class SessionStore:
         if intent.needs_clarification:
             raise ValueError("Incomplete intent cannot publish catalogue suggestions")
         payload = result.to_wire()
+        session.product_context.remember_suggestions(payload["suggestions"])
         task.suggestions = payload
         task.language = intent.language
         task.intent_kind = intent.intent
@@ -632,6 +649,7 @@ class SessionStore:
             raise ActionResultMismatch("Answer does not match the pending Shopper question")
         if task.step_count >= 8:
             raise TaskConflict("Shopping Task step limit reached")
+        self._require_task_origin(task, snapshot)
         selected = None
         if task.intent_kind == "open_product" and task.pending_clarification == "product_id":
             candidates = [
@@ -649,7 +667,7 @@ class SessionStore:
         task.action = None
         task.status = "interpreting"
         task.model_call_id = f"call-{uuid4().hex}"
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         session.conversation.append({"role": "shopper", "text": text})
         self._append(
             session,
@@ -758,6 +776,7 @@ class SessionStore:
         task = session.active_task
         if task is None or task.task_id != task_id or task.status != "paused":
             raise TaskConflict("This Shopping Task is not awaiting Retry")
+        self._require_task_origin(task, snapshot)
         previous = urlsplit(session.last_snapshot.url) if session.last_snapshot else None
         current = urlsplit(snapshot.url)
         if previous is None or (previous.scheme, previous.netloc) != (
@@ -765,7 +784,7 @@ class SessionStore:
             current.netloc,
         ):
             raise TaskConflict("Retry requires the current Storefront origin")
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         task.status = "interpreting"
         task.model_call_id = f"call-{uuid4().hex}"
         task.pause_message = None
@@ -849,7 +868,7 @@ class SessionStore:
             task.status = "awaiting_answer"
         session.active_task = task
         session.last_task = task
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         session.conversation.append({"role": "shopper", "text": text})
         session.conversation.append({"role": "copilot", "text": action.narration})
         self._touch(session)
@@ -957,7 +976,7 @@ class SessionStore:
             task.action = action
             task.step_count += 1
             task.status = "awaiting_action_result"
-            session.last_snapshot = snapshot
+            self._record_snapshot(session, snapshot)
             self._append(session, "narration", {"task_id": task.task_id, "text": action.narration})
             self._append(session, "action", {"task_id": task.task_id, "action": to_wire(action)})
             self._touch(session)
@@ -1052,7 +1071,7 @@ class SessionStore:
         task.status = (
             "awaiting_answer" if isinstance(action, AskShopperAction) else "awaiting_action_result"
         )
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         session.conversation.append({"role": "shopper", "text": text})
         session.conversation.append({"role": "copilot", "text": action.narration})
         self._touch(session)
@@ -1130,7 +1149,7 @@ class SessionStore:
                 and urlsplit(session.last_snapshot.url).scheme
                 == urlsplit(action_result.snapshot.url).scheme
             )
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             if isinstance(action, NavigateAction):
                 if (
                     same_origin
@@ -1252,7 +1271,7 @@ class SessionStore:
             session.accepted_results[result_identity] = AcceptedResult(
                 task=task, result=action_result
             )
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             if not verified:
                 self._ask_to_stop_uncertain_mutation(session, task, action)
             else:
@@ -1313,7 +1332,7 @@ class SessionStore:
             task.action = next_action
             task.step_count += 1
             task.status = "awaiting_answer"
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             session.conversation.append({"role": "copilot", "text": narration})
             self._touch(session)
             return task
@@ -1362,7 +1381,7 @@ class SessionStore:
             task.auth_handoff = True
             task.status = "awaiting_answer"
             task.step_count += 1
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             self._append(session, "narration", {"task_id": task.task_id, "text": handoff.narration})
             self._append(session, "action", {"task_id": task.task_id, "action": to_wire(handoff)})
             session.conversation.append({"role": "copilot", "text": handoff.narration})
@@ -1422,7 +1441,7 @@ class SessionStore:
                 if isinstance(next_action, AskShopperAction)
                 else "awaiting_action_result"
             )
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             session.conversation.append({"role": "copilot", "text": next_action.narration})
             self._touch(session)
             return task
@@ -1456,7 +1475,7 @@ class SessionStore:
             session.accepted_results[result_identity] = AcceptedResult(
                 task=task, result=action_result
             )
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             self._touch(session)
             return task
         if (
@@ -1489,7 +1508,7 @@ class SessionStore:
                 if isinstance(followup, AskShopperAction)
                 else "awaiting_action_result"
             )
-            session.last_snapshot = action_result.snapshot
+            self._record_snapshot(session, action_result.snapshot)
             self._append(
                 session, "narration", {"task_id": task.task_id, "text": followup.narration}
             )
@@ -1604,7 +1623,7 @@ class SessionStore:
         session.accepted_results[result_identity] = AcceptedResult(task=task, result=action_result)
         task.status = "completed"
         session.last_task = task
-        session.last_snapshot = action_result.snapshot
+        self._record_snapshot(session, action_result.snapshot)
         session.last_followup_target = (
             task.target_name
             if task.intent_kind in {"locate", "navigate"}
@@ -1762,7 +1781,7 @@ class SessionStore:
                     session, "action", {"task_id": task.task_id, "action": to_wire(uncertain)}
                 )
                 session.conversation.append({"role": "copilot", "text": narration})
-        session.last_snapshot = snapshot
+        self._record_snapshot(session, snapshot)
         session.requires_reconciliation = False
         self._touch(session)
         view = self.state(session_id, tab_id)
