@@ -194,11 +194,38 @@ interface BrowserSpeechRecognition {
         results: ArrayLike<ArrayLike<{ transcript: string }>>;
       }) => void)
     | null;
-  onerror: (() => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
   onend: (() => void) | null;
   start(): void;
   abort(): void;
 }
+
+const SPEECH_ERROR_MESSAGES: Record<string, { ar: string; en: string }> = {
+  network: {
+    ar: "خدمة التعرف على الصوت غير متاحة الآن. جرّب Chrome أو اكتب طلبك.",
+    en: "Speech recognition is unavailable. Try Chrome or type your request.",
+  },
+  "not-allowed": {
+    ar: "المتصفح أو النظام منع استخدام الميكروفون. راجع الأذونات ثم حاول ثانية.",
+    en: "Microphone access was blocked. Check browser and system permissions, then retry.",
+  },
+  "service-not-allowed": {
+    ar: "المتصفح منع خدمة التعرف على الصوت. جرّب Chrome أو اكتب طلبك.",
+    en: "The browser blocked speech recognition. Try Chrome or type your request.",
+  },
+  "audio-capture": {
+    ar: "تعذر الوصول للميكروفون. تأكد من توصيله وإعدادات الصوت ثم حاول ثانية.",
+    en: "The microphone could not be accessed. Check its connection and audio settings.",
+  },
+  "no-speech": {
+    ar: "لم أسمع كلامًا. حاول ثانية وتكلم بعد بدء الاستماع.",
+    en: "No speech was heard. Try again and speak after listening starts.",
+  },
+  "language-not-supported": {
+    ar: "لغة الصوت المحددة غير مدعومة في هذا المتصفح. جرّب لغة أخرى.",
+    en: "The selected speech language is unsupported in this browser. Try another language.",
+  },
+};
 
 export class PanelController {
   readonly #root: HTMLElement;
@@ -572,8 +599,16 @@ export class PanelController {
           this.#setStatus("راجع النص ثم اضغط إرسال.");
         }
       };
-      recognition.onerror = () =>
-        this.#setStatus("تعذر التقاط الصوت. يمكنك كتابة طلبك.");
+      recognition.onerror = (event) => {
+        if (event.error === "aborted") return;
+        const locale = recognition.lang === "en-US" ? "en" : "ar";
+        this.#setStatus(
+          SPEECH_ERROR_MESSAGES[event.error]?.[locale] ??
+            (locale === "en"
+              ? "Speech recognition failed. You can type your request."
+              : "تعذر التقاط الصوت. يمكنك كتابة طلبك."),
+        );
+      };
       recognition.onend = () => {
         if (this.#recognition === recognition) this.#recognition = undefined;
         speechButton.setAttribute("aria-pressed", "false");
