@@ -539,6 +539,9 @@ class SessionStore:
             if intent.needs_clarification and (intent.missing_fields or intent.conflicting_fields)
             else None
         )
+        if task.cart_operation and isinstance(action, AskShopperAction) and not action.options:
+            # The next model call needs the runtime question as well as the draft intent.
+            task.pending_clarification = action.question
         if (
             intent.intent == "open_product"
             and task.pending_clarification == "product_id"
@@ -1595,22 +1598,11 @@ class SessionStore:
                     if task.language == "ar"
                     else "The filters were applied successfully."
                 )
-                normalized_message = task.message.lower()
-                is_running_shoes = any(
-                    term in normalized_message for term in ("running", "جري", "للجري")
-                ) and any(term in normalized_message for term in ("shoe", "كوتشي", "حذاء", "أحذية"))
-                if is_running_shoes:
-                    summary = (
-                        "تم عرض أحذية الجري المناسبة للميزانية."
-                        if task.language == "ar"
-                        else "Running shoes within your budget are now shown."
-                    )
-                else:
-                    summary = (
-                        "تم عرض المنتجات المطابقة."
-                        if task.language == "ar"
-                        else "Matching products are now shown."
-                    )
+                summary = (
+                    "تم عرض المنتجات المطابقة."
+                    if task.language == "ar"
+                    else "Matching products are now shown."
+                )
         self._append(
             session,
             "narration",
