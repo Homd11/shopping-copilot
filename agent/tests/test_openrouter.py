@@ -102,6 +102,7 @@ def test_budget_check_blocks_paid_calls(limit, remaining, reset):
         {"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]},
         {"choices": [{"finish_reason": "stop", "message": {"content": "invalid-json"}}]},
         None,
+        "malformed-envelope",
     ],
 )
 def test_invalid_completion_never_retries_or_emits_an_action(body):
@@ -113,6 +114,8 @@ def test_invalid_completion_never_retries_or_emits_an_action(body):
                 200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
             )
         paid_calls.append(request)
+        if body == "malformed-envelope":
+            return httpx.Response(200, content=b"not-json")
         return httpx.Response(200, content=json.dumps(body))
 
     client = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))

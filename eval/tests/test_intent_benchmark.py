@@ -226,7 +226,7 @@ def test_candidate_evaluation_reports_redacted_failure_categories() -> None:
     )
     report = benchmark_report(corpus.version, [summary])
 
-    assert report["candidates"][0]["failure_counts"] == {"ValidationError": 1}
+    assert report["candidates"][0]["failure_counts"] == {"StructuredIntentDraftError": 1}
 
 
 def test_configured_candidates_default_to_the_selected_provider_model() -> None:

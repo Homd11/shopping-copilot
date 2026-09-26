@@ -125,8 +125,6 @@ class ActiveTask:
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
-    needs_rephrasing: bool = False
-    invalid_draft_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -644,15 +642,6 @@ class SessionStore:
             ]
             if len(candidates) == 1 and text in task.action.options:
                 selected = candidates[0]
-        if task.needs_rephrasing:
-            task.resolved_state = {
-                "_previous_suggestions": task.resolved_state.get("_previous_suggestions", []),
-                "_original_message": text[:_CONTEXT_TEXT_LIMIT],
-                "_answers": [],
-            }
-            task.pending_clarification = None
-            task.needs_rephrasing = False
-            task.language = detect_language(text)
         task.message = text
         answers = _bounded_answers(task.resolved_state.get("_answers"))
         task.resolved_state["_answers"] = [*answers, text[:_CONTEXT_TEXT_LIMIT]][
@@ -705,53 +694,6 @@ class SessionStore:
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
         if task.status != "interpreting":
-            return
-        if reason == "invalid_response":
-            # An unusable draft has no authority. Keep the conversation alive
-            # through a fresh Shopper request instead of replaying the same draft.
-            question = (
-                "ممكن توضّح طلبك بكلمات تانية؟ اكتب اسم المنتج وما تريد فعله. لم أنفّذ أي إجراء."
-                if task.language == "ar"
-                else "Could you rephrase your request? Name the item and what you'd like to do. "
-                "I haven't taken any action."
-            )
-            task.model_call_id = None
-            task.needs_rephrasing = True
-            task.target_url = None
-            task.intent_kind = None
-            task.target_name = None
-            task.cart_operation = None
-            task.cart_actions = []
-            task.mutation_kind = None
-            task.mutation_proposal = None
-            task.confirmation = None
-            task.pending_clarification = None
-            task.pause_message = None
-            task.step_count += 1
-            task.invalid_draft_count += 1
-            capped = task.step_count >= 8 or task.invalid_draft_count >= 2
-            if capped:
-                question = (
-                    "لم أتمكن من فهم الطلب بعد عدة محاولات. أوقف المهمة وابدأ طلبًا جديدًا."
-                    if task.language == "ar"
-                    else "I couldn't understand after several attempts. "
-                    "Stop and start a new request."
-                )
-            task.action = AskShopperAction(
-                v=1,
-                type="ask_shopper",
-                task_id=task_id,
-                action_id=f"action-{uuid4().hex}",
-                sequence_number=task.step_count,
-                narration=question,
-                question=question,
-                options=(["إيقاف"] if task.language == "ar" else ["Stop"]) if capped else [],
-            )
-            task.status = "awaiting_answer"
-            self._append(session, "narration", {"task_id": task_id, "text": question})
-            self._append(session, "action", {"task_id": task_id, "action": to_wire(task.action)})
-            session.conversation.append({"role": "copilot", "text": question})
-            self._touch(session)
             return
         task.status = "paused"
         task.model_call_id = None

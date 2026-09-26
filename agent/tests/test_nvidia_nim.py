@@ -94,7 +94,7 @@ def test_nvidia_client_retries_one_throttled_response_before_streaming() -> None
     assert attempts == 2
 
 
-def test_nvidia_client_retries_malformed_output_then_keeps_the_secret_out_of_errors() -> None:
+def test_nvidia_client_does_not_retry_malformed_output_or_expose_the_secret() -> None:
     settings = load_llm_settings(
         {
             "LLM_PROVIDER": "nvidia",
@@ -124,12 +124,12 @@ def test_nvidia_client_retries_malformed_output_then_keeps_the_secret_out_of_err
     with pytest.raises(ValueError) as captured:
         asyncio.run(collect())
 
-    assert attempts == 2
+    assert attempts == 1
     assert "local-test-key" not in str(captured.value)
     assert client.call_metadata[-1].failure_category == "invalid_response"
 
 
-def test_nvidia_client_retries_invalid_structured_output_before_returning_it() -> None:
+def test_nvidia_client_leaves_invalid_structured_output_retry_to_the_intent_pipeline() -> None:
     settings = load_llm_settings(
         {
             "LLM_PROVIDER": "nvidia",
@@ -156,8 +156,9 @@ def test_nvidia_client_retries_invalid_structured_output_before_returning_it() -
     async def collect() -> list[str]:
         return [chunk.text or "" async for chunk in client.complete(request)]
 
-    assert asyncio.run(collect()) == ['{"v": 1}']
-    assert attempts == 2
+    with pytest.raises(ValueError):
+        asyncio.run(collect())
+    assert attempts == 1
 
 
 def test_nvidia_client_retries_one_timeout_then_records_the_timeout_category() -> None:

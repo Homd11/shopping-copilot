@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from agent.llm.config import LLMConfigurationError, LLMSettings
-from agent.llm.contract import LLMChunk, LLMRequest
+from agent.llm.contract import LLMChunk, LLMInvalidResponseError, LLMRequest
 
 
 @dataclass(frozen=True)
@@ -61,7 +61,6 @@ class NvidiaNIMClient:
                 httpx.HTTPStatusError,
                 httpx.TimeoutException,
                 httpx.TransportError,
-                ValueError,
             ) as error:
                 if attempt or not _is_retryable(error):
                     raise
@@ -104,7 +103,11 @@ class NvidiaNIMClient:
             ) as client:
                 response = await client.post(endpoint, headers=headers, json=payload)
                 response.raise_for_status()
-            chunks, usage = _parse_completion(response.json())
+            try:
+                body = response.json()
+            except ValueError as error:
+                raise LLMInvalidResponseError("NVIDIA response body is not JSON") from error
+            chunks, usage = _parse_completion(body)
             _validate_response(request, chunks)
             return chunks, usage
 
@@ -128,7 +131,7 @@ class NvidiaNIMClient:
                 chunks.extend(parsed_chunks)
                 usage = parsed_usage or usage
         if not saw_done:
-            raise ValueError("NVIDIA response ended before [DONE]")
+            raise LLMInvalidResponseError("NVIDIA response ended before [DONE]")
         _validate_response(request, chunks)
         return chunks, usage
 
@@ -166,7 +169,9 @@ def _parse_stream_chunk(data: str) -> tuple[list[LLMChunk], dict[str, int] | Non
         choices = payload["choices"]
         delta = choices[0]["delta"]
     except (IndexError, KeyError, TypeError, json.JSONDecodeError) as error:
-        raise ValueError("NVIDIA response contains an invalid streaming chunk") from error
+        raise LLMInvalidResponseError(
+            "NVIDIA response contains an invalid streaming chunk"
+        ) from error
     raw_usage = payload.get("usage")
     usage = (
         {
@@ -182,7 +187,7 @@ def _parse_stream_chunk(data: str) -> tuple[list[LLMChunk], dict[str, int] | Non
     if content is None:
         return [], usage
     if not isinstance(content, str):
-        raise ValueError("NVIDIA response contains non-text content")
+        raise LLMInvalidResponseError("NVIDIA response contains non-text content")
     return [LLMChunk(text=content)], usage
 
 
@@ -190,9 +195,9 @@ def _parse_completion(payload: object) -> tuple[list[LLMChunk], dict[str, int] |
     try:
         content = payload["choices"][0]["message"]["content"]
     except (IndexError, KeyError, TypeError) as error:
-        raise ValueError("NVIDIA response contains an invalid completion") from error
+        raise LLMInvalidResponseError("NVIDIA response contains an invalid completion") from error
     if not isinstance(content, str) or not content:
-        raise ValueError("NVIDIA response contains empty non-text content")
+        raise LLMInvalidResponseError("NVIDIA response contains empty non-text content")
     raw_usage = payload.get("usage") if isinstance(payload, dict) else None
     usage = (
         {
@@ -216,7 +221,7 @@ def _validate_response(request: LLMRequest, chunks: list[LLMChunk]) -> None:
 def _is_retryable(error: Exception) -> bool:
     if isinstance(error, httpx.HTTPStatusError):
         return error.response.status_code == 429 or error.response.status_code >= 500
-    return isinstance(error, httpx.TimeoutException | httpx.TransportError | ValueError)
+    return isinstance(error, httpx.TimeoutException | httpx.TransportError)
 
 
 def _failure_category(error: Exception) -> str:
