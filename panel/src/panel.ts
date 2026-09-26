@@ -890,10 +890,11 @@ export class PanelController {
       const input = this.#root.ownerDocument.createElement("input");
       input.id = "question-answer-input";
       input.required = true;
-      input.setAttribute("aria-label", "Your answer");
+      const arabic = /[\u0600-\u06ff]/u.test(action.question);
+      input.setAttribute("aria-label", arabic ? "توضيح طلبك" : "Your answer");
       const submit = this.#root.ownerDocument.createElement("button");
       submit.type = "submit";
-      submit.textContent = "Send answer";
+      submit.textContent = arabic ? "إرسال التوضيح" : "Send answer";
       form.append(input, submit);
       form.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -903,7 +904,7 @@ export class PanelController {
       card.append(form);
     }
     container.append(card);
-    (card.querySelector("button") ?? card.querySelector("input"))?.focus();
+    (card.querySelector("input") ?? card.querySelector("button"))?.focus();
   }
 
   #registerQuestion(action: Extract<Action, { type: "ask_shopper" }>): void {

@@ -269,10 +269,11 @@ def test_injected_checkout_navigation_never_emits_a_browser_action() -> None:
     )
     assert submitted.status_code == 202
     events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
-    assert not any(event["event"] == "action" for event in events)
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert [action["type"] for action in actions] == ["ask_shopper"]
     assert (
         client.get(f"/sessions/{session_id}/state?tab_id=tab-local").json()["task"]["status"]
-        == "paused"
+        == "awaiting_answer"
     )
 
 
@@ -1451,7 +1452,7 @@ def test_missing_result_count_is_not_reported_as_success() -> None:
     assert "تم عرض المنتجات المطابقة" not in summary
 
 
-def test_invalid_model_output_pauses_task_until_retry_without_action() -> None:
+def test_invalid_model_output_asks_for_rephrasing_without_executing_a_browser_action() -> None:
     client = real_client(
         [
             [LLMChunk(text="not json")],
@@ -1466,21 +1467,26 @@ def test_invalid_model_output_pauses_task_until_retry_without_action() -> None:
 
     assert response.status_code == 202
     state = client.get(f"/sessions/{session_id}/state?tab_id=tab-local").json()
-    assert state["task"]["status"] == "paused"
+    assert state["task"]["status"] == "awaiting_answer"
     events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
-    assert not any(event["event"] == "action" for event in events)
-    assert any(
-        event["event"] == "error" and "استجابة النموذج" in event["data"]["message"]
-        for event in events
-    )
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert [action["type"] for action in actions] == ["ask_shopper"]
+    assert not any(event["event"] == "error" for event in events)
 
     retry = client.post(
-        f"/sessions/{session_id}/tasks/{response.json()['task_id']}/retry",
-        json={"snapshot": home_snapshot()},
+        f"/sessions/{session_id}/tasks/{response.json()['task_id']}/answers",
+        json={
+            "snapshot": home_snapshot(),
+            "question_id": actions[0]["action_id"],
+            "text": "عاوز حذاء",
+        },
     )
     assert retry.status_code == 202
     events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
-    assert len([event for event in events if event["event"] == "action"]) == 1
+    assert [event["data"]["action"]["type"] for event in events if event["event"] == "action"] == [
+        "ask_shopper",
+        "navigate",
+    ]
 
 
 def test_clarification_answer_preserves_the_same_task_and_resolved_constraints() -> None:
