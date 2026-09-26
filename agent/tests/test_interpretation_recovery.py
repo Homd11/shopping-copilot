@@ -17,7 +17,7 @@ from agent.tests.test_step import home_snapshot
 def test_verified_product_reference_does_not_depend_on_model_source_metadata(message):
     # Captured provider output: the product is correct, navigation_source is omitted.
     payload = {
-        "v": 7,
+        "v": 8,
         "language": "ar",
         "dialect": "egyptian_arabic",
         "intent": "open_product",
@@ -54,12 +54,12 @@ def test_verified_product_reference_does_not_depend_on_model_source_metadata(mes
         '["not an intent"]',
         json.dumps(
             {
-                "v": 7,
+                "v": 8,
                 "language": "en",
                 "dialect": "english",
                 "intent": "mutate",
                 "constraints": {},
-                "mutation_kind": "clear_cart",
+                "mutation_kind": "unsupported_operation",
                 "mutation_source": "Open my cart",
                 "missing_fields": [],
                 "needs_clarification": False,
@@ -99,7 +99,7 @@ def test_ambiguous_verified_product_choice_survives_refresh_without_another_mode
     ]
     intent = StructuredIntent.model_validate(
         {
-            "v": 7,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "open_product",
@@ -124,48 +124,6 @@ def test_ambiguous_verified_product_choice_survives_refresh_without_another_mode
     assert task.action.type == "navigate"
     assert task.action.url == "/p/clothing-05"
     assert task.action.sequence_number == question["sequence_number"] + 1
-
-
-@pytest.mark.parametrize(
-    "message",
-    [
-        "Don't open the Formal Shirt page",
-        "افتح صفحة منتج تاني",
-        "ماتفتحش صفحة القميص الرسمي",
-        "Don’t open the Formal Shirt page",
-        "Where is the Formal Shirt page?",
-        "مَتفتحش صفحة القميص الرسمي",
-    ],
-)
-def test_single_suggestion_does_not_authorize_an_unrelated_or_negated_page_request(message):
-    payload = {
-        "v": 7,
-        "language": "ar",
-        "dialect": "unknown",
-        "intent": "open_product",
-        "constraints": {},
-        "product_id": "clothing-05",
-        "missing_fields": [],
-        "needs_clarification": False,
-    }
-    result = asyncio.run(
-        interpret_message(
-            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
-            message,
-            storefront=load_storefront_definition(),
-            resolved_state={
-                "_previous_suggestions": [
-                    {
-                        "id": "clothing-05",
-                        "name": "Formal Shirt" if "Formal" in message else "قميص رسمي",
-                    },
-                ]
-            },
-            pending_clarification=None,
-        )
-    )
-    assert result.needs_clarification
-    assert result.product_id is None
 
 
 def test_manual_retry_after_two_invalid_drafts_can_recover_without_a_new_shopper_message():

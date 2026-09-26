@@ -10,7 +10,12 @@ from playwright.sync_api import expect, sync_playwright
 def main():
     if os.environ.get("LLM_BROWSER_SMOKE") != "1":
         raise SystemExit("Set LLM_BROWSER_SMOKE=1 with local OpenRouter services running")
-    report = Path("eval/reports/openrouter-cart-browser.json")
+    selected = os.environ.get("LLM_BROWSER_CASE")
+    if selected and selected not in {"add", "quantity", "remove", "clear"}:
+        raise SystemExit("Unknown LLM_BROWSER_CASE")
+    report = Path(
+        "eval/reports/openrouter-cart-browser" + (f"-{selected}" if selected else "") + ".json"
+    )
     report.parent.mkdir(parents=True, exist_ok=True)
     results = []
     with sync_playwright() as pw:
@@ -28,6 +33,8 @@ def main():
                 ("remove", "شيل صانع اللعب من السلة"),
                 ("clear", "شيل الحاجة اللي فالسلة كلها"),
             ]:
+                if selected and kind != selected:
+                    continue
                 api.post("/__test/cart", data={"lines": base})
                 page = browser.new_page()
                 row = {"case": kind, "passed": False}

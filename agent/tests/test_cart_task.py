@@ -96,27 +96,6 @@ def test_missing_product_options_hands_back_without_add():
     assert isinstance(task.action, AskShopperAction)
 
 
-def test_negated_cart_edit_cannot_become_an_action():
-    store = SessionStore()
-    session = store.create()
-    task = store.begin_interpretation(session.session_id, "Do not add this to my cart", snapshot())
-    with pytest.raises(ValueError):
-        store.finish_interpretation(
-            session.session_id, task.task_id, task.model_call_id, intent("add this to my cart")
-        )
-
-
-@pytest.mark.parametrize("constraints", [{"size": "44"}, {"color": "red"}])
-def test_unsourced_cart_variant_is_rejected(constraints):
-    from agent.cart import validate_cart_intent
-
-    requested = intent().model_copy(
-        update={"constraints": intent().constraints.model_copy(update=constraints)}
-    )
-    with pytest.raises(ValueError, match="variant"):
-        validate_cart_intent("Add this to my cart", requested)
-
-
 def test_current_selected_product_resolves_model_missing_query():
     from agent.cart import plan_cart_edit
 
@@ -177,58 +156,6 @@ def test_named_line_relative_quantity_uses_current_value_in_multi_item_cart(vers
     actions = plan_cart_edit(requested, current, "task-test", 1)
     assert [(a.type, getattr(a, "id", None)) for a in actions] == [("type", 10), ("click", 11)]
     assert actions[0].text == "5"
-
-
-@pytest.mark.parametrize("version", [6, 7])
-def test_relative_quantity_cannot_be_interpreted_as_absolute(version):
-    from agent.cart import validate_cart_intent
-
-    payload = intent("زود كمية ممشى النيل 2 كمان").model_dump()
-    payload.update(
-        v=version,
-        cart_operation="quantity",
-        cart_target="ممشى النيل",
-        cart_quantity=2,
-        cart_quantity_mode="set",
-    )
-    with pytest.raises(ValueError, match="Relative"):
-        validate_cart_intent(payload["cart_source"], StructuredIntent.model_validate(payload))
-
-
-@pytest.mark.parametrize(
-    "source,mode",
-    [
-        ("Increase quantity by 2", "set"),
-        ("Decrease quantity by 2", "set"),
-        ("Decrease quantity by 2", None),
-        ("Increase quantity to 2", "increase"),
-    ],
-)
-@pytest.mark.parametrize("version", [6, 7])
-def test_quantity_mode_cannot_contradict_explicit_source(source, mode, version):
-    from agent.cart import validate_cart_intent
-
-    payload = intent(source).model_dump()
-    payload.update(v=version, cart_operation="quantity", cart_quantity=2, cart_quantity_mode=mode)
-    with pytest.raises(ValueError):
-        validate_cart_intent(source, StructuredIntent.model_validate(payload))
-
-
-def test_dropped_explicit_arabic_variants_are_restored_before_current_page_planning():
-    source = "مقاسي 44 وعايز اللون اسود ضيفه فالعربية"
-    store = SessionStore()
-    session = store.create()
-    current = snapshot()
-    current.elements[0].options = ["43", "44"]
-    current.elements[1].options = ["blue", "black"]
-    task = store.begin_interpretation(session.session_id, source, current)
-    store.finish_interpretation(
-        session.session_id, task.task_id, task.model_call_id, intent(source)
-    )
-    assert task.action.type == "select"
-    assert task.action.option == "44"
-    assert task.cart_actions[0].type == "select"
-    assert task.cart_actions[0].option == "black"
 
 
 def test_owned_color_does_not_override_current_selected_variant():

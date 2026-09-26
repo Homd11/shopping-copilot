@@ -155,10 +155,18 @@ def create_app(
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
+    active_interpretations: set[tuple[str, str, str]] = set()
+
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
+        identity = (session_id, task_id, call_id)
+        if identity in active_interpretations:
+            return
+        active_interpretations.add(identity)
+        observed = sessions.get(session_id).last_snapshot
+        observed = observed.model_copy(deep=True) if observed is not None else None
         phase = "intent"
         try:
             intent = await interpret_message(
@@ -167,7 +175,11 @@ def create_app(
                 storefront=planner.storefront,
                 resolved_state=task.resolved_state,
                 pending_clarification=task.pending_clarification,
+                snapshot=observed,
             )
+            if sessions.get(session_id).last_snapshot != observed:
+                sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+                return
             if (
                 intent.intent == "find_products"
                 and not intent.needs_clarification
@@ -203,6 +215,8 @@ def create_app(
                 reason,
                 retry_after_seconds=getattr(error, "retry_after_seconds", None),
             )
+        finally:
+            active_interpretations.discard(identity)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
@@ -252,6 +266,8 @@ def create_app(
 
     @app.post("/step")
     async def step(request: StepRequest) -> dict[str, object]:
+        if settings.provider != "scripted":
+            raise HTTPException(status_code=404, detail="Use the live session API")
         try:
             action = planner.plan(
                 request.message,
@@ -409,6 +425,8 @@ def create_app(
     ) -> dict[str, str]:
         try:
             task = sessions.accept_result(session_id, action_result, x_tab_id)
+            if task.status == "interpreting" and task.model_call_id:
+                await run_interpretation(session_id, task.task_id, task.model_call_id)
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
         except (ActionResultMismatch, LeaseConflict) as error:

@@ -142,7 +142,7 @@ def test_real_intent_request_fits_the_paid_budget_bound():
                         "message": {
                             "content": json.dumps(
                                 {
-                                    "v": 6,
+                                    "v": 8,
                                     "language": "ar",
                                     "dialect": "egyptian_arabic",
                                     "intent": "cart_edit",

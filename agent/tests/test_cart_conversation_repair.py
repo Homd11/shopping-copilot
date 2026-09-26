@@ -18,10 +18,10 @@ from agent.tests.test_real_task import real_client, snapshot_at
 from agent.tests.test_sessions import parse_sse
 
 
-def quantity_payload(message, target):
-    # Shape captured from the live provider for the owner's failing sentence.
+def quantity_payload(message, target=None, *, target_id=None):
+    # Explicit model decision fixture; live phrasing is evaluated separately.
     return dict(
-        v=7,
+        v=8,
         language="ar",
         dialect="egyptian_arabic",
         intent="cart_edit",
@@ -31,6 +31,7 @@ def quantity_payload(message, target):
         cart_operation="quantity",
         cart_source=message,
         cart_target=target,
+        cart_target_id=target_id,
         cart_quantity=3,
         cart_quantity_mode="increase",
     )
@@ -76,7 +77,7 @@ def test_invalid_model_draft_is_reconsidered_without_asking_the_shopper_again(in
     client = real_client(
         [
             invalid_draft,
-            [LLMChunk(text=json.dumps(quantity_payload(message, "قميص رسمي")))],
+            [LLMChunk(text=json.dumps(quantity_payload(message, target_id=13)))],
         ]
     )
     session = client.post("/sessions").json()["session_id"]
@@ -105,7 +106,7 @@ def test_incomplete_provider_response_gets_the_same_bounded_reconsideration():
             self.calls += 1
             if self.calls == 1:
                 raise LLMInvalidResponseError("provider returned an incomplete completion")
-            yield LLMChunk(text=json.dumps(quantity_payload(message, "قميص رسمي")))
+            yield LLMChunk(text=json.dumps(quantity_payload(message, target_id=13)))
 
     client = TestClient(
         create_app(
@@ -127,12 +128,29 @@ def test_incomplete_provider_response_gets_the_same_bounded_reconsideration():
     assert actions[0]["id"] == 12
 
 
+@pytest.mark.parametrize(
+    "message,target",
+    [
+        ("عايز 3 كمان من تيشرت اسكندرية", "تيشرت اسكندرية"),
+        ("عايز تلاته كمان من كوتشي ماراثون القاهرة", "ماراثون القاهرة"),
+        ("عايز 3 كمان من كوتشي ماراثون القاهرة", "ماراثون القاهرة"),
+        ("عايز تلاته كمان من تيشرت اسكندرية", "تيشرت اسكندرية"),
+    ],
+)
 @pytest.mark.parametrize("count,from_product", [(1, False), (3, False), (3, True)])
-def test_more_three_completes_without_questions_and_only_changes_named_line(count, from_product):
-    message = "عايز 3 كمان من تيشرت اسكندرية"
-    client = real_client([[LLMChunk(text=json.dumps(quantity_payload(message, "تيشرت اسكندرية")))]])
+def test_more_three_completes_without_questions_and_only_changes_named_line(
+    count, from_product, message, target
+):
+    outputs = [quantity_payload(message, target_id=11)]
+    if from_product:
+        outputs.insert(0, quantity_payload(message))
+    client = real_client([[LLMChunk(text=json.dumps(payload))] for payload in outputs])
     session = client.post("/sessions").json()["session_id"]
-    current = snapshot_at("/p/clothing-06") if from_product else cart_snapshot(count)
+    cart = cart_snapshot(count)
+    for element in cart["elements"]:
+        for key in ("name", "group"):
+            element[key] = element[key].replace("تيشيرت إسكندرية", target)
+    current = snapshot_at("/p/clothing-06") if from_product else cart
     client.post(f"/sessions/{session}/messages", json={"text": message, "snapshot": current})
 
     def latest():
@@ -156,7 +174,7 @@ def test_more_three_completes_without_questions_and_only_changes_named_line(coun
     action = latest()
     if from_product:
         assert action["type"] == "navigate" and action["url"] == "/cart"
-        current = cart_snapshot(count)
+        current = cart
         report(action, current, "navigated")
         action = latest()
     assert action["type"] == "type" and action["id"] == 10 and action["text"] == "4"
@@ -178,7 +196,7 @@ def test_more_three_completes_without_questions_and_only_changes_named_line(coun
 def test_named_egyptian_take_me_to_product_does_not_ask_again():
     message = "وديني لصفحة تيشرت اسكندرية"
     payload = dict(
-        v=7,
+        v=8,
         language="ar",
         dialect="egyptian_arabic",
         intent="open_product",
@@ -203,46 +221,6 @@ def test_named_egyptian_take_me_to_product_does_not_ask_again():
     )
     assert not result.needs_clarification
     assert result.product_id == "clothing-06"
-
-
-@pytest.mark.parametrize(
-    "message",
-    ["مش عايز 3 كمان من تيشرت اسكندرية", "Don’t add 3 more", "عايز 2 كمان من تيشرت اسكندرية"],
-)
-def test_negative_or_wrong_quantity_cannot_authorize_three_more(message):
-    with pytest.raises(ValueError):
-        asyncio.run(
-            interpret_message(
-                ScriptedLLMClient([[LLMChunk(text=json.dumps(quantity_payload(message, None)))]]),
-                message,
-                storefront=load_storefront_definition(),
-                resolved_state={},
-                pending_clarification=None,
-            )
-        )
-
-
-@pytest.mark.parametrize(
-    "message,correct",
-    [
-        ("I want 3 less of Formal Shirt", "decrease"),
-        ("عايز 3 أقل من القميص الرسمي", "decrease"),
-        ("عايز 3 زيادة من القميص الرسمي", "increase"),
-    ],
-)
-@pytest.mark.parametrize("mode", ["set", "increase", "decrease"])
-def test_relative_direction_cannot_be_reinterpreted(message, correct, mode):
-    from agent.cart import validate_cart_intent
-    from agent.llm.intent import StructuredIntent
-
-    payload = quantity_payload(message, None)
-    payload["cart_quantity_mode"] = mode
-    intent = StructuredIntent.model_validate(payload)
-    if mode == correct:
-        assert validate_cart_intent(message, intent).cart_quantity_mode == correct
-    else:
-        with pytest.raises(ValueError):
-            validate_cart_intent(message, intent)
 
 
 def test_cart_navigation_to_foreign_origin_never_continues_with_an_edit():

@@ -101,7 +101,7 @@ def catalogue() -> CatalogueSnapshot:
 def test_wedding_request_reports_zero_exact_and_named_alternatives() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 2,
+            "v": 8,
             "language": "ar",
             "dialect": "franco_arabic",
             "intent": "find_products",
@@ -127,7 +127,7 @@ def test_wedding_request_reports_zero_exact_and_named_alternatives() -> None:
 def test_running_suitability_and_size_are_verified_not_inferred_from_type() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 2,
+            "v": 8,
             "language": "ar",
             "dialect": "mixed",
             "intent": "find_products",
@@ -150,7 +150,7 @@ def test_running_suitability_and_size_are_verified_not_inferred_from_type() -> N
 def test_owned_black_trousers_produce_only_available_upper_body_styling() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 2,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "find_products",
@@ -175,7 +175,7 @@ def test_owned_black_trousers_produce_only_available_upper_body_styling() -> Non
 def test_recommendation_explains_verified_budget_and_never_claims_inferred_quality() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 7,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -204,7 +204,7 @@ def test_recommendation_explains_verified_budget_and_never_claims_inferred_quali
 def test_style_request_ranks_footwear_by_soft_colour_preference() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -239,7 +239,7 @@ def test_style_reason_does_not_invent_a_colour_for_a_catalogue_product_without_o
     snapshot = CatalogueSnapshot(v=1, currency="EGP", products=[*products[:-1], no_colour_top])
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -268,7 +268,7 @@ def test_style_reason_does_not_invent_a_colour_for_a_catalogue_product_without_o
 def test_arabic_footwear_styling_reason_uses_localized_product_and_colour_labels() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "find_products",
@@ -296,7 +296,7 @@ def test_arabic_footwear_styling_reason_uses_localized_product_and_colour_labels
 def test_style_alternative_keeps_each_unmet_explicit_requirement() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -347,7 +347,7 @@ def test_style_cheapest_sort_keeps_cheaper_repeated_colours_before_diversifying(
     )
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -371,7 +371,7 @@ def test_style_cheapest_sort_keeps_cheaper_repeated_colours_before_diversifying(
 def test_style_requires_a_complete_requested_category() -> None:
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -402,7 +402,7 @@ def test_clarification_retains_original_request_and_structured_outfit_context() 
     )
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -453,7 +453,7 @@ def test_catalogue_completion_does_not_call_alternatives_styling_suggestions() -
     )
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -500,7 +500,7 @@ def test_clarification_answers_are_bounded_to_the_latest_eight_entries() -> None
     )
     clarification = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -536,7 +536,7 @@ def test_conflicting_price_clarification_retains_the_original_product_context() 
     )
     conflicting = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",
@@ -568,7 +568,7 @@ def test_completed_navigation_supplies_one_previous_target_to_the_next_interpret
     task = sessions.begin_interpretation(session.session_id, "Open my cart", home)
     intent = StructuredIntent.model_validate(
         {
-            "v": 3,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "navigate",
@@ -612,7 +612,7 @@ def test_stopped_task_cannot_publish_late_catalogue_suggestions() -> None:
     )
     intent = StructuredIntent.model_validate(
         {
-            "v": 2,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": "find_products",

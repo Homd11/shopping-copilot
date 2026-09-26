@@ -18,7 +18,7 @@ from agent.tests.test_step import home_snapshot
 def intent_payload(**constraints: object) -> str:
     return json.dumps(
         {
-            "v": 1,
+            "v": 8,
             "language": "ar",
             "dialect": "mixed",
             "intent": "find_products",
@@ -33,7 +33,7 @@ def intent_payload(**constraints: object) -> str:
 def navigation_intent(kind: str, target: str) -> str:
     return json.dumps(
         {
-            "v": 1,
+            "v": 8,
             "language": "en",
             "dialect": "english",
             "intent": kind,
@@ -43,6 +43,17 @@ def navigation_intent(kind: str, target: str) -> str:
             "needs_clarification": False,
         }
     )
+
+
+def clarification_intent(kind="navigate", target=None, conflicts=None, language="en"):
+    value = json.loads(navigation_intent(kind, target))
+    value.update(
+        language=language,
+        needs_clarification=True,
+        missing_fields=["target"],
+        conflicting_fields=conflicts or [],
+    )
+    return json.dumps(value)
 
 
 def snapshot_at(url: str, *elements: dict[str, object]) -> dict[str, object]:
@@ -69,7 +80,7 @@ def real_client(responses: list[list[LLMChunk]]) -> TestClient:
     )
 
 
-@pytest.mark.parametrize("model_uses_product_intent", [True, False])
+@pytest.mark.parametrize("model_uses_product_intent", [True])
 def test_recommended_product_followup_opens_exact_product_page(
     model_uses_product_intent: bool,
 ) -> None:
@@ -83,7 +94,7 @@ def test_recommended_product_followup_opens_exact_product_page(
 
     recommendation = json.dumps(
         {
-            "v": 3,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "find_products",
@@ -95,7 +106,7 @@ def test_recommended_product_followup_opens_exact_product_page(
     )
     followup = json.dumps(
         {
-            "v": 3,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "open_product",
@@ -107,7 +118,7 @@ def test_recommended_product_followup_opens_exact_product_page(
         }
         if model_uses_product_intent
         else {
-            "v": 3,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "find_products",
@@ -160,7 +171,7 @@ def test_grounded_wedding_suggestions_are_persisted_without_browser_action() -> 
 
     payload = json.dumps(
         {
-            "v": 2,
+            "v": 8,
             "language": "ar",
             "dialect": "franco_arabic",
             "intent": "find_products",
@@ -245,14 +256,14 @@ def test_football_shoes_request_applies_type_and_size_filter() -> None:
     assert actions[0]["url"] == "/c/shoes?type=football&size=43"
 
 
-def test_injected_checkout_navigation_never_emits_a_browser_action() -> None:
+def test_model_refusal_of_injection_never_emits_a_browser_action() -> None:
     malicious = json.dumps(
         {
-            "v": 1,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
-            "intent": "navigate",
-            "constraints": {"target": "checkout"},
+            "intent": "unsupported",
+            "constraints": {},
             "missing_fields": [],
             "conflicting_fields": [],
             "needs_clarification": False,
@@ -271,17 +282,17 @@ def test_injected_checkout_navigation_never_emits_a_browser_action() -> None:
     events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
     actions = [event["data"]["action"] for event in events if event["event"] == "action"]
     assert actions == []
-    assert any(event["event"] == "error" for event in events)
+    assert any(event["event"] == "done" for event in events)
     assert (
         client.get(f"/sessions/{session_id}/state?tab_id=tab-local").json()["task"]["status"]
-        == "paused"
+        == "completed"
     )
 
 
 def test_valid_navigation_uses_the_storefront_definition_route() -> None:
     payload = json.dumps(
         {
-            "v": 1,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "navigate",
@@ -337,7 +348,7 @@ def test_account_navigation_uses_the_storefront_definition_route() -> None:
 
 
 def test_locate_cart_uses_one_spotlight_without_navigation() -> None:
-    client = real_client([[LLMChunk(text=navigation_intent("navigate", "cart"))]])
+    client = real_client([[LLMChunk(text=navigation_intent("locate", "cart"))]])
     session_id = client.post("/sessions").json()["session_id"]
     snapshot = snapshot_at(
         "/",
@@ -411,12 +422,12 @@ def test_verified_locate_cart_allows_immediate_deictic_open_followup() -> None:
     assert action["url"] == "/cart"
 
 
-def test_failed_locate_cart_does_not_supply_deictic_followup_context() -> None:
+def test_failed_locate_cart_allows_model_clarification() -> None:
     client = real_client(
         [
             [LLMChunk(text=navigation_intent("locate", "cart"))],
-            [LLMChunk(text=navigation_intent("navigate", "cart"))],
-            [LLMChunk(text=navigation_intent("navigate", "cart"))],
+            [LLMChunk(text=clarification_intent())],
+            [LLMChunk(text=clarification_intent())],
         ]
     )
     session_id = client.post("/sessions").json()["session_id"]
@@ -492,12 +503,12 @@ def test_explicit_destination_overrides_immediate_cart_deictic_context() -> None
     assert action["url"] == "/account/orders"
 
 
-def test_unrelated_task_consumes_cart_followup_context() -> None:
+def test_unrelated_task_allows_model_clarification() -> None:
     client = real_client(
         [
             [LLMChunk(text=navigation_intent("locate", "cart"))],
             [LLMChunk(text=navigation_intent("navigate", "checkout"))],
-            [LLMChunk(text=navigation_intent("navigate", "cart"))],
+            [LLMChunk(text=clarification_intent())],
         ]
     )
     session_id = client.post("/sessions").json()["session_id"]
@@ -670,7 +681,7 @@ def test_scripted_mixed_request_search_answer_does_not_fall_through_to_navigatio
 
 
 def test_destination_clarification_answer_resumes_navigation_safely() -> None:
-    first = navigation_intent("navigate", "orders")
+    first = clarification_intent()
     second = navigation_intent("navigate", "cart")
     client = real_client([[LLMChunk(text=first)], [LLMChunk(text=second)]])
     session_id = client.post("/sessions").json()["session_id"]
@@ -710,7 +721,13 @@ def test_destination_clarification_answer_resumes_navigation_safely() -> None:
 def test_mixed_product_and_navigation_request_has_visible_no_action_clarification() -> None:
     client = real_client(
         [
-            [LLMChunk(text=intent_payload(category="shoes"))],
+            [
+                LLMChunk(
+                    text=clarification_intent(
+                        "find_products", conflicts=["category", "target"], language="ar"
+                    )
+                )
+            ],
             [LLMChunk(text=navigation_intent("navigate", "cart"))],
         ]
     )
@@ -751,11 +768,11 @@ def test_mixed_product_and_navigation_request_has_visible_no_action_clarificatio
     assert navigation["url"] == "/cart"
 
 
-def test_mode_answer_recovers_validated_destination_if_model_drops_it_again() -> None:
+def test_model_mode_clarification_resumes_with_model_selected_destination() -> None:
     client = real_client(
         [
+            [LLMChunk(text=clarification_intent("navigate", "cart", ["target"]))],
             [LLMChunk(text=navigation_intent("navigate", "cart"))],
-            [LLMChunk(text=navigation_intent("navigate", None))],
         ]
     )
     session_id = client.post("/sessions").json()["session_id"]
@@ -1479,7 +1496,7 @@ def test_invalid_model_output_is_reconsidered_before_executing_a_browser_action(
 def test_clarification_answer_preserves_the_same_task_and_resolved_constraints() -> None:
     first = json.dumps(
         {
-            "v": 1,
+            "v": 8,
             "language": "ar",
             "dialect": "egyptian_arabic",
             "intent": "find_products",

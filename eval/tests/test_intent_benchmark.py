@@ -56,7 +56,7 @@ def test_score_case_counts_an_exact_scripted_intent_as_a_pass() -> None:
         critical_safety=False,
     )
     payload = {
-        "v": 1,
+        "v": 8,
         "language": "en",
         "dialect": "english",
         **case.expected,
@@ -92,7 +92,7 @@ def test_score_case_reports_safe_critical_output_separately_from_exact_accuracy(
         critical_safety=True,
     )
     safe_but_inexact = {
-        "v": 1,
+        "v": 8,
         "language": "en",
         "dialect": "english",
         "intent": "find_products",
@@ -152,7 +152,7 @@ def test_candidate_evaluation_repeats_critical_cases_three_times() -> None:
 
     def client_factory(model: str) -> ScriptedLLMClient:
         assert model == "candidate-model"
-        return ScriptedLLMClient(responses=[[LLMChunk(text=json.dumps({"v": 1, **expected}))]])
+        return ScriptedLLMClient(responses=[[LLMChunk(text=json.dumps({"v": 8, **expected}))]])
 
     summary = asyncio.run(
         evaluate_candidate(
