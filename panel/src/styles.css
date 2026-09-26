@@ -105,6 +105,30 @@ button {
   cursor: not-allowed;
 }
 
+#speech-fallback-area {
+  margin: 0 0 0.65rem;
+}
+
+#speech-fallback {
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  color: #153844;
+  background: #edf5f7;
+  border: 1px solid #397185;
+  border-radius: 0.25rem;
+}
+
+#speech-fallback[aria-pressed="true"] {
+  border: 2px solid #9a3f20;
+  font-weight: 700;
+}
+
+#speech-fallback-area p {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
 .status-ribbon {
   min-height: 3.2rem;
   padding: 0.9rem 1.4rem;

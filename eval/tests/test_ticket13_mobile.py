@@ -29,7 +29,9 @@ def test_mobile_controls_delayed_products_and_semantic_targets() -> None:
             frame.locator("#sort-trigger").click()
             frame.locator('#sort-options [data-sort-value="cheapest"]').click()
             assert frame.locator("#sort").input_value() == "cheapest"
+            storefront_frame = page.query_selector("#storefront-frame").content_frame()
             frame.get_by_role("button", name="تطبيق الفلاتر").click()
+            storefront_frame.wait_for_url("**/c/shoes?*sort=cheapest*")
             expect(frame.locator("#results-heading")).to_have_text("15 منتجات")
             expect(frame.locator("[data-product-id]")).to_have_count(6)
             load_more = frame.locator("#load-more-products")
