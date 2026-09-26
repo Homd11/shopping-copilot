@@ -83,7 +83,7 @@ def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIn
         expected = (
             "set" if absolute else "increase" if increase else "decrease" if decrease else None
         )
-        if (intent.v == 6 and mode is None) or (expected and (mode or "set") != expected):
+        if (intent.v >= 6 and mode is None) or (expected and (mode or "set") != expected):
             raise ValueError("Relative quantity mode contradicts the Shopper")
     if intent.cart_quantity_mode in {"increase", "decrease"}:
         cue = (

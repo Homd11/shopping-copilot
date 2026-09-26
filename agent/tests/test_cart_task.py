@@ -136,12 +136,13 @@ def test_arabic_color_evidence_is_valid_for_canonical_variant():
     validate_cart_intent(requested.cart_source, requested)
 
 
-def test_named_line_relative_quantity_uses_current_value_in_multi_item_cart():
+@pytest.mark.parametrize("version", [6, 7])
+def test_named_line_relative_quantity_uses_current_value_in_multi_item_cart(version):
     from agent.cart import plan_cart_edit, validate_cart_intent
 
     payload = intent("زود كمية ممشى النيل 2 كمان").model_dump()
     payload.update(
-        v=6,
+        v=version,
         cart_operation="quantity",
         cart_target="ممشى النيل",
         cart_quantity=2,
@@ -178,12 +179,13 @@ def test_named_line_relative_quantity_uses_current_value_in_multi_item_cart():
     assert actions[0].text == "5"
 
 
-def test_relative_quantity_cannot_be_interpreted_as_absolute():
+@pytest.mark.parametrize("version", [6, 7])
+def test_relative_quantity_cannot_be_interpreted_as_absolute(version):
     from agent.cart import validate_cart_intent
 
     payload = intent("زود كمية ممشى النيل 2 كمان").model_dump()
     payload.update(
-        v=6,
+        v=version,
         cart_operation="quantity",
         cart_target="ممشى النيل",
         cart_quantity=2,
@@ -202,11 +204,12 @@ def test_relative_quantity_cannot_be_interpreted_as_absolute():
         ("Increase quantity to 2", "increase"),
     ],
 )
-def test_quantity_mode_cannot_contradict_explicit_source(source, mode):
+@pytest.mark.parametrize("version", [6, 7])
+def test_quantity_mode_cannot_contradict_explicit_source(source, mode, version):
     from agent.cart import validate_cart_intent
 
     payload = intent(source).model_dump()
-    payload.update(v=6, cart_operation="quantity", cart_quantity=2, cart_quantity_mode=mode)
+    payload.update(v=version, cart_operation="quantity", cart_quantity=2, cart_quantity_mode=mode)
     with pytest.raises(ValueError):
         validate_cart_intent(source, StructuredIntent.model_validate(payload))
 
