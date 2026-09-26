@@ -1,9 +1,7 @@
 import type { Action, ActionResult, Snapshot } from "../../bridge/src/types.js";
 
 import {
-  AGENT_EVENT_TYPES,
   PanelController,
-  parseAgentEvent,
   type AgentEvent,
   type AgentTransport,
   type StorefrontChannel,
@@ -12,6 +10,7 @@ import {
   type SessionView,
 } from "./panel.js";
 import "./styles.css";
+import { subscribeAgentStream } from "./event-stream.js";
 
 const AGENT_ORIGIN = "http://localhost:8000";
 const STOREFRONT_ORIGIN = "http://localhost:4000";
@@ -42,17 +41,12 @@ class HttpAgentTransport implements AgentTransport {
     after = 0,
     onCursor?: (cursor: number) => void,
   ): () => void {
-    const source = new EventSource(
+    return subscribeAgentStream(
       `${AGENT_ORIGIN}/sessions/${sessionId}/events?after=${after}&tab_id=${encodeURIComponent(this.#tabId)}`,
+      handler,
+      after,
+      onCursor,
     );
-    for (const type of AGENT_EVENT_TYPES)
-      source.addEventListener(type, (event) => {
-        const message = event as MessageEvent<string>;
-        const cursor = Number(message.lastEventId);
-        if (Number.isSafeInteger(cursor)) onCursor?.(cursor);
-        handler(parseAgentEvent(type, JSON.parse(message.data)));
-      });
-    return () => source.close();
   }
 
   async restoreSession(sessionId: string, tabId: string): Promise<SessionView> {
@@ -224,6 +218,9 @@ const root = document.querySelector<HTMLElement>("#app");
 const frame = document.querySelector<HTMLIFrameElement>("#storefront-frame");
 if (root === null || frame === null)
   throw new Error("Panel shell is incomplete");
+const spaVariant = new URL(window.location.href).searchParams.get("spa");
+if (spaVariant === "url" || spaVariant === "component" || spaVariant === "off")
+  frame.src = `${STOREFRONT_ORIGIN}/?spa=${spaVariant}`;
 
 const SESSION_KEY = "shopping-copilot.session-id";
 const CURSOR_KEY = "shopping-copilot.event-cursor";

@@ -1,6 +1,16 @@
 # Project checkpoint
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
+
+## Ticket 14: SPA execution — 2026-09-27
+
+The owner accepted cleanup commit `d7f6d12` and explicitly resumed Ticket 14. The ticket is implemented with opt-in URL-backed and component-only SPA variants at the same category, cart and account destinations. The Bridge observes client-side history and DOM changes, waits for loading and optimistic updates, verifies controlled input values, drops detached targets, and reports same-document navigation results. The Agent distinguishes applied filters from URL shortcuts and falls back to visible controls. SSE reconnect honors the last event cursor and the Panel suppresses repeated events. No shopper-language interpreter, provider change or architecture split was added.
+
+Final verification: **398 Python and 155 TypeScript tests passed**, including the complete browser suite; repository-wide Prettier, ESLint, Ruff lint/format and all builds passed. The first full run caught delayed committed selections reaching the Agent with old values; the fix preserves immediate ready-page change snapshots alongside settled observations. An old mobile fixture was updated to check the Stop handback instead of wording removed by `d7f6d12`. Review also fixed failed SPA fetches being reported as successful navigation. The complete Python suite was rerun after these fixes. Standards and Spec were reviewed locally; no independent sub-agents were used in this side conversation.
+
+The same discovery task took one Action in URL mode and three in component mode, with identical filtered results. Browser coverage includes back/forward, late DOM changes, exact cart Undo after refresh, expired/new Confirmation, duplicate delivery without duplicate cart writes, stale targets, off-origin blocking, and failed loads. See [Ticket 14 evidence](docs/ticket14-spa.md). These are controlled execution tests, not additional live-model language evidence. No paid model calls were made; the $0.75 total non-resetting cap and credentials are unchanged.
+
+All three local services were restarted with the current code and the original two-line cart was restored and compared exactly. Open http://localhost:4100/?spa=url or http://localhost:4100/?spa=component to test; `?spa=off` returns to ordinary navigation. Unrelated proposal files are untouched. **Next: Ticket 15, the complete local evaluation gate.** Older sections below are historical and do not override this frontier.
 
 ## Exploratory user-flow acceptance — 2026-09-26
 

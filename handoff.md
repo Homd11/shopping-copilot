@@ -1,5 +1,13 @@
 # Shopping Copilot — project handoff
 
+## Ticket 14 completed — 2026-09-27
+
+The owner accepted `d7f6d12` and resumed Ticket 14. URL-backed and component-only SPA variants now preserve category/cart/account behavior, fresh observations, controlled inputs, loading/optimistic settling, navigation results, and reconnect duplicate suppression. Applied-result state drives visible-control fallback when a URL shortcut does not apply filters. The same discovery task takes one Action in URL mode and three in component mode. No shopper phrase matching was added.
+
+Final checks passed **398 Python + 155 TypeScript tests**, full scripted browser coverage, repository format/lint, typechecking and builds. The complete Python rerun includes fixes for committed-selection timing, an outdated mobile handback assertion from `d7f6d12`, and failed SPA navigation reporting. Review was local across Standards and Spec; no independent sub-agents or paid model calls were used. See [Ticket 14 evidence](docs/ticket14-spa.md) and `PROJECT_CHECKPOINT.md` for the current frontier.
+
+Services are running with current code and the saved two-line cart has been restored exactly. Manual entries: http://localhost:4100/?spa=url and http://localhost:4100/?spa=component; use `?spa=off` for ordinary navigation. Preserve the $0.75 total non-resetting provider cap, ignored credentials, and unrelated proposal files. **Ticket 15 is next**; its full evaluation gate has not yet been completed. Earlier sections are historical.
+
 ## Exploratory user-flow acceptance — 2026-09-26
 
 Before further owner testing, a bounded real-model/browser exploration exercised ambiguous same-product variants, changing a quantity decision, negated selective removal with Undo, cancelling bulk clear, oversized quantities, vague references, self-correction, material exclusions with a budget, and misspelled navigation. The initial run passed six of eight cases (nine submitted requests). It exposed two real failures: arbitrary size selection and an invalid quantity presented as a model-format error.

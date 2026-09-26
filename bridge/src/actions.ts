@@ -1,5 +1,6 @@
 import { SnapshotBuilder } from "./snapshot.js";
 import type { Action, ActionResult, ActionResultStatus } from "./types.js";
+import { documentIsBusy } from "./observation.js";
 
 export interface ActionEnvironment {
   builder: SnapshotBuilder;
@@ -228,9 +229,17 @@ export async function executeAction(
     ) {
       return result(action, "blocked", environment.builder);
     }
-    await environment.navigate(destination);
+    try {
+      await environment.navigate(destination);
+    } catch {
+      return result(action, "blocked", environment.builder);
+    }
     await environment.settle();
-    return result(action, "navigated", environment.builder);
+    return result(
+      action,
+      environment.builder.isBusy() ? "blocked" : "navigated",
+      environment.builder,
+    );
   }
 
   if (action.type === "ask_shopper" || action.type === "done") {
@@ -302,6 +311,7 @@ export async function executeAction(
 
   if (action.type !== "spotlight") scrollIntoView(element);
   let status: ActionResultStatus = "ok";
+  let expectedValue: string | undefined;
   if (action.type === "click" || action.type === "guarded_click") {
     if (element instanceof element.ownerDocument.defaultView!.HTMLElement)
       element.click();
@@ -309,9 +319,17 @@ export async function executeAction(
   } else if (action.type === "type") {
     if (!setElementValue(element, action.text)) status = "not_found";
     else if (action.submit) {
+      await environment.settle();
+      if (
+        !element.isConnected ||
+        !("value" in element) ||
+        element.value !== action.text ||
+        documentIsBusy(element.ownerDocument)
+      )
+        return result(action, "blocked", environment.builder);
       const form = formInteraction(element, action)?.form;
       form?.requestSubmit();
-    }
+    } else expectedValue = action.text;
   } else if (action.type === "select") {
     const view = element.ownerDocument.defaultView;
     if (view !== null && element instanceof view.HTMLSelectElement) {
@@ -321,7 +339,12 @@ export async function executeAction(
       );
       if (option === undefined) status = "not_found";
       else {
-        element.value = option.value;
+        expectedValue = option.value;
+        Object.getOwnPropertyDescriptor(
+          view.HTMLSelectElement.prototype,
+          "value",
+        )?.set?.call(element, option.value);
+        element.dispatchEvent(new view.Event("input", { bubbles: true }));
         element.dispatchEvent(new view.Event("change", { bubbles: true }));
       }
     } else status = "not_found";
@@ -330,6 +353,14 @@ export async function executeAction(
   }
 
   await environment.settle();
+  if (
+    documentIsBusy(element.ownerDocument) ||
+    (expectedValue !== undefined &&
+      (!element.isConnected ||
+        !("value" in element) ||
+        element.value !== expectedValue))
+  )
+    status = "blocked";
   if (isCartSubmission) {
     const start = Date.now();
     while (

@@ -1,5 +1,8 @@
 /* global document, window, IntersectionObserver, setTimeout, Event */
-(() => {
+let disposeInteractions = () => {};
+function mountInteractions() {
+  disposeInteractions();
+  const cleanup = [];
   const filterDrawer = document.getElementById("filter-drawer");
   if (filterDrawer) {
     const media = window.matchMedia("(max-width: 600px)");
@@ -9,6 +12,7 @@
     };
     syncDrawer();
     media.addEventListener("change", syncDrawer);
+    cleanup.push(() => media.removeEventListener("change", syncDrawer));
   }
   const size = document.getElementById("product-size");
   const swatches = [...document.querySelectorAll("[data-size-swatch]")];
@@ -97,5 +101,9 @@
       if (entries.some((entry) => entry.isIntersecting)) revealNext();
     });
     observer.observe(loadMore);
+    cleanup.push(() => observer.disconnect());
   }
-})();
+  disposeInteractions = () => cleanup.forEach((dispose) => dispose());
+}
+mountInteractions();
+document.addEventListener("storefront:render", mountInteractions);
