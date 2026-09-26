@@ -16,7 +16,6 @@ from agent.confirmation import (
     validate_mutation_interpretation,
 )
 from agent.llm.intent import StructuredIntent
-from agent.navigation import is_deictic_cart_open
 from agent.planner import (
     ActionIdentity,
     Language,
@@ -338,7 +337,7 @@ class SessionStore:
                 raise TaskConflict("A Shopping Task is already active")
             self._append(session, "cancelled", {"task_id": session.active_task.task_id})
         previous_target = session.last_followup_target
-        followup_target = previous_target if is_deictic_cart_open(text) else None
+        followup_target = None
         session.last_followup_target = None
         resolved_state: dict[str, Any] = {
             "_original_message": text[:_CONTEXT_TEXT_LIMIT],
@@ -449,8 +448,8 @@ class SessionStore:
                 item.get("id") for item in allowed if isinstance(item, dict)
             }:
                 raise ValueError("Product was not among the verified recommendations")
-        if intent.intent == "cart_edit":
-            intent = validate_cart_intent(task.message, intent)
+        if intent.intent == "cart_edit" and not intent.needs_clarification:
+            intent = validate_cart_intent(task.message, intent, session.last_snapshot)
             task.cart_operation = intent.cart_operation
             if (
                 intent.cart_operation in {"quantity", "remove"}
@@ -790,6 +789,8 @@ class SessionStore:
         replace_active: bool = False,
         tab_id: str | None = None,
     ) -> ActiveTask:
+        from agent.navigation import is_deictic_cart_open
+
         scripted_mutation = scripted_mutation_intent(text) or scripted_cart_intent(text)
         if scripted_mutation is not None:
             task = self.begin_interpretation(
@@ -1137,6 +1138,16 @@ class SessionStore:
                     and urlsplit(action_result.snapshot.url).path == "/cart"
                 ):
                     intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
+                    if intent.v >= 8:
+                        # Navigation supplied the previously unavailable cart context.
+                        # Resolve a DOM target from this fresh snapshot before any edit.
+                        task.action = None
+                        task.cart_actions.clear()
+                        task.cart_operation = None
+                        task.status = "interpreting"
+                        task.model_call_id = f"call-{uuid4().hex}"
+                        self._touch(session)
+                        return task
                     task.cart_actions = plan_cart_edit(
                         intent, action_result.snapshot, task.task_id, task.step_count + 1
                     )

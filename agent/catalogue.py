@@ -174,7 +174,7 @@ def _verified_reason(product: CatalogueProduct, intent: StructuredIntent, arabic
         facts.append(("مقاس " if arabic else "size ") + str(constraints.size))
     for requirement in intent.catalogue_requirements:
         values = product.features if requirement.kind == "feature" else product.suitable_for
-        if requirement.value in values:
+        if not requirement.excluded and requirement.value in values:
             facts.append(_fact(requirement.value, arabic))
     if intent.request_mode == "recommend":
         facts.extend(_fact(value, arabic) for value in product.features[:2])
@@ -218,6 +218,12 @@ def _verified_reason(product: CatalogueProduct, intent: StructuredIntent, arabic
 
 def _display_unmet(code: str, arabic: bool) -> str:
     field, _, value = code.partition(": ")
+    if field == "excluded_unverified":
+        return (
+            f"غياب {_fact(value, True)} غير موثق؛ تحقق من خامة أو مواصفات المنتج"
+            if arabic
+            else f"Absence of {_fact(value, False)} is unverified; check the product specifications"
+        )
     if field == "color":
         return (
             f"اللون {_fact(value, True)} غير متاح لهذا المنتج"
@@ -268,7 +274,10 @@ def _unmet(product: CatalogueProduct, intent: StructuredIntent) -> tuple[str, ..
             misses.append(f"{field}: {value}")
     for requirement in intent.catalogue_requirements:
         actual = product.features if requirement.kind == "feature" else product.suitable_for
-        if requirement.value not in actual:
+        if requirement.excluded:
+            # Positive fact lists cannot establish an explicit negative claim.
+            misses.append(f"excluded_unverified: {requirement.value}")
+        elif requirement.value not in actual:
             misses.append(f"{requirement.kind}: {requirement.value}")
     if constraints.query is not None:
         searchable = " ".join(
@@ -392,12 +401,25 @@ def _diverse_style_candidates(
     return selected
 
 
+def _violates_exclusion(product: CatalogueProduct, intent: StructuredIntent) -> bool:
+    return any(
+        requirement.excluded
+        and requirement.value
+        in (product.features if requirement.kind == "feature" else product.suitable_for)
+        for requirement in intent.catalogue_requirements
+    )
+
+
 def evaluate_catalogue(catalogue: CatalogueSnapshot, intent: StructuredIntent) -> DiscoveryResult:
     if intent.intent != "find_products" or intent.needs_clarification:
         raise ValueError("Catalogue evaluation requires a complete discovery intent")
     if intent.constraints.availability == "unavailable":
         return DiscoveryResult(exact_count=0, suggestions=())
-    products = catalogue.validated_products()
+    products = [
+        product
+        for product in catalogue.validated_products()
+        if not _violates_exclusion(product, intent)
+    ]
     arabic = intent.language == "ar"
     category = intent.constraints.category
     if category is None:

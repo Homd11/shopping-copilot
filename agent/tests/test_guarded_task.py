@@ -261,7 +261,7 @@ def test_agent_api_registers_only_the_exact_shopper_confirmed_mutation() -> None
         create_app(
             llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
             llm_client=ScriptedLLMClient(
-                [[LLMChunk(text=json.dumps(clear_intent().model_dump(mode="json")))]]
+                [[LLMChunk(text=json.dumps({**clear_intent().model_dump(mode="json"), "v": 8}))]]
             ),
             confirmation_registrar=lambda *parts: registered.append(parts) or True,
         )
@@ -301,14 +301,3 @@ def test_scripted_browser_provider_can_exercise_the_real_confirmation_boundary()
 
     assert isinstance(task.action, AskShopperAction)
     assert task.action.kind == "confirmation"
-
-
-def test_session_boundary_refuses_negated_mutation_even_if_an_interpreter_claims_one() -> None:
-    store = SessionStore(clock=lambda: 100.0, confirmation_registrar=lambda *_: True)
-    session = store.create()
-    task = store.begin_interpretation(session.session_id, "Do not empty my cart", cart_snapshot())
-
-    with pytest.raises(ValueError):
-        store.finish_interpretation(
-            session.session_id, task.task_id, task.model_call_id or "", clear_intent()
-        )

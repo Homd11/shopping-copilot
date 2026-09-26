@@ -46,8 +46,11 @@ testing uses an explicitly configured model provider.
 ## Safety and recovery are part of the interaction
 
 The model interprets intent; its response does not directly authorize a browser action.
-Structured outputs pass local schema and semantic checks, and deterministic code
-plans and verifies the resulting action.
+The model interprets wording, negation and references using a sanitized current
+Snapshot. Runtime checks validate supported operations, observed target IDs,
+quantities, prices and confirmation; they do not re-parse shopper phrases.
+Deterministic code executes and verifies the resulting action. Product ranking
+and explanation templates remain deterministic in this controlled MVP.
 
 - **Restricted navigation:** the Bridge blocks off-origin navigation.
 - **Sensitive fields:** the Bridge excludes sensitive field values from page

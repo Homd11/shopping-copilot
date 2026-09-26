@@ -92,6 +92,7 @@ class IntentConstraints(IntentModel):
 
 
 class CatalogueRequirement(IntentModel):
+    excluded: bool = False
     kind: Literal["feature", "suitable_for"]
     value: str
     source: str
@@ -110,7 +111,7 @@ class OwnedItem(IntentModel):
 
 
 class StructuredIntent(IntentModel):
-    v: Literal[1, 2, 3, 4, 5, 6, 7]
+    v: Literal[1, 2, 3, 4, 5, 6, 7, 8]
     language: Language
     dialect: Dialect
     intent: IntentName
@@ -135,6 +136,7 @@ class StructuredIntent(IntentModel):
     cart_operation: Literal["add", "quantity", "remove", "undo"] | None = None
     cart_source: str | None = None
     cart_target: str | None = None
+    cart_target_id: int | None = Field(default=None, ge=1)
     cart_quantity: int | None = Field(default=None, ge=1, le=99)
 
     cart_quantity_mode: Literal["set", "increase", "decrease"] | None = None
@@ -162,18 +164,28 @@ class StructuredIntent(IntentModel):
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
         if self.intent == "cart_edit":
-            if self.v not in {5, 6, 7} or not self.cart_operation or not self.cart_source:
-                raise ValueError("Cart edit needs current sourced intent")
+            if self.v not in {5, 6, 7, 8} or not self.cart_operation:
+                raise ValueError("Cart edit needs a supported operation")
             if (
                 self.v >= 6
                 and self.cart_operation == "quantity"
                 and self.cart_quantity_mode is None
+                and not self.needs_clarification
             ):
                 raise ValueError("Quantity edits require an explicit mode")
             if self.cart_quantity_mode is not None and (
-                self.v < 6 or self.cart_operation != "quantity" or self.cart_quantity is None
+                self.v < 6
+                or self.cart_quantity is None
+                or not (
+                    self.cart_operation == "quantity"
+                    or (
+                        self.v >= 8
+                        and self.cart_operation == "add"
+                        and self.cart_quantity_mode == "set"
+                    )
+                )
             ):
-                raise ValueError("Quantity mode requires a v6 quantity edit")
+                raise ValueError("Quantity mode must match an explicit quantity operation")
             if any(
                 value is not None
                 for key, value in self.constraints.model_dump().items()
@@ -188,6 +200,7 @@ class StructuredIntent(IntentModel):
                 self.cart_operation,
                 self.cart_source,
                 self.cart_target,
+                self.cart_target_id,
                 self.cart_quantity,
                 self.cart_quantity_mode,
             )
@@ -196,9 +209,7 @@ class StructuredIntent(IntentModel):
         if self.intent == "mutate":
             if (
                 self.mutation_kind is None
-                or not self.mutation_source
                 or self.constraints != IntentConstraints()
-                or self.needs_clarification
                 or self.catalogue_requirements
                 or self.product_id is not None
             ):
@@ -247,8 +258,6 @@ class StructuredIntent(IntentModel):
             required_fields = {"min_price", "max_price"}
             if not required_fields.issubset(self.conflicting_fields):
                 raise ValueError("Conflicting prices must be reported as conflicting fields")
-        if self.needs_clarification and not (self.missing_fields or self.conflicting_fields):
-            raise ValueError("Clarification requires at least one missing or conflicting field")
         return self
 
 

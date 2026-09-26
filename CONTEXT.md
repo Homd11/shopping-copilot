@@ -97,15 +97,15 @@ An exact decimal amount paired with the ISO currency configured by the Storefron
 _Avoid_: Price number, floating-point amount
 
 **Intent Interpreter**:
-The Agent-side model boundary that converts one current Shopper message into a versioned, validated Intent and Constraints. It has no authority to select or execute an Action.
+The Agent-side model that interprets the Shopper's language using current Storefront observations and task context, including references, quantities, exclusions, and clarification. Its proposed operation and observed target do not authorize execution or replace Confirmation.
 _Avoid_: Brain, autonomous planner, action model
 
 **Structured Intent**:
-The versioned result of Intent interpretation: language, dialect, intent kind, canonical Constraints, browsing or recommendation goal, Owned Outfit Context, and clarification state.
+The versioned result of Intent interpretation: language, dialect, intent kind, canonical Constraints including exclusions, observed target, browsing or recommendation goal, Owned Outfit Context, and clarification state.
 _Avoid_: Raw model response, free-form plan
 
 **Intent Boundary**:
-The deterministic validation point between model output and Shopping Task planning. It rejects malformed output, unsupported Money, vocabulary values outside the Storefront Definition, and conversational-only outcomes before they can become Actions.
+The runtime validation point between model interpretation and Shopping Task execution. It checks supported capabilities, observed targets, bounds, freshness, and required Confirmation; it does not reinterpret Shopper wording or require particular phrases.
 _Avoid_: Model safety, implicit guardrail
 
 ## Project references

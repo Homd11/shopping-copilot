@@ -8,7 +8,6 @@ from uuid import uuid4
 
 from agent.product_reference import names_product
 from agent.schemas import Action, AskShopperAction, ClickAction, SelectAction, Snapshot, TypeAction
-from agent.storefront import load_storefront_definition
 
 if TYPE_CHECKING:
     from agent.llm.intent import StructuredIntent
@@ -21,122 +20,40 @@ MESSAGES = {
 }
 
 
-def validate_cart_intent(message: str, intent: StructuredIntent) -> StructuredIntent:
-    if not intent.cart_source or intent.cart_source.casefold() not in message.casefold():
-        raise ValueError("Cart edits require current Shopper source")
-    evidence = re.sub(r"[\u064b-\u065f\u0670\u0640]", "", message).replace("’", "'")
-    if re.search(
-        r"\b(?:not|never|don't|without)\b|(?:^|\s)(?:لا|مش|ما|مت)(?=\s|\w)", evidence, re.I
-    ):
-        raise ValueError("Negated cart edit")
-    cues = {
-        "add": r"\badd\b|ضيف|أضف|اضف|حط",
-        "quantity": (
-            r"quantity|change|set|increase|decrease|reduce|add|ضيف|كمية"
-            r"|خلي|غير|زود|زوّد|قلل|نقص"
-        ),
-        "remove": r"remove|delete|شيل|احذف|حذف",
-        "undo": r"undo|تراجع|رجع",
-    }
-    relative_request = (
-        intent.cart_operation == "quantity"
-        and intent.cart_quantity is not None
-        and bool(
-            re.search(
-                r"\b(?:want|need)\b|(?<!\w)(?:عايز(?:ة)?|عاوز(?:ة)?|محتاج(?:ة)?)(?!\w)",
-                evidence,
-                re.I,
-            )
-        )
-        and bool(re.search(r"\b(?:more|fewer|less)\b|كمان|زيادة|أقل|اقل", evidence, re.I))
-    )
-    if not relative_request and not re.search(
-        cues[intent.cart_operation], intent.cart_source, re.I
-    ):
-        raise ValueError("Cart operation needs an explicit request")
-    if intent.cart_target and not names_product(message, intent.cart_target):
-        raise ValueError("Cart target must be sourced from the Shopper")
-    normalized = message.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
-    colors = load_storefront_definition().vocabulary.colors
-    if intent.cart_operation == "add":
-        requested_colors = [
-            key
-            for key, terms in colors.items()
-            if any(
-                re.search(
-                    rf"(?:\bcolou?r\b|اللون|باللون|لونه)\s*(?:is\s+)?{re.escape(term)}(?!\w)",
-                    normalized,
-                    re.I,
-                )
-                for term in terms
-            )
-        ]
-        size = re.search(r"(?:\bsize\b|مقاس(?:ي)?)\s*([\w-]+)", normalized, re.I)
-        updates = {}
-        if len(requested_colors) > 1:
-            raise ValueError("Conflicting cart colors require clarification")
-        if requested_colors:
-            updates["color"] = requested_colors[0]
-        if size:
-            updates["size"] = size[1]
-        for field, value in updates.items():
-            if getattr(intent.constraints, field) not in {None, value}:
-                raise ValueError("Cart variant contradicts the Shopper")
-        intent = intent.model_copy(
-            update={"constraints": intent.constraints.model_copy(update=updates)}
-        )
-    for field, value in [("size", intent.constraints.size), ("color", intent.constraints.color)]:
-        terms = colors.get(value, (value,)) if field == "color" else (value,)
-        if value and not any(
-            re.search(rf"(?<!\w){re.escape(term)}(?!\w)", normalized, re.I) for term in terms
-        ):
-            raise ValueError("Cart variant must be explicitly requested")
-    if intent.cart_operation == "quantity":
-        mode = intent.cart_quantity_mode
-        absolute = bool(re.search(r"\bto\s+\d|(?:إلى|الى)\s*\d", normalized, re.I))
-        increase = bool(
-            re.search(r"\bmore\b|كمان|زيادة|\bincrease\b.*\bby\b|زود|زوّد", normalized, re.I)
-        )
-        decrease = bool(
-            re.search(
-                r"\b(?:decrease|reduce)\b.*\bby\b|\b(?:fewer|less)\b|قلل|نقص|أقل|اقل",
-                normalized,
-                re.I,
-            )
-        )
-        expected = (
-            "set" if absolute else "increase" if increase else "decrease" if decrease else None
-        )
-        if (intent.v >= 6 and mode is None) or (expected and (mode or "set") != expected):
-            raise ValueError("Relative quantity mode contradicts the Shopper")
-    if intent.cart_quantity_mode in {"increase", "decrease"}:
-        cue = (
-            r"increase|add|more|زود|زوّد|كمان|زيادة"
-            if intent.cart_quantity_mode == "increase"
-            else r"decrease|reduce|less|fewer|قلل|نقص|أقل|اقل"
-        )
-        if not re.search(cue, intent.cart_source, re.I):
-            raise ValueError("Relative quantity must be explicitly requested")
-    if intent.cart_quantity is not None:
-        digits = message.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
-        quantity_words = {
-            1: ("one", "واحد", "واحدة"),
-            2: ("two", "اتنين", "اثنين", "إتنين"),
-            3: ("three", "تلاتة", "ثلاثة"),
-            4: ("four", "اربعة", "أربعة"),
-            5: ("five", "خمسة"),
-        }
-        explicit_word = any(
-            re.search(
-                rf"(?<!\w){'ب?' if re.search('[ء-ي]', word) else ''}{word}(?!\w)",
-                message,
-                re.I,
-            )
-            for word in quantity_words.get(intent.cart_quantity, ())
-        )
-        if not explicit_word and not re.search(rf"(?<!\d){intent.cart_quantity}(?!\d)", digits):
-            raise ValueError("Cart quantity must be explicitly requested")
+CART_ROUTES = {
+    "add": "/cart/items",
+    "quantity": "/cart/quantity",
+    "remove": "/cart/remove",
+    "undo": "/cart/undo",
+}
 
+
+def validate_cart_intent(
+    message: str, intent: StructuredIntent, snapshot: Snapshot | None = None
+) -> StructuredIntent:
+    """Check executable capability, never reinterpret Shopper language."""
+    del message
+    if intent.cart_operation not in CART_ROUTES:
+        raise ValueError("Unsupported cart operation")
+    if intent.cart_quantity is not None and not 1 <= intent.cart_quantity <= 99:
+        raise ValueError("Quantity outside Storefront bounds")
+    if intent.cart_target_id is not None:
+        targets = (
+            []
+            if snapshot is None
+            else [
+                element
+                for element in snapshot.elements
+                if element.id == intent.cart_target_id
+                and element.visible
+                and not element.sensitive
+                and not element.disabled
+                and element.role == "button"
+                and element.form_action == CART_ROUTES[intent.cart_operation]
+            ]
+        )
+        if len(targets) != 1:
+            raise ValueError("Cart target is not an observed executable control")
     return intent
 
 
@@ -151,7 +68,9 @@ def plan_cart_edit(
         "undo": "/cart/undo",
     }[intent.cart_operation]
     buttons = [e for e in elements if e.role == "button" and e.form_action == route]
-    if intent.cart_target:
+    if intent.cart_target_id is not None:
+        buttons = [e for e in buttons if e.id == intent.cart_target_id]
+    elif intent.cart_target:
         if intent.cart_operation == "add":
             headings = [e.name.casefold() for e in elements if e.role == "heading"]
             if not any(names_product(name, intent.cart_target) for name in headings):
@@ -160,6 +79,8 @@ def plan_cart_edit(
             buttons = [
                 e for e in buttons if names_product(f"{e.name} {e.group or ''}", intent.cart_target)
             ]
+    if intent.v >= 8 and intent.cart_target_id is None:
+        buttons = []
     actions: list[Action] = []
 
     def base():

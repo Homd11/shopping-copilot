@@ -123,34 +123,10 @@ def classify_guarded_mutation(
 
 
 def validate_mutation_interpretation(message: str, intent: StructuredIntent) -> None:
-    """A model claim is never enough to authorize an explicit Shopper mutation."""
-    source = intent.mutation_source
-    if source is None or source.strip() == "" or source.casefold() not in message.casefold():
-        raise ValueError("Guarded Mutation needs an exact current Shopper source")
-    if re.search(
-        r"\b(?:not|never|don't|do\s+not|without)\b|(?:^|\s)(?:لا|مش|مات|ما)(?=\s|\w)",
-        message,
-        re.I,
-    ):
-        raise ValueError("Negated Shopper text cannot authorize a Guarded Mutation")
-    cues = {
-        "clear_cart": (
-            r"\b(?:empty|clear|delete|remove)\b|(?:فضي|فضّ|افرغ|إفراغ|امسح)|"
-            r"شيل\s+(?:الحاجة|الحاجات|المنتجات)\s+.*(?:كلها|كلهم)(?!\w)"
-        ),
-        "submit_checkout": r"\b(?:place|submit|confirm|complete)\b|(?:أكد|اكد|اتمم|إتمام|نفذ)",
-    }
-    object_cues = {
-        "clear_cart": r"\bcart\b|(?:السلة|سلة)",
-        "submit_checkout": r"\b(?:order|checkout)\b|(?:الطلب|طلب|الشراء)",
-    }
-    kind = intent.mutation_kind
-    if (
-        kind is None
-        or re.search(cues[kind], source, re.I) is None
-        or re.search(object_cues[kind], source, re.I) is None
-    ):
-        raise ValueError("Guarded Mutation source does not support its kind")
+    """Validate the proposed capability; only the bound Confirmation authorizes execution."""
+    del message
+    if intent.mutation_kind not in {"clear_cart", "submit_checkout"}:
+        raise ValueError("Unsupported Guarded Mutation")
 
 
 def scripted_mutation_intent(message: str) -> StructuredIntent | None:

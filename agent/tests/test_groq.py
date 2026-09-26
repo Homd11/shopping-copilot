@@ -32,7 +32,7 @@ def test_groq_client_uses_strict_structured_output_behind_the_llm_interface() ->
                         "message": {
                             "content": json.dumps(
                                 {
-                                    "v": 1,
+                                    "v": 8,
                                     "language": "en",
                                     "dialect": "english",
                                     "intent": "find_products",
