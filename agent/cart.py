@@ -107,18 +107,14 @@ def plan_cart_edit(
             else "I'll update the cart with an Undo option.",
         )
 
-    def handback():
-        text = (
-            "اختار المنتج والمقاس واللون من الصفحة، ثم اطلب التعديل مرة تانية."
-            if intent.language == "ar"
-            else "Choose the item, size and colour on the page, then request the change again."
-        )
+    def handback(ar: str, en: str, *, allow_answer: bool = False):
+        text = ar if intent.language == "ar" else en
         return [
             AskShopperAction(
-                **{**base(), "sequence_number": sequence},
+                **{**base(), "sequence_number": sequence, "narration": text},
                 type="ask_shopper",
                 question=text,
-                options=["Stop"],
+                options=[] if allow_answer and intent.v >= 8 else ["Stop"],
             )
         ]
 
@@ -131,19 +127,38 @@ def plan_cart_edit(
             ]
     unresolved = set(intent.missing_fields) - {"query", "product_id", "target", "size", "color"}
     if len(buttons) != 1 or intent.conflicting_fields or unresolved:
-        return handback()
+        return handback(
+            "لم أقدر أحدد منتجًا واحدًا مطابقًا للتعديل. تقصد أنهي منتج ومقاس ولون؟",
+            "I couldn't identify one matching item for this change. Which item, size and colour?",
+            allow_answer=True,
+        )
     if intent.cart_operation == "add":
         for name, desired in [
             ("المقاس", intent.constraints.size),
             ("اللون", intent.constraints.color),
         ]:
             controls = [e for e in elements if e.role == "combobox" and e.name == name]
-            if len(controls) != 1 or not (desired or controls[0].value):
-                return handback()
+            if len(controls) != 1:
+                return handback(
+                    "تعذر التحقق من اختيارات المنتج في الصفحة. أوقف المهمة وحدّث صفحة المنتج.",
+                    "I couldn't verify the option controls. Stop and refresh the product page.",
+                )
             control = controls[0]
+            if not (desired or control.value) or (
+                desired and desired not in (control.options or [])
+            ):
+                options = ", ".join(control.options or [])
+                if not options:
+                    return handback(
+                        "لا توجد اختيارات متاحة لهذا المنتج في الصفحة. أوقف المهمة وراجع المنتج.",
+                        "No product options are available on the page. Stop and check the product.",
+                    )
+                return handback(
+                    f"محتاج اختيارًا متاحًا لحقل {control.name}. المتاح: {options}. تختار إيه؟",
+                    f"Choose an available option for {control.name}: {options}. Which one?",
+                    allow_answer=True,
+                )
             if desired and desired != control.value:
-                if desired not in (control.options or []):
-                    return handback()
                 actions.append(SelectAction(**base(), type="select", id=control.id, option=desired))
     if intent.cart_operation in {"add", "quantity"} and intent.cart_quantity is not None:
         name = (
@@ -159,20 +174,30 @@ def plan_cart_edit(
             and (not buttons[0].group or e.group == buttons[0].group)
         ]
         if len(controls) != 1:
-            return handback()
+            return handback(
+                "تعذر تحديد حقل الكمية للمنتج. أوقف المهمة وحدّث الصفحة قبل المحاولة مجددًا.",
+                "I couldn't identify this item's quantity control. Stop and refresh the page.",
+            )
         quantity = intent.cart_quantity
         if intent.cart_quantity_mode in {"increase", "decrease"}:
             try:
                 current = int(controls[0].value or "")
             except ValueError:
-                return handback()
+                return handback(
+                    "تعذر قراءة الكمية الحالية. أوقف المهمة وحدّث السلة قبل المحاولة مجددًا.",
+                    "I couldn't read the current quantity. Stop and refresh the cart.",
+                )
             quantity = (
                 current + quantity
                 if intent.cart_quantity_mode == "increase"
                 else current - quantity
             )
         if not 1 <= quantity <= 99:
-            return handback()
+            return handback(
+                "التعديل سيجعل الكمية خارج المدى من 1 إلى 99. تحب تكون الكمية النهائية كام؟",
+                "The resulting quantity would be outside 1 to 99. What final quantity do you want?",
+                allow_answer=True,
+            )
         actions.append(
             TypeAction(
                 **base(),
@@ -183,7 +208,11 @@ def plan_cart_edit(
             )
         )
     elif intent.cart_operation == "quantity":
-        return handback()
+        return handback(
+            "تحب تكون الكمية النهائية كام؟ اختار عددًا صحيحًا من 1 إلى 99.",
+            "What final quantity would you like? Choose a whole number from 1 to 99.",
+            allow_answer=True,
+        )
     actions.append(ClickAction(**base(), type="click", id=buttons[0].id))
     return actions
 

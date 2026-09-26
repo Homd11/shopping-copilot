@@ -332,7 +332,7 @@ def test_english_task_completion_remains_in_english() -> None:
     events = parse_sse(client.get(f"/sessions/{session_id}/events?after=3&once=true").text)
     assert [event["event"] for event in events] == ["narration", "done"]
     assert events[0]["data"]["text"] == "The filters were applied successfully."
-    assert events[1]["data"]["summary"] == "Running shoes within your budget are now shown."
+    assert events[1]["data"]["summary"] == "Matching products are now shown."
 
 
 def test_other_discovery_tasks_use_a_generic_completion_summary() -> None:
