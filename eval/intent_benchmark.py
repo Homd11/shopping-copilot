@@ -308,6 +308,7 @@ async def score_case(
         ("request_mode", "browse"),
         ("owned_items", []),
         ("preferred_colors", []),
+        ("subjective_preferences", []),
         ("revised_fields", []),
     ):
         if field_name not in case.expected and actual.get(field_name) == default:

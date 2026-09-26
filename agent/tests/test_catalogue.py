@@ -172,6 +172,35 @@ def test_owned_black_trousers_produce_only_available_upper_body_styling() -> Non
     assert result.suggestions[0].label == "styling_suggestion"
 
 
+def test_recommendation_explains_verified_budget_and_never_claims_inferred_quality() -> None:
+    intent = StructuredIntent.model_validate(
+        {
+            "v": 7,
+            "language": "en",
+            "dialect": "english",
+            "intent": "find_products",
+            "constraints": {
+                "category": "shoes",
+                "product_type": "running",
+                "max_price": {"amount": "2000", "currency": "EGP"},
+            },
+            "missing_fields": [],
+            "needs_clarification": False,
+            "request_mode": "recommend",
+            "subjective_preferences": ["best"],
+        }
+    )
+    result = evaluate_catalogue(catalogue(), intent)
+    assert result.exact_count == 1
+    item = result.suggestions[0]
+    assert item.id == "road-runner"
+    assert "1750 EGP" in item.reason
+    assert "2000 EGP" in item.reason
+    assert "running shoe" in item.reason
+    assert "comfortable" not in item.reason
+    assert "best" not in item.reason
+
+
 def test_style_request_ranks_footwear_by_soft_colour_preference() -> None:
     intent = StructuredIntent.model_validate(
         {

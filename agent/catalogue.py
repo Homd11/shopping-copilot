@@ -176,6 +176,41 @@ def _verified_reason(product: CatalogueProduct, intent: StructuredIntent, arabic
         values = product.features if requirement.kind == "feature" else product.suitable_for
         if requirement.value in values:
             facts.append(_fact(requirement.value, arabic))
+    if intent.request_mode == "recommend":
+        facts.extend(_fact(value, arabic) for value in product.features[:2])
+        price = f"{product.price.amount} {product.price.currency}"
+        maximum = constraints.max_price
+        within_budget = (
+            maximum is not None and Decimal(product.price.amount) <= maximum.to_money().amount
+        )
+        price_reason = (
+            f"سعره {price}، ضمن ميزانيتك {maximum.amount} {maximum.currency}"
+            if arabic and within_budget
+            else f"At {price}, within your {maximum.amount} {maximum.currency} budget"
+            if within_budget
+            else f"سعره {price}"
+            if arabic
+            else f"Priced at {price}"
+        )
+        details = "، ".join(dict.fromkeys(facts)) if arabic else ", ".join(dict.fromkeys(facts))
+        intro = (
+            (
+                "اختيار يناسب الشروط التي حددتها"
+                if arabic
+                else "An option that meets your stated requirements"
+            )
+            if not _unmet(product, intent)
+            else (
+                "بديل للمقارنة؛ راجع الشروط غير المتحققة أدناه"
+                if arabic
+                else "An alternative to compare; check the unmet requirements below"
+            )
+        )
+        return f"{intro}. {price_reason}." + (
+            (f" موثق في المتجر: {details}." if arabic else f" Listed by the store: {details}.")
+            if details
+            else ""
+        )
     if not facts:
         return "منتج متاح في القسم المطلوب." if arabic else "Available in the requested category."
     return ("موثق: " if arabic else "Verified: ") + ", ".join(dict.fromkeys(facts)) + "."

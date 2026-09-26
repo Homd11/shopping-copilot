@@ -440,7 +440,7 @@ def test_live_intent_request_requires_schema_version_six():
         pending_clarification=None,
     )
 
-    assert request.response_schema["properties"]["v"] == {"const": 6, "type": "integer"}
+    assert request.response_schema["properties"]["v"] == {"const": 7, "type": "integer"}
 
 
 def test_v3_still_blocks_prompt_override_and_mixed_authority():

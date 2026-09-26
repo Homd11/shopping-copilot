@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-09-26
 
+## Soft preferences and chat redesign — 2026-09-26
+
+The owner confirmed that OpenRouter transcription works on the real device, then prioritized softer recommendation interpretation and chat usability before Ticket 14. Schema 7 / `intent-v17` separates optional subjective preferences from concrete requirements. Vague quality phrases no longer invent mandatory comfort or other product features. Discarding an invented requirement requires positively identified subjective wording; unsupported concrete or mixed phrases remain rejected. Explicit requirements, budgets, cart quantities and guarded authority stay validated. Recommendation explanations use verified catalogue facts, prices, and honest alternatives, with no extra model call. Two bounded live interpretations passed for the owner's exact vague football-shoe request and an explicit comfort request; this is not a claim that every paraphrase will succeed.
+
+The Panel now uses a blue and white Arabic-first layout with independent conversation scrolling, a persistent composer and Stop, clearer suggestion/confirmation cards, and editable starter prompts. Long histories cannot stretch the page or move the Storefront. Mobile keeps both surfaces reachable; short phones allocate extra chat space. New recommendations follow a reader at the bottom without interrupting someone reading older messages. Retry and takeover focus their visible controls. Voice recording disclosure and editable transcription are preserved.
+
+Verification: **148 TypeScript + 402 Python = 550 tests passed**. Repository-wide Prettier, ESLint, Ruff lint/format, Panel typechecking, and all builds passed. The initial full Python run exposed two benchmark expectation mismatches from the new empty optional field; default normalization fixed them, and the final clean 402-test run passed. Actual browser regressions cover long desktop/mobile conversations, recording controls, recommendations followed by completion, and Retry visibility. Independent Standards and Spec review findings were addressed; the focused follow-up found no remaining actionable defect. See `docs/superpowers/plans/2026-09-26-soft-preferences-chat.md`.
+
+**Ticket 14 remains next and is not implemented by this change.** Broad refactors remain deferred. The existing $0.75 non-resetting key cap and local credentials are unchanged. Native select/custom-dropdown interactions are supported, but generic discovery of a hidden cart/account link inside an unfamiliar settings menu is not yet implemented; locate currently requires a visible link.
+
 ## Ticket 13 manual-acceptance repairs — 2026-09-26
 
 The owner's `عايز كوتشي للجري` follow-up exposed a model-added `daily_workouts` Catalogue Requirement sourced only from `للجري`. Validation now drops that one unsupported guess while retaining explicitly requested daily workouts and rejecting unanchored daily requirements. Prompt `intent-v16` states the distinction. Three live OpenRouter interpretations of the original follow-up passed; the deterministic safety regressions passed for both `للجري` and the owner's exact `عايز كوتشي جري`. That exact request also completed in a fresh live browser session against the running Agent.

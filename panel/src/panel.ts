@@ -390,6 +390,10 @@ export class PanelController {
     const conversation =
       this.#root.querySelector<HTMLOListElement>("#conversation");
     conversation?.replaceChildren();
+    const welcome = this.#root.querySelector<HTMLElement>(
+      "#conversation-welcome",
+    );
+    if (welcome) welcome.hidden = state.conversation.length > 0;
     this.#root
       .querySelector<HTMLElement>("#pending-question")
       ?.replaceChildren();
@@ -441,6 +445,7 @@ export class PanelController {
       });
     });
     container.replaceChildren(button);
+    button.focus();
   }
 
   #receiveAgent(event: AgentEvent): void {
@@ -514,32 +519,57 @@ export class PanelController {
       );
     });
     container.replaceChildren(button);
+    button.focus();
   }
 
   #render(): void {
     this.#root.innerHTML = `
       <section class="copilot-panel" aria-labelledby="copilot-title" dir="rtl">
         <header class="panel-header">
-          <div>
-            <p class="store-mark">دليلك في المتجر</p>
-            <h1 id="copilot-title">مساعد التسوّق</h1>
+          <div class="panel-identity">
+            <span class="copilot-mark" aria-hidden="true">م</span>
+            <div><h1 id="copilot-title">مساعد التسوّق</h1>
+            <p class="store-mark">ابحث، قارن، واختر براحتك</p></div>
           </div>
           <button id="stop-task" class="stop-button" type="button">إيقاف</button>
         </header>
         <div id="task-status" class="status-ribbon" role="status" aria-live="polite">جاري الاتصال…</div>
+        <div id="chat-scroll" class="chat-scroll" tabindex="0" aria-label="سجل المحادثة والاقتراحات">
+        <div id="conversation-welcome" class="conversation-welcome">
+          <span class="welcome-mark" aria-hidden="true">م</span>
+          <h2>إيه اللي بتدور عليه؟</h2>
+          <p>قولّي محتاج إيه وميزانيتك،<br>ونشوف الاختيارات المناسبة سوا.</p>
+          <div class="example-requests">
+            <button type="button" data-example="عايز كوتشي كورة تحت 2000 جنيه">كوتشي في حدود ميزانيتي</button>
+            <button type="button" data-example="افتح السلة">افتح السلة</button>
+          </div>
+        </div>
         <ol id="conversation" class="conversation" aria-label="المحادثة"></ol>
         <section id="suggestions" class="suggestions" aria-label="اقتراحات المنتجات" aria-live="polite"></section>
         <div id="pending-question"></div>
+        </div>
         <form class="message-form">
           <label for="shopper-message">ماذا تبحث عنه؟</label>
           <div class="speech-controls"><label for="speech-language">لغة الكلام</label><select id="speech-language"><option value="ar-EG">العربية المصرية</option><option value="en-US">English</option></select><button id="speech-input" type="button" aria-label="ابدأ الإدخال الصوتي" aria-pressed="false">🎙 إدخال صوتي</button></div>
           <div id="speech-fallback-area" hidden><button id="speech-fallback" type="button" aria-pressed="false">🎙 تسجيل قصير عبر OpenRouter</button><p>بالضغط على الزر، يُرسل تسجيل صوتي (حتى 10 ثوانٍ) إلى OpenRouter للتفريغ. راجع النص قبل إرساله.</p></div>
           <div class="input-row">
-            <input id="shopper-message" name="message" autocomplete="off" required disabled />
-            <button type="submit">إرسال</button>
+            <input id="shopper-message" name="message" placeholder="اكتب طلبك هنا…" autocomplete="off" required disabled />
+            <button type="submit" disabled>إرسال</button>
           </div>
         </form>
       </section>`;
+
+    this.#root
+      .querySelectorAll<HTMLButtonElement>("[data-example]")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          const input =
+            this.#root.querySelector<HTMLInputElement>("#shopper-message");
+          if (!input || input.disabled) return;
+          input.value = button.dataset.example ?? "";
+          input.focus();
+        });
+      });
 
     this.#root
       .querySelector<HTMLFormElement>("form")
@@ -884,6 +914,10 @@ export class PanelController {
   #renderSuggestions(result: SuggestionResult | null): void {
     const container = this.#root.querySelector<HTMLElement>("#suggestions");
     if (container === null) return;
+    const scroll = this.#root.querySelector<HTMLElement>("#chat-scroll");
+    const follow =
+      scroll !== null &&
+      scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 100;
     container.replaceChildren();
     if (result === null) return;
     for (const suggestion of result.suggestions) {
@@ -901,8 +935,10 @@ export class PanelController {
       const title = this.#root.ownerDocument.createElement("h2");
       title.textContent = suggestion.name;
       const price = this.#root.ownerDocument.createElement("p");
+      price.className = "suggestion-price";
       price.textContent = `${suggestion.price} ${suggestion.currency}`;
       const reason = this.#root.ownerDocument.createElement("p");
+      reason.className = "suggestion-reason";
       reason.textContent = suggestion.reason;
       article.append(label, title, price, reason);
       if (suggestion.unmet.length > 0) {
@@ -911,6 +947,11 @@ export class PanelController {
         article.append(unmet);
       }
       container.append(article);
+    }
+    if (scroll && follow && container.firstElementChild) {
+      scroll.scrollTop +=
+        container.getBoundingClientRect().top -
+        scroll.getBoundingClientRect().top;
     }
   }
 
@@ -928,6 +969,9 @@ export class PanelController {
     const input =
       this.#root.querySelector<HTMLInputElement>("#shopper-message");
     if (input !== null) input.disabled = !enabled;
+    const send =
+      this.#root.querySelector<HTMLButtonElement>(".input-row button");
+    if (send !== null) send.disabled = !enabled;
     const speech = this.#root.querySelector<HTMLButtonElement>("#speech-input");
     if (speech !== null && !speech.title) speech.disabled = !enabled;
   }
@@ -936,9 +980,40 @@ export class PanelController {
     const conversation =
       this.#root.querySelector<HTMLOListElement>("#conversation");
     if (conversation === null) return;
+    const scroll = this.#root.querySelector<HTMLElement>("#chat-scroll");
+    const follow =
+      scroll !== null &&
+      scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 100;
+    const firstSuggestion =
+      this.#root.querySelector<HTMLElement>(".suggestion-card");
+    const suggestionOffset =
+      scroll && firstSuggestion
+        ? firstSuggestion.getBoundingClientRect().top -
+          scroll.getBoundingClientRect().top
+        : undefined;
+    const welcome = this.#root.querySelector<HTMLElement>(
+      "#conversation-welcome",
+    );
+    if (welcome) welcome.hidden = true;
     const item = this.#root.ownerDocument.createElement("li");
     item.className = `message message-${role}`;
     item.textContent = message;
     conversation.append(item);
+    if (
+      scroll &&
+      role === "copilot" &&
+      firstSuggestion &&
+      suggestionOffset !== undefined &&
+      suggestionOffset >= 0 &&
+      suggestionOffset < scroll.clientHeight
+    ) {
+      // Keep the first recommendation visible when the completion summary is inserted above it.
+      scroll.scrollTop +=
+        firstSuggestion.getBoundingClientRect().top -
+        scroll.getBoundingClientRect().top -
+        suggestionOffset;
+    } else if (scroll && (follow || role === "shopper")) {
+      scroll.scrollTop = scroll.scrollHeight;
+    }
   }
 }

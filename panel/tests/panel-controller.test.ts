@@ -188,6 +188,32 @@ function setup(options?: {
 }
 
 describe("PanelController", () => {
+  it("fills an editable example without sending and hides the welcome after submission", async () => {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    context.root.querySelector<HTMLButtonElement>("[data-example]")!.click();
+    const input =
+      context.root.querySelector<HTMLInputElement>("#shopper-message")!;
+    expect(input.value).toBe("عايز كوتشي كورة تحت 2000 جنيه");
+    expect(context.submitted).toHaveLength(0);
+    expect(context.dom.window.document.activeElement).toBe(input);
+    context.root.querySelector<HTMLButtonElement>(".input-row button")!.click();
+    expect(context.submitted).toHaveLength(1);
+    expect(
+      context.root.querySelector<HTMLElement>("#conversation-welcome")!.hidden,
+    ).toBe(true);
+    expect(
+      context.root.querySelector<HTMLButtonElement>(".input-row button")!
+        .disabled,
+    ).toBe(true);
+    context.emit({ type: "done", data: { summary: "Done", language: "en" } });
+    expect(
+      context.root.querySelector<HTMLButtonElement>(".input-row button")!
+        .disabled,
+    ).toBe(false);
+  });
+
   it("shows labelled grounded suggestions and restores them without a browser Action", async () => {
     const suggestions = {
       exact_count: 0,

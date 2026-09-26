@@ -110,7 +110,7 @@ class OwnedItem(IntentModel):
 
 
 class StructuredIntent(IntentModel):
-    v: Literal[1, 2, 3, 4, 5, 6]
+    v: Literal[1, 2, 3, 4, 5, 6, 7]
     language: Language
     dialect: Dialect
     intent: IntentName
@@ -125,6 +125,7 @@ class StructuredIntent(IntentModel):
     request_mode: Literal["browse", "recommend", "style"] = "browse"
     owned_items: list[OwnedItem] = Field(default_factory=list, max_length=6)
     preferred_colors: list[str] = Field(default_factory=list, max_length=6)
+    subjective_preferences: list[str] = Field(default_factory=list, max_length=6)
     navigation_source: str | None = None
     product_id: str | None = None
     revised_fields: list[RevisionField] = Field(default_factory=list)
@@ -138,6 +139,19 @@ class StructuredIntent(IntentModel):
 
     cart_quantity_mode: Literal["set", "increase", "decrease"] | None = None
 
+    @field_validator("subjective_preferences", mode="before")
+    @classmethod
+    def optional_preferences_do_not_invalidate_the_request(cls, value: object) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        return list(
+            dict.fromkeys(
+                item.strip()
+                for item in value
+                if isinstance(item, str) and 0 < len(item.strip()) <= 120
+            )
+        )[:6]
+
     @property
     def context_items(self) -> list[OwnedItem]:
         items = list(self.owned_items)
@@ -148,16 +162,16 @@ class StructuredIntent(IntentModel):
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
         if self.intent == "cart_edit":
-            if self.v not in {5, 6} or not self.cart_operation or not self.cart_source:
+            if self.v not in {5, 6, 7} or not self.cart_operation or not self.cart_source:
                 raise ValueError("Cart edit needs current sourced intent")
             if (
-                self.v == 6
+                self.v >= 6
                 and self.cart_operation == "quantity"
                 and self.cart_quantity_mode is None
             ):
                 raise ValueError("Quantity edits require an explicit mode")
             if self.cart_quantity_mode is not None and (
-                self.v != 6 or self.cart_operation != "quantity" or self.cart_quantity is None
+                self.v < 6 or self.cart_operation != "quantity" or self.cart_quantity is None
             ):
                 raise ValueError("Quantity mode requires a v6 quantity edit")
             if any(
@@ -191,6 +205,8 @@ class StructuredIntent(IntentModel):
                 raise ValueError("Mutation intent must be explicit and isolated")
         elif self.mutation_kind is not None or self.mutation_source is not None:
             raise ValueError("Only a mutation intent may carry mutation authority")
+        if self.intent != "find_products":
+            self.subjective_preferences = []
         discovery_fields = (
             "category",
             "query",

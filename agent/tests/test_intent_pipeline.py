@@ -133,6 +133,122 @@ def test_named_page_request_with_new_colour_does_not_discard_the_constraint() ->
 
 
 @pytest.mark.parametrize(
+    ("message", "preference"),
+    [
+        ("كنت عايز اجيب كتشي كورة يكون كويس كده تحت الالفين جنيه.", "كويس كده"),
+        ("I want nice football shoes under 2000 EGP", "nice"),
+        ("3ayez kotshi kora ykoon 7elw", "7elw"),
+    ],
+)
+def test_subjective_advice_does_not_invent_a_hard_feature(message: str, preference: str) -> None:
+    payload = {
+        "v": 7,
+        "language": "ar",
+        "dialect": "egyptian_arabic",
+        "intent": "find_products",
+        "constraints": {"category": "shoes", "product_type": "football"},
+        "missing_fields": [],
+        "needs_clarification": False,
+        "subjective_preferences": [preference],
+        "catalogue_requirements": [
+            {"kind": "feature", "value": "comfortable", "source": preference}
+        ],
+    }
+    if "2000" in message or "الالفين" in message:
+        payload["constraints"]["max_price"] = {"amount": "2000", "currency": "EGP"}
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload, ensure_ascii=False))]]),
+            message,
+            storefront=load_storefront_definition(),
+            resolved_state={},
+            pending_clarification=None,
+        )
+    )
+    assert not intent.needs_clarification
+    assert intent.request_mode == "recommend"
+    assert intent.catalogue_requirements == []
+    assert intent.constraints.product_type == "football"
+    assert intent.subjective_preferences == [preference]
+
+
+def test_soft_metadata_cannot_weaken_explicit_comfort_or_budget() -> None:
+    payload = {
+        "v": 7,
+        "language": "en",
+        "dialect": "english",
+        "intent": "find_products",
+        "constraints": {"category": "shoes", "max_price": {"amount": "2000", "currency": "EGP"}},
+        "missing_fields": [],
+        "needs_clarification": False,
+        "subjective_preferences": ["comfortable", "nice", "2000 EGP", "not in request"],
+        "catalogue_requirements": [],
+    }
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
+            "I need nice comfortable shoes under 2000 EGP",
+            storefront=load_storefront_definition(),
+            resolved_state={},
+            pending_clarification=None,
+        )
+    )
+    assert intent.subjective_preferences == ["nice"]
+    assert [item.value for item in intent.catalogue_requirements] == ["comfortable"]
+    assert intent.constraints.max_price.amount == "2000"
+
+
+@pytest.mark.parametrize("source", ["waterproof", "nice waterproof", "كويس ومقاوم للماء"])
+def test_subjective_metadata_cannot_erase_an_unknown_concrete_requirement(source: str) -> None:
+    payload = {
+        "v": 7,
+        "language": "en",
+        "dialect": "english",
+        "intent": "find_products",
+        "constraints": {"category": "shoes", "product_type": "football"},
+        "missing_fields": [],
+        "needs_clarification": False,
+        "subjective_preferences": [source],
+        "catalogue_requirements": [{"kind": "feature", "value": "comfortable", "source": source}],
+    }
+    with pytest.raises(ValueError, match="source does not support"):
+        asyncio.run(
+            interpret_message(
+                ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
+                f"I want {source} football shoes",
+                storefront=load_storefront_definition(),
+                resolved_state={},
+                pending_clarification=None,
+            )
+        )
+
+
+def test_optional_preference_format_does_not_cancel_verified_discovery() -> None:
+    payload = {
+        "v": 7,
+        "language": "en",
+        "dialect": "english",
+        "intent": "find_products",
+        "constraints": {"category": "shoes"},
+        "missing_fields": [],
+        "needs_clarification": False,
+        "request_mode": "recommend",
+        "subjective_preferences": {"advice": "best ever"},
+    }
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]]),
+            "Recommend shoes",
+            storefront=load_storefront_definition(),
+            resolved_state={},
+            pending_clarification=None,
+        )
+    )
+    assert intent.subjective_preferences == []
+    assert intent.request_mode == "recommend"
+
+
+@pytest.mark.parametrize(
     ("message", "source"),
     [("عايز كوتشي للجري", "للجري"), ("عايز كوتشي جري", "جري")],
 )
@@ -299,7 +415,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert "EGP" in request.system
     assert "Return exactly one StructuredIntent JSON object" in request.system
     assert "Do not repeat the input context" in request.system
-    assert "v=6" in request.system
+    assert "v=7" in request.system
     assert '"product_type"' in request.system
     assert '"max_price":{"amount":"2500","currency":"EGP"}' in request.system
     assert "Never infer an unspecified constraint" in request.system
@@ -321,9 +437,9 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert context["navigation_destinations"]["orders"]["route"] == "/account/orders"
     assert request.response_schema is not None
-    assert request.prompt_version == "intent-v16"
-    assert request.schema_version == 6
-    assert request.response_schema["properties"]["v"]["const"] == 6
+    assert request.prompt_version == "intent-v17"
+    assert request.schema_version == 7
+    assert request.response_schema["properties"]["v"]["const"] == 7
 
 
 def test_wedding_request_cannot_silently_drop_formality_leather_or_price_preference() -> None:
