@@ -1,4 +1,5 @@
 import { executeAction } from "./actions.js";
+import { recordEvaluationTiming } from "./evaluation-metrics.js";
 import { SnapshotBuilder, type SnapshotBuilderOptions } from "./snapshot.js";
 import { parseAction, type Action, type ActionResult } from "./types.js";
 import {
@@ -183,7 +184,9 @@ export class BridgeRuntime {
       if (!this.#stopObserving || documentIsBusy(this.#options.document))
         return;
       const snapshot = this.#builder.build();
+      const serializationStarted = performance.now();
       const serialized = JSON.stringify(snapshot);
+      recordEvaluationTiming("snapshot_serialization", serializationStarted);
       if (serialized !== this.#lastSnapshot) {
         this.#lastSnapshot = serialized;
         this.#options.post({ type: "snapshot", snapshot });
@@ -230,6 +233,8 @@ export class BridgeRuntime {
     let navigationStarted = false;
     const beforeUrl = this.#options.currentUrl();
     const beforeRevision = this.#routeRevision;
+    const executionStarted = performance.now();
+    let settleMs = 0;
     const result = await executeAction(action, {
       builder: this.#builder,
       currentUrl: this.#options.currentUrl,
@@ -249,9 +254,23 @@ export class BridgeRuntime {
           JSON.stringify(confirmed),
         );
       },
-      settle:
-        this.#options.settle ?? (() => settleDocument(this.#options.document)),
+      settle: async () => {
+        const started = performance.now();
+        try {
+          await (
+            this.#options.settle ??
+            (() => settleDocument(this.#options.document))
+          )();
+        } finally {
+          settleMs += performance.now() - started;
+          recordEvaluationTiming("settle", started);
+        }
+      },
     });
+    recordEvaluationTiming(
+      "action_execute_excluding_settle",
+      executionStarted + settleMs,
+    );
     if (action.type === "navigate" && result.status === "blocked") {
       this.#options.storage.removeItem(PENDING_NAVIGATION_KEY);
       navigationStarted = false;

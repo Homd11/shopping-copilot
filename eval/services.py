@@ -1,5 +1,6 @@
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -81,11 +82,22 @@ def _wait_for(url: str, timeout_seconds: float = 20) -> None:
 
 
 @contextmanager
-def local_services(*, real_model: bool = False, test_clock: bool = False) -> Iterator[None]:
+def local_services(
+    *,
+    real_model: bool = False,
+    test_clock: bool = False,
+    agent_app: str = "agent.app:app",
+) -> Iterator[None]:
     pnpm = _pnpm_command()
     node = shutil.which("node")
     if node is None:
         raise RuntimeError("Node.js is required to run the local browser evaluation")
+    for port in (4000, 4100, 8000):
+        with socket.socket() as probe:
+            if probe.connect_ex(("127.0.0.1", port)) == 0:
+                raise RuntimeError(
+                    f"Evaluation port {port} is occupied; refusing to reset another service"
+                )
     subprocess.run(  # noqa: S603 - fixed local command without a shell
         [pnpm, "--filter", "@shopping-copilot/bridge", "build"],
         cwd=ROOT,
@@ -93,6 +105,7 @@ def local_services(*, real_model: bool = False, test_clock: bool = False) -> Ite
     )
     creation_flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     commands = service_commands(Path(node))
+    commands[0][3] = agent_app
     environment = service_environment(real_model=real_model, test_clock=test_clock)
     processes = [
         subprocess.Popen(  # noqa: S603 - fixed local commands without a shell
@@ -109,6 +122,8 @@ def local_services(*, real_model: bool = False, test_clock: bool = False) -> Ite
         _wait_for("http://127.0.0.1:8000/health")
         _wait_for("http://127.0.0.1:4000/")
         _wait_for("http://127.0.0.1:4100/")
+        if any(process.poll() is not None for process in processes):
+            raise RuntimeError("An evaluation service exited during startup")
         yield
     finally:
         for process in processes:

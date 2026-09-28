@@ -1,5 +1,6 @@
 import asyncio
 import json
+from dataclasses import replace
 
 import httpx
 import pytest
@@ -34,6 +35,45 @@ def settings():
             "OPENROUTER_API_KEY": "test-secret",
         }
     )
+
+
+@pytest.mark.parametrize("terminal", ["stop", "length", "error", None])
+def test_stream_is_buffered_until_complete_validation_and_records_first_content(terminal):
+    def handler(request):
+        if request.url.path.endswith("/key"):
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "limit": 0.25,
+                        "limit_remaining": 0.25,
+                        "limit_reset": None,
+                    }
+                },
+            )
+        assert json.loads(request.content)["stream"] is True
+        chunks = [
+            {"choices": [{"delta": {"role": "assistant"}}]},
+            {"choices": [{"delta": {"content": '{"ok":'}}]},
+            {"choices": [{"delta": {"content": "true}"}, "finish_reason": terminal}]},
+            {"choices": [], "usage": {"cost": 0.001, "prompt_tokens": 2, "completion_tokens": 3}},
+        ]
+        content = ": keepalive\n\n" + "".join("data: " + json.dumps(c) + "\n\n" for c in chunks)
+        content += "data: [DONE]\n\n"
+        return httpx.Response(200, text=content)
+
+    client = OpenRouterClient(
+        replace(settings(), stream=True), transport=httpx.MockTransport(handler)
+    )
+    if terminal == "stop":
+        assert collect(client) == ['{"ok":true}']
+        assert client.call_metadata[-1].ttft_ms is not None
+        assert client.call_metadata[-1].usage["cost"] == 0.001
+    else:
+        with pytest.raises(ValueError):
+            collect(client)
+        assert client.call_metadata[-1].ttft_ms is not None
+        assert client.call_metadata[-1].usage["cost"] == 0.001
 
 
 def test_bounded_openrouter_request_validates_output_and_records_cost():

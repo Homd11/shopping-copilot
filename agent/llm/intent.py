@@ -80,7 +80,15 @@ class IntentMoney(IntentModel):
 
 
 class IntentConstraints(IntentModel):
-    category: str | None = None
+    category: str | None = Field(
+        default=None,
+        description=(
+            "Catalogue category key. Required for a completed find_products decision, "
+            "including browsing a section or filtering by product_type. "
+            "Resolve from the request and catalogue categories; if genuinely ambiguous, "
+            "set needs_clarification=true and missing_fields=['category']."
+        ),
+    )
     query: str | None = None
     product_type: str | None = None
     min_price: IntentMoney | None = None
@@ -134,7 +142,14 @@ class StructuredIntent(IntentModel):
     revision_source: str | None = None
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
     mutation_source: str | None = None
-    cart_operation: Literal["add", "quantity", "remove", "undo"] | None = None
+    cart_operation: Literal["add", "quantity", "remove", "undo"] | None = Field(
+        default=None,
+        description=(
+            "Cart capability: add a product, change quantity of an existing line, remove a "
+            "line, or undo. Every increase, decrease, or final quantity change uses operation "
+            "quantity; its direction belongs in cart_quantity_mode, not this field."
+        ),
+    )
     cart_source: str | None = None
     cart_target: str | None = None
     cart_target_id: int | None = Field(
