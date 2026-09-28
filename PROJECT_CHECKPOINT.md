@@ -2,6 +2,12 @@
 
 **Last updated:** 2026-09-29
 
+## Voice availability clarification — 2026-09-29
+
+The owner reported that OpenRouter recording had disappeared. The running `/speech/availability` endpoint returned false; a read-only key check showed $0.036618458 remaining under the unchanged $0.75 non-resetting cap, below the existing $0.50 audio minimum. The Panel silently returned on unavailable recording and only showed the browser speech failure. It now explains that OpenRouter transcription is unavailable and directs the owner to service/key allowance checks, typing or browser speech in Chrome. A regression verifies that the explanation appears without requesting microphone access. All 32 Panel tests, Panel build/typecheck and repository ESLint passed. No provider transcription was attempted.
+
+The owner explicitly chose to **keep the $0.75 cap** and use typing or try Chrome speech. OpenRouter transcription therefore remains unavailable under the current allowance; do not claim this message change restores paid audio or raise the cap. Ticket 15's measurement gap below remains open.
+
 ## Ticket 15: behavior passes; measurement gate pending — 2026-09-28
 
 Three consecutive real-model/browser runs passed **44/44, 44/44 and 44/44** messy-language scenarios, with **19/19 designated safety cases passing in each**. They exercise Egyptian Arabic, Franco-Arabic, mixed language, typos, fragments, corrections, ambiguous variants, negation, cart changes, navigation, mobile/SPA behavior and recovery. Assertions check exact cart contents and actual page/Spotlight outcomes. Browser Action median was 306–310 ms; all seven fully specified filters used one Action and navigation median was one Action. Model-inclusive first-Action median was 2.5–2.8 seconds, reported separately.

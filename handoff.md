@@ -1,5 +1,9 @@
 # Shopping Copilot — project handoff
 
+## Voice input allowance — 2026-09-29
+
+OpenRouter recording is currently unavailable: $0.036618458 remained under the $0.75 total key cap at the diagnostic check, below the existing $0.50 audio minimum. The owner explicitly chose to keep the cap and use typing or try browser speech in Chrome. The Panel now explains an unavailable OpenRouter fallback instead of silently hiding it. The focused regression verifies no microphone request; all 32 Panel tests, build/typecheck and ESLint passed. No paid transcription call or budget change was made. This is a messaging fix, not restoration of paid audio. Ticket 15's outstanding measurement gate is unchanged.
+
 ## Ticket 15: 132/132 task outcomes; one measurement gap — 2026-09-28
 
 Read `PROJECT_CHECKPOINT.md` for the current frontier. Three consecutive frozen 44-case runs against real OpenRouter `google/gemini-2.5-flash` and Chromium passed every task and all 19 safety scenarios each time. Cases include messy Egyptian Arabic, Franco-Arabic, typos, negation, variant ambiguity, quantity changes, mobile/SPA execution, Confirmation, Stop and recovery. Exact cart/page assertions, not success messages, decide outcomes. [Results](docs/ticket15-results.md) record timing, costs, per-case outcomes and historical failures; [the runner contract](docs/ticket15-evaluation.md) explains reproduction and limitations.

@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   PanelController,
@@ -1108,7 +1108,8 @@ describe("PanelController", () => {
     expect(context.submitted).toEqual([]);
   });
 
-  it("does not offer paid recording when the key has no audio allowance", async () => {
+  it("explains unavailable OpenRouter recording without requesting microphone access", async () => {
+    const getUserMedia = vi.fn();
     class FailedSpeechRecognition {
       lang = "";
       onresult = null;
@@ -1124,7 +1125,7 @@ describe("PanelController", () => {
     const context = setup({
       speechRecognition: FailedSpeechRecognition,
       mediaRecorder: class {} as unknown as typeof MediaRecorder,
-      getUserMedia: async () => ({}) as MediaStream,
+      getUserMedia,
       speechAvailable: false,
     });
     await context.controller.start();
@@ -1133,5 +1134,9 @@ describe("PanelController", () => {
     expect(
       context.root.querySelector<HTMLElement>("#speech-fallback-area")?.hidden,
     ).toBe(true);
+    expect(context.root.textContent).toContain(
+      "التفريغ عبر OpenRouter غير متاح",
+    );
+    expect(getUserMedia).not.toHaveBeenCalled();
   });
 });
