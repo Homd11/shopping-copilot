@@ -65,6 +65,71 @@ def test_safe_ambiguity_does_not_require_a_redundant_field_label():
     assert action.type == "ask_shopper"
 
 
+def test_unresolved_discovery_category_asks_instead_of_entering_catalogue_evaluation():
+    payload = dict(
+        v=8,
+        language="en",
+        dialect="english",
+        intent="find_products",
+        constraints={"product_type": "running"},
+        request_mode="recommend",
+        missing_fields=[],
+        needs_clarification=False,
+    )
+    intent = asyncio.run(
+        interpret_message(
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(payload))]] * 2),
+            "the running section please",
+            storefront=load_storefront_definition(),
+            resolved_state={},
+            pending_clarification=None,
+        )
+    )
+    assert intent.needs_clarification
+    assert intent.missing_fields == ["category"]
+    assert intent.constraints.category is None
+
+
+@pytest.mark.parametrize(
+    "bad_field,bad_value,expected_feedback",
+    [
+        ("cart_operation", "decrease", "cart_operation"),
+        ("cart_target_id", 10, "13"),
+    ],
+)
+def test_model_repair_receives_specific_schema_or_observed_target_feedback(
+    bad_field, bad_value, expected_feedback
+):
+    payload = quantity_payload("change the quantity", None)
+    payload.update(v=8, cart_target_id=13)
+    invalid = {**payload, bad_field: bad_value}
+    requests = []
+
+    class Client:
+        async def complete(self, request):
+            requests.append(request)
+            if len(requests) == 2:
+                feedback = request.system.split("Runtime validation feedback: ")[-1]
+                assert expected_feedback in feedback
+                assert '"executable_buttons_for_operation"' in feedback
+                assert '"id": 13' in feedback
+                assert "input_value" not in feedback
+            yield LLMChunk(text=json.dumps(invalid if len(requests) == 1 else payload))
+
+    result = asyncio.run(
+        interpret_message(
+            Client(),
+            "change the quantity",
+            storefront=load_storefront_definition(),
+            resolved_state={},
+            pending_clarification=None,
+            snapshot=Snapshot.model_validate(cart_snapshot(3)),
+        )
+    )
+    assert result.cart_target_id == 13
+    assert len(requests) == 2
+
+
 def test_exclusion_survives_interpretation_and_never_suggests_known_leather():
     from agent.catalogue import evaluate_catalogue
     from agent.tests.test_catalogue import catalogue

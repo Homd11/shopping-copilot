@@ -1,4 +1,5 @@
 import type { Snapshot, SnapshotElement, Viewport } from "./types.js";
+import { recordEvaluationTiming } from "./evaluation-metrics.js";
 
 const SNAPSHOT_BUDGET_BYTES = 12_000;
 const INTERACTIVE_ROLES = new Set([
@@ -305,6 +306,15 @@ export class SnapshotBuilder {
   }
 
   build(): Snapshot {
+    const started = performance.now();
+    try {
+      return this.#build();
+    } finally {
+      recordEvaluationTiming("snapshot_build", started);
+    }
+  }
+
+  #build(): Snapshot {
     for (const [id, registered] of this.#elements)
       if (!registered.element.isConnected) this.#elements.delete(id);
     const elements = [...this.#document.querySelectorAll("*")]

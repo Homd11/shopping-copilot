@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## Ticket 15: 132/132 task outcomes; one measurement gap — 2026-09-28
+
+Read `PROJECT_CHECKPOINT.md` for the current frontier. Three consecutive frozen 44-case runs against real OpenRouter `google/gemini-2.5-flash` and Chromium passed every task and all 19 safety scenarios each time. Cases include messy Egyptian Arabic, Franco-Arabic, typos, negation, variant ambiguity, quantity changes, mobile/SPA execution, Confirmation, Stop and recovery. Exact cart/page assertions, not success messages, decide outcomes. [Results](docs/ticket15-results.md) record timing, costs, per-case outcomes and historical failures; [the runner contract](docs/ticket15-evaluation.md) explains reproduction and limitations.
+
+**The formal gate is still open:** one rejected stream in run 3's `orders-login` case has no recorded token/cost usage. Its retry succeeded, but that run fails measurement completeness. Runs 1 and 2 pass all gates. Preserve unknown measurements and the original reports rather than inventing usage or silently rerunning until green. Resolve this evidence gap before closing Ticket 15; Ticket 16's participant study follows it.
+
+Prompt `intent-v25` and bounded repair feedback address missing discovery categories and invalid cart operation/target proposals. The model still interprets language and chooses observed targets; no phrase parser was added. Opt-in streaming buffers and validates the complete response before execution and records TTFT; normal application transport stays non-streaming. Independent review findings were fixed, but final follow-up reviewers hit quota, so the last changes received local review only.
+
+Final verification, completed 2026-09-29: **410 Python and 155 TypeScript tests passed**, including the complete scripted browser suite. Repository format/lint checks and all builds passed. No paid model calls were used by these regression checks.
+
+The total non-resetting key cap remains $0.75; the final read-only balance was **$0.046856858**. Development, failed experiments and acceptance attempts reduced the key allowance by about $0.4881. No more paid calls or budget changes are authorized by this handoff. Credentials and unrelated proposal files remain excluded from the commit. Older sections are historical.
+
 ## Ticket 14 completed — 2026-09-27
 
 The owner accepted `d7f6d12` and resumed Ticket 14. URL-backed and component-only SPA variants now preserve category/cart/account behavior, fresh observations, controlled inputs, loading/optimistic settling, navigation results, and reconnect duplicate suppression. Applied-result state drives visible-control fallback when a URL shortcut does not apply filters. The same discovery task takes one Action in URL mode and three in component mode. No shopper phrase matching was added.

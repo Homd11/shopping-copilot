@@ -22,10 +22,31 @@ class OpenRouterCallMetadata:
     schema_version: int | None
     usage: dict[str, int | float] | None
     failure_category: str | None
+    ttft_ms: float | None = None
 
 
 class OpenRouterBudgetError(ValueError):
     """No paid request may proceed under the current key allowance."""
+
+
+@dataclass
+class StreamMetrics:
+    ttft_ms: float | None = None
+    usage: dict[str, int | float] | None = None
+
+
+def _usage_metadata(raw):
+    if not isinstance(raw, dict):
+        return None
+    return {
+        key: value
+        for key, value in raw.items()
+        if key in {"prompt_tokens", "completion_tokens", "total_tokens", "cost"}
+        and isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and isfinite(value)
+        and value >= 0
+    }
 
 
 class OpenRouterClient:
@@ -42,6 +63,9 @@ class OpenRouterClient:
     async def complete(self, request: LLMRequest) -> AsyncIterator[LLMChunk]:
         started = monotonic()
         usage = None
+        ttft_ms = None
+        stream_metrics = StreamMetrics()
+        completed_at = None
         failure = None
         try:
             payload = {
@@ -55,7 +79,7 @@ class OpenRouterClient:
                 ],
                 "temperature": request.temperature,
                 "max_tokens": request.max_tokens,
-                "stream": False,
+                "stream": self._settings.stream,
                 "reasoning": {"enabled": False},
                 "provider": {
                     "require_parameters": True,
@@ -106,22 +130,26 @@ class OpenRouterClient:
                         "OpenRouter evaluation budget requires a non-resetting key limit "
                         "within the configured total cap and sufficient remaining credit"
                     )
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions", json=payload
-                )
-                response.raise_for_status()
-            try:
-                body = response.json()
-            except ValueError as error:
-                raise LLMInvalidResponseError("OpenRouter response body is not JSON") from error
+                if self._settings.stream:
+                    async with client.stream(
+                        "POST", "https://openrouter.ai/api/v1/chat/completions", json=payload
+                    ) as response:
+                        response.raise_for_status()
+                        body, ttft_ms = await _collect_stream(response, started, stream_metrics)
+                else:
+                    response = await client.post(
+                        "https://openrouter.ai/api/v1/chat/completions", json=payload
+                    )
+                    response.raise_for_status()
+                    try:
+                        body = response.json()
+                    except ValueError as error:
+                        raise LLMInvalidResponseError(
+                            "OpenRouter response body is not JSON"
+                        ) from error
             try:
                 raw_usage = body.get("usage", {})
-                usage = {
-                    k: v
-                    for k, v in raw_usage.items()
-                    if k in {"prompt_tokens", "completion_tokens", "total_tokens", "cost"}
-                    and isinstance(v, int | float)
-                }
+                usage = _usage_metadata(raw_usage)
                 choice = body["choices"][0]
                 text = choice["message"]["content"]
                 if choice.get("finish_reason") != "stop" or not isinstance(text, str) or not text:
@@ -132,6 +160,7 @@ class OpenRouterClient:
                 raise LLMInvalidResponseError("OpenRouter returned invalid output") from error
             if request.response_validator:
                 request.response_validator(text)
+            completed_at = monotonic()
             yield LLMChunk(text=text)
         except Exception as error:
             failure = (
@@ -153,10 +182,61 @@ class OpenRouterClient:
                 OpenRouterCallMetadata(
                     "openrouter",
                     self._settings.model,
-                    int((monotonic() - started) * 1000),
+                    int(
+                        ((completed_at if completed_at is not None else monotonic()) - started)
+                        * 1000
+                    ),
                     request.prompt_version,
                     request.schema_version,
-                    usage,
+                    usage if usage is not None else stream_metrics.usage,
                     failure,
+                    ttft_ms if ttft_ms is not None else stream_metrics.ttft_ms,
                 )
             )
+
+
+async def _collect_stream(response: httpx.Response, started: float, metrics: StreamMetrics):
+    """Measure first content but expose nothing until the entire response is validated."""
+    parts = []
+    usage = {}
+    finish = None
+    ttft = None
+    data = []
+    completed = False
+    async for line in response.aiter_lines():
+        if line.startswith("data:"):
+            data.append(line[5:].lstrip())
+            continue
+        if line or not data:
+            continue
+        event = "\n".join(data)
+        data = []
+        if event == "[DONE]":
+            completed = True
+            break
+        try:
+            chunk = json.loads(event)
+            if chunk.get("error"):
+                raise LLMInvalidResponseError("OpenRouter stream failed")
+            if "usage" in chunk:
+                usage = chunk["usage"]
+                metrics.usage = _usage_metadata(usage)
+            for choice in chunk.get("choices", []):
+                content = choice.get("delta", {}).get("content")
+                if content:
+                    if not isinstance(content, str):
+                        raise LLMInvalidResponseError("OpenRouter stream contains invalid content")
+                    if ttft is None:
+                        ttft = (monotonic() - started) * 1000
+                        metrics.ttft_ms = ttft
+                    parts.append(content)
+                if choice.get("finish_reason") is not None:
+                    finish = choice["finish_reason"]
+        except (ValueError, AttributeError, TypeError) as error:
+            raise LLMInvalidResponseError("OpenRouter stream contains invalid data") from error
+    if not completed or finish != "stop":
+        raise LLMInvalidResponseError("OpenRouter stream did not complete successfully")
+    return {
+        "choices": [{"finish_reason": finish, "message": {"content": "".join(parts)}}],
+        "usage": usage,
+    }, ttft

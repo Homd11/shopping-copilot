@@ -1,6 +1,20 @@
 # Project checkpoint
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-09-29
+
+## Ticket 15: behavior passes; measurement gate pending — 2026-09-28
+
+Three consecutive real-model/browser runs passed **44/44, 44/44 and 44/44** messy-language scenarios, with **19/19 designated safety cases passing in each**. They exercise Egyptian Arabic, Franco-Arabic, mixed language, typos, fragments, corrections, ambiguous variants, negation, cart changes, navigation, mobile/SPA behavior and recovery. Assertions check exact cart contents and actual page/Spotlight outcomes. Browser Action median was 306–310 ms; all seven fully specified filters used one Action and navigation median was one Action. Model-inclusive first-Action median was 2.5–2.8 seconds, reported separately.
+
+**Ticket 15 remains incomplete:** run 3 has one rejected model stream with no recorded token/cost usage (`orders-login`); its retry and actual task succeeded. Runs 1 and 2 pass every gate, but run 3 correctly fails measurement completeness. Do not mark the ticket complete or substitute zero for unavailable usage. No further paid reruns were made. Raw reports, including earlier failures, are retained under ignored `eval/reports/`; see [the committed results](docs/ticket15-results.md) and [evaluation contract](docs/ticket15-evaluation.md). The final source hashes were verified against the reports.
+
+Runtime repairs give the model precise missing-field/schema feedback and current executable cart button IDs on its one allowed repair attempt. A complete discovery proposal missing its category is repaired or becomes a useful clarification. Prompt `intent-v25` retains model ownership of language, negation, quantities and target selection; no shopper phrase matching or dictionary interpreter was added. All origin, target, quantity, Confirmation and replay guards remain. Streaming is opt-in for evaluation to measure TTFT; output is fully buffered and validated before the Agent can act. Normal application requests remain non-streaming.
+
+Independent Spec and Standards review findings were fixed. The final follow-up hit reviewer usage limits; the last narrow changes were reviewed locally. Preserve this limitation rather than claiming final independent sign-off. The unchanged non-resetting $0.75 key cap has **$0.046856858 remaining** at the final read-only check. The allowance decreased by about **$0.4881** during Ticket 15 development and evaluation, including failed experiments; the final three runs alone have $0.16271332 recorded cost plus one unknown attempt. Do not automatically increase the cap or run another paid suite.
+
+Final verification: **410 Python and 155 TypeScript tests passed**, including the complete scripted browser suite. Repository Prettier, ESLint, Ruff lint/format and all builds passed. These local checks make no paid model calls. Verification was finalized on 2026-09-29; the recorded live runs above are dated 2026-09-28.
+
+**Next:** resolve the remaining measurement evidence for Ticket 15 before declaring its gate closed, then Ticket 16's five-person uncoached study. A passing fixed corpus does not prove every phrase works. Independent-storefront work, architecture splitting and AWS remain deferred. Preserve ignored credentials and unrelated proposal documents. Earlier sections below are historical and do not override this frontier.
 
 ## Ticket 14: SPA execution — 2026-09-27
 
