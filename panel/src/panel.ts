@@ -637,7 +637,15 @@ export class PanelController {
       void this.#agent
         .speechAvailable()
         .then((available) => {
-          if (!available) return;
+          if (!available) {
+            this.#setStatus(
+              this.#root.querySelector<HTMLSelectElement>("#speech-language")
+                ?.value === "en-US"
+                ? "OpenRouter transcription is unavailable. Check the service connection and the API key's remaining audio allowance. You can type your request or try browser speech in Chrome."
+                : "التفريغ عبر OpenRouter غير متاح. تحقّق من اتصال الخدمة والرصيد المتبقي للصوت في مفتاح API. يمكنك كتابة طلبك أو تجربة صوت المتصفح في Chrome.",
+            );
+            return;
+          }
           fallbackArea.hidden = false;
           this.#setStatus(
             this.#root.querySelector<HTMLSelectElement>("#speech-language")
