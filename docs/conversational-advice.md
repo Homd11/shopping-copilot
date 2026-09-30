@@ -1,6 +1,6 @@
 # Conversational shopping advice
 
-Status: implemented and independently reviewed on 2026-10-01; live quality evaluation pending.
+Status: implemented and independently reviewed on 2026-10-01; a bounded live exploration subsequently found gaps. See [Ticket 16 evidence](ticket16-advice-evaluation.md) for the retained failure, prompt/repair correction and pending live recheck.
 
 The owner reported feedback from five people on calls: the Shopping Copilot feels mechanical, and shoppers want styling advice and help deciding between products. These are owner-reported findings, not independently recorded study measurements. Laptop comparisons were an illustration, not a catalogue expansion. UI work is excluded. This improvement does not close Ticket 16 or change graduation gates.
 

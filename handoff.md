@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## Ticket 16 feedback recorded; bounded advice exploration found a transition failure — 2026-10-01
+
+The owner clarified that the five informal testers explored without his help, until satisfied. Two advice-related findings are recorded in [the feedback ledger](docs/ticket16-feedback.md). Required task coverage, digital-confidence eligibility and explicit benefit votes remain unknown; no missing measurements or additional participant findings were invented.
+
+A bounded synthetic exploration used eight messages and fourteen provider calls at **$0.0203128**. Styling, budget correction and acknowledgement of unknown fabric quality worked, but opening a recommended product failed because the model copied discovery preferences into navigation. Grounding weaknesses also appeared for an owned garment and unsupported suitability. Original failures and provenance are retained in [the live evaluation record](docs/ticket16-advice-evaluation.md). Cart-action probes were not reached; this is not an advice-to-cart acceptance pass.
+
+Prompt `intent-v27` scopes preference carry-forward and discourages unsupported semantic substitutions; `advice-v2` reinforces uncertain comparisons. Typed cross-field repair now distinguishes navigation from discovery and preserves valid shopping requirements. No phrase matching or relaxed Action guard was added. Full Python suite: **445 passed**; after the final review correction, **47 focused tests passed**. All **155 TypeScript tests**, builds/typechecks and lint/format checks passed. Independent Spec and Standards reviews have no remaining actionable findings. Live post-change effectiveness remains unverified.
+
+The key remains **$1.00 total, reset Never**, with **$0.090200198 remaining** at the post-run read-only check. No cap increase, auto top-up or additional deposit occurred. The announced eight-message budget is consumed. Next is a separately bounded live recheck and reconciliation of Ticket 16 participant evidence; Ticket 16 stays open, and CAP-03 remains queued behind local closure and CAP-02 data. This section supersedes older pending-evaluation/status wording below without rewriting historical evidence.
+
 ## Conversational advice implemented; live quality evaluation pending — 2026-10-01
 
 The owner prioritized conversational styling and decision help after feedback from five informal testers. The laptop example did not expand the catalogue, and UI work is out of scope. This owner-reported feedback does not establish completion of the Ticket 16 study protocol or change graduation gates.

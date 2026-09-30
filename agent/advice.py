@@ -117,6 +117,9 @@ def build_advice_request(
             "facts: exact prices/currency, colours, sizes, availability, features and uses. "
             "Absence is unknown: do not invent material, fit, durability, comfort, reviews, "
             "discounts or performance. If evidence is insufficient, say what is unknown. "
+            "A related suitability tag does not verify the Shopper's actual use case. "
+            "Do not infer greater comfort or poorer quality from a missing feature/use tag. "
+            "Explain that the comparison is uncertain when the relevant evidence is absent. "
             "Separate styling opinions from facts naturally (for example, in my opinion). "
             "Explain why an option fits the Shopper's priorities and its relevant trade-offs; "
             "never claim absolute best or invent disadvantages. Honour explicit constraints "
@@ -136,7 +139,7 @@ def build_advice_request(
         messages=(LLMMessage(role="shopper", content=json.dumps(context, ensure_ascii=False)),),
         response_schema=AdviceResponse.model_json_schema(),
         response_validator=AdviceResponse.model_validate_json,
-        prompt_version="advice-v1",
+        prompt_version="advice-v2",
         schema_version=1,
         max_tokens=1000,
     )

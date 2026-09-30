@@ -21,7 +21,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v26"
+PROMPT_VERSION = "intent-v27"
 
 
 class MissingExecutionField(ValueError):
@@ -136,8 +136,15 @@ def build_intent_request(
             "will receive fresh catalogue facts and write the natural response. Select "
             "advice_product_ids only from known_products/previous_suggestions/visible links "
             "when particular products are being compared; otherwise leave them empty. "
-            "Carry the Shopper's still-relevant constraints, owned items and preferences from "
+            "For advice or find_products ONLY, carry still-relevant constraints, owned items "
+            "and preferences from "
             "resolved_state._advice_context and conversation, applying corrections semantically. "
+            "When switching to open_product, use product_id with constraints={}, "
+            "request_mode=browse, empty catalogue_requirements/owned_items/preferred_colors/"
+            "advice_product_ids, and null price_preference/owned_item/desired_wear_position. "
+            "For navigate or locate, constraints contains ONLY target, with the same empty "
+            "discovery fields. Earlier shopping preferences remain conversation context, "
+            "not fields on the navigation action. Use them to resolve identity only. "
             "Do not treat assistant opinions as Shopper requirements or consent. For advice, "
             "category may be null and needs_clarification=false: the advisor can ask useful "
             "conversational questions without an execution clarification. If advice and a "
@@ -165,6 +172,11 @@ def build_intent_request(
             "spelling. If a requirement "
             "cannot be represented, ask a catalogue clarification rather than silently "
             "discarding it. "
+            "A related catalogue use is not an equivalent Shopper requirement: never choose "
+            "the nearest available suitability tag just to fill the schema. Preserve uncertainty "
+            "about unsupported needs. Owned items need not exist in the catalogue; keep their "
+            "original description in source and leave an unrepresented product_type null "
+            "rather than replacing it with a different garment. "
             "Money is a nonnegative decimal string with currency. Use the Storefront "
             "currency; ask for that currency "
             "when conversion would be needed. Written numbers are valid amounts. Never "
@@ -341,12 +353,40 @@ def _repair_feedback(error, intent, snapshot, schema):
     cause = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(cause, ValidationError):
         properties = schema.get("properties", {})
+        issues = cause.errors(include_input=False, include_context=False)
         fields = {
-            issue["loc"][0]
-            for issue in cause.errors(include_input=False, include_context=False)
-            if issue["loc"] and issue["loc"][0] in properties
+            issue["loc"][0] for issue in issues if issue["loc"] and issue["loc"][0] in properties
         }
         feedback["invalid_fields"] = {name: properties[name] for name in sorted(fields)}
+        if any(issue["type"] == "navigation_discovery_isolation" for issue in issues):
+            feedback["cross_field_rules"] = {
+                "navigation_discovery_isolation": {
+                    "open_product_constraints": {},
+                    "navigate_or_locate_constraint_fields": ["target"],
+                    "request_mode": "browse",
+                    "empty_arrays": ["catalogue_requirements", "owned_items", "preferred_colors"],
+                    "null_fields": ["price_preference", "owned_item", "desired_wear_position"],
+                    "instruction": "Keep the chosen intent and observed product/target identity; "
+                    "do not copy earlier discovery preferences into a navigation proposal.",
+                }
+            }
+        if any(issue["type"] == "discovery_navigation_isolation" for issue in issues):
+            feedback["cross_field_rules"] = {
+                "discovery_navigation_isolation": {
+                    "null_constraint_fields": ["target"],
+                    "preserve_fields": [
+                        "catalogue_requirements",
+                        "price_preference",
+                        "owned_item",
+                        "owned_items",
+                        "desired_wear_position",
+                        "preferred_colors",
+                        "request_mode",
+                    ],
+                    "instruction": "Keep product discovery and its shopper requirements; "
+                    "remove only constraints.target, preserving the other discovery constraints.",
+                }
+            }
     if snapshot is not None:
         from agent.cart import CART_ROUTES
 

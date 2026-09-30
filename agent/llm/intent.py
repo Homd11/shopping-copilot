@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic_core import PydanticCustomError
 
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMRequest
 from agent.storefront import Money
@@ -286,10 +287,16 @@ class StructuredIntent(IntentModel):
             or self.request_mode != "browse"
             or self.preferred_colors
         )
-        if (
-            self.intent in {"navigate", "locate", "open_product"} and has_discovery_constraints
-        ) or (self.intent == "find_products" and self.constraints.target is not None):
-            raise ValueError("Structured Intent cannot mix navigation and discovery authority")
+        if self.intent in {"navigate", "locate", "open_product"} and has_discovery_constraints:
+            raise PydanticCustomError(
+                "navigation_discovery_isolation",
+                "Structured Intent cannot mix navigation and discovery authority",
+            )
+        if self.intent == "find_products" and self.constraints.target is not None:
+            raise PydanticCustomError(
+                "discovery_navigation_isolation",
+                "Product discovery cannot contain a navigation target",
+            )
         if self.intent == "open_product" and self.constraints.target is not None:
             raise ValueError("A product target cannot be a Storefront destination")
         if self.intent != "open_product" and self.product_id is not None:

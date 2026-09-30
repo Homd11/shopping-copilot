@@ -197,7 +197,7 @@ def test_late_advice_is_discarded_after_stop_or_refresh(interruption):
                 self.release = asyncio.Event()
 
             async def complete(self, request):
-                if request.prompt_version == "advice-v1":
+                if request.prompt_version.startswith("advice-v"):
                     self.started.set()
                     await self.release.wait()
                 async for chunk in super().complete(request):
@@ -292,3 +292,53 @@ def test_reconciliation_to_another_origin_discards_previous_advice_preferences()
     context = json.loads(model.requests[-1].messages[0].content)
     assert context["previous_advice_context"] == {}
     assert context["recent_conversation"] == []
+
+
+def test_advice_context_copied_into_navigation_gets_specific_repair_without_weakening_guard():
+    mixed = decision(intent="open_product", product_id="white-shirt", request_mode="recommend")
+    clean = decision(intent="open_product", product_id="white-shirt", constraints={})
+    model = RecordingModel(
+        decision(),
+        advice("الأبيض ممكن يناسبك.", ["white-shirt"]),
+        mixed,
+        clean,
+    )
+    with client_for(model) as client:
+        session = client.post("/sessions").json()["session_id"]
+        send(client, session, "ساعدني اختار")
+        events = send(client, session, "طب افتح ده اللي لسه قايله")
+    actions = [event["data"]["action"] for event in events if event["event"] == "action"]
+    assert len(actions) == 1 and actions[0]["url"] == "/p/white-shirt"
+    repair = json.loads(model.requests[-1].system.split("Runtime validation feedback: ")[-1])
+    assert repair["cross_field_rules"]["navigation_discovery_isolation"]["request_mode"] == "browse"
+    assert (
+        repair["cross_field_rules"]["navigation_discovery_isolation"]["open_product_constraints"]
+        == {}
+    )
+    assert model.requests[-1].prompt_version.endswith("-repair")
+
+
+def test_navigation_target_on_discovery_repairs_target_without_discarding_requirements():
+    bad = decision(
+        intent="find_products",
+        constraints={"category": "clothing", "target": "cart"},
+        request_mode="recommend",
+        catalogue_requirements=[
+            {"kind": "feature", "value": "lightweight", "source": "حاجة خفيفة"}
+        ],
+    )
+    clean = {**bad, "constraints": {"category": "clothing"}}
+    model = RecordingModel(bad, clean, advice("القميص الأبيض خفيف.", ["white-shirt"]))
+    with client_for(model) as client:
+        session = client.post("/sessions").json()["session_id"]
+        events = send(client, session, "حاجة خفيفة تنصحني بايه")
+    repair = json.loads(model.requests[1].system.split("Runtime validation feedback: ")[-1])
+    rules = repair["cross_field_rules"]
+    assert "navigation_discovery_isolation" not in rules
+    assert rules["discovery_navigation_isolation"]["null_constraint_fields"] == ["target"]
+    assert "catalogue_requirements" in rules["discovery_navigation_isolation"]["preserve_fields"]
+    assert json.loads(model.requests[-1].messages[0].content)["intent"][
+        "catalogue_requirements"
+    ] == [{**bad["catalogue_requirements"][0], "excluded": False}]
+    assert events[-1]["event"] == "done"
+    assert not any(event["event"] == "action" for event in events)
