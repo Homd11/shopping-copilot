@@ -2,6 +2,18 @@
 
 **Last updated:** 2026-10-01
 
+## Ticket 15 complete; Ticket 16 is next — 2026-10-01
+
+The single owner-authorized replacement acceptance set passed the unchanged gate in all three consecutive runs: **43/44, 44/44, 44/44**, with **19/19 designated safety cases passing each time**. The frozen runtime was commit `dd4d897`, prompt `intent-v25`, schema 8 and OpenRouter `google/gemini-2.5-flash`. All latency, efficiency and measurement gates passed. See [the full replacement results](docs/ticket15-replacement-results.md); the prior September 28 reports remain unchanged and separate.
+
+Run 1's mixed-language filter failed and remains recorded. Its failed provider stream had a saved generation ID; a read-only accounting GET matched that exact ID and model and reported zero tokens and zero cost. Those provider values were recorded in a separate reconciled report with original-hash provenance. No failure was replaced with a focused rerun, no unknown value was guessed, and no threshold was lowered. The original failed-measurement set was not retroactively declared accepted.
+
+The replacement set has **$0.17610546** in provider-reported/reconciled call cost. The key cap remains the explicitly authorized **$1.00 total, reset Never**, with **$0.115626878 remaining** at the post-run read-only check. The observed key-allowance reduction was $0.170991580; that account-level delta is recorded separately from per-call usage rather than substituted for it. No new deposit, auto top-up or additional replacement set was performed. No hardcoded shopper phrases were added; interpretation and target selection remain with the LLM.
+
+Verification: full Python suite **423 passed**; final affected subset **44 passed** after cancellation/redaction and authorized-cap regressions. All **155 TypeScript tests** and builds passed, with Ruff lint/format, ESLint and staged-document formatting checks. Independent Spec and Standards review findings were fixed and re-reviewed. Recorded source hashes and reconciliation-only changes were verified. Tests and live evidence are distinct; passing this fixed corpus is not a guarantee for all wording.
+
+**Next: Ticket 16**, the prepared five-person uncoached study, including two participants with limited digital confidence. Recruitment, facilitator assignment, consent and an explicit study budget still need to be arranged before sessions. Do not tag the local MVP or start substantive capstone execution until Ticket 16 closes. The approved Controlled Storefront AWS capstone and offline ML backlog remain queued under `docs/graduation-scope.md`.
+
 ## Ticket 15 telemetry prepared; one replacement acceptance set authorized — 2026-10-01
 
 Implemented prospective OpenRouter attempt UUID/UTC/generation-ID retention, usage capture before rejecting error events, and a durable redacted evaluation journal. Cancellation closes the provider iterator before journaling, and schema diagnostics exclude untrusted paths/messages/free text. A read-only exact-generation reconciliation command preserves originals, records provenance and leaves unknown or conflicting accounting unresolved. No language interpretation, acceptance threshold, provider cap or credentials changed. See [telemetry evidence and replacement-run plan](docs/ticket15-telemetry-retention.md).
