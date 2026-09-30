@@ -44,6 +44,8 @@ class LLMRequest:
     schema_version: int | None = None
     temperature: float = 0
     max_tokens: int = 512
+    # Local telemetry correlation only; never transmitted as model instructions.
+    attempt_id: str | None = None
 
 
 class LLMClient(Protocol):

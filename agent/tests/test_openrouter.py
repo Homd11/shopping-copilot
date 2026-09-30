@@ -37,6 +37,37 @@ def settings():
     )
 
 
+@pytest.mark.parametrize("has_usage", [True, False])
+def test_error_stream_retains_identity_and_received_usage_without_emitting(has_usage):
+    calls = []
+
+    def handler(request):
+        calls.append(request.method)
+        if request.url.path.endswith("/key"):
+            return httpx.Response(
+                200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
+            )
+        event = {"id": "gen-failed-attempt", "error": {"message": "private provider detail"}}
+        if has_usage:
+            event["usage"] = {"cost": 0.0001, "prompt_tokens": 12, "completion_tokens": 2}
+        return httpx.Response(200, text="data: " + json.dumps(event) + "\n\n")
+
+    client = OpenRouterClient(
+        replace(settings(), stream=True), transport=httpx.MockTransport(handler)
+    )
+    with pytest.raises(ValueError):
+        collect(client)
+    metadata = client.call_metadata[-1]
+    assert metadata.generation_id == "gen-failed-attempt"
+    assert metadata.attempt_id
+    assert metadata.started_at.endswith("+00:00")
+    assert metadata.usage == (
+        {"cost": 0.0001, "prompt_tokens": 12, "completion_tokens": 2} if has_usage else None
+    )
+    assert "private provider detail" not in repr(metadata)
+    assert calls == ["GET", "POST"]
+
+
 @pytest.mark.parametrize("terminal", ["stop", "length", "error", None])
 def test_stream_is_buffered_until_complete_validation_and_records_first_content(terminal):
     def handler(request):

@@ -542,6 +542,13 @@ def main():
     ):
         browser = pw.chromium.launch(headless=True)
         try:
+            api = pw.request.new_context()
+            try:
+                configuration["attempt_journal"] = api.get(
+                    "http://localhost:8000/__eval/metrics"
+                ).json()["journal"]
+            finally:
+                api.dispose()
             for run in range(1, args.runs + 1):
                 rows = []
                 for case in selected:
