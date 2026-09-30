@@ -18,7 +18,7 @@ Protocol references: [OpenRouter streaming errors](https://openrouter.ai/docs/ap
 
 ## Historical result
 
-Verification: the full Python suite passed **423 tests**, and all **155 TypeScript tests** plus builds passed. After the review fixes, the final **35-test focused telemetry/acceptance subset** passed, including three additional cancellation/redaction cases added after full-suite collection. Ruff lint/format, ESLint, changed-document Prettier and diff checks passed. No paid completion calls were made. This distinguishes the full-suite evidence from the later narrow recheck rather than claiming a second full run.
+Verification: the full Python suite passed **423 tests**, and all **155 TypeScript tests** plus builds passed. After the review fixes, the **35-test focused telemetry/acceptance subset** passed, including three additional cancellation/redaction cases added after full-suite collection. A subsequent **44-test affected subset** passed after updating the authorized configuration ceiling to $1.00 and checking that larger, nonfinite and nonpositive values remain rejected. Ruff lint/format, ESLint, staged-document Prettier and diff checks passed. These local regression checks made no paid completion calls. This distinguishes the full-suite evidence from the later narrow rechecks rather than claiming a second full run.
 
 The original run-3 report was processed into the separate ignored `eval/reports/ticket15-run3-reconciliation-20261001.json`. Its missing `orders-login` attempt has no saved generation ID, so no accounting lookup was issued for it. The result remains **44/44 tasks, 19/19 safety cases, measurement completeness failed**. The original three reports remain immutable. Their earlier behavior results are valid; complete accounting is still absent.
 
@@ -30,3 +30,5 @@ The original run-3 report was processed into the separate ignored `eval/reports/
 4. Close Ticket 15 only if all three complete runs satisfy the existing criteria, then proceed to Ticket 16.
 
 The owner explicitly authorized **one replacement three-run set**, with the total key cap increased from $0.75 to **$1.00, reset Never**. A read-only check verified the saved provider setting and **$0.286618458 remaining** before execution. The ignored local `.env` cap was updated to the authorized $1.00. No new deposit or auto top-up is authorized. The prior final set recorded approximately $0.163 plus one unknown attempt; that is a planning estimate, not a guarantee for a new set. No additional replacement set may run without further authorization.
+
+The authorized set subsequently passed the gate after exact-ID accounting reconciliation. See [the replacement results](ticket15-replacement-results.md). The historical missing record remains unresolved; it was not used to close the ticket.
