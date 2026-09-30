@@ -21,7 +21,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v25"
+PROMPT_VERSION = "intent-v26"
 
 
 class MissingExecutionField(ValueError):
@@ -126,11 +126,24 @@ def build_intent_request(
             + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
             + "\n"
             "Interpret the current Shopper request and return exactly one complete "
-            "StructuredIntent JSON object, v=8. "
+            "StructuredIntent JSON object, v=9. "
             "You own language interpretation: Egyptian Arabic, Franco-Arabic, English, "
             "typos, number words, negation, "
             "pronouns, comparisons and revisions. No downstream language parser will correct "
             "your decision. "
+            "Use advice for conversational styling, product comparisons, explaining trade-offs, "
+            "taste questions and follow-up preference changes. A separate read-only advisor "
+            "will receive fresh catalogue facts and write the natural response. Select "
+            "advice_product_ids only from known_products/previous_suggestions/visible links "
+            "when particular products are being compared; otherwise leave them empty. "
+            "Carry the Shopper's still-relevant constraints, owned items and preferences from "
+            "resolved_state._advice_context and conversation, applying corrections semantically. "
+            "Do not treat assistant opinions as Shopper requirements or consent. For advice, "
+            "category may be null and needs_clarification=false: the advisor can ask useful "
+            "conversational questions without an execution clarification. If advice and a "
+            "dependent purchase are requested together, give advice first; do not guess the "
+            "choice or variants or promise a cart change. A clear standalone action still "
+            "uses the existing execution intent. Do not route ordinary cart commands to advice. "
             "Fragments and misspellings deserve the same contextual understanding as full "
             "sentences. Infer a category from the stated product type and Storefront context "
             "when unambiguous; do not ask merely because the category noun was omitted. "
@@ -238,22 +251,22 @@ def build_intent_request(
         response_schema=_live_intent_response_schema(),
         response_validator=validate_live_response,
         prompt_version=PROMPT_VERSION,
-        schema_version=8,
+        schema_version=9,
         max_tokens=1536,
     )
 
 
 def _live_intent_response_schema() -> dict[str, Any]:
     schema = StructuredIntent.model_json_schema()
-    schema["properties"]["v"] = {"const": 8, "type": "integer"}
+    schema["properties"]["v"] = {"const": 9, "type": "integer"}
     return schema
 
 
 def validate_live_response(text: str) -> StructuredIntent:
     """Live adapters cannot fall back to the legacy persisted-intent format."""
     intent = StructuredIntent.model_validate_json(text)
-    if intent.v != 8:
-        raise StructuredIntentDraftError("Live interpretation requires schema version 8")
+    if intent.v not in {8, 9}:
+        raise StructuredIntentDraftError("Live interpretation requires schema version 8 or 9")
     return intent
 
 
@@ -278,8 +291,10 @@ async def interpret_message(
         intent = None
         try:
             intent = await collect_structured_intent(client, request)
-            if intent.v != 8:
-                raise StructuredIntentDraftError("Live interpretation requires schema version 8")
+            if intent.v not in {8, 9}:
+                raise StructuredIntentDraftError(
+                    "Live interpretation requires schema version 8 or 9"
+                )
             intent = _restore_clarification(intent, resolved_state, pending_clarification, message)
             return _validate_interpreted_intent(
                 message, intent, storefront, resolved_state, snapshot
@@ -374,6 +389,8 @@ def _validate_interpreted_intent(
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
     if intent.intent == "cart_edit":
         intent = validate_cart_intent(message, intent, snapshot)
+    for product_id in intent.advice_product_ids:
+        require_known_product(product_id, state, snapshot, storefront)
     if intent.needs_clarification:
         return intent
     if intent.intent == "find_products" and intent.constraints.category is None:
@@ -417,7 +434,10 @@ def _validate_interpreted_intent(
 
 
 def require_browser_actionable_intent(intent: StructuredIntent) -> StructuredIntent:
-    if intent.intent in {"off_topic", "unsupported", "help"} or intent.needs_clarification:
+    if (
+        intent.intent in {"advice", "off_topic", "unsupported", "help"}
+        or intent.needs_clarification
+    ):
         raise ValueError("Conversational or incomplete intent cannot start a browser action")
     return intent
 

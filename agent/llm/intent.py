@@ -10,6 +10,7 @@ from agent.storefront import Money
 Language = Literal["ar", "en"]
 Dialect = Literal["egyptian_arabic", "franco_arabic", "mixed", "english", "unknown"]
 IntentName = Literal[
+    "advice",
     "find_products",
     "locate",
     "navigate",
@@ -120,7 +121,7 @@ class OwnedItem(IntentModel):
 
 
 class StructuredIntent(IntentModel):
-    v: Literal[1, 2, 3, 4, 5, 6, 7, 8]
+    v: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9]
     language: Language
     dialect: Dialect
     intent: IntentName
@@ -136,6 +137,7 @@ class StructuredIntent(IntentModel):
     owned_items: list[OwnedItem] = Field(default_factory=list, max_length=6)
     preferred_colors: list[str] = Field(default_factory=list, max_length=6)
     subjective_preferences: list[str] = Field(default_factory=list, max_length=6)
+    advice_product_ids: list[str] = Field(default_factory=list, max_length=6)
     navigation_source: str | None = None
     product_id: str | None = None
     revised_fields: list[RevisionField] = Field(default_factory=list)
@@ -204,8 +206,12 @@ class StructuredIntent(IntentModel):
 
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
+        if (self.intent == "advice" or self.advice_product_ids) and (
+            self.v < 9 or self.intent != "advice" or self.constraints.target is not None
+        ):
+            raise ValueError("Advice requires schema 9 and cannot carry action authority")
         if self.intent == "cart_edit":
-            if self.v not in {5, 6, 7, 8} or not self.cart_operation:
+            if self.v not in {5, 6, 7, 8, 9} or not self.cart_operation:
                 raise ValueError("Cart edit needs a supported operation")
             if (
                 self.v >= 6
@@ -257,7 +263,7 @@ class StructuredIntent(IntentModel):
                 raise ValueError("Mutation intent must be explicit and isolated")
         elif self.mutation_kind is not None or self.mutation_source is not None:
             raise ValueError("Only a mutation intent may carry mutation authority")
-        if self.intent != "find_products":
+        if self.intent not in {"find_products", "advice"}:
             self.subjective_preferences = []
         discovery_fields = (
             "category",

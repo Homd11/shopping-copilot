@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-10-01
 
+## Conversational advice implemented; live quality evaluation pending — 2026-10-01
+
+The owner prioritized conversational styling and decision help after feedback from five informal testers. The laptop example did not expand the catalogue, and UI work is out of scope. This owner-reported feedback does not establish completion of the Ticket 16 study protocol or change graduation gates.
+
+Prompt `intent-v26` requests schema 9 (schema 8 execution compatibility remains). A separate read-only `advice-v1` step receives fresh bounded catalogue evidence, conversation and session preferences. It can explain trade-offs, give styling opinions and ask useful questions; execution still uses the existing target, inventory, bounds, Confirmation and replay guards. No shopper phrase interpreter was added. Advice cannot emit Actions, and late results after Stop/recovery are discarded. See [design, evaluation probes and verification](docs/conversational-advice.md).
+
+Verification: the full Python run had 440 passes and two benchmark comparison failures caused by the new empty optional field. After fixing that normalization and review findings, all 374 affected Agent/intent-benchmark tests passed. Browser checks passed in the full run; all 155 TypeScript tests, builds/typechecks and lint passed. Independent Spec/Standards findings were fixed and rechecked. These scripted checks verify flow and safety, not live advice helpfulness.
+
+No paid calls, key-cap changes or new deposit occurred. Live advice quality remains unmeasured; the previous Ticket 15 acceptance belongs to its frozen runtime. The last known allowance remains $0.115626878 under the $1.00 non-resetting cap. Next is a separately budgeted conversation-quality evaluation and completion of Ticket 16 evidence, not capstone execution.
+
 ## Ticket 15 complete; Ticket 16 is next — 2026-10-01
 
 The single owner-authorized replacement acceptance set passed the unchanged gate in all three consecutive runs: **43/44, 44/44, 44/44**, with **19/19 designated safety cases passing each time**. The frozen runtime was commit `dd4d897`, prompt `intent-v25`, schema 8 and OpenRouter `google/gemini-2.5-flash`. All latency, efficiency and measurement gates passed. See [the full replacement results](docs/ticket15-replacement-results.md); the prior September 28 reports remain unchanged and separate.
