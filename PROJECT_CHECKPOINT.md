@@ -1,6 +1,14 @@
 # Project checkpoint
 
-**Last updated:** 2026-09-29
+**Last updated:** 2026-10-01
+
+## Ticket 15 telemetry prepared; one replacement acceptance set authorized — 2026-10-01
+
+Implemented prospective OpenRouter attempt UUID/UTC/generation-ID retention, usage capture before rejecting error events, and a durable redacted evaluation journal. Cancellation closes the provider iterator before journaling, and schema diagnostics exclude untrusted paths/messages/free text. A read-only exact-generation reconciliation command preserves originals, records provenance and leaves unknown or conflicting accounting unresolved. No language interpretation, acceptance threshold, provider cap or credentials changed. See [telemetry evidence and replacement-run plan](docs/ticket15-telemetry-retention.md).
+
+The original three report hashes remain unchanged. A separate historical reconciliation still reports 44/44 tasks and 19/19 safety cases for run 3, with measurement completeness failing because its missing attempt has no saved generation ID. No guessed accounting or paid replacement calls were used. The owner authorized exactly one replacement three-run set and raised the total key cap to $1.00, reset Never. A read-only check verified that setting and $0.286618458 remaining before the run. No additional deposit or automatic top-up is authorized; do not run further replacement sets without permission.
+
+Verification: full Python suite **423 passed**, all **155 TypeScript tests** and builds passed. Final focused telemetry/acceptance recheck **35 passed**, including three cancellation/redaction regressions added after the full suite was collected. Ruff lint/format, ESLint, changed-document Prettier and diff checks passed. Independent Spec and Standards reviewers rechecked their fixed findings with no remaining actionable issues. Ticket 15 remains open pending complete live evidence; the approved graduation roadmap below is unchanged.
 
 ## Voice availability clarification — 2026-09-29
 

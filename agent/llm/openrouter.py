@@ -4,8 +4,10 @@ import asyncio
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from math import isfinite
 from time import monotonic
+from uuid import uuid4
 
 import httpx
 
@@ -23,6 +25,9 @@ class OpenRouterCallMetadata:
     usage: dict[str, int | float] | None
     failure_category: str | None
     ttft_ms: float | None = None
+    attempt_id: str | None = None
+    started_at: str | None = None
+    generation_id: str | None = None
 
 
 class OpenRouterBudgetError(ValueError):
@@ -33,6 +38,7 @@ class OpenRouterBudgetError(ValueError):
 class StreamMetrics:
     ttft_ms: float | None = None
     usage: dict[str, int | float] | None = None
+    generation_id: str | None = None
 
 
 def _usage_metadata(raw):
@@ -49,6 +55,18 @@ def _usage_metadata(raw):
     }
 
 
+def generation_id(value):
+    """Retain only bounded protocol identifiers, never arbitrary provider text."""
+    return (
+        value
+        if isinstance(value, str)
+        and 0 < len(value) <= 200
+        and value.isascii()
+        and all(c.isalnum() or c in "-_" for c in value)
+        else None
+    )
+
+
 class OpenRouterClient:
     def __init__(self, settings: LLMSettings, *, transport: httpx.AsyncBaseTransport | None = None):
         if settings.provider != "openrouter" or not settings.api_key:
@@ -62,6 +80,8 @@ class OpenRouterClient:
 
     async def complete(self, request: LLMRequest) -> AsyncIterator[LLMChunk]:
         started = monotonic()
+        started_at = datetime.now(UTC).isoformat()
+        attempt_id = request.attempt_id or str(uuid4())
         usage = None
         ttft_ms = None
         stream_metrics = StreamMetrics()
@@ -148,6 +168,9 @@ class OpenRouterClient:
                             "OpenRouter response body is not JSON"
                         ) from error
             try:
+                stream_metrics.generation_id = generation_id(body.get("id")) or (
+                    stream_metrics.generation_id
+                )
                 raw_usage = body.get("usage", {})
                 usage = _usage_metadata(raw_usage)
                 choice = body["choices"][0]
@@ -191,6 +214,9 @@ class OpenRouterClient:
                     usage if usage is not None else stream_metrics.usage,
                     failure,
                     ttft_ms if ttft_ms is not None else stream_metrics.ttft_ms,
+                    attempt_id,
+                    started_at,
+                    stream_metrics.generation_id,
                 )
             )
 
@@ -216,11 +242,19 @@ async def _collect_stream(response: httpx.Response, started: float, metrics: Str
             break
         try:
             chunk = json.loads(event)
-            if chunk.get("error"):
-                raise LLMInvalidResponseError("OpenRouter stream failed")
+            received_id = generation_id(chunk.get("id"))
+            if received_id:
+                if metrics.generation_id not in (None, received_id):
+                    metrics.generation_id = None
+                    raise LLMInvalidResponseError("OpenRouter stream changed generation identity")
+                metrics.generation_id = received_id
             if "usage" in chunk:
                 usage = chunk["usage"]
-                metrics.usage = _usage_metadata(usage)
+                received_usage = _usage_metadata(usage)
+                if received_usage:
+                    metrics.usage = {**(metrics.usage or {}), **received_usage}
+            if chunk.get("error"):
+                raise LLMInvalidResponseError("OpenRouter stream failed")
             for choice in chunk.get("choices", []):
                 content = choice.get("delta", {}).get("content")
                 if content:
@@ -238,5 +272,5 @@ async def _collect_stream(response: httpx.Response, started: float, metrics: Str
         raise LLMInvalidResponseError("OpenRouter stream did not complete successfully")
     return {
         "choices": [{"finish_reason": finish, "message": {"content": "".join(parts)}}],
-        "usage": usage,
+        "usage": metrics.usage,
     }, ttft
