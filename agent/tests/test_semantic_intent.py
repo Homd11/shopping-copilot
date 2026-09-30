@@ -326,7 +326,7 @@ def test_v3_non_navigation_intent_is_not_rewritten_by_navigation_cues(message, i
     assert intent.constraints.target is None
 
 
-def test_live_intent_request_requires_schema_version_eight():
+def test_live_intent_request_requires_schema_version_nine():
     request = build_intent_request(
         "show shoes",
         storefront=load_storefront_definition(),
@@ -334,7 +334,7 @@ def test_live_intent_request_requires_schema_version_eight():
         pending_clarification=None,
     )
 
-    assert request.response_schema["properties"]["v"] == {"const": 8, "type": "integer"}
+    assert request.response_schema["properties"]["v"] == {"const": 9, "type": "integer"}
 
 
 def test_context_is_restored_before_api_routes_to_suggestions():

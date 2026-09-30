@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
+from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
@@ -179,6 +180,51 @@ def create_app(
             )
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+                return
+            if intent.v >= 9 and (
+                intent.intent == "advice"
+                or (
+                    intent.intent == "find_products"
+                    and not intent.needs_clarification
+                    and intent.request_mode in {"recommend", "style"}
+                )
+            ):
+                phase = "catalogue"
+                catalogue = await catalogue_reader.read()
+                evidence = prepare_advice(catalogue, intent)
+                current = sessions.get(session_id)
+                if current.active_task is not task or task.model_call_id != call_id:
+                    return
+                phase = "advice"
+                try:
+                    summary = await compose_advice(
+                        llm_client,
+                        build_advice_request(
+                            task.message, intent, evidence, task.resolved_state, observed
+                        ),
+                        evidence,
+                    )
+                except (
+                    ValueError,
+                    httpx.HTTPError,
+                    OpenRouterBudgetError,
+                    GroqRateLimitError,
+                    GeminiRateLimitError,
+                ):
+                    summary = (
+                        "مش قادر أقدّم نصيحة موثوقة دلوقتي. "
+                        "أي منتجات ظاهرة مبنية على بيانات المتجر؛ "
+                        "ما غيّرتش حاجة في السلة."
+                        if intent.language == "ar"
+                        else "I couldn't prepare reliable advice right now. Any products shown use "
+                        "verified catalogue data; your cart has not changed."
+                    )
+                if sessions.get(session_id).last_snapshot != observed:
+                    sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+                    return
+                sessions.finish_catalogue_interpretation(
+                    session_id, task_id, call_id, intent, evidence.discovery, advice_text=summary
+                )
                 return
             if (
                 intent.intent == "find_products"

@@ -153,6 +153,7 @@ class Session:
     last_activity_at: float = 0.0
     requires_reconciliation: bool = False
     product_context: ProductContext = field(default_factory=ProductContext)
+    advice_context: dict[str, Any] = field(default_factory=dict)
 
 
 class SessionNotFound(KeyError):
@@ -212,6 +213,9 @@ class SessionStore:
         return session
 
     def _record_snapshot(self, session: Session, snapshot: Snapshot) -> None:
+        location = urlsplit(snapshot.url)
+        if session.product_context.origin != (location.scheme, location.netloc):
+            session.advice_context.clear()
         session.last_snapshot = snapshot
         session.product_context.observe(
             snapshot, self._planner.storefront, len(session.conversation)
@@ -363,6 +367,9 @@ class SessionStore:
             "_original_message": text[:_CONTEXT_TEXT_LIMIT],
             "_answers": [],
         }
+        location = urlsplit(snapshot.url)
+        if session.product_context.origin != (location.scheme, location.netloc):
+            session.advice_context.clear()
         if previous_target is not None:
             resolved_state["_previous_target"] = previous_target
         resolved_state.update(
@@ -370,6 +377,8 @@ class SessionStore:
                 snapshot, self._planner.storefront, session.conversation
             )
         )
+        if session.advice_context:
+            resolved_state["_advice_context"] = session.advice_context.copy()
         if followup_target is not None:
             resolved_state["target"] = followup_target
         task = ActiveTask(
@@ -565,6 +574,8 @@ class SessionStore:
         call_id: str,
         intent: StructuredIntent,
         result: DiscoveryResult,
+        *,
+        advice_text: str | None = None,
     ) -> ActiveTask | None:
         session = self.get(session_id)
         task = session.active_task
@@ -576,11 +587,29 @@ class SessionStore:
             or session.requires_reconciliation
         ):
             return None
-        if intent.needs_clarification:
+        if intent.needs_clarification and intent.intent != "advice":
             raise ValueError("Incomplete intent cannot publish catalogue suggestions")
+        if session.last_snapshot is not None:
+            self._require_task_origin(task, session.last_snapshot)
         payload = result.to_wire()
         session.product_context.remember_suggestions(payload["suggestions"])
         task.suggestions = payload
+        task.resolved_state = _intent_context(task, intent)
+        if advice_text is not None:
+            session.advice_context = intent.model_dump(
+                mode="json",
+                include={
+                    "constraints",
+                    "catalogue_requirements",
+                    "price_preference",
+                    "owned_item",
+                    "owned_items",
+                    "desired_wear_position",
+                    "preferred_colors",
+                    "subjective_preferences",
+                    "request_mode",
+                },
+            )
         task.language = intent.language
         task.intent_kind = intent.intent
         task.model_call_id = None
@@ -621,6 +650,8 @@ class SessionStore:
                 if intent.language == "ar"
                 else "I cannot verify a suitable product in the current catalogue."
             )
+        if advice_text is not None:
+            summary = advice_text
         self._append(session, "suggestions", {"task_id": task_id, **payload})
         self._append(
             session,

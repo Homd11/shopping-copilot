@@ -197,12 +197,12 @@ async def run_configured_benchmark() -> dict[str, object]:
     report = benchmark_report(corpus.version, summaries)
     report["provider"] = settings.provider
     report["prompt_version"] = PROMPT_VERSION
-    report["schema_version"] = 3
+    report["schema_version"] = 9
     report["parameters"] = {
         "timeout_seconds": settings.timeout_seconds,
         "stream": settings.stream,
         "temperature": 0,
-        "max_tokens": 1024,
+        "max_tokens": 1536,
     }
     report["generated_at"] = datetime.now(UTC).isoformat()
     return report
@@ -309,6 +309,7 @@ async def score_case(
         ("owned_items", []),
         ("preferred_colors", []),
         ("subjective_preferences", []),
+        ("advice_product_ids", []),
         ("revised_fields", []),
     ):
         if field_name not in case.expected and actual.get(field_name) == default:

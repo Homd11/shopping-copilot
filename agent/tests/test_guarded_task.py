@@ -255,13 +255,22 @@ def test_guarded_result_from_another_origin_is_never_reported_as_success() -> No
     assert task.action.options == ["Stop"]
 
 
-def test_agent_api_registers_only_the_exact_shopper_confirmed_mutation() -> None:
+@pytest.mark.parametrize("schema_version", [8, 9])
+def test_agent_api_registers_only_the_exact_shopper_confirmed_mutation(schema_version) -> None:
     registered: list[tuple[str, str, str, str, int]] = []
     client = TestClient(
         create_app(
             llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
             llm_client=ScriptedLLMClient(
-                [[LLMChunk(text=json.dumps({**clear_intent().model_dump(mode="json"), "v": 8}))]]
+                [
+                    [
+                        LLMChunk(
+                            text=json.dumps(
+                                {**clear_intent().model_dump(mode="json"), "v": schema_version}
+                            )
+                        )
+                    ]
+                ]
             ),
             confirmation_registrar=lambda *parts: registered.append(parts) or True,
         )
