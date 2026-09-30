@@ -37,6 +37,21 @@ def settings():
     )
 
 
+@pytest.mark.parametrize("cap", ["1.00", "1.01", "nan", "inf", "0"])
+def test_explicit_total_cap_is_bounded_by_owner_authorized_dollar(cap):
+    environment = {
+        "LLM_PROVIDER": "openrouter",
+        "LLM_MODEL": "google/gemini-2.5-flash",
+        "OPENROUTER_API_KEY": "test-secret",
+        "OPENROUTER_TOTAL_CAP_DOLLARS": cap,
+    }
+    if cap == "1.00":
+        assert load_llm_settings(environment).openrouter_total_limit == 1.00
+    else:
+        with pytest.raises(ValueError):
+            load_llm_settings(environment)
+
+
 @pytest.mark.parametrize("has_usage", [True, False])
 def test_error_stream_retains_identity_and_received_usage_without_emitting(has_usage):
     calls = []
