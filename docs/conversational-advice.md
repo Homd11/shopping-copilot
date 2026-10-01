@@ -12,6 +12,16 @@ Use a read-only advice step after fresh catalogue retrieval. The versioned inten
 
 Conversation and bounded session preference context support follow-ups. Advice completes a conversational turn; a question in its text does not trap the shopper in an execution clarification. A later action request follows the existing intent and guarded execution path. Advice cannot mutate the cart, grant Confirmation, fabricate observed targets or replay an uncertain action. Stop/recovery invalidate late advice results. Invalid advice falls back to verified catalogue cards and a clear message, without retry loops or actions.
 
+## Exact-match explanations — 2026-10-01
+
+After manual testing, the owner reported that advice changed the experience from mechanical commands into a conversation, but exact-match results still lacked an explanation of why the products fit. This is owner feedback, not an additional participant-study result. The approved extension sends schema 9 catalogue discovery with exact matches through the same read-only advisor even when the interpreted request mode is `browse`.
+
+Prompt `advice-v3` requests a few useful sentences connecting verified product facts to the Shopper's request. Multiple matches should receive a meaningful comparison and a conditional preference based on stated priorities. When facts do not establish a winner, the advisor should acknowledge that and optionally ask one useful question. One match receives an explanation without an invented competitor or drawback. Exact eligibility is not a guarantee of quality, comfort or overall suitability; opinions stay distinct from catalogue facts.
+
+The bounded context includes discovery counts and the displayed cards' eligibility alongside fresh product facts. The LLM writes the explanation; no shopper phrase rules or response templates interpret the request. Existing card order, eligibility and action guards remain authoritative. Ordinary filter navigation, schema 8 compatibility and zero-exact browse results retain their existing flows. Newly covered exact discoveries use one additional bounded advice call, with no advice retry; malformed replies or provider-budget failures retain verified cards and the existing fallback message.
+
+API regressions cover single/multiple exact results, evidence/cards, unchanged non-advice routes, invalid replies and Stop/refresh during explanation. Independent Spec and Standards reviews found no actionable issues. No paid calls were made for this extension; actual prose quality still needs a live check. This does not close Ticket 16 or supersede the retained failed live evaluation above.
+
 ## Implementation plan
 
 - [x] Extend the intent contract and prompt for advice; retain schema 8 execution compatibility while requesting schema 9 from live providers.

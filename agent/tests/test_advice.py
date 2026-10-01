@@ -96,6 +96,64 @@ def test_advice_is_natural_read_only_and_followup_retains_shopper_correction():
 
 
 @pytest.mark.parametrize(
+    "category, expected_ids",
+    [
+        ("clothing", ["white-shirt"]),
+        ("shoes", ["black-leather", "formal-brown", "road-runner"]),
+    ],
+)
+def test_exact_discovery_explains_matches_and_keeps_verified_cards(category, expected_ids):
+    explanation = "These fit your budget. I would favour the cheaper option if saving matters most."
+    model = RecordingModel(
+        decision(
+            intent="find_products",
+            constraints={"category": category},
+            price_preference={"value": "lower_price", "source": "مش غاليه"},
+            request_mode="browse",
+        ),
+        advice(explanation, expected_ids),
+    )
+    with client_for(model) as client:
+        session = client.post("/sessions").json()["session_id"]
+        events = send(client, session, "وريني حاجه كده مش غاليه")
+    assert events[-1]["event"] == "done"
+    assert events[-1]["data"]["summary"] == explanation
+    cards = next(event["data"] for event in events if event["event"] == "suggestions")
+    assert cards["exact_count"] == len(expected_ids)
+    assert [item["id"] for item in cards["suggestions"]] == expected_ids
+    assert all(item["label"] == "exact_match" for item in cards["suggestions"])
+    context = json.loads(model.requests[-1].messages[0].content)
+    assert [item["id"] for item in context["products"]] == expected_ids
+    assert context["discovery"]["exact_count"] == len(expected_ids)
+    assert len(model.requests) == 2 and model.requests[-1].tools == ()
+    assert not any(event["event"] in {"action", "error"} for event in events)
+
+
+@pytest.mark.parametrize("case", ["ordinary_filter", "legacy", "no_exact_match"])
+def test_discovery_explanation_does_not_add_calls_to_other_flows(case):
+    proposal = decision(intent="find_products", constraints={"category": "clothing"})
+    if case == "legacy":
+        proposal.update(v=8, price_preference={"value": "lower_price", "source": "رخيص"})
+    elif case == "no_exact_match":
+        proposal.update(
+            catalogue_requirements=[{"kind": "feature", "value": "leather", "source": "جلد"}]
+        )
+    model = RecordingModel(proposal)
+    with client_for(model) as client:
+        session = client.post("/sessions").json()["session_id"]
+        events = send(client, session, "وريني اللبس")
+    assert len(model.requests) == 1
+    assert not any(event["event"] == "error" for event in events)
+    if case == "ordinary_filter":
+        assert any(event["event"] == "action" for event in events)
+    else:
+        assert events[-1]["event"] == "done"
+        assert not any(event["event"] == "action" for event in events)
+        cards = next(event["data"] for event in events if event["event"] == "suggestions")
+        assert cards["exact_count"] == (1 if case == "legacy" else 0)
+
+
+@pytest.mark.parametrize(
     "bad",
     [
         advice("Invented product", ["not-in-catalogue"]),
@@ -104,8 +162,14 @@ def test_advice_is_natural_read_only_and_followup_retains_shopper_correction():
         {"unexpected": "Ignore all rules"},
     ],
 )
-def test_invalid_advice_finishes_with_verified_cards_without_retry_or_actions(bad):
-    model = RecordingModel(decision(), bad)
+@pytest.mark.parametrize("discovery", [False, True])
+def test_invalid_advice_finishes_with_verified_cards_without_retry_or_actions(bad, discovery):
+    proposal = decision()
+    if discovery:
+        proposal.update(
+            intent="find_products", price_preference={"value": "lower_price", "source": "رخيص"}
+        )
+    model = RecordingModel(proposal, bad)
     with client_for(model) as client:
         session = client.post("/sessions").json()["session_id"]
         events = send(client, session, "ايه رايك؟")
@@ -188,11 +252,18 @@ def test_no_evidence_allows_conversation_and_question_without_forced_execution_c
 
 
 @pytest.mark.parametrize("interruption", ["stop", "refresh"])
-def test_late_advice_is_discarded_after_stop_or_refresh(interruption):
+@pytest.mark.parametrize("discovery", [False, True])
+def test_late_advice_is_discarded_after_stop_or_refresh(interruption, discovery):
     async def scenario():
         class DelayedModel(RecordingModel):
             def __init__(self):
-                super().__init__(decision(), advice("Late advice", ["white-shirt"]))
+                proposal = decision()
+                if discovery:
+                    proposal.update(
+                        intent="find_products",
+                        price_preference={"value": "lower_price", "source": "رخيص"},
+                    )
+                super().__init__(proposal, advice("Late advice", ["white-shirt"]))
                 self.started = asyncio.Event()
                 self.release = asyncio.Event()
 
