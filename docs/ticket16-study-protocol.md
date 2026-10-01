@@ -1,5 +1,7 @@
 # Ticket 16: five-person uncoached study protocol
 
+**Historical protocol:** on 2026-10-01 the owner approved Ticket 16 as an informal qualitative study based on actual observations. The formal participant, task, findings-count and manual-comparison closure criteria below are superseded by [the approved scope adjustment](ticket16-closeout.md). Preserve this protocol as the original design; do not claim it was executed or passed. Consent remains necessary for any future recording or reuse of participant data.
+
 **Protocol version:** 0.1, prepared 2026-09-29.
 
 **State:** the owner subsequently reported five informal testers on calls and two advice-related findings. See [the evidence ledger](ticket16-feedback.md); formal task measurements and protocol adherence remain unverified.

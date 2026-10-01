@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-10-01
 
+## Local MVP closed; CAP-01 is next — 2026-10-01
+
+The owner explicitly approved Ticket 16 as an informal qualitative study: five positive reactions to advice, two reported successful account navigations, and the two original advice findings. No formal task success rate, ratings, interface-confidence classification or extra findings were invented. The owner separately approved using historical Ticket 15 live acceptance, the current full automated suite and final targeted advice/cart checks, without repeating the three full live runs on this release. Both adjustments are recorded in [the closeout](docs/ticket16-closeout.md).
+
+Final verification used eight messages/fourteen provider calls at **$0.0204672**. Advice/navigation passed; cart add initially failed with a navigation-only product ID on cart intent. `intent-v28` adds schema-specific repair guidance without phrase rules or weaker guards; a restored-context live recheck added the exact variant/quantity and preserved other cart lines. Original failures, residual grounding limitations and the unreached live clear probe remain explicit. **458 Python and 155 TypeScript tests passed**, with builds/typechecks, lint, formatting and independent reviews. The key cap remains $1.00 Never, with $0.051541498 remaining at the post-check read-only observation.
+
+Ticket 16 is closed on this approved basis; **`mvp-1`** identifies the local release. [RESULTS.md](RESULTS.md) distinguishes historical full-model evidence from current targeted/regression evidence. Next is CAP-01 graduation planning, followed by reviewed CAP-02 data and offline CAP-03 comparison. No cloud deployment, production readiness or independent-store compatibility is claimed.
+
 ## Exact catalogue matches now receive grounded explanations — 2026-10-01
 
 The owner manually reported that advice made the Copilot conversational and requested explanations for exact matches, especially multiple options. Schema 9 catalogue discovery with exact results now uses the existing read-only advisor even in browse mode. Prompt `advice-v3` asks for concise reasons tied to verified facts and Shopper priorities, conditional comparisons and honest uncertainty. Product cards and eligibility remain authoritative; ordinary filter navigation, schema 8 and zero-exact browse paths are preserved. No phrase matching or execution-guard change was added. See [behaviour and verification](docs/conversational-advice.md#exact-match-explanations--2026-10-01).

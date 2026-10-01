@@ -1,5 +1,7 @@
 # Implementation Plan — Step by Step (Final)
 
+**Owner-approved local closure — 2026-10-01:** Ticket 16 closes as an informal qualitative study of actual observations. The owner separately approved historical three-run live acceptance plus current full automated and targeted advice/cart verification, without a fresh three-run live rerun for this release. The older formal-study and live-rerun requirements below are superseded only as explicitly recorded in [the closeout](docs/ticket16-closeout.md). See [MVP results](RESULTS.md), release `mvp-1`. Safety invariants and future cloud qualification remain unchanged.
+
 This is the build order. Follow it top to bottom. Each step says **what to build**, **what the store must have for it** (only when something is needed), and **done when**. The agent is the product; the store exists to feed it.
 
 Conventions used below:

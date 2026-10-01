@@ -1,5 +1,7 @@
 # MVP Plan — Make It Work First
 
+**Owner-approved local closure — 2026-10-01:** Ticket 16 closes as an informal qualitative study of actual observations. The owner separately approved historical three-run live acceptance plus current full automated and targeted advice/cart verification, without a fresh three-run live rerun for this release. The older formal-study and live-rerun requirements below are superseded only as explicitly recorded in [the closeout](docs/ticket16-closeout.md). See [MVP results](RESULTS.md), release `mvp-1`. Safety invariants and future cloud qualification remain unchanged.
+
 **Goal:** one custom store we build ourselves, one browser, the agent navigates and filters it end-to-end. Nothing else.
 **Timebox:** 4 weeks.
 **Everything in the big plan is deferred until this works.** No multi-tenancy, no AWS beyond a dev box, no Redis, no vector DB, no crawler, no Shopify/WooCommerce, no session resumption.

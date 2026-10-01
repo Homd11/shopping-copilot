@@ -140,7 +140,13 @@ class StructuredIntent(IntentModel):
     subjective_preferences: list[str] = Field(default_factory=list, max_length=6)
     advice_product_ids: list[str] = Field(default_factory=list, max_length=6)
     navigation_source: str | None = None
-    product_id: str | None = None
+    product_id: str | None = Field(
+        default=None,
+        description=(
+            "Only open_product uses this catalogue ID. For cart_edit use the observed "
+            "cart_target_id button and leave product_id null."
+        ),
+    )
     revised_fields: list[RevisionField] = Field(default_factory=list)
     revision_source: str | None = None
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
@@ -239,9 +245,11 @@ class StructuredIntent(IntentModel):
                 for key, value in self.constraints.model_dump().items()
                 if key not in {"size", "color"}
             ):
-                raise ValueError("Cart edits cannot carry discovery constraints")
+                raise PydanticCustomError(
+                    "cart_authority_isolation", "Cart edits cannot carry discovery constraints"
+                )
             if self.product_id or self.catalogue_requirements or self.context_items:
-                raise ValueError("Cart edits must be isolated")
+                raise PydanticCustomError("cart_authority_isolation", "Cart edits must be isolated")
         elif any(
             value is not None
             for value in (

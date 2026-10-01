@@ -1,6 +1,6 @@
 # Ticket 16: reported feedback and advice follow-up
 
-Status: in progress, 2026-10-01. Ticket 15 is accepted; Ticket 16 is not closed.
+Status: closed under the owner-approved informal-study scope and release evidence basis, 2026-10-01. See [the closeout and scope adjustment](ticket16-closeout.md). The original formal-study criteria below are historical, not requirements to invent additional findings or measurements.
 
 ## Evidence collected so far
 
@@ -39,4 +39,4 @@ See [the live technical exploration](ticket16-advice-evaluation.md). It found an
 
 Record which required tasks participants actually attempted, whether attempts were coached, explicit benefit responses and digital-confidence eligibility where known. Unknown observations stay unknown. Any additional measured sessions should follow the prepared protocol. The post-advice positive feedback above provides qualitative follow-up evidence; it cannot retroactively fill missing original task measurements.
 
-Before closure, reconcile the findings requirement, the required participant/task outcomes and applicable post-change acceptance evidence. Until then, local-MVP tagging and substantive CAP-03 work remain queued. CAP-03 also requires CAP-02's reviewed dataset and splits.
+The owner subsequently approved informal qualitative closure using the actual observations, superseding the original findings quota and formal participant/task requirements. Technical release evidence remains separate; see the closeout. CAP-03 still requires local closure and CAP-02's reviewed dataset and splits.
