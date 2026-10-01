@@ -21,7 +21,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v27"
+PROMPT_VERSION = "intent-v28"
 
 
 class MissingExecutionField(ValueError):
@@ -246,6 +246,10 @@ def build_intent_request(
             "never increase/decrease. Remove and undo have null quantity mode. "
             "Cart constraints may contain ONLY requested size/color. Preserve "
             "already-selected variants otherwise. "
+            "For cart_edit, product_id is null even after opening or discussing that product; "
+            "the observed cart_target_id button determines the actual form or cart line. "
+            "Leave catalogue_requirements/owned_items empty and owned_item null. Preserve "
+            "the requested cart operation, quantity, mode and size/color. "
             "cart_source and navigation_source describe the current request. Emptying the "
             "whole cart is mutate/clear_cart; "
             "submitting a fictional order is mutate/submit_checkout. These only propose an "
@@ -358,6 +362,24 @@ def _repair_feedback(error, intent, snapshot, schema):
             issue["loc"][0] for issue in issues if issue["loc"] and issue["loc"][0] in properties
         }
         feedback["invalid_fields"] = {name: properties[name] for name in sorted(fields)}
+        if any(issue["type"] == "cart_authority_isolation" for issue in issues):
+            feedback["cross_field_rules"] = {
+                "cart_authority_isolation": {
+                    "null_fields": ["product_id", "owned_item"],
+                    "empty_arrays": ["catalogue_requirements", "owned_items"],
+                    "allowed_constraint_fields": ["size", "color"],
+                    "preserve_fields": [
+                        "cart_operation",
+                        "cart_target_id",
+                        "cart_quantity",
+                        "cart_quantity_mode",
+                    ],
+                    "instruction": "Keep the requested cart edit and requested size/color. "
+                    "Use the observed cart button ID, not catalogue identity or earlier "
+                    "discovery context. "
+                    "Do not change the requested amount or select a different variant.",
+                }
+            }
         if any(issue["type"] == "navigation_discovery_isolation" for issue in issues):
             feedback["cross_field_rules"] = {
                 "navigation_discovery_isolation": {
