@@ -1,5 +1,11 @@
 # Shopping Copilot — project handoff
 
+## System Analysis & Design drafted ahead of 6 November — 2026-10-01
+
+The [design document](docs/system-analysis-design.md) now records the implemented local system: actors/use cases, component and trust boundaries, execution/Confirmation sequences, task states, logical data model, interfaces, failures and requirements/evidence mapping. It explicitly identifies the Storefront's shared in-memory cart and loss of server state on restart; separate Agent sessions do not imply isolated carts.
+
+The local-system content is prepared for review. Final graduation design still needs CAP-04's costed AWS service selection, region/model access, budget, audience/access policy, state isolation and restart/storage decisions. CAP-04 remains open; no runtime change, paid model call, cloud provisioning or deployment is claimed. Independent Spec and Standards reviewers were attempted but both hit the account usage limit; their review is incomplete. Documentation formatting and local-link checks are the validation for this change; application tests were not rerun.
+
 ## CAP-01 drafts prepared; owner coordinates submission — 2026-10-01
 
 Three review drafts are prepared for the confirmed **16 October 2026** deadline: [planning and management](docs/cap01-project-planning.md), [literature review](docs/cap01-literature-review.md), and [requirements/traceability](docs/cap01-requirements.md). The literature review synthesizes seven primary sources with citations; external findings, project rationale and planned experiments are distinguished. No model training, dataset collection, paid inference or cloud provisioning occurred.

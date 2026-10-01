@@ -73,6 +73,12 @@ The owner authorized drafting while remaining academic assignments are pending a
 
 These are the current drafts. The earlier `depi-milestone-1.md` preparation note is historical and contains superseded schedule, team and Ticket 16 wording; use this register and the new drafts instead. No dataset collection, model training, paid model call, cloud provisioning or external submission occurs in this drafting step.
 
+## System Analysis & Design — 6 November
+
+The owner requested that this deliverable be prepared early. The [System Analysis & Design draft](system-analysis-design.md) documents the implemented local architecture, use cases, trust boundaries, execution/Confirmation sequences, task states, conceptual data model, interfaces and requirement traceability. It also records the current shared in-memory Storefront cart and loss of state on server restart as deployment constraints.
+
+The local-system content is ready for team review. A concrete AWS service selection and costed design remain CAP-04 work: region/model access, authorized budget, audience/access controls, state isolation and restart/storage choices are not confirmed. The document does not close CAP-04 or claim cloud deployment. Its logical cloud view must be replaced or expanded with the reviewed decisions before the full graduation design is finalized.
+
 ## Remaining finalization work
 
 1. Finalize owners for the three 16 October documents and map each to its source evidence; technical role ownership is already recorded above.
