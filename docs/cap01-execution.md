@@ -15,7 +15,7 @@ Turn the approved Controlled Storefront AWS graduation scope into a concrete res
 | Technical implementation and tests | Versioned application, regression suites, frozen Ticket 15 live reports, final advice check | Pin release/configuration references and explain historical versus current evidence.             |
 | ML methodology                     | Prepared dataset/baseline protocols; existing exposed development cases                     | CAP-02 reviewed release, then CAP-03 training/comparison and error analysis.                     |
 | Architecture and cloud delivery    | Current local boundaries; approved Controlled Storefront direction                          | CAP-04 reviewed architecture/budget, CAP-05 qualification, CAP-06 deployment, CAP-07 acceptance. |
-| Literature review                  | Questions and source-record template prepared in the local Milestone 1 draft                | Verify primary sources and synthesize relevance before submission.                               |
+| Literature review                  | Seven-source primary-literature synthesis in the current draft                              | Team review and official-format mapping before submission.                                       |
 | Individual contributions           | Git history and task evidence                                                               | Map real agreed owners to work and maintain weekly records.                                      |
 | Presentation and demonstration     | Working local application                                                                   | CAP-08 submission, AWS demo, limitations and member explanations.                                |
 
@@ -31,7 +31,7 @@ The owner supplied the team allocation table on 2026-10-01. Names and responsibi
 | Ezz Mohamed   | Frontend & Storefront Integration    | TypeScript Bridge and Panel, cross-origin communication, responsive UI and RTL localization.                     |
 | Rana Ali      | QA, Safety & Evaluation Runner       | Playwright suites, multilingual intent benchmarking and safety-invariant validation reports.                     |
 
-The table does not separately assign submission coordination, literature-review ownership, CAP-02 unseen-data custody or CAP-03 classical-model training. Keep those gaps explicit until the team allocates them. Weekly evidence should link actual artifacts rather than attributing previous commits solely from role titles.
+The project owner will coordinate the overall submission, as explicitly confirmed on 2026-10-01. The additional academic assignments, literature-review ownership, CAP-02 unseen-data custody and CAP-03 classical-model training remain pending at the owner's request. The supplied technical role table above remains the recorded allocation; no additional responsibility is inferred from it. Weekly evidence should link actual artifacts rather than attributing previous commits solely from role titles.
 
 ## Confirmed DEPI schedule
 
@@ -61,10 +61,22 @@ The immediate target is the three documents due **16 October**. Their content ca
 
 The owner supplied both the team allocation and the schedule, then explicitly selected DEPI. This record supersedes older local notes that described team roles or the schedule as unconfirmed. No contact addresses, guessed dates or claims of instructor approval are added.
 
-## First work after those inputs
+## Draft package for 16 October
+
+The owner authorized drafting while remaining academic assignments are pending and confirmed that DEPI has not supplied an official template or submission location. The owner coordinates the submission. The following editable Markdown drafts are prepared for content review; none is submitted or instructor-approved:
+
+| Deliverable                   | Review draft                                           | Remaining readiness work                                                     |
+| ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Project Planning & Management | [Planning draft](cap01-project-planning.md)            | Team review of proposed internal checkpoints and remaining owners.           |
+| Literature Review             | [Literature draft](cap01-literature-review.md)         | Team review of source synthesis and eventual mapping to the official format. |
+| Requirements Gathering        | [Requirements and traceability](cap01-requirements.md) | Team review of requirements and future rubric mapping.                       |
+
+These are the current drafts. The earlier `depi-milestone-1.md` preparation note is historical and contains superseded schedule, team and Ticket 16 wording; use this register and the new drafts instead. No dataset collection, model training, paid model call, cloud provisioning or external submission occurs in this drafting step.
+
+## Remaining finalization work
 
 1. Finalize owners for the three 16 October documents and map each to its source evidence; technical role ownership is already recorded above.
-2. Map the Milestone 1 draft into the official template; keep missing literature or rubric items explicit.
+2. Map the three current CAP-01 drafts into the official template when supplied; keep rubric and review gaps explicit.
 3. Create the first weekly contribution rows from actual artifacts and verification.
 4. Review the submission checklist against confirmed requirements, then hand dataset work to CAP-02. CAP-03 begins only after reviewed data and splits exist.
 
