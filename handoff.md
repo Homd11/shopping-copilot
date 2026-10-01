@@ -1,5 +1,11 @@
 # Shopping Copilot — project handoff
 
+## Exact catalogue matches now receive grounded explanations — 2026-10-01
+
+The owner manually reported that advice made the Copilot conversational and requested explanations for exact matches, especially multiple options. Schema 9 catalogue discovery with exact results now uses the existing read-only advisor even in browse mode. Prompt `advice-v3` asks for concise reasons tied to verified facts and Shopper priorities, conditional comparisons and honest uncertainty. Product cards and eligibility remain authoritative; ordinary filter navigation, schema 8 and zero-exact browse paths are preserved. No phrase matching or execution-guard change was added. See [behaviour and verification](docs/conversational-advice.md#exact-match-explanations--2026-10-01).
+
+Verification: **457 Python tests passed**, including single/multiple exact results, invalid-advice fallback and Stop/refresh regressions. All **155 TypeScript tests**, builds/typechecks, lint and formatting passed. Independent Spec and Standards reviews found no actionable issues. These scripted checks verify routing and guards, not generated prose quality. No paid calls, cap changes or provider-account edits occurred. Each newly explained discovery adds one bounded advice call; budget/provider failure retains verified cards and the existing fallback. Ticket 16 remains open and prior live failures remain recorded.
+
 ## Ticket 16 feedback recorded; bounded advice exploration found a transition failure — 2026-10-01
 
 The owner clarified that the five informal testers explored without his help, until satisfied. Two advice-related findings are recorded in [the feedback ledger](docs/ticket16-feedback.md). Required task coverage, digital-confidence eligibility and explicit benefit votes remain unknown; no missing measurements or additional participant findings were invented.

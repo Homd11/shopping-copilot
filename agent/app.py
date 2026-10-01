@@ -181,19 +181,32 @@ def create_app(
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                 return
-            if intent.v >= 9 and (
-                intent.intent == "advice"
-                or (
-                    intent.intent == "find_products"
-                    and not intent.needs_clarification
-                    and intent.request_mode in {"recommend", "style"}
+            catalogue_discovery = (
+                intent.intent == "find_products"
+                and not intent.needs_clarification
+                and (
+                    intent.catalogue_requirements
+                    or intent.price_preference is not None
+                    or intent.desired_wear_position is not None
+                    or intent.request_mode in {"recommend", "style"}
+                    or intent.context_items
                 )
-            ):
+            )
+            if intent.v >= 9 and (intent.intent == "advice" or catalogue_discovery):
                 phase = "catalogue"
                 catalogue = await catalogue_reader.read()
                 evidence = prepare_advice(catalogue, intent)
                 current = sessions.get(session_id)
                 if current.active_task is not task or task.model_call_id != call_id:
+                    return
+                if (
+                    intent.intent != "advice"
+                    and intent.request_mode == "browse"
+                    and not evidence.discovery.exact_count
+                ):
+                    sessions.finish_catalogue_interpretation(
+                        session_id, task_id, call_id, intent, evidence.discovery
+                    )
                     return
                 phase = "advice"
                 try:
@@ -226,17 +239,7 @@ def create_app(
                     session_id, task_id, call_id, intent, evidence.discovery, advice_text=summary
                 )
                 return
-            if (
-                intent.intent == "find_products"
-                and not intent.needs_clarification
-                and (
-                    intent.catalogue_requirements
-                    or intent.price_preference is not None
-                    or intent.desired_wear_position is not None
-                    or intent.request_mode in {"recommend", "style"}
-                    or intent.context_items
-                )
-            ):
+            if catalogue_discovery:
                 phase = "catalogue"
                 catalogue = await catalogue_reader.read()
                 result = evaluate_catalogue(catalogue, intent)

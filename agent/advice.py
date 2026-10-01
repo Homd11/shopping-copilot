@@ -103,6 +103,7 @@ def build_advice_request(
         "recent_conversation": state.get("_recent_conversation", []),
         "previous_advice_context": state.get("_advice_context", {}),
         "products": list(evidence.products),
+        "discovery": evidence.discovery.to_wire(),
         "current_snapshot": snapshot_context(snapshot),
     }
     return LLMRequest(
@@ -122,6 +123,14 @@ def build_advice_request(
             "Explain that the comparison is uncertain when the relevant evidence is absent. "
             "Separate styling opinions from facts naturally (for example, in my opinion). "
             "Explain why an option fits the Shopper's priorities and its relevant trade-offs; "
+            "When discovery contains exact matches, briefly connect the shown products' "
+            "verified facts to the Shopper's actual request instead of merely announcing a "
+            "match count. For multiple matches, compare meaningful differences and offer a "
+            "conditional preference based on their stated priorities. If there is no grounded "
+            "winner, say so and ask at most one useful question; never manufacture a ranking. "
+            "For one match, explain why it fits without inventing an alternative or downside. "
+            "An exact match verifies recorded requirements, not overall quality or absolute "
+            "suitability. Keep this explanation to a few useful sentences, not a sales pitch. "
             "never claim absolute best or invent disadvantages. Honour explicit constraints "
             "and exclusions. Preserve eligibility labels: alternatives have named unmet "
             "requirements; comparison_only or unavailable products are not recommendations. "
@@ -139,7 +148,7 @@ def build_advice_request(
         messages=(LLMMessage(role="shopper", content=json.dumps(context, ensure_ascii=False)),),
         response_schema=AdviceResponse.model_json_schema(),
         response_validator=AdviceResponse.model_validate_json,
-        prompt_version="advice-v2",
+        prompt_version="advice-v3",
         schema_version=1,
         max_tokens=1000,
     )
