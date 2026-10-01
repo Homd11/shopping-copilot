@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-10-01
 
+## CAP-01 drafts prepared; owner coordinates submission — 2026-10-01
+
+Three review drafts are prepared for the confirmed **16 October 2026** deadline: [planning and management](docs/cap01-project-planning.md), [literature review](docs/cap01-literature-review.md), and [requirements/traceability](docs/cap01-requirements.md). The literature review synthesizes seven primary sources with citations; external findings, project rationale and planned experiments are distinguished. No model training, dataset collection, paid inference or cloud provisioning occurred.
+
+The owner will coordinate the overall submission. Additional academic assignments, literature ownership, unseen-data custody and classical-training ownership remain pending at his explicit request. DEPI has not supplied an official document template or submission location; these remain unconfirmed. Existing technical roles and DEPI dates are preserved. CAP-01 remains in progress for team review and submission-readiness work; these documents are not submitted or instructor-approved. The [execution register](docs/cap01-execution.md) links the current drafts and supersedes stale preparation wording in older local documents.
+
+Verification is documentation-only: changed Markdown formatting, relative-link checks and independent Spec/Standards review. No fresh application test run is claimed because runtime behaviour did not change. Preserve the existing local MVP tag and provider cap; CAP-02/03 experiments have not started.
+
 ## CAP-01 active: team allocation and DEPI deadlines confirmed — 2026-10-01
 
 Local MVP tag `mvp-1` points to `39ac6d1`; Ticket 16 is closed under the two explicit owner-approved adjustments documented in RESULTS.md. CAP-01 is now active; [the execution register](docs/cap01-execution.md) is authoritative over older notes that called the schedule or team unconfirmed.
