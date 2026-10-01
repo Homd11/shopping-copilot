@@ -17,7 +17,11 @@ The owner explicitly excluded UI feedback from this improvement. Other UI commen
 
 The owner reported that the same five testers were with him, had seen the updated advice experience, and all expressed positive opinions. One participant explicitly described it as very useful and said they needed something like it while shopping online. This is a paraphrase relayed by the owner, not a verbatim recorded quotation. No numerical ratings were requested or supplied; qualitative feedback is valid evidence without converting it to a satisfaction score.
 
-Record **five positive reactions** and **at least one explicit usefulness statement**. The report does not establish five independently recorded helped responses, the required three-task completion rate, or low-confidence eligibility. The exact build and each person's hands-on follow-up actions were not recorded. This supports the perceived value of conversational advice and responds to F01/F02; it is not five additional distinct UX findings or a replacement for technical acceptance. Task coverage and digital-confidence counts have been requested while the participants are available.
+Record **five positive reactions** and **at least one explicit usefulness statement**. This supports the perceived value of conversational advice and responds to F01/F02; it is not five additional distinct UX findings or a replacement for technical acceptance. The exact build was not recorded. Further task and confidence details supplied by the owner are recorded below rather than inferred from the positive reactions.
+
+The owner subsequently reported that **two participants asked to navigate to “My account,” and both attempts worked well**. This establishes reported success for those two account-navigation attempts. It does not establish that they viewed the newest order, or that all five completed the filtering and cart/checkout journeys. Per-participant identities, timings and assistance during these specific follow-up attempts were not supplied.
+
+The owner also clarified that **all five have low confidence making purchase decisions online**, which he identified as the reason they liked the advice. Record this as purchase-decision confidence and motivation for decision support. Confidence operating shopping interfaces was not separately established; do not silently equate product-choice uncertainty with the protocol's limited-interface-confidence eligibility criterion. No numerical rating is needed for either qualitative observation.
 
 ## Bounded technical follow-up
 
