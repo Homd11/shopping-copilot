@@ -1,5 +1,13 @@
 # Shopping Copilot — project handoff
 
+## CAP-01 active: team allocation and DEPI deadlines confirmed — 2026-10-01
+
+Local MVP tag `mvp-1` points to `39ac6d1`; Ticket 16 is closed under the two explicit owner-approved adjustments documented in RESULTS.md. CAP-01 is now active; [the execution register](docs/cap01-execution.md) is authoritative over older notes that called the schedule or team unconfirmed.
+
+The owner supplied the five roles: Ahmed Yasser (AI Agent/LLM architecture), Ali Amr (AWS infrastructure), Mohamed Hamdi (backend/orchestration), Ezz Mohamed (frontend/Storefront integration), and Rana Ali (QA/safety/evaluation). Contact addresses were excluded from Git. The owner explicitly selected **DEPI**, not Industry: planning, literature and requirements due **16 October 2026**; design **6 November**; implementation **30 November**; final presentation/testing/reports **4 December**.
+
+Next: prepare the three 16 October documents against the real local-MVP evidence and assign the remaining academic coordination, literature, unseen-data custody and classical-training responsibilities. Official submission templates/location and rubric remain unprovided. CAP-02 data and CAP-03 training/comparison remain later steps; no new paid experiment, cloud resource or external submission is authorized by this handoff.
+
 ## Local MVP closed; CAP-01 is next — 2026-10-01
 
 The owner explicitly approved Ticket 16 as an informal qualitative study: five positive reactions to advice, two reported successful account navigations, and the two original advice findings. No formal task success rate, ratings, interface-confidence classification or extra findings were invented. The owner separately approved using historical Ticket 15 live acceptance, the current full automated suite and final targeted advice/cart checks, without repeating the three full live runs on this release. Both adjustments are recorded in [the closeout](docs/ticket16-closeout.md).
