@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "dataset_version": "capstone-v1-draft",
   "created_on": "2026-09-29",
-  "status": "deferred_collection_incomplete",
+  "status": "synthetic_development_draft_active",
   "frozen": false,
   "unseen_case_count": 0,
   "preparation_artifacts": {
@@ -69,5 +69,27 @@
     "permission_arrangements": "unconfirmed",
     "sample_sizes": "not_selected",
     "split_allocation": "not_selected"
+  },
+  "synthetic_development": {
+    "batch": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+    "record_format_version": 2,
+    "case_count": 40,
+    "language_counts": {
+      "egyptian_arabic": 10,
+      "franco_arabic": 10,
+      "english": 10,
+      "mixed": 10
+    },
+    "exposure": "exposed",
+    "labels": "draft_unreviewed",
+    "split_proposal": "eval/datasets/capstone-v1/draft-split-strategy.json",
+    "assigned_release_cases": 0
+  },
+  "synthetic_intake": {
+    "metadata": "eval/datasets/capstone-v1/development/intake/gemini-batch-001.metadata.json",
+    "case_count": 100,
+    "status": "unmapped_unreviewed",
+    "exposure": "exposed",
+    "distinctness_against_other_sources": "not_established"
   }
 }
