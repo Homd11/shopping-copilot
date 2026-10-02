@@ -1,8 +1,7 @@
 import re
 from collections.abc import Callable
-from dataclasses import dataclass, field
 from time import monotonic
-from typing import Any, Literal
+from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
 
@@ -10,7 +9,6 @@ from agent.cart import MESSAGES, plan_cart_edit, scripted_cart_intent, validate_
 from agent.catalogue import DiscoveryResult
 from agent.confirmation import (
     ConfirmationLedger,
-    MutationProposal,
     classify_guarded_mutation,
     scripted_mutation_intent,
     validate_mutation_interpretation,
@@ -18,13 +16,12 @@ from agent.confirmation import (
 from agent.llm.intent import StructuredIntent
 from agent.planner import (
     ActionIdentity,
-    Language,
     ScriptedPlanner,
     detect_language,
     is_expected_login_redirect,
     snapshot_matches_url,
 )
-from agent.product_context import ProductContext, require_known_product
+from agent.product_context import require_known_product
 from agent.schemas import (
     Action,
     ActionResult,
@@ -36,25 +33,45 @@ from agent.schemas import (
     SpotlightAction,
     to_wire,
 )
+from agent.session_registry import SESSION_TTL_SECONDS as SESSION_TTL_SECONDS
+from agent.session_registry import SessionRegistry
+from agent.session_state import (
+    AcceptedResult as AcceptedResult,
+)
+from agent.session_state import (
+    ActionResultMismatch as ActionResultMismatch,
+)
+from agent.session_state import (
+    ActiveTask as ActiveTask,
+)
+from agent.session_state import (
+    EventType as EventType,
+)
+from agent.session_state import (
+    InterpretationPauseReason as InterpretationPauseReason,
+)
+from agent.session_state import (
+    LeaseConflict as LeaseConflict,
+)
+from agent.session_state import (
+    Session as Session,
+)
+from agent.session_state import (
+    SessionEvent as SessionEvent,
+)
+from agent.session_state import (
+    SessionExpired as SessionExpired,
+)
+from agent.session_state import (
+    SessionNotFound as SessionNotFound,
+)
+from agent.session_state import (
+    TaskConflict as TaskConflict,
+)
+from agent.session_state import (
+    TaskStatus as TaskStatus,
+)
 
-EventType = Literal[
-    "task_started", "narration", "action", "suggestions", "done", "cancelled", "error"
-]
-TaskStatus = Literal[
-    "interpreting", "awaiting_action_result", "awaiting_answer", "completed", "cancelled", "paused"
-]
-InterpretationPauseReason = Literal[
-    "budget",
-    "throttled",
-    "timeout",
-    "network",
-    "provider_http",
-    "invalid_response",
-    "catalogue_unavailable",
-    "interrupted",
-    "unexpected",
-]
-SESSION_TTL_SECONDS = 30 * 60
 _CONTEXT_TEXT_LIMIT = 2000
 _CONTEXT_ANSWER_LIMIT = 8
 
@@ -100,82 +117,6 @@ def _intent_context(task: "ActiveTask", intent: StructuredIntent) -> dict[str, A
     }
 
 
-@dataclass(frozen=True)
-class SessionEvent:
-    id: int
-    event: EventType
-    data: dict[str, Any]
-
-
-@dataclass
-class ActiveTask:
-    task_id: str
-    action: Action | None
-    language: Language
-    message: str
-    target_url: str | None = None
-    step_count: int = 1
-    status: TaskStatus = "awaiting_action_result"
-    model_call_id: str | None = None
-    resolved_state: dict[str, Any] = field(default_factory=dict)
-    pending_clarification: str | None = None
-    intent_kind: str | None = None
-    target_name: str | None = None
-    auth_handoff: bool = False
-    awaiting_newest_order_spotlight: bool = False
-    suggestions: dict[str, object] | None = None
-    pause_message: str | None = None
-    origin_url: str | None = None
-    confirmation: ConfirmationLedger | None = None
-    mutation_proposal: MutationProposal | None = None
-    mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
-    cart_actions: list[Action] = field(default_factory=list)
-    cart_operation: str | None = None
-
-
-@dataclass(frozen=True)
-class AcceptedResult:
-    task: ActiveTask
-    result: ActionResult
-
-
-@dataclass
-class Session:
-    session_id: str
-    events: list[SessionEvent] = field(default_factory=list)
-    active_task: ActiveTask | None = None
-    accepted_results: dict[tuple[str, str, int], AcceptedResult] = field(default_factory=dict)
-    conversation: list[dict[str, str]] = field(default_factory=list)
-    last_task: ActiveTask | None = None
-    last_snapshot: Snapshot | None = None
-    last_followup_target: str | None = None
-    lease_tab_id: str | None = None
-    last_activity_at: float = 0.0
-    requires_reconciliation: bool = False
-    product_context: ProductContext = field(default_factory=ProductContext)
-    advice_context: dict[str, Any] = field(default_factory=dict)
-
-
-class SessionNotFound(KeyError):
-    pass
-
-
-class SessionExpired(SessionNotFound):
-    pass
-
-
-class TaskConflict(ValueError):
-    pass
-
-
-class ActionResultMismatch(ValueError):
-    pass
-
-
-class LeaseConflict(ValueError):
-    pass
-
-
 class SessionStore:
     def __init__(
         self,
@@ -187,30 +128,13 @@ class SessionStore:
         self._planner = planner or ScriptedPlanner()
         self._clock = clock
         self._confirmation_registrar = confirmation_registrar
-        self._sessions: dict[str, Session] = {}
-        self._expired_ids: set[str] = set()
+        self._registry = SessionRegistry(clock=clock)
 
     def create(self, tab_id: str | None = None) -> Session:
-        session = Session(
-            session_id=f"session-{uuid4().hex}",
-            lease_tab_id=tab_id,
-            last_activity_at=self._clock(),
-        )
-        self._sessions[session.session_id] = session
-        return session
+        return self._registry.create(tab_id)
 
     def get(self, session_id: str) -> Session:
-        if session_id in self._expired_ids:
-            raise SessionExpired(session_id)
-        try:
-            session = self._sessions[session_id]
-        except KeyError as error:
-            raise SessionNotFound(session_id) from error
-        if self._clock() - session.last_activity_at > SESSION_TTL_SECONDS:
-            del self._sessions[session_id]
-            self._expired_ids.add(session_id)
-            raise SessionExpired(session_id)
-        return session
+        return self._registry.get(session_id)
 
     def _record_snapshot(self, session: Session, snapshot: Snapshot) -> None:
         location = urlsplit(snapshot.url)
@@ -222,7 +146,7 @@ class SessionStore:
         )
 
     def _touch(self, session: Session) -> None:
-        session.last_activity_at = self._clock()
+        return self._registry.touch(session)
 
     def _require_task_origin(self, task: ActiveTask, snapshot: Snapshot) -> None:
         if task.origin_url is not None:
@@ -328,22 +252,13 @@ class SessionStore:
         )
 
     def assert_lease(self, session: Session, tab_id: str | None) -> None:
-        if session.lease_tab_id is None:
-            if tab_id is not None:
-                session.lease_tab_id = tab_id
-            return
-        if tab_id != session.lease_tab_id:
-            raise LeaseConflict("Another browser tab owns this Shopping Task")
+        return self._registry.assert_lease(session, tab_id)
 
     def takeover(self, session_id: str, tab_id: str) -> Session:
-        session = self.get(session_id)
-        session.lease_tab_id = tab_id
-        self._touch(session)
-        return session
+        return self._registry.takeover(session_id, tab_id)
 
     def owns_lease(self, session_id: str, tab_id: str | None) -> bool:
-        session = self.get(session_id)
-        return session.lease_tab_id is None or session.lease_tab_id == tab_id
+        return self._registry.owns_lease(session_id, tab_id)
 
     def begin_interpretation(
         self,
