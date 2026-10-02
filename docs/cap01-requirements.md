@@ -1,6 +1,6 @@
 # Requirements gathering and traceability
 
-**Project:** Shopping Copilot. **Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft; official format and assessment mapping pending.
+**Project:** Shopping Copilot. **Updated:** 2 October 2026. **Track:** AWS ML Engineering. **DEPI deadline:** 16 October 2026. **Status:** internal review draft aligned to the [supplied content guidelines](depi-guideline-alignment.md); lecturer assessment and official upload pending.
 
 **Actual working arrangement (2 October 2026):** the owner and coding assistant perform the work; the owner coordinates this deliverable. Earlier named academic leads were administrative allocations, not verified contributions or available staffing. See the updated [CAP-01 register](cap01-execution.md).
 
@@ -12,17 +12,35 @@ Stakeholders are the Shopper, the project team maintaining the catalogue/applica
 
 ## Elicitation sources and their limits
 
-| Source                                                    | What it establishes                                                                                          | Limitation                                                                    |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Owner-approved local specification and domain model       | Supported journeys, controlled scope and safety invariants                                                   | Earlier wording is superseded where later owner decisions are explicit.       |
-| Informal feedback from five testers, relayed by the owner | Positive reactions to advice; two successful account navigations; demand for natural styling and comparisons | No standardized scores, complete task matrix or measured comparative benefit. |
-| Owner observations and approved changes                   | Need for exact-match explanations, conversational follow-up and model-owned interpretation                   | Individual reports are not population-level research.                         |
-| Runtime tests and live reports                            | Concrete observed successes, failure modes and guarded behaviour                                             | Coverage is finite and tied to recorded configurations.                       |
-| Owner-supplied DEPI schedule and team table               | Applicable dates and assigned technical roles                                                                | The images do not establish official rubric weights or a document template.   |
+| Source                                                    | What it establishes                                                                                          | Limitation                                                                                          |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Owner-approved local specification and domain model       | Supported journeys, controlled scope and safety invariants                                                   | Earlier wording is superseded where later owner decisions are explicit.                             |
+| Informal feedback from five testers, relayed by the owner | Positive reactions to advice; two successful account navigations; demand for natural styling and comparisons | No standardized scores, complete task matrix or measured comparative benefit.                       |
+| Owner observations and approved changes                   | Need for exact-match explanations, conversational follow-up and model-owned interpretation                   | Individual reports are not population-level research.                                               |
+| Runtime tests and live reports                            | Concrete observed successes, failure modes and guarded behaviour                                             | Coverage is finite and tied to recorded configurations.                                             |
+| Owner-supplied DEPI schedule and team table               | Applicable dates and assigned technical roles                                                                | The images do not establish official rubric weights or a document template.                         |
+| Five supplied DEPI PDFs, reviewed 2 October               | Required documentation content, infographic, organization GitHub delivery and confirmed dates.               | Literature/lecturer heading discrepancy; grading weights and actual repository access not supplied. |
 
 All five testers reportedly lacked confidence choosing purchases online; this is not evidence that all had difficulty operating website controls. The recorded findings were robotic responses and insufficient comparison/decision support. UI comments were not supplied in detail and are not invented as requirements. The approved informal study and technical release exceptions are fully recorded in [Ticket 16 closeout](ticket16-closeout.md).
 
 ## Functional requirements
+
+### User stories and use-case mapping
+
+These stories express requirements rather than quotations from participants. Detailed preconditions, alternative flows and observable outcomes are in the [design use cases](system-analysis-design.md#3-use-cases).
+
+| Story | Shopper goal                                                                                                    | Requirement / use case | Acceptance example                                                                                   |
+| ----- | --------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| US-01 | As a Shopper, I want to express budget, size and exclusions in my own language so I can find suitable products. | FR-01–02 / UC-01       | Preserve explicit exclusions; unknown facts cannot qualify a product as an Exact Match.              |
+| US-02 | As a Shopper, I want to discuss trade-offs so I can make a more informed choice.                                | FR-03 / UC-02          | Compare verified facts, label styling opinions, acknowledge unknown qualities; no mutation.          |
+| US-03 | As a Shopper, I want to open an identified product or find a control so I can continue shopping.                | FR-04 / UC-03          | Navigate only to supported observed destinations; Spotlight does not submit checkout.                |
+| US-04 | As a Shopper, I want to edit one cart line and undo a mistake so other items stay unchanged.                    | FR-05 / UC-04–05       | Resolve the exact variant; distinguish added quantity from total; preserve the original Undo expiry. |
+| US-05 | As a Shopper, I want to approve the precise effect before clearing the cart or submitting fictional checkout.   | FR-06 / UC-06          | Changed cart state or expired/reused Confirmation cannot authorize the effect.                       |
+| US-06 | As a Shopper, I want account/order guidance while entering private details myself.                              | FR-07 / UC-07          | Sensitive values are excluded from observations and model requests.                                  |
+| US-07 | As a Shopper, I want to stop or refresh without accidentally repeating a cart operation.                        | FR-08 / UC-08          | Reject stale results and reconcile uncertain outcomes before any further effect.                     |
+| US-08 | As a Shopper, I want to review dictated text before sending it and type when speech is unavailable.             | FR-09 / UC-09          | Transcription is editable; recording/availability failures do not block typing.                      |
+
+### Functional acceptance
 
 Priority **Must** means required within the approved graduation scope; it does not imply every future cloud or ML requirement is already implemented.
 
@@ -70,4 +88,4 @@ These are Must graduation requirements and remain planned beyond the completed l
 
 Excluded: arbitrary retailers, external store integrations, real transactions, multi-tenant SaaS and general production-readiness claims. AWS access, region/model eligibility and budget need confirmation before provisioning. Test fixtures and local accounts remain fictional; the current in-memory state is not assumed durable after cloud deployment.
 
-The owner coordinates the overall submission. DEPI has not supplied an official template or submission location. The three academic document leads are now confirmed in the CAP-01 register; dataset custody, independent annotation review and training ownership remain pending. Rubric weights are also unconfirmed. Those gaps do not change the confirmed DEPI deadlines. Requirement changes should record their source, effect on implementation/evidence and explicit approval; passed tests do not silently redefine a requirement.
+The owner coordinates the overall submission. The supplied instructions identify organization-owned GitHub delivery, but the invitation/URL and editable report template remain unprovided. Actual work is performed by the owner and coding assistant; nominal academic roles do not establish independent review. Dataset review/custody arrangements and numerical rubric weights remain unresolved. These gaps do not change the confirmed DEPI deadlines. Requirement changes should record their source, effect on implementation/evidence and explicit approval; passed tests do not silently redefine a requirement.

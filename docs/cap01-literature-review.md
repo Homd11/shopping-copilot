@@ -1,6 +1,8 @@
 # CAP-01: Literature Review
 
-Prepared: 2026-10-01. DEPI submission target: 16 October 2026. Status: substantive draft for team review and adaptation to the official submission template, which has not been supplied. This is a focused review of seven primary sources, not a systematic review or an exhaustive survey of the latest models.
+Updated: 2026-10-02. Track: AWS ML Engineering. DEPI submission target: 16 October 2026. Status: research draft for owner review, aligned with the [supplied guidelines](depi-guideline-alignment.md). This is a focused review of seven primary sources, not a systematic review or an exhaustive survey of the latest models.
+
+The updated guidelines title section 2 “Literature Review” but list lecturer feedback, improvements and grading criteria; the original guide titles the same material “Lecturer Review”. Retain this research synthesis and the separate [lecturer review record](cap01-lecturer-review.md) pending clarification. This document does not invent lecturer feedback or claim it fulfills an unspecified grading rubric.
 
 **Actual working arrangement (2 October 2026):** the owner and coding assistant perform the work; the owner coordinates this deliverable. Earlier named academic leads were administrative allocations, not verified contributions or available staffing. See the updated [CAP-01 register](cap01-execution.md).
 

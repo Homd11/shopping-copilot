@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-10-02
 
+## DEPI guidelines mapped; CAP-01 drafts aligned — 2026-10-02
+
+The owner supplied five DEPI PDFs and confirmed the official track name **AWS ML Engineering**. The [alignment register](docs/depi-guideline-alignment.md) maps their requirements and unchanged DEPI dates. Official submission is through a Skills Dynamix organization repository; its invitation/URL remains unprovided. The newer Literature Review heading retains older Lecturer Review bullets, so the research synthesis is preserved alongside a separate pending lecturer-feedback/approval record. No grading weights or approval were invented.
+
+Planning now includes proposed Gantt windows, actual resource constraints and KPI definitions; requirements include user stories and acceptance mapping. The [design supplement](docs/system-design-views.md) adds use-case, context/detail DFD, activity, class, local-deployment and schematic wireframe views. It reflects the session refactor and current in-memory/shared Storefront state; AWS decisions remain CAP-04 work. The [infographic brief](docs/project-infographic-brief.md) uses the confirmed track and verified content; a final slide/image has not been exported.
+
+Verification: all 13 Mermaid diagrams across planning and design parsed/rendered; document links and formatting checked. Standards review found no actionable issues; Spec review found an omitted final-attendance checklist item and a misleading read-only activity branch, both corrected. This is documentation-only; no fresh application test run, paid model call, remote change, upload or push is claimed. Existing unrelated working-tree edits are preserved.
+
+Next: owner reviews the aligned package; obtain lecturer evidence and organization-repository access/export conventions; produce final submission exports and infographic. Final discussion attendance is required, but its actual appointment remains unconfirmed. CAP-01 is not officially submitted, CAP-02 remains open with exposed synthetic drafts, and CAP-04 remains open for cloud decisions.
+
 ## CAP-02 synthetic development collection prepared — 2026-10-02
 
 At the owner's request CAP-02 remains open and active. The [development batch](eval/datasets/capstone-v1/development/README.md) contains 40 assistant-generated draft records: ten Egyptian Arabic, ten Franco-Arabic, ten English and ten mixed. Record format 2 adds explicit cart/mutation operations, catalogue requirements and semantic notes without changing runtime schemas. Thirteen hashed synthetic context fixtures preserve referents and conversation states. A grouped 32-training/8-validation/0-unseen proposal is tentative; actual release assignments remain empty.

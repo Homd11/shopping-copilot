@@ -1,12 +1,12 @@
 # CAP-01: graduation deliverables and ownership
 
-Prepared: 2026-10-01. State: in progress following local-MVP closure; team roles supplied, remaining submission inputs being reconciled. No submission, external message or cloud provisioning has occurred.
+Updated: 2026-10-02. Track: **AWS ML Engineering** (owner-confirmed). State: drafts aligned to supplied DEPI guidelines; lecturer evidence and organization-repository access remain pending. No submission, external message or cloud provisioning has occurred. See the [submission register](depi-guideline-alignment.md).
 
 ## Working arrangement clarified — 2 October 2026
 
 The owner clarified that the owner and coding assistant are the only active contributors. The other named members are not available to perform project work. Earlier technical/academic allocations below record the supplied team table and prior assignments; they are not evidence of contributions or active staffing. The owner coordinates all actual deliverables. Do not request help from those members, invent contribution records or make progress depend on their review. Any independent-human-review claim remains unsupported unless real evidence is later obtained.
 
-CAP-02 is deferred while the assistant performs the owner-authorized session refactor. Its collection packet and exposure inventory are ready, but the dataset is not collected, reviewed or frozen; CAP-02 is not closed. A later owner/assistant evaluation must explicitly disclose its review and independence limitations.
+The session refactor is complete. CAP-02 is active with 40 annotated synthetic drafts and a separate 100-message Gemini intake, all exposed and unreviewed for release. No frozen dataset or unseen results are claimed; CAP-02 remains open. Owner/assistant evaluation must disclose its review and independence limitations.
 
 ## Goal and boundaries
 
@@ -21,7 +21,7 @@ Turn the approved Controlled Storefront AWS graduation scope into a concrete res
 | Technical implementation and tests | Versioned application, regression suites, frozen Ticket 15 live reports, final advice check | Pin release/configuration references and explain historical versus current evidence.             |
 | ML methodology                     | Prepared dataset/baseline protocols; existing exposed development cases                     | CAP-02 reviewed release, then CAP-03 training/comparison and error analysis.                     |
 | Architecture and cloud delivery    | Current local boundaries; approved Controlled Storefront direction                          | CAP-04 reviewed architecture/budget, CAP-05 qualification, CAP-06 deployment, CAP-07 acceptance. |
-| Literature review                  | Seven-source primary-literature synthesis in the current draft                              | Team review and official-format mapping before submission.                                       |
+| Literature review                  | Seven-source synthesis and separate lecturer-review record                                  | Owner review; clarify heading discrepancy and obtain lecturer evidence.                          |
 | Individual contributions           | Git history and task evidence                                                               | Map real agreed owners to work and maintain weekly records.                                      |
 | Presentation and demonstration     | Working local application                                                                   | CAP-08 submission, AWS demo, limitations and member explanations.                                |
 
@@ -60,30 +60,30 @@ The owner supplied the Project Documentation Guidelines screenshot and explicitl
 | Implementation (Source Code & Execution) | 30 November 2026   |
 | Final Presentation, Testing & Reports    | 4 December 2026    |
 
-The immediate target is the three documents due **16 October**. Their content can use the completed local MVP and honest qualitative findings while describing later dataset, model-comparison and cloud work as planned. This schedule does not require inventing completed ML experiments or AWS deployment for that first deadline. The supplied schedule confirms dates, not submission templates or assessment weights.
+The immediate target is the three documents due **16 October**. Use completed local evidence and describe unreleased dataset/model/cloud work accurately. The five supplied PDFs confirm the documentation checklist and organization GitHub delivery, but provide no numerical grading weights or editable report template.
 
 ## Remaining planning inputs
 
-| Input                                                      | Current state                                                             | Next action                                                                              |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Applicable schedule                                        | Confirmed: DEPI, dates above                                              | Use these dates in the deliverable register.                                             |
-| Team members and agreed responsibilities                   | Five technical roles and three academic leads confirmed                   | Resolve dataset custody, independent annotation review and classical-training ownership. |
-| First submission deadline, required template and location  | Deadline confirmed as 16 October 2026; template and location not supplied | Obtain the required format/location without delaying the internal drafts.                |
-| Official assessment weights and custom-proposal acceptance | Not independently verified                                                | Record authoritative evidence or mark pending.                                           |
-| AWS-specific training/tooling requirements                 | AWS track stated by owner; detailed requirements unconfirmed              | Clarify mandatory versus optional deliverables.                                          |
-| Cloud budget/credits and region                            | Not authorized for provisioning                                           | Establish a separate budget before CAP-04/06 spending.                                   |
+| Input                                                      | Current state                                                                            | Next action                                                                              |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Applicable schedule                                        | Confirmed: DEPI, dates above                                                             | Use these dates in the deliverable register.                                             |
+| Team members and agreed responsibilities                   | Five technical roles and three academic leads confirmed                                  | Resolve dataset custody, independent annotation review and classical-training ownership. |
+| First submission deadline, format and location             | 16 October; content guidelines supplied; Skills Dynamix organization repository required | Obtain actual invitation/URL and any export conventions.                                 |
+| Official assessment weights and custom-proposal acceptance | Not independently verified                                                               | Record authoritative evidence or mark pending.                                           |
+| AWS-specific training/tooling requirements                 | AWS track stated by owner; detailed requirements unconfirmed                             | Clarify mandatory versus optional deliverables.                                          |
+| Cloud budget/credits and region                            | Not authorized for provisioning                                                          | Establish a separate budget before CAP-04/06 spending.                                   |
 
 The owner supplied both the team allocation and the schedule, then explicitly selected DEPI. This record supersedes older local notes that described team roles or the schedule as unconfirmed. No contact addresses, guessed dates or claims of instructor approval are added.
 
 ## Draft package for 16 October
 
-The owner authorized drafting before academic leads were assigned; those three leads were subsequently confirmed on 2 October as recorded above. DEPI has not supplied an official template or submission location. The owner coordinates the submission. The following editable Markdown drafts are prepared for content review; none is submitted or instructor-approved:
+The owner coordinates submission; nominal leads are not available staffing. The [alignment register](depi-guideline-alignment.md) maps supplied guidelines. Organization-repository access remains pending. These editable drafts are prepared for owner review; none is submitted or instructor-approved:
 
-| Deliverable                   | Review draft                                           | Remaining readiness work                                                              |
-| ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| Project Planning & Management | [Planning draft](cap01-project-planning.md)            | Lead review of proposed internal checkpoints and outstanding dataset/training owners. |
-| Literature Review             | [Literature draft](cap01-literature-review.md)         | Team review of source synthesis and eventual mapping to the official format.          |
-| Requirements Gathering        | [Requirements and traceability](cap01-requirements.md) | Team review of requirements and future rubric mapping.                                |
+| Deliverable                   | Review draft                                                                               | Remaining readiness work                                            |
+| ----------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Project Planning & Management | [Planning draft](cap01-project-planning.md)                                                | Owner reviews proposed Gantt, resources, risks and KPI definitions. |
+| Literature Review             | [Research review](cap01-literature-review.md), [lecturer record](cap01-lecturer-review.md) | Preserve research; obtain feedback and clarify heading.             |
+| Requirements Gathering        | [Requirements and traceability](cap01-requirements.md)                                     | Owner reviews stakeholder, story, use-case and acceptance mapping.  |
 
 These are the current drafts. The earlier `depi-milestone-1.md` preparation note is historical and contains superseded schedule, team and Ticket 16 wording; use this register and the new drafts instead. No dataset collection, model training, paid model call, cloud provisioning or external submission occurs in this drafting step.
 
@@ -91,13 +91,14 @@ These are the current drafts. The earlier `depi-milestone-1.md` preparation note
 
 The owner requested that this deliverable be prepared early. The [System Analysis & Design draft](system-analysis-design.md) documents the implemented local architecture, use cases, trust boundaries, execution/Confirmation sequences, task states, conceptual data model, interfaces and requirement traceability. It also records the current shared in-memory Storefront cart and loss of state on server restart as deployment constraints.
 
-The local-system content is ready for team review. A concrete AWS service selection and costed design remain CAP-04 work: region/model access, authorized budget, audience/access controls, state isolation and restart/storage choices are not confirmed. The document does not close CAP-04 or claim cloud deployment. Its logical cloud view must be replaced or expanded with the reviewed decisions before the full graduation design is finalized.
+The local-system content and [additional diagrams/wireframes](system-design-views.md) are ready for owner review. Selected AWS services, costs, model access, authorized budget, audience/access controls, isolation and restart/storage choices remain CAP-04 work. The full design is not final until those decisions are incorporated; no deployment is claimed.
 
 ## Remaining finalization work
 
-1. Have the three confirmed academic leads review their drafts and map the content to its source evidence.
-2. Map the three current CAP-01 drafts into the official template when supplied; keep rubric and review gaps explicit.
-3. Create the first weekly contribution rows from actual artifacts and verification.
-4. Review the submission checklist against confirmed requirements, then hand dataset work to CAP-02. CAP-03 begins only after reviewed data and splits exist.
+1. Owner reviews aligned drafts, proposed internal dates and evidence references.
+2. Record lecturer approval/feedback and rubric details when supplied; resolve the review-heading ambiguity.
+3. Obtain the organization repository invitation and confirm final file/export conventions.
+4. Maintain contribution rows from actual artifacts without assigning past work to nominal members.
+5. Export/upload agreed documents and record the official submission commit. The infographic content brief is prepared; its final image remains outstanding.
 
-CAP-01 closes when confirmed deliverables have actual owners, applicable deadlines and evidence references, with unresolved external requirements explicitly recorded for instructor review. Preparing this register does not mean those human inputs have been obtained.
+CAP-01 content alignment is prepared; owner/instructor review and official submission remain pending. CAP-02 annotation can continue alongside those external inputs. CAP-03 still requires reviewed data and frozen splits.

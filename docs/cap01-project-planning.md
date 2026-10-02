@@ -2,7 +2,7 @@
 
 **Project:** Shopping Copilot — Arabic-first shopping advice and guarded Storefront actions.
 
-**Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft, not submitted. The deadline and technical roles are owner-confirmed; the official submission format and assessment weights have not been supplied.
+**Updated:** 2 October 2026. **Track:** AWS ML Engineering. **DEPI deadline:** 16 October 2026. **Status:** internal review draft aligned to the [supplied guidelines](depi-guideline-alignment.md), not submitted. Organization-repository access, lecturer approval evidence and numerical grading weights remain pending.
 
 **Actual working arrangement (2 October 2026):** the owner and coding assistant perform the work; the owner coordinates this deliverable. Earlier named academic leads were administrative allocations, not verified contributions or available staffing. See the updated [CAP-01 register](cap01-execution.md).
 
@@ -36,14 +36,14 @@ AWS deployment, classical-model training and unseen-data evaluation remain plann
 | Ezz Mohamed   | Frontend and Storefront integration       | Bridge, Panel, cross-origin communication, responsive layout and RTL.             |
 | Rana Ali      | QA, safety and evaluation                 | Playwright tests, multilingual benchmarking and safety reports.                   |
 
-These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner has confirmed that he will coordinate the overall submission. The earlier named academic allocations are superseded operationally by the owner's clarification: only the owner and coding assistant actively perform the work. There is no available independent human annotation reviewer; do not imply otherwise. DEPI has not yet supplied an official document template or submission location. Emails and participant identities are excluded from the public evidence.
+These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner coordinates the overall submission; only the owner and coding assistant actively perform the work. There is no available independent human annotation reviewer. The supplied guidelines specify organization-owned GitHub delivery, but the repository invitation and editable report template have not been supplied. Emails and participant identities are excluded from public evidence.
 
 ## Work breakdown and delivery sequence
 
 | Work package | Deliverable and exit condition                                                                                             | Dependency / status                                                                    |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Local MVP    | Versioned application and honest technical/user results                                                                    | Closed under documented adjustments.                                                   |
-| CAP-01       | Confirmed requirements, responsibility/deadline register, planning and literature drafts mapped to submission requirements | Active; owner coordinates; official format/rubric pending.                             |
+| CAP-01       | Confirmed requirements, responsibility/deadline register, planning and literature drafts mapped to submission requirements | Drafts aligned; lecturer review, repository access and rubric details pending.         |
 | CAP-02       | Reviewed dataset, annotation guidance, provenance, grouped splits and protected unseen evaluation set                      | After CAP-01 inputs; no released new dataset yet.                                      |
 | CAP-03       | Reproducible offline baseline, fair LLM comparison and error analysis                                                      | Requires CAP-02 data and a separately agreed experiment budget.                        |
 | CAP-04       | Reviewed AWS architecture, threat boundaries, restart behaviour and cost plan                                              | Can proceed alongside ML work after local closure; spending approval remains separate. |
@@ -64,17 +64,65 @@ The classical baseline remains offline. It neither replaces the shopping interpr
 
 For the first deadline, the proposed internal sequence is content and source review by 9 October, team/format review by 13 October, and export/link/readiness checks by 15 October. These are planning proposals, not instructor-issued dates or commitments from named members. Plan actual work around the owner and coding assistant; do not depend on nominal team staffing. Detailed CAP-02–07 estimates depend on annotation capacity, cloud access and the approved budget; do not compress qualification or fabricate results to fit a date.
 
+### Proposed Gantt and resources
+
+The work windows below are planning estimates as of 2 October, not evidence that work is complete. Official due dates are milestones. CAP-03 cannot start before reviewed CAP-02 data; CAP-05–07 cannot bypass qualification or budget approval if an estimated window slips.
+
+```mermaid
+gantt
+    title Proposed graduation work windows - official deadlines marked
+    dateFormat YYYY-MM-DD
+    axisFormat %d %b
+    todayMarker off
+    section October documents
+    Content and source alignment      :p1, 2026-10-02, 7d
+    Owner review and export readiness :p2, 2026-10-09, 7d
+    CAP-01 documents due              :milestone, 2026-10-16, 0d
+    section Dataset and design
+    Dataset annotation and freeze     :d1, 2026-10-02, 20d
+    Offline baseline after data gate  :d2, 2026-10-22, 14d
+    AWS design and cost decisions     :d3, 2026-10-16, 20d
+    Design due                        :milestone, 2026-11-06, 0d
+    section Qualified delivery
+    Model qualification after gates   :q1, 2026-11-06, 10d
+    Deployment and acceptance         :q2, 2026-11-16, 14d
+    Implementation due                :milestone, 2026-11-30, 0d
+    Final report and presentation      :f1, 2026-11-23, 11d
+    Final package due                 :milestone, 2026-12-04, 0d
+```
+
+| Resource                         | Allocation / constraint                                                                                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project owner                    | Scope decisions, label/content review, provider/cloud approvals, official repository access and submission. Capacity is not estimated from five nominal names. |
+| Coding assistant                 | Drafting, implementation support, automation and technical checks; not independent human evaluation.                                                           |
+| Local workstation and repository | Development, offline checks and versioned evidence. Services are started only when needed.                                                                     |
+| Model allowance                  | Existing explicitly authorized caps only; each new paid evaluation needs a bounded allocation.                                                                 |
+| AWS resources                    | No provisioning budget granted by this schedule; access, credits and cost ceiling require CAP-04 decisions.                                                    |
+| External academic inputs         | Lecturer approval/rubric and organization-repository invitation remain dependencies, not assumed completed tasks.                                              |
+
+### KPIs and evidence rules
+
+| KPI                           | Definition and acceptance basis                                                                                                                                                                                      | Current evidence / next measurement                                                                                                 |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Browser task success          | Successful defined task outcomes / attempted cases in the recorded suite; failures and retries retained.                                                                                                             | Historical Ticket 15 runs: 43/44, 44/44, 44/44. No new live run claimed here.                                                       |
+| Safety-case compliance        | Passed designated safety cases / attempted designated cases; all required cases must pass.                                                                                                                           | Historical 19/19 per full run plus release regression evidence; repeat required cases for cloud acceptance.                         |
+| Intent and Constraint quality | Exact agreement on reviewed targets; class/language support and ambiguity exclusions reported. Existing qualification target is at least 95% with 100% schema/currency/safety compliance on the defined gate corpus. | CAP-02 release and CAP-03/05 evaluation pending; no score inferred from draft synthetic labels.                                     |
+| Response/task latency         | Record p50/p95 with sample count; separate model-inclusive task time, browser execution and provider outage time.                                                                                                    | Preserve existing RESULTS definitions; cloud threshold and workload require CAP-04/07 agreement. No invented uptime or latency SLA. |
+| Evaluation cost               | Attributable provider usage/cost for all requests, including failures and repair; unknowns remain unknown.                                                                                                           | Provider caps and per-experiment authorization; no budget increase implied by this document.                                        |
+| User usefulness               | Report actual observations and method; do not turn qualitative reactions into a satisfaction percentage.                                                                                                             | Five positive reactions and two account navigations in the informal study; no numeric ratings collected.                            |
+| Submission readiness          | Required artifacts present with evidence links; unresolved external inputs listed; official upload commit recorded.                                                                                                  | Drafts prepared; organization upload and lecturer evidence pending.                                                                 |
+
 ## Risk and change management
 
-| Risk                                                         | Mitigation and evidence                                                                                                                              |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Advice invents product qualities or misreads context         | Use bounded fresh catalogue facts, explicit uncertainty, semantic evaluation and retained failures; free prose is not guaranteed by JSON validation. |
-| Unexpected or repeated shopping mutation                     | Enforce observed targets, bounds, stock, Confirmation, stale/duplicate rejection and uncertain-outcome recovery.                                     |
-| Model quotas or costs interrupt evaluation                   | Set a bounded experiment allowance before execution, preserve attributable usage, and never increase caps or top up implicitly.                      |
-| Dataset leakage or weak label coverage                       | Separate exposed regression material from new data; review labels and keep conversation/paraphrase groups together.                                  |
-| Cloud exposure changes local security assumptions            | Review secrets, origins, access controls, session isolation and development endpoints before deployment.                                             |
-| Missing template, rubric or academic owner delays submission | Maintain the explicit input register and prepare editable drafts now; map them to the official requirements when provided.                           |
-| Scope expands beyond the capstone                            | Record a concrete need and approved scope change; preserve the Controlled Storefront boundary.                                                       |
+| Risk                                                                     | Mitigation and evidence                                                                                                                              |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Advice invents product qualities or misreads context                     | Use bounded fresh catalogue facts, explicit uncertainty, semantic evaluation and retained failures; free prose is not guaranteed by JSON validation. |
+| Unexpected or repeated shopping mutation                                 | Enforce observed targets, bounds, stock, Confirmation, stale/duplicate rejection and uncertain-outcome recovery.                                     |
+| Model quotas or costs interrupt evaluation                               | Set a bounded experiment allowance before execution, preserve attributable usage, and never increase caps or top up implicitly.                      |
+| Dataset leakage or weak label coverage                                   | Separate exposed regression material from new data; review labels and keep conversation/paraphrase groups together.                                  |
+| Cloud exposure changes local security assumptions                        | Review secrets, origins, access controls, session isolation and development endpoints before deployment.                                             |
+| Missing repository access, grading details or approval delays submission | Track the known organization submission requirement and unresolved inputs; prepare editable drafts and evidence now.                                 |
+| Scope expands beyond the capstone                                        | Record a concrete need and approved scope change; preserve the Controlled Storefront boundary.                                                       |
 
 Every scope change must identify the behaviour or evidence it changes and its acceptance implications. Ticket 16's human-study and live-rerun adjustments are examples of explicit decisions, not permission to relax future cloud gates. Preserve original failed measurements and distinguish proposed work, implemented behaviour and verified outcomes.
 
@@ -82,4 +130,4 @@ Every scope change must identify the behaviour or evidence it changes and its ac
 
 Use one row per member and reporting period: assigned work, actual artifact/commit, verification, blockers and instructor feedback. Members confirm their own contributions; role titles alone do not establish authorship. The available baseline is the release and its linked evidence, not a completed individual performance report.
 
-Before submission, confirm actual contribution records, the required template/location, rubric mapping, consistent dates, working evidence links and the distinction between completed local work and planned ML/cloud work. This document is ready for content review; it is not an instructor-approved submission.
+Before submission, confirm actual contribution records, organization-repository access, export conventions, lecturer/rubric records, consistent dates, working evidence links and the distinction between completed local work and planned ML/cloud work. Use the [submission checklist](depi-guideline-alignment.md#readiness-checklist). This document is ready for owner content review; it is not an instructor-approved submission.
