@@ -1,8 +1,8 @@
 # Shopping Copilot: System Analysis & Design
 
-Prepared: 1 October 2026. DEPI deadline: **6 November 2026**.
+Updated: 2 October 2026. Track: **AWS ML Engineering**. DEPI deadline: **6 November 2026**.
 
-Status: **local-system design documented; cloud design awaiting CAP-04 decisions**. This document describes the implementation at local MVP tag `mvp-1` (`39ac6d1`) and the approved graduation extension. It is ready for team content review, not an assertion of AWS deployment or instructor approval. DEPI has not supplied an official document template or submission location.
+Status: **local-system design documented; cloud design awaiting CAP-04 decisions**. Behaviour/evidence is anchored to local MVP `mvp-1` (`39ac6d1`); structure incorporates session refactor `7df44d9`. The [additional design views](system-design-views.md) supply the use-case, DFD, activity, class, deployment and wireframe views requested by the [guidelines](depi-guideline-alignment.md). Prepared for owner review; no instructor approval or submission claimed.
 
 ## 1. Problem, purpose and scope
 
@@ -91,7 +91,7 @@ This is a responsibility diagram, not a claim that every box is a separate deplo
 | Provider seam           | [contract.py](../agent/llm/contract.py), [factory.py](../agent/llm/factory.py)                                            | Provider-neutral request/response interface and configured adapter selection.                                      |
 | Controlled Storefront   | [app.ts](../store/src/app.ts), [guarded-cart.ts](../store/src/guarded-cart.ts), [catalogue.ts](../store/src/catalogue.ts) | Authoritative product fixtures, rendered controls, cart revision, Undo and fictional orders.                       |
 
-The current implementation has substantial orchestration in `SessionStore` and the intent pipeline. The logical boundaries above do not imply a completed architectural split. A later extraction can preserve public contracts and behaviour; it is not necessary to rewrite the application for this document.
+`SessionStore` is now a stable facade composing a registry and Shopping Task modules; SSE delivery has its own adapter. See the [class/module view](system-design-views.md#classes-and-module-composition) and [refactor record](session-modularity-refactor.md). The logical responsibilities remain; intent interpretation and ActionResult handling retain documented complexity. This is an incremental extraction, not elimination of all architecture debt.
 
 ## 5. Information flow and trust boundaries
 
@@ -317,7 +317,7 @@ Release evidence is preserved in [RESULTS.md](../RESULTS.md): historical full li
 ## 13. Readiness and remaining work
 
 - **Documented:** system problem/actors, use cases, current component responsibilities, trust/data flow, execution sequences, actual task statuses, conceptual data model/lifetimes, interfaces, safety/failure handling and requirement-to-evidence mapping.
-- **Awaiting team review:** technical accuracy sign-off and any changes requested by the official DEPI template when supplied.
+- **Awaiting owner/instructor review:** technical content approval, lecturer feedback and submission/export conventions; local diagram and wireframe additions are in the linked supplement.
 - **Awaiting CAP-04 decisions:** concrete costed AWS service design, region/model access, audience/access restrictions, cart isolation, storage/restart semantics and operational procedures.
 - **Not claimed:** new runtime functionality, completed ML experiments, cloud deployment, production readiness or formal submission.
 
@@ -325,4 +325,4 @@ The local-system portion can be reviewed now, ahead of 6 November. The full grad
 
 ## Post-MVP modularity update — 2 October 2026
 
-The diagrams above describe the tagged local MVP. A behaviour-preserving refactor now separates the implementation into the modules documented in [the session refactor record](session-modularity-refactor.md). SessionStore retains its public entry points while composing registry, interpretation, command, ActionResult and recovery modules; SSE delivery has its own adapter. This does not change the shared Storefront cart, in-memory lifetime or cloud prerequisites. Verification and remaining complexity are recorded in that refactor document rather than attributed retroactively to the original MVP tag.
+The behaviour diagrams remain consistent with the tagged local MVP. The [refactor record](session-modularity-refactor.md) and supplement describe the current module composition. SessionStore retains public entry points while registry, interpretation, commands, results, recovery and SSE delivery have separate modules. Shared Storefront state, in-memory lifetime and cloud prerequisites are unchanged. Refactor verification is not retroactively attributed to the MVP tag.
