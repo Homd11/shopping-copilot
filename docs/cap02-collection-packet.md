@@ -71,3 +71,9 @@ Exact comparisons and normalization can flag duplicates for review; do not repla
 - Hand the released dataset to CAP-03. No training or paid inference is part of this initiation step.
 
 The current inventory and templates are preparation artifacts. CAP-02 stays open until a reviewed, validated release and genuinely untouched evaluation set exist.
+
+## Synthetic development batch — 2 October 2026
+
+The owner authorized initial synthetic collection after refactoring. The [development collection](../eval/datasets/capstone-v1/development/README.md) now contains 40 assistant-generated examples, ten per requested language group, with draft labels and hashed synthetic context. This establishes `eval/datasets/capstone-v1/development/` as the collection path for exposed development records. Record format 2 extends the old worksheet with explicit cart operation, guarded-mutation kind, catalogue exclusions and semantic notes; the runtime schema is unchanged.
+
+The [grouped split proposal](../eval/datasets/capstone-v1/draft-split-strategy.json) contains 32 training candidates, eight validation candidates and zero unseen test cases. These are tentative assignments, not reviewed release splits. All examples remain synthetic/exposed and unapproved for scoring. The separate [Gemini intake](../eval/datasets/capstone-v1/development/intake/README.md) contains 100 owner-supplied synthetic messages in their original schema; these are not yet mapped or merged. Human collection/review, a released dataset and unseen evidence are not claimed. CAP-02 remains open.

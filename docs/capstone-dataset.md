@@ -4,7 +4,7 @@
 
 **Dataset working version:** capstone-v1-draft
 
-**State (2 October 2026):** CAP-02 initiated after local-MVP closure, then deferred for the owner-prioritized session refactor. Exposure inventory, label audit and collection packet are prepared; no new human cases, reviewed split assignments or unseen release are claimed. The owner and coding assistant are the only active contributors; independent human review and unseen custody are unavailable. Permission arrangements and new collection remain unresolved.
+**State (2 October 2026):** CAP-02 is active again after the session refactor. The owner authorized a [40-record synthetic development batch](../eval/datasets/capstone-v1/development/README.md), with ten examples per language group and a tentative 32/8/0 train/validation/unseen proposal. A separate [100-message Gemini-generated intake](../eval/datasets/capstone-v1/development/intake/README.md) preserves its original labels pending mapping and review. These are exposed drafts, not human observations or a frozen release. The owner and coding assistant are the only active contributors; independent human review and unseen custody remain unavailable.
 
 ## Prepared structure
 
@@ -59,4 +59,4 @@ The historical Ticket 15 44-case gate remains unchanged. The strict Bedrock mode
 - A machine-checkable format and validation command, selected when CAP-02 data packaging is implemented.
 - A clear handoff to the existing benchmark in CAP-03, with no paid calls or model-selection claim hidden in dataset preparation.
 
-CAP-02 remains incomplete at collection preparation and is currently deferred. The release validator, independent annotation, collection and freeze remain outstanding. An empty unseen split is recorded as zero, not a completed held-out benchmark. No runtime code, prompt, paid inference or training changes are part of this initiation.
+CAP-02 remains open with initial synthetic development collection prepared. Label review, cross-source duplicate review, the release validator, untouched evaluation collection and freeze remain outstanding. An empty unseen split is recorded as zero, not a completed held-out benchmark. No runtime code, prompt, paid inference or training changes are part of this work.

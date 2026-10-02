@@ -1,6 +1,6 @@
 # Capstone dataset preparation structure
 
-**State (2 October 2026):** CAP-02 is deferred while session refactoring proceeds. The owner and coding assistant are the only active contributors; no independent human review or unseen custody is available. Zero new human cases, reviewed split assignments and unseen cases. Existing source cases remain untouched.
+**State (2 October 2026):** CAP-02 is active on owner-authorized synthetic development collection. The owner and coding assistant are the only active contributors; no independent human review or unseen custody is available. Zero new human cases, reviewed split assignments and unseen cases. Existing source cases remain untouched.
 
 - `manifest.json`: hashes and counts of the exposed source corpora; not a released training dataset.
 - `splits.json`: empty group assignments and a metadata-only slot for a future sealed unseen release.
@@ -18,3 +18,5 @@ Keep `train`, `validation` and `regression` membership disjoint for the capstone
 The evaluation custodian collects and seals unseen messages and labels outside the development checkout. The committed split file stores only count, checksum and release/custody metadata after freezing; do not put unseen text, labels or personally identifying information in this repository during development. At execution, provide an authorized local path to the sealed release without committing it. Pseudonymous custodian IDs refer to the restricted team register.
 
 Before release, validate required fields, unique IDs, supported labels, group isolation, reviewed duplicates, permission, checksum consistency and input eligibility. No executable loader/validator or training command is claimed at this preparation stage.
+
+See [the first synthetic development batch](development/README.md) for 40 annotated draft records and grouped split proposal, plus a separate 100-message Gemini intake awaiting mapping. Release split assignments and unseen cases remain zero.
