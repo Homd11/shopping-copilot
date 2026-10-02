@@ -2,6 +2,8 @@
 
 Prepared: 2026-10-01. DEPI submission target: 16 October 2026. Status: substantive draft for team review and adaptation to the official submission template, which has not been supplied. This is a focused review of seven primary sources, not a systematic review or an exhaustive survey of the latest models.
 
+**Academic lead:** Ahmed Yasser, confirmed by the owner on 2 October 2026. The project owner coordinates the overall submission. This assignment does not assert authorship of prior work.
+
 ## Purpose and scope
 
 Shopping Copilot combines natural-language shopping assistance, catalogue-grounded advice and controlled browser Actions. The research problem therefore spans three different questions: identifying intent, helping a Shopper make a decision, and executing the selected task correctly. A classification score cannot answer all three. This review examines prior work relevant to those boundaries and motivates the approved dataset and comparison methodology.
