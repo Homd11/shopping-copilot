@@ -322,3 +322,7 @@ Release evidence is preserved in [RESULTS.md](../RESULTS.md): historical full li
 - **Not claimed:** new runtime functionality, completed ML experiments, cloud deployment, production readiness or formal submission.
 
 The local-system portion can be reviewed now, ahead of 6 November. The full graduation System Analysis & Design deliverable becomes final after the cloud decision register is resolved and incorporated; CAP-04 remains open until then.
+
+## Post-MVP modularity update — 2 October 2026
+
+The diagrams above describe the tagged local MVP. A behaviour-preserving refactor now separates the implementation into the modules documented in [the session refactor record](session-modularity-refactor.md). SessionStore retains its public entry points while composing registry, interpretation, command, ActionResult and recovery modules; SSE delivery has its own adapter. This does not change the shared Storefront cart, in-memory lifetime or cloud prerequisites. Verification and remaining complexity are recorded in that refactor document rather than attributed retroactively to the original MVP tag.
