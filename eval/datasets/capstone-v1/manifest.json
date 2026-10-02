@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "dataset_version": "capstone-v1-draft",
   "created_on": "2026-09-29",
-  "status": "collection_preparation_active",
+  "status": "deferred_collection_incomplete",
   "frozen": false,
   "unseen_case_count": 0,
   "preparation_artifacts": {
@@ -63,8 +63,8 @@
   "new_human_case_count": 0,
   "reviewed_release_case_count": 0,
   "collection_readiness": {
-    "custodian": "unconfirmed",
-    "independent_reviewer": "unconfirmed",
+    "custodian": "not_assigned_no_independent_team_available",
+    "independent_reviewer": "unavailable_owner_and_coding_assistant_only",
     "contributor_capacity": "unconfirmed",
     "permission_arrangements": "unconfirmed",
     "sample_sizes": "not_selected",

@@ -1,6 +1,6 @@
 # Capstone dataset preparation structure
 
-**State (2 October 2026):** CAP-02 collection preparation is active after local-MVP closure. Zero new human cases, reviewed split assignments and unseen cases. Existing source cases remain untouched.
+**State (2 October 2026):** CAP-02 is deferred while session refactoring proceeds. The owner and coding assistant are the only active contributors; no independent human review or unseen custody is available. Zero new human cases, reviewed split assignments and unseen cases. Existing source cases remain untouched.
 
 - `manifest.json`: hashes and counts of the exposed source corpora; not a released training dataset.
 - `splits.json`: empty group assignments and a metadata-only slot for a future sealed unseen release.

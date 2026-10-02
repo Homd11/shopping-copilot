@@ -4,7 +4,7 @@
 
 **Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft, not submitted. The deadline and technical roles are owner-confirmed; the official submission format and assessment weights have not been supplied.
 
-**Academic lead:** Mohamed Hamdi, confirmed by the owner on 2 October 2026. The project owner coordinates the overall submission. This assignment does not assert authorship of prior work.
+**Actual working arrangement (2 October 2026):** the owner and coding assistant perform the work; the owner coordinates this deliverable. Earlier named academic leads were administrative allocations, not verified contributions or available staffing. See the updated [CAP-01 register](cap01-execution.md).
 
 ## Purpose and objectives
 
@@ -36,14 +36,14 @@ AWS deployment, classical-model training and unseen-data evaluation remain plann
 | Ezz Mohamed   | Frontend and Storefront integration       | Bridge, Panel, cross-origin communication, responsive layout and RTL.             |
 | Rana Ali      | QA, safety and evaluation                 | Playwright tests, multilingual benchmarking and safety reports.                   |
 
-These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner has confirmed that he will coordinate the overall submission. The owner confirmed the three academic leads on 2 October: Mohamed Hamdi for Planning & Management, Ahmed Yasser for Literature Review and Rana Ali for Requirements Gathering. Unseen-data custody, independent annotation review and classical-training ownership remain pending. DEPI has not yet supplied an official document template or submission location. Emails and participant identities are excluded from the public evidence.
+These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner has confirmed that he will coordinate the overall submission. The earlier named academic allocations are superseded operationally by the owner's clarification: only the owner and coding assistant actively perform the work. There is no available independent human annotation reviewer; do not imply otherwise. DEPI has not yet supplied an official document template or submission location. Emails and participant identities are excluded from the public evidence.
 
 ## Work breakdown and delivery sequence
 
 | Work package | Deliverable and exit condition                                                                                             | Dependency / status                                                                    |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Local MVP    | Versioned application and honest technical/user results                                                                    | Closed under documented adjustments.                                                   |
-| CAP-01       | Confirmed requirements, responsibility/deadline register, planning and literature drafts mapped to submission requirements | Active; format/rubric and remaining academic owners pending.                           |
+| CAP-01       | Confirmed requirements, responsibility/deadline register, planning and literature drafts mapped to submission requirements | Active; owner coordinates; official format/rubric pending.                             |
 | CAP-02       | Reviewed dataset, annotation guidance, provenance, grouped splits and protected unseen evaluation set                      | After CAP-01 inputs; no released new dataset yet.                                      |
 | CAP-03       | Reproducible offline baseline, fair LLM comparison and error analysis                                                      | Requires CAP-02 data and a separately agreed experiment budget.                        |
 | CAP-04       | Reviewed AWS architecture, threat boundaries, restart behaviour and cost plan                                              | Can proceed alongside ML work after local closure; spending approval remains separate. |
@@ -62,7 +62,7 @@ The classical baseline remains offline. It neither replaces the shopping interpr
 | Implementation, source code and execution                          | 30 November 2026 |
 | Final presentation, testing and reports                            | 4 December 2026  |
 
-For the first deadline, the proposed internal sequence is content and source review by 9 October, team/format review by 13 October, and export/link/readiness checks by 15 October. These are planning proposals, not instructor-issued dates or commitments from named members. Assign the remaining owners and confirm their availability before relying on them. Detailed CAP-02–07 estimates depend on annotation capacity, cloud access and the approved budget; do not compress qualification or fabricate results to fit a date.
+For the first deadline, the proposed internal sequence is content and source review by 9 October, team/format review by 13 October, and export/link/readiness checks by 15 October. These are planning proposals, not instructor-issued dates or commitments from named members. Plan actual work around the owner and coding assistant; do not depend on nominal team staffing. Detailed CAP-02–07 estimates depend on annotation capacity, cloud access and the approved budget; do not compress qualification or fabricate results to fit a date.
 
 ## Risk and change management
 
@@ -82,4 +82,4 @@ Every scope change must identify the behaviour or evidence it changes and its ac
 
 Use one row per member and reporting period: assigned work, actual artifact/commit, verification, blockers and instructor feedback. Members confirm their own contributions; role titles alone do not establish authorship. The available baseline is the release and its linked evidence, not a completed individual performance report.
 
-Before submission, confirm remaining owners, the required template/location, rubric mapping, consistent dates, working evidence links and the distinction between completed local work and planned ML/cloud work. This document is ready for content review; it is not an instructor-approved submission.
+Before submission, confirm actual contribution records, the required template/location, rubric mapping, consistent dates, working evidence links and the distinction between completed local work and planned ML/cloud work. This document is ready for content review; it is not an instructor-approved submission.

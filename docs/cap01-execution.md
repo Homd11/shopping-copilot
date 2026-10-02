@@ -2,6 +2,12 @@
 
 Prepared: 2026-10-01. State: in progress following local-MVP closure; team roles supplied, remaining submission inputs being reconciled. No submission, external message or cloud provisioning has occurred.
 
+## Working arrangement clarified — 2 October 2026
+
+The owner clarified that the owner and coding assistant are the only active contributors. The other named members are not available to perform project work. Earlier technical/academic allocations below record the supplied team table and prior assignments; they are not evidence of contributions or active staffing. The owner coordinates all actual deliverables. Do not request help from those members, invent contribution records or make progress depend on their review. Any independent-human-review claim remains unsupported unless real evidence is later obtained.
+
+CAP-02 is deferred while the assistant performs the owner-authorized session refactor. Its collection packet and exposure inventory are ready, but the dataset is not collected, reviewed or frozen; CAP-02 is not closed. A later owner/assistant evaluation must explicitly disclose its review and independence limitations.
+
 ## Goal and boundaries
 
 Turn the approved Controlled Storefront AWS graduation scope into a concrete responsibility, deadline and evidence register. CAP-01 is planning and traceability, not model training or a new application feature. CAP-02 collects/reviews/releases the multilingual dataset; CAP-03 trains the offline TF-IDF + Logistic Regression baseline and compares intent classification with the LLM using the same eligible inputs. Runtime shopping decisions remain with the LLM and deterministic action guards.

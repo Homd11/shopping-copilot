@@ -2,11 +2,11 @@
 
 Started: 2 October 2026. Status: **collection preparation active; no frozen release**.
 
-The owner approved CAP-02 alongside a separate session refactor. Dataset work does not edit runtime interpretation, prompts or execution rules. The owner is taking the first refactor slice; coordinate commits and do not mix the two changes.
+The owner subsequently prioritized the session refactor and assigned it to the coding assistant. CAP-02 collection is deferred, not complete. Dataset work does not edit runtime interpretation, prompts or execution rules.
 
 ## Responsibilities and readiness
 
-The owner coordinates recruitment. The unseen-data custodian, independent label reviewer, contributor capacity and permission arrangements remain unconfirmed. A document lead is not automatically a dataset custodian. No one has been contacted by the coding agent and no historical participant conversation has been imported.
+The owner clarified that only the owner and coding assistant are active contributors. There is no available independent human reviewer or team custodian; do not assign those roles to nominal team members or request their help. Any later collection/evaluation design must honestly disclose this limitation. Permission arrangements and available new data remain unconfirmed. No one has been contacted by the coding agent and no historical participant conversation has been imported.
 
 The custodian must not use unseen cases to tune prompts, features, labels or runtime code. A separate annotator and reviewer must agree labels before model evaluation. If the same person must do development and review, disclose this and call the set development/validation data until genuinely independent custody is possible.
 

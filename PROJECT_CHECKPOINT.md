@@ -2,6 +2,16 @@
 
 **Last updated:** 2026-10-02
 
+## Session modularity refactor completed; actual working arrangement — 2026-10-02
+
+The owner clarified that only the owner and coding assistant actively perform the work; nominal team members are not available contributors. Do not request their help, infer contributions from role titles or depend on independent human review that does not exist. The assistant took over the session refactor. CAP-02 is deferred and incomplete: its preparation/inventory is ready, but new collection, reviewed labels, release validation and frozen splits are absent. It was not closed under the owner's conditional request.
+
+The [refactor record](docs/session-modularity-refactor.md) describes the preserved interface and new modules. `agent/sessions.py` shrank from 1,822 to 203 lines; session registry/state, SSE delivery, interpretation, shopper commands, ActionResult handling and recovery now have distinct modules with explicit composition. Original public method signatures/domain imports remain; no mixins, dynamic dispatch, new shopper phrase rules, prompt edits or feature changes. The large ActionResult method remains a documented future extraction opportunity rather than being rewritten in this pass.
+
+Runtime commits: `b47ea0d` registry/state, `46a941d` SSE adapter, `7df44d9` task modules. Each stage passed the unchanged **458-test Python suite** (395.80s, 389.86s, 388.99s). **155 TypeScript tests**, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. AST comparisons and independent Spec/Standards reviews found no unintended logic/signature changes. No paid model calls or budget changes occurred; the MVP tag and unrelated work remain untouched. These changes are committed locally; no push occurred in this refactor turn.
+
+Next: review the refactor at its new module interfaces, then decide a feasible owner/assistant CAP-02 collection and evaluation protocol with honest independence limitations. Do not silently convert exposed/synthetic examples into unseen evidence. The earlier System Analysis & Design independent review remains separate and pending.
+
 ## CAP-02 initiated; academic document leads confirmed — 2026-10-02
 
 CAP-02 is active with [collection/permission guidance](docs/cap02-collection-packet.md), a [current label guide and legacy coverage audit](docs/cap02-label-guide.md), and an explicit exposure inventory under eval/datasets/capstone-v1. All 104 legacy source-case references and 89 pinned development/test sources are exposed; these are not 104 independent utterances. No new human data, independently reviewed labels, training or frozen splits are claimed. Unseen custody, independent review, contributor capacity and permission arrangements remain unconfirmed; unseen content must stay outside the development checkout/chat. Release validation and freeze remain outstanding.

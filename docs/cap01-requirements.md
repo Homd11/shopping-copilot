@@ -2,7 +2,7 @@
 
 **Project:** Shopping Copilot. **Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft; official format and assessment mapping pending.
 
-**Academic lead:** Rana Ali, confirmed by the owner on 2 October 2026. The project owner coordinates the overall submission. This assignment does not assert authorship of prior work.
+**Actual working arrangement (2 October 2026):** the owner and coding assistant perform the work; the owner coordinates this deliverable. Earlier named academic leads were administrative allocations, not verified contributions or available staffing. See the updated [CAP-01 register](cap01-execution.md).
 
 ## Problem and stakeholders
 
