@@ -31,7 +31,15 @@ The owner supplied the team allocation table on 2026-10-01. Names and responsibi
 | Ezz Mohamed   | Frontend & Storefront Integration    | TypeScript Bridge and Panel, cross-origin communication, responsive UI and RTL localization.                     |
 | Rana Ali      | QA, Safety & Evaluation Runner       | Playwright suites, multilingual intent benchmarking and safety-invariant validation reports.                     |
 
-The project owner will coordinate the overall submission, as explicitly confirmed on 2026-10-01. The additional academic assignments, literature-review ownership, CAP-02 unseen-data custody and CAP-03 classical-model training remain pending at the owner's request. The supplied technical role table above remains the recorded allocation; no additional responsibility is inferred from it. Weekly evidence should link actual artifacts rather than attributing previous commits solely from role titles.
+The project owner coordinates the overall submission. On 2026-10-02, the owner explicitly confirmed the academic leads below; these supersede the earlier request to leave those three assignments pending. They assign responsibility for preparing and coordinating review, not credit for work already performed. Weekly evidence must identify actual contributions.
+
+| Deliverable due 16 October    | Confirmed academic lead |
+| ----------------------------- | ----------------------- |
+| Project Planning & Management | Mohamed Hamdi           |
+| Literature Review             | Ahmed Yasser            |
+| Requirements Gathering        | Rana Ali                |
+
+CAP-02 unseen-data custody, independent annotation review and CAP-03 classical-model training ownership remain pending. These responsibilities are not inferred from the academic lead assignments. Ali Amr and Ezz Mohamed retain their supplied technical roles.
 
 ## Confirmed DEPI schedule
 
@@ -50,26 +58,26 @@ The immediate target is the three documents due **16 October**. Their content ca
 
 ## Remaining planning inputs
 
-| Input                                                      | Current state                                                             | Next action                                                                      |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Applicable schedule                                        | Confirmed: DEPI, dates above                                              | Use these dates in the deliverable register.                                     |
-| Team members and agreed responsibilities                   | Five roles supplied above                                                 | Resolve academic coordination, dataset custody and classical-training ownership. |
-| First submission deadline, required template and location  | Deadline confirmed as 16 October 2026; template and location not supplied | Obtain the required format/location without delaying the internal drafts.        |
-| Official assessment weights and custom-proposal acceptance | Not independently verified                                                | Record authoritative evidence or mark pending.                                   |
-| AWS-specific training/tooling requirements                 | AWS track stated by owner; detailed requirements unconfirmed              | Clarify mandatory versus optional deliverables.                                  |
-| Cloud budget/credits and region                            | Not authorized for provisioning                                           | Establish a separate budget before CAP-04/06 spending.                           |
+| Input                                                      | Current state                                                             | Next action                                                                              |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Applicable schedule                                        | Confirmed: DEPI, dates above                                              | Use these dates in the deliverable register.                                             |
+| Team members and agreed responsibilities                   | Five technical roles and three academic leads confirmed                   | Resolve dataset custody, independent annotation review and classical-training ownership. |
+| First submission deadline, required template and location  | Deadline confirmed as 16 October 2026; template and location not supplied | Obtain the required format/location without delaying the internal drafts.                |
+| Official assessment weights and custom-proposal acceptance | Not independently verified                                                | Record authoritative evidence or mark pending.                                           |
+| AWS-specific training/tooling requirements                 | AWS track stated by owner; detailed requirements unconfirmed              | Clarify mandatory versus optional deliverables.                                          |
+| Cloud budget/credits and region                            | Not authorized for provisioning                                           | Establish a separate budget before CAP-04/06 spending.                                   |
 
 The owner supplied both the team allocation and the schedule, then explicitly selected DEPI. This record supersedes older local notes that described team roles or the schedule as unconfirmed. No contact addresses, guessed dates or claims of instructor approval are added.
 
 ## Draft package for 16 October
 
-The owner authorized drafting while remaining academic assignments are pending and confirmed that DEPI has not supplied an official template or submission location. The owner coordinates the submission. The following editable Markdown drafts are prepared for content review; none is submitted or instructor-approved:
+The owner authorized drafting before academic leads were assigned; those three leads were subsequently confirmed on 2 October as recorded above. DEPI has not supplied an official template or submission location. The owner coordinates the submission. The following editable Markdown drafts are prepared for content review; none is submitted or instructor-approved:
 
-| Deliverable                   | Review draft                                           | Remaining readiness work                                                     |
-| ----------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| Project Planning & Management | [Planning draft](cap01-project-planning.md)            | Team review of proposed internal checkpoints and remaining owners.           |
-| Literature Review             | [Literature draft](cap01-literature-review.md)         | Team review of source synthesis and eventual mapping to the official format. |
-| Requirements Gathering        | [Requirements and traceability](cap01-requirements.md) | Team review of requirements and future rubric mapping.                       |
+| Deliverable                   | Review draft                                           | Remaining readiness work                                                              |
+| ----------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Project Planning & Management | [Planning draft](cap01-project-planning.md)            | Lead review of proposed internal checkpoints and outstanding dataset/training owners. |
+| Literature Review             | [Literature draft](cap01-literature-review.md)         | Team review of source synthesis and eventual mapping to the official format.          |
+| Requirements Gathering        | [Requirements and traceability](cap01-requirements.md) | Team review of requirements and future rubric mapping.                                |
 
 These are the current drafts. The earlier `depi-milestone-1.md` preparation note is historical and contains superseded schedule, team and Ticket 16 wording; use this register and the new drafts instead. No dataset collection, model training, paid model call, cloud provisioning or external submission occurs in this drafting step.
 
@@ -81,7 +89,7 @@ The local-system content is ready for team review. A concrete AWS service select
 
 ## Remaining finalization work
 
-1. Finalize owners for the three 16 October documents and map each to its source evidence; technical role ownership is already recorded above.
+1. Have the three confirmed academic leads review their drafts and map the content to its source evidence.
 2. Map the three current CAP-01 drafts into the official template when supplied; keep rubric and review gaps explicit.
 3. Create the first weekly contribution rows from actual artifacts and verification.
 4. Review the submission checklist against confirmed requirements, then hand dataset work to CAP-02. CAP-03 begins only after reviewed data and splits exist.

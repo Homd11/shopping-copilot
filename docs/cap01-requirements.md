@@ -2,6 +2,8 @@
 
 **Project:** Shopping Copilot. **Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft; official format and assessment mapping pending.
 
+**Academic lead:** Rana Ali, confirmed by the owner on 2 October 2026. The project owner coordinates the overall submission. This assignment does not assert authorship of prior work.
+
 ## Problem and stakeholders
 
 A Shopper may know what they want but struggle to choose among products or translate a request into filters, navigation and cart controls. The project addresses both decision assistance and execution on one Controlled Storefront. It must support natural multilingual input while preserving the Shopper's control over consequential actions.
@@ -68,4 +70,4 @@ These are Must graduation requirements and remain planned beyond the completed l
 
 Excluded: arbitrary retailers, external store integrations, real transactions, multi-tenant SaaS and general production-readiness claims. AWS access, region/model eligibility and budget need confirmation before provisioning. Test fixtures and local accounts remain fictional; the current in-memory state is not assumed durable after cloud deployment.
 
-The owner coordinates the overall submission. DEPI has not supplied an official template or submission location, and the owner has explicitly left additional academic document and dataset/training assignments pending. Rubric weights are also unconfirmed. Those gaps do not change the confirmed DEPI deadlines. Requirement changes should record their source, effect on implementation/evidence and explicit approval; passed tests do not silently redefine a requirement.
+The owner coordinates the overall submission. DEPI has not supplied an official template or submission location. The three academic document leads are now confirmed in the CAP-01 register; dataset custody, independent annotation review and training ownership remain pending. Rubric weights are also unconfirmed. Those gaps do not change the confirmed DEPI deadlines. Requirement changes should record their source, effect on implementation/evidence and explicit approval; passed tests do not silently redefine a requirement.

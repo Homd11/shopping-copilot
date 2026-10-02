@@ -1,6 +1,14 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-02
+
+## CAP-02 initiated; academic document leads confirmed — 2026-10-02
+
+CAP-02 is active with [collection/permission guidance](docs/cap02-collection-packet.md), a [current label guide and legacy coverage audit](docs/cap02-label-guide.md), and an explicit exposure inventory under eval/datasets/capstone-v1. All 104 legacy source-case references and 89 pinned development/test sources are exposed; these are not 104 independent utterances. No new human data, independently reviewed labels, training or frozen splits are claimed. Unseen custody, independent review, contributor capacity and permission arrangements remain unconfirmed; unseen content must stay outside the development checkout/chat. Release validation and freeze remain outstanding.
+
+The owner confirmed academic leads: Mohamed Hamdi for Planning & Management, Ahmed Yasser for Literature Review and Rana Ali for Requirements Gathering, due 16 October. The owner coordinates submission; template/location remain unprovided. Dataset custody and model-training ownership are separate and pending. The owner is handling the first session-management refactor slice; this work changed no runtime, prompt, original corpus or session file.
+
+Verification: all 89 pinned source hashes, 104 case identities/exposure markers, historical source hashes, documented label counts, empty unfrozen splits and non-evaluable template were checked. Changed Markdown/JSON formatting and relative links were checked. Independent CAP-02 Spec and Standards reviews reported no actionable findings. Application tests were not rerun for this documentation/data-inventory change; no paid calls or cloud operations occurred. The earlier System Analysis & Design independent review is still pending and is not covered by these CAP-02 reviews.
 
 ## System Analysis & Design drafted ahead of 6 November — 2026-10-01
 

@@ -4,6 +4,8 @@
 
 **Document date:** 1 October 2026. **DEPI deadline:** 16 October 2026. **Status:** internal review draft, not submitted. The deadline and technical roles are owner-confirmed; the official submission format and assessment weights have not been supplied.
 
+**Academic lead:** Mohamed Hamdi, confirmed by the owner on 2 October 2026. The project owner coordinates the overall submission. This assignment does not assert authorship of prior work.
+
 ## Purpose and objectives
 
 Shopping Copilot helps a Shopper describe a shopping need, compare products and complete shopping tasks through natural conversation. It focuses on Egyptian Arabic, Franco-Arabic, English and mixed-language input on one Controlled Storefront. The goal is to combine useful decision support with visible, bounded actions: the language model interprets requests, while deterministic controls govern what the application may execute.
@@ -34,7 +36,7 @@ AWS deployment, classical-model training and unseen-data evaluation remain plann
 | Ezz Mohamed   | Frontend and Storefront integration       | Bridge, Panel, cross-origin communication, responsive layout and RTL.             |
 | Rana Ali      | QA, safety and evaluation                 | Playwright tests, multilingual benchmarking and safety reports.                   |
 
-These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner has confirmed that he will coordinate the overall submission. Additional academic assignments, literature-review ownership, unseen-data custody and classical-training ownership remain pending at his request. DEPI has not yet supplied an official document template or submission location. Emails and participant identities are excluded from the public evidence.
+These are the owner's supplied technical assignments. They do not retroactively attribute every existing commit to a member. The owner has confirmed that he will coordinate the overall submission. The owner confirmed the three academic leads on 2 October: Mohamed Hamdi for Planning & Management, Ahmed Yasser for Literature Review and Rana Ali for Requirements Gathering. Unseen-data custody, independent annotation review and classical-training ownership remain pending. DEPI has not yet supplied an official document template or submission location. Emails and participant identities are excluded from the public evidence.
 
 ## Work breakdown and delivery sequence
 
