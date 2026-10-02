@@ -1,7 +1,6 @@
 import asyncio
-import json
 import os
-from collections.abc import AsyncIterator, Callable
+from collections.abc import Callable
 from time import monotonic
 from typing import Literal
 from urllib.parse import urlsplit
@@ -21,9 +20,10 @@ from agent.llm.groq import GroqRateLimitError
 from agent.llm.openrouter import OpenRouterBudgetError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
+from agent.session_stream import encode_sse as encode_sse
+from agent.session_stream import session_event_response
 from agent.sessions import (
     ActionResultMismatch,
-    EventType,
     InterpretationPauseReason,
     LeaseConflict,
     SessionExpired,
@@ -69,10 +69,6 @@ class TakeoverRequest(BaseModel):
 
 class AdvanceTestTime(BaseModel):
     seconds: float
-
-
-def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
-    return f"id: {event_id}\nevent: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
@@ -446,31 +442,7 @@ def create_app(
         once: bool = False,
         tab_id: str | None = None,
     ) -> StreamingResponse:
-        try:
-            sessions.get(session_id)
-        except SessionNotFound as error:
-            raise HTTPException(status_code=404, detail="Session not found") from error
-
-        last_event_id = request.headers.get("last-event-id")
-        if last_event_id is not None:
-            if not last_event_id.isascii() or not last_event_id.isdecimal():
-                raise HTTPException(status_code=400, detail="Invalid event cursor")
-            after = max(after, int(last_event_id))
-
-        async def event_stream() -> AsyncIterator[str]:
-            cursor = after
-            while True:
-                pending = sessions.events_after(session_id, cursor)
-                for event in pending:
-                    cursor = event.id
-                    if event.event == "action" and not sessions.owns_lease(session_id, tab_id):
-                        continue
-                    yield encode_sse(event.id, event.event, event.data)
-                if once or await request.is_disconnected():
-                    return
-                await asyncio.sleep(0.1)
-
-        return StreamingResponse(event_stream(), media_type="text/event-stream")
+        return await session_event_response(sessions, session_id, request, after, once, tab_id)
 
     @app.post("/sessions/{session_id}/action-results", status_code=202)
     async def accept_action_result(
