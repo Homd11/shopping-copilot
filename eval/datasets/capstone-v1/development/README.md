@@ -1,4 +1,10 @@
-# Synthetic development collection — batch 001
+# Synthetic development collections
+
+## Current expansion
+
+[Batch 002](synthetic-batch-002.json) adds 168 exposed synthetic drafts: 160 text-only intent candidates (four per intent/language cell) and eight contextual exclusions. See [coverage plan](../../../../docs/cap02-expansion-plan.md), [review and remaining gates](../../../../docs/cap02-expansion-review.md), [overlap ledger](batch-002-overlap-review.json) and [expanded component map](expanded-group-map.json). Both batches plus Gemini now contain 308 records and 263 provisional primary candidates. The first pilot remains immutable; no new split or training run accompanies this expansion.
+
+## Original batch 001
 
 Created 2 October 2026 at the owner's request. [synthetic-batch-001.json](synthetic-batch-001.json) contains **40 assistant-generated draft examples**, ten each in Egyptian Arabic, Franco-Arabic, English and mixed language. They imitate informal phrasing; they are not observations from real shoppers or independent participant evidence.
 

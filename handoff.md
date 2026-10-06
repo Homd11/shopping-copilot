@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## CAP-02 coverage expansion prepared; no new fit or freeze
+
+The owner approved the dataset-first next step. [The coverage plan](docs/cap02-expansion-plan.md) and [review](docs/cap02-expansion-review.md) accompany 168 new synthetic/exposed draft records: 160 intent candidates (four per intent/language cell) plus eight contextual fragments excluded from text-only classification. Combined with the original 140, the pool contains 308 records and 263 provisional primary candidates. This is not independent human data or an unseen set.
+
+Review merged equivalent clear-cart scenarios, retained 15 known cross-source links and replaced twelve name-substitution drafts with ordinal/cart-line/shortlist-price product resolution tasks before training. Prior authored wording is archived. The expanded graph preserves all old components and all related turns: 41 provisional components, largest 128. All ten intents now have multiple components, but `mutate` has three rather than the desired four. No new split is assigned. Full legacy/private-source overlap adjudication and this allocation limitation must be settled before a new frozen pilot. The existing freeze command still reconstructs pilot 1 only.
+
+Verification: v2 schema, 308 unique IDs/normalized texts, four-per-cell counts, all context hashes and antecedents, transitive membership, 212 catalogue identity/variant/line-key/price checks, repository formatting and seven offline experiment regressions passed. Spec review corrected three substantive annotation errors plus a stale scenario tag; Standards review corrected two grouping issues. Rechecks found no unresolved annotation findings. These are AI draft reviews, not independent human gold. The full runtime suite was not repeated for this data-only change.
+
+The first pilot's sources, frozen release, protocol and results remain unchanged. No runtime code, prompt, phrase rules, training, paid inference, cloud resources, spending limit or remote repository changed. CAP-02 final release and CAP-03 final evaluation remain open. Unrelated working-tree changes are preserved.
+
 ## CAP-01 exports and synthetic CAP-03 pilot prepared — 2026-10-06
 
 The owner approved a synthetic development pilot while explicitly keeping final evaluation open. [The protocol](docs/cap03-pilot-protocol.md), [annotation review](docs/cap02-annotation-review.md) and [results](docs/cap03-pilot-results.md) record 140 synthetic messages, 103 eligible cases, 37 exclusions and a frozen 82-training / 21-validation / zero-unseen release. All 15 conversation/paraphrase components remain intact. AI-reviewed draft labels are not independent human gold; the final CAP-02 split placeholder remains unfrozen.

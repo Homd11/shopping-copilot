@@ -2,6 +2,8 @@
 
 **State (6 October 2026):** CAP-02 final release remains open. The owner authorized a separate [synthetic pilot](pilot-20261006/README.md): 140 annotated drafts, 103 eligible cases frozen into 82 training / 21 validation / zero unseen. The [offline pilot results](../../../docs/cap03-pilot-results.md) are development evidence only. The owner and coding assistant remain the only active contributors; independent human review and unseen custody are unavailable. Original intake and the final split placeholder remain untouched.
 
+**Subsequent development expansion:** [batch 002](development/synthetic-batch-002.json) adds 168 drafts, bringing the pool to 308 records / 263 primary candidates. The [review](../../../docs/cap02-expansion-review.md) records 41 provisional components and the remaining mutation-family coverage limitation. No new release is frozen; the first pilot and its reported score remain unchanged.
+
 - `manifest.json`: hashes and counts of the exposed source corpora; not a released training dataset.
 - `splits.json`: empty group assignments and a metadata-only slot for a future sealed unseen release.
 - `case-template.json`: a non-evaluable annotation template. Null fields explicitly mean not annotated; it is never a sample or benchmark input.

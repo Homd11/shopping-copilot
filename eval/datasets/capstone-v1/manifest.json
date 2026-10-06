@@ -105,5 +105,21 @@
     "unseen": 0,
     "independent_human_review": false,
     "final_evaluation_open": true
+  },
+  "synthetic_development_expansion": {
+    "batch": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+    "review": "docs/cap02-expansion-review.md",
+    "component_map": "eval/datasets/capstone-v1/development/expanded-group-map.json",
+    "new_records": 168,
+    "new_primary_candidates": 160,
+    "new_contextual_exclusions": 8,
+    "combined_records": 308,
+    "combined_primary_candidates": 263,
+    "known_components": 41,
+    "labels": "assistant_reviewed_drafts_not_independent_gold",
+    "split_assigned": false,
+    "four_components_per_intent_target_met": false,
+    "unseen": 0,
+    "training_run": false
   }
 }
