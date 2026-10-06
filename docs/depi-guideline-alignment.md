@@ -61,6 +61,7 @@ G4 pages 1–2 specifies a repository created under **Skills Dynamix's organizat
 
 ## Readiness checklist
 
+- [x] Export three CAP-01 PDFs with editable Markdown sources and a validated one-slide infographic; see [exports](cap01-export-readme.md) and [infographic](../output/infographic/README.md). Exported 6 October; official acceptance and final submission remain pending.
 - [x] Record supplied requirements and confirmed DEPI deadlines.
 - [x] Align planning, research review and requirements drafts to the checklist.
 - [x] Supply additional local-system design views and infographic content brief.
@@ -68,7 +69,7 @@ G4 pages 1–2 specifies a repository created under **Skills Dynamix's organizat
 - [ ] Obtain access to the organization submission repository.
 - [ ] Confirm final report/export conventions and complete owner content review.
 - [ ] Resolve CAP-04 cloud design decisions before finalizing the 6 November design package.
-- [ ] Produce the final presentation, user manual and infographic with status labels current at export time.
+- [ ] Produce the full final presentation and user manual; refresh infographic status labels before final submission.
 - [ ] Upload permitted project artifacts and record the official submission commit/link.
 - [ ] Confirm final-discussion date, time and joining arrangements; attend the required discussion. G4 page 3 states that absence counts as not submitting the graduation project. The exact appointment is not established by the 4 December document deadline.
 

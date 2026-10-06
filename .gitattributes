@@ -2,3 +2,7 @@
 
 *.cmd text eol=crlf
 *.ps1 text eol=crlf
+
+# Generated deliverables must retain exact binary bytes.
+*.pdf binary
+*.pptx binary

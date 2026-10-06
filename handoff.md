@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## CAP-01 exports and synthetic CAP-03 pilot prepared — 2026-10-06
+
+The owner approved a synthetic development pilot while explicitly keeping final evaluation open. [The protocol](docs/cap03-pilot-protocol.md), [annotation review](docs/cap02-annotation-review.md) and [results](docs/cap03-pilot-results.md) record 140 synthetic messages, 103 eligible cases, 37 exclusions and a frozen 82-training / 21-validation / zero-unseen release. All 15 conversation/paraphrase components remain intact. AI-reviewed draft labels are not independent human gold; the final CAP-02 split placeholder remains unfrozen.
+
+Twelve offline TF-IDF/Logistic Regression configurations converged. Selected word 1–2 grams, C=0.1, balanced weights: 4/21 validation correct (19.05%), ten-label macro-F1 0.1024. Strong class imbalance and four absent validation classes limit interpretation. This is selected-on-validation development evidence, not an unbiased test result or an LLM comparison. All trials, per-case predictions, plots and source hashes are retained. The model is offline-only; no application runtime, prompt, phrase rules or provider configuration changed.
+
+The [three CAP-01 PDFs](docs/cap01-export-readme.md) and [editable one-slide infographic plus 2560×1440 PNG](output/infographic/README.md) are exported for AWS ML Engineering. The PDFs preserve the 2 October source dates and pending lecturer record; all 23 pages were inspected. The [CAP-04 AWS brief](docs/cap04-aws-design-draft.md) proposes a supervised single-host demo with cost, access, reset and safety decisions explicit. It is not an approved deployment.
+
+Verification: 465 Python tests (including seven new offline experiment checks) passed in 406.14s; 155 TypeScript tests, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. Independent Spec and Standards reviews found three experiment-integrity/reporting issues; all were fixed and rechecked, with zero unresolved findings on either axis. Frozen-release/source hashes, artifact hashes, document links and staged credential-pattern checks passed. PDF/PPTX files are marked binary in Git to preserve exported bytes.
+
+CAP-01 still needs owner/lecturer review and the Skills Dynamix organization-repository invitation; no official upload is claimed. CAP-02 final unseen release, CAP-03 same-input LLM comparison and CAP-04 account/Region/model/budget/access decisions remain open. Next: expand independent conversation families and review labels before a new experiment version; do not repair this frozen release after seeing scores. No paid inference, AWS account access, provisioning, budget increase or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
 ## DEPI guidelines mapped; CAP-01 drafts aligned — 2026-10-02
 
 The owner supplied five DEPI PDFs and confirmed the official track name **AWS ML Engineering**. The [alignment register](docs/depi-guideline-alignment.md) maps their requirements and unchanged DEPI dates. Official submission is through a Skills Dynamix organization repository; its invitation/URL remains unprovided. The newer Literature Review heading retains older Lecturer Review bullets, so the research synthesis is preserved alongside a separate pending lecturer-feedback/approval record. No grading weights or approval were invented.

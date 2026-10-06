@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "dataset_version": "capstone-v1-draft",
   "created_on": "2026-09-29",
-  "status": "synthetic_development_draft_active",
+  "status": "synthetic_pilot_frozen_final_release_open",
   "frozen": false,
   "unseen_case_count": 0,
   "preparation_artifacts": {
@@ -58,7 +58,7 @@
     "This manifest does not establish label correctness or model quality."
   ],
   "protocol": "docs/capstone-dataset.md",
-  "updated_on": "2026-10-02",
+  "updated_on": "2026-10-06",
   "exposure_inventory": "eval/datasets/capstone-v1/exposure-inventory.json",
   "new_human_case_count": 0,
   "reviewed_release_case_count": 0,
@@ -88,8 +88,22 @@
   "synthetic_intake": {
     "metadata": "eval/datasets/capstone-v1/development/intake/gemini-batch-001.metadata.json",
     "case_count": 100,
-    "status": "unmapped_unreviewed",
+    "status": "mapped_assistant_reviewed_drafts",
     "exposure": "exposed",
-    "distinctness_against_other_sources": "not_established"
+    "distinctness_against_other_sources": "reviewed_connected_group_map_preserves_related_cases"
+  },
+  "synthetic_pilot": {
+    "release": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+    "owner_approved_on": "2026-10-06",
+    "protocol": "docs/cap03-pilot-protocol.md",
+    "results": "docs/cap03-pilot-results.md",
+    "source_case_count": 140,
+    "eligible_case_count": 103,
+    "excluded_case_count": 37,
+    "train": 82,
+    "validation": 21,
+    "unseen": 0,
+    "independent_human_review": false,
+    "final_evaluation_open": true
   }
 }

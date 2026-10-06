@@ -2,6 +2,8 @@
 
 Prepared: **2 October 2026**. This is the content/layout brief, not the final image or presentation export. Sources: [planning](cap01-project-planning.md), [design](system-analysis-design.md), [results](../RESULTS.md), [dataset status](capstone-dataset.md), and the supplied guides indexed in [submission alignment](depi-guideline-alignment.md).
 
+Export update, **6 October 2026**: the [2560×1440 image and editable slide](../output/infographic/README.md) are available and visually checked. Final comparison and AWS delivery remain roadmap work; the separate [synthetic pilot](cap03-pilot-results.md) does not complete their acceptance gates.
+
 ## Required canvas and identity
 
 - One landscape slide/image, 16:9; preferred 2560×1440, minimum 1920×1080.

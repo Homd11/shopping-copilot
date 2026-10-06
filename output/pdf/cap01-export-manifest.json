@@ -1,0 +1,115 @@
+{
+  "export_date": "2026-10-06",
+  "track": "AWS ML Engineering",
+  "deadline": "2026-10-16",
+  "status": "review-ready export; official submission and lecturer approval pending",
+  "repository": "https://github.com/Homd11/shopping-copilot",
+  "pinned_link_commit": "85369325942010639ab6a765d8402e443beeff1a",
+  "exporter": {
+    "path": "scripts/export_cap01.py",
+    "sha256": "f91071a3692f7e78832b1d436b10e43025a9e85a158f7adf28c8a49de3417d72",
+    "python_dependencies": {
+      "reportlab": "4.4.9",
+      "pypdf": "6.10.0",
+      "pillow": "12.3.0",
+      "pdfplumber": "0.11.9"
+    }
+  },
+  "fonts": {
+    "arial.ttf": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+    "arialbd.ttf": "e8f4e3baf6cc35fed6fcce3a540e8b39e8f6cda1d22a28f2ec8f526fef7a43f5",
+    "ariali.ttf": "86b32db9a06f9694e2a3760c42e5117bcdc5cc1255bb5186ca8ce0305e22f288",
+    "arialbi.ttf": "267a411525980d648f10a7222a6ff1ebe4d4feeefbf9b3100cae2b5cfab5594a"
+  },
+  "notes": [
+    "Markdown substance preserved; wide tables use labeled records.",
+    "Mermaid Gantt task rows are rendered as a native vector schedule.",
+    "Source dates and pending approvals remain unchanged.",
+    "External references preserved without new web research.",
+    "PDF metadata timestamps use ReportLab invariant mode for deterministic rebuilds."
+  ],
+  "outputs": [
+    {
+      "path": "output/pdf/cap01-project-planning.pdf",
+      "sha256": "034910393e5029e5f04f58adf5333184883ab05833547878ebe91500f06ef359",
+      "bytes": 97488,
+      "sources": [
+        {
+          "path": "docs/cap01-project-planning.md",
+          "sha256": "377bb128675fae557285c2ab7f2e3f571796fca096aaac2060f8ec48c76e7656"
+        }
+      ],
+      "checks": {
+        "page_count": 8,
+        "source_text_fragments_verified": 130,
+        "unique_links_verified": 4,
+        "page_size": "A4 portrait",
+        "text_preservation": "passed",
+        "hyperlinks": "passed",
+        "renderer": "Poppler pdftoppm, 110 dpi",
+        "rendered_pages": 8,
+        "word_bounding_boxes_verified": 2125,
+        "contact_sheets": [
+          "work/pdfbuild/cap01-project-planning/contact-1.jpg",
+          "work/pdfbuild/cap01-project-planning/contact-2.jpg"
+        ]
+      }
+    },
+    {
+      "path": "output/pdf/cap01-literature-review.pdf",
+      "sha256": "f2b49a993d1079fa87769bc1b740dd14e54d4db87ff0a99402140891a5a17e5c",
+      "bytes": 102255,
+      "sources": [
+        {
+          "path": "docs/cap01-literature-review.md",
+          "sha256": "528271ffd23b2fb5a8801659141be310870e8c38e9a962a36a8b386a5c5b69dc"
+        },
+        {
+          "path": "docs/cap01-lecturer-review.md",
+          "sha256": "97678528b50c9581121a2a8cdbab7ec17c1f13ce5500078e7c36365354287881"
+        }
+      ],
+      "checks": {
+        "page_count": 7,
+        "source_text_fragments_verified": 57,
+        "unique_links_verified": 13,
+        "page_size": "A4 portrait",
+        "text_preservation": "passed",
+        "hyperlinks": "passed",
+        "renderer": "Poppler pdftoppm, 110 dpi",
+        "rendered_pages": 7,
+        "word_bounding_boxes_verified": 1997,
+        "contact_sheets": [
+          "work/pdfbuild/cap01-literature-review/contact-1.jpg",
+          "work/pdfbuild/cap01-literature-review/contact-2.jpg"
+        ]
+      }
+    },
+    {
+      "path": "output/pdf/cap01-requirements.pdf",
+      "sha256": "9317ee59ec8fb687ae4c3d52fe744e14b84956619062759e2ac89ab5e86c8202",
+      "bytes": 96239,
+      "sources": [
+        {
+          "path": "docs/cap01-requirements.md",
+          "sha256": "9e16a19d6b26896cf007f3b66ba593ed53575c65d23c28404a0334cfc9c8555a"
+        }
+      ],
+      "checks": {
+        "page_count": 8,
+        "source_text_fragments_verified": 143,
+        "unique_links_verified": 5,
+        "page_size": "A4 portrait",
+        "text_preservation": "passed",
+        "hyperlinks": "passed",
+        "renderer": "Poppler pdftoppm, 110 dpi",
+        "rendered_pages": 8,
+        "word_bounding_boxes_verified": 2050,
+        "contact_sheets": [
+          "work/pdfbuild/cap01-requirements/contact-1.jpg",
+          "work/pdfbuild/cap01-requirements/contact-2.jpg"
+        ]
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Capstone dataset preparation structure
 
-**State (2 October 2026):** CAP-02 is active on owner-authorized synthetic development collection. The owner and coding assistant are the only active contributors; no independent human review or unseen custody is available. Zero new human cases, reviewed split assignments and unseen cases. Existing source cases remain untouched.
+**State (6 October 2026):** CAP-02 final release remains open. The owner authorized a separate [synthetic pilot](pilot-20261006/README.md): 140 annotated drafts, 103 eligible cases frozen into 82 training / 21 validation / zero unseen. The [offline pilot results](../../../docs/cap03-pilot-results.md) are development evidence only. The owner and coding assistant remain the only active contributors; independent human review and unseen custody are unavailable. Original intake and the final split placeholder remain untouched.
 
 - `manifest.json`: hashes and counts of the exposed source corpora; not a released training dataset.
 - `splits.json`: empty group assignments and a metadata-only slot for a future sealed unseen release.

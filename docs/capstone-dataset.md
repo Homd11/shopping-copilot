@@ -4,7 +4,7 @@
 
 **Dataset working version:** capstone-v1-draft
 
-**State (2 October 2026):** CAP-02 is active again after the session refactor. The owner authorized a [40-record synthetic development batch](../eval/datasets/capstone-v1/development/README.md), with ten examples per language group and a tentative 32/8/0 train/validation/unseen proposal. A separate [100-message Gemini-generated intake](../eval/datasets/capstone-v1/development/intake/README.md) preserves its original labels pending mapping and review. These are exposed drafts, not human observations or a frozen release. The owner and coding assistant are the only active contributors; independent human review and unseen custody remain unavailable.
+**State (6 October 2026):** The owner approved a limited synthetic-pilot exception while leaving final evaluation open. The 40 assistant-generated and 100 Gemini-generated messages now have reviewed draft annotations and a combined conversation/paraphrase map. The [separate frozen pilot](../eval/datasets/capstone-v1/pilot-20261006/README.md) has 82 training / 21 validation / zero unseen cases, with 37 exclusions. It supersedes the earlier tentative 32/8 development allocation for this experiment only. [CAP-03 pilot results](cap03-pilot-results.md) are available. Original intake and final release placeholders remain intact. All data remains synthetic/exposed; AI review is not independent human gold. The owner and coding assistant are the only active contributors, and unseen custody remains unavailable. The final protocol below is unchanged; CAP-02 is not closed.
 
 ## Prepared structure
 

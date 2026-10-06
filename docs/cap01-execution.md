@@ -1,12 +1,12 @@
 # CAP-01: graduation deliverables and ownership
 
-Updated: 2026-10-02. Track: **AWS ML Engineering** (owner-confirmed). State: drafts aligned to supplied DEPI guidelines; lecturer evidence and organization-repository access remain pending. No submission, external message or cloud provisioning has occurred. See the [submission register](depi-guideline-alignment.md).
+Updated: 2026-10-06. Track: **AWS ML Engineering** (owner-confirmed). State: drafts aligned to supplied DEPI guidelines and [three PDFs exported](cap01-export-readme.md); [editable infographic and image](../output/infographic/README.md) prepared. Lecturer evidence and organization-repository access remain pending. No submission, external message or cloud provisioning has occurred. See the [submission register](depi-guideline-alignment.md).
 
 ## Working arrangement clarified — 2 October 2026
 
 The owner clarified that the owner and coding assistant are the only active contributors. The other named members are not available to perform project work. Earlier technical/academic allocations below record the supplied team table and prior assignments; they are not evidence of contributions or active staffing. The owner coordinates all actual deliverables. Do not request help from those members, invent contribution records or make progress depend on their review. Any independent-human-review claim remains unsupported unless real evidence is later obtained.
 
-The session refactor is complete. CAP-02 is active with 40 annotated synthetic drafts and a separate 100-message Gemini intake, all exposed and unreviewed for release. No frozen dataset or unseen results are claimed; CAP-02 remains open. Owner/assistant evaluation must disclose its review and independence limitations.
+The session refactor is complete. The owner subsequently approved a limited synthetic-pilot exception on 6 October: 140 messages are mapped to draft annotations, with 103 eligible cases frozen as 82 training / 21 validation / zero unseen. [The offline pilot](cap03-pilot-results.md) is complete; CAP-02 final release and CAP-03 final comparison remain open. These AI-reviewed, exposed synthetic examples are not independent gold. A [CAP-04 design recommendation](cap04-aws-design-draft.md) is prepared for later decisions; nothing has been provisioned.
 
 ## Goal and boundaries
 
