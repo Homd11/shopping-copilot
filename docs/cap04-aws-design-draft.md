@@ -2,6 +2,8 @@
 
 Prepared: **6 October 2026**. Status: **recommendation for review; CAP-04 remains open**.
 
+**7 October update:** the owner requires credit-only operation with zero out-of-pocket payment, has created a Free-plan account ($100 credit and a 7 April 2027 plan end date shown in their screenshot), has no domain and wants a public link for independent testers. Read the [current constraints and 60-day estimate](cap04-credit-only-plan.md) and [pricing research](cap04-pricing-research.md) first. The supervised admission/domain proposal below is retained as an earlier option, not the selected design; public isolation and domain-free HTTPS remain unresolved.
+
 Recommend one small Linux EC2 host for a scheduled, supervised demonstration of the existing Controlled Storefront, with two HTTPS origins and a narrowly permitted Bedrock adapter. This is a proposal, not an approved architecture or deployment instruction. The actual AWS account, Region, model, remaining credits, operating ceiling, audience and access arrangement are pending. Choosing an option does not authorize account inspection, subscriptions, paid inference, resource creation or deployment.
 
 This preparation follows the [graduation requirements](cap01-requirements.md#graduation-ml-and-deployment-requirements), [current checkpoint](../PROJECT_CHECKPOINT.md) and [system design](system-analysis-design.md). The owner-approved local closure is recorded separately; its evidence does not qualify AWS. CAP-05 still requires the dataset/model/design prerequisites and strict model qualification; CAP-06 deploys only after those gates, and CAP-07 verifies the deployed result. This brief changes no runtime, model configuration, spending cap or roadmap gate.

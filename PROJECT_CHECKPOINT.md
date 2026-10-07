@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-10-07
 
+## CAP-04 credit-only planning — 2026-10-07
+
+The owner requires zero out-of-pocket spending, a domain-free public link for independent testers and approximately two months of hosting. They created a personal AWS account during planning; their screenshot shows Free account plan, $100 remaining and plan end 7 April 2027. This is screenshot evidence, not an account/service-access audit. The additional advertised $100 is conditional, not a current balance.
+
+[Current constraints](docs/cap04-credit-only-plan.md) supersede the older supervised/domain assumptions. [Official-source research](docs/cap04-pricing-research.md) gives a us-east-1 reference: $40.35 for 60 days of t3.small, 20 GB gp3 and one public IPv4; roughly $44.31–$50.24 including 10,000 assumed model calls plus 300 qualification calls for one candidate. Public HTTPS, transfer/logging and other costs remain excluded; no complete quote or spending authorization is claimed. Stay on Free plan; no upgrade or resource creation is authorized. Resolve shopper/cart isolation, domain-free HTTPS, abuse limits, model eligibility and full cost locally before provisioning. CAP-04 remains open.
+
+The CAP-01 execution register now links the prepared PDFs/infographic and seven-family exploratory results. Existing PDF/source hashes remain unchanged; owner/lecturer review and official submission are pending. Verification: estimate arithmetic, local links, seven PDF/source hashes and repository formatting passed. Separate Spec and Standards reviews found no outstanding issues after updating account status. Documentation only; runtime tests were not repeated. No AWS API access, provider calls, resources, secrets, budget changes or push occurred. Unrelated local changes are preserved.
+
 ## Executed CAP-03 Jupyter notebook — 2026-10-07
 
 The owner requested a notebook presentation of the seven-family results. [The executed notebook](notebooks/cap03-model-comparison.ipynb) contains 18 cells, including nine successfully executed code cells: source/release integrity checks, independent metric recomputation, model and language tables, saved charts, selectable full error analysis, all 46 trials, timings, provenance and optional reproduction instructions. [Opening instructions](notebooks/README.md) cover VS Code/JupyterLab.
