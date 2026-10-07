@@ -11,7 +11,9 @@ every model call: the Agent fetches it internally, while advice sees a small sel
 subset. The proposed change also removes fixed three-product preselection from the
 advisor's evidence pool.
 
-Written-design review and the implementation plan are next. No runtime migration,
+The written design is now owner-approved. The [implementation plan](docs/superpowers/plans/2026-10-08-catalogue-retrieval.md)
+is ready for review; native sequential execution is recommended. A read-only in-memory
+probe confirmed FTS5 on local Node 24.13.0, whose SQLite API is experimental. No runtime migration,
 retrieval benchmark, provider call, dependency installation or cloud action occurred.
 Semantic retrieval is a measured candidate, not an already selected/deployed backend.
 CAP-02/03 frozen evidence and the original dirty checkout remain unchanged. This

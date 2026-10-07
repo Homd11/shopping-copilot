@@ -1,6 +1,6 @@
 # Catalogue retrieval for the Shopping Copilot
 
-**Status:** direction approved by the owner on 8 October 2026; written design awaiting review. No implementation or model evaluation has started.
+**Status:** written design approved by the owner on 8 October 2026. The [implementation plan](../plans/2026-10-08-catalogue-retrieval.md) is prepared for review; no implementation or model evaluation has started.
 
 **Purpose:** let the Shopping Copilot investigate products and give useful advice using a small amount of relevant, current evidence. Preserve natural Egyptian Arabic, Franco-Arabic, English and mixed-language interpretation, the existing advice experience and deterministic Action safety. The owner explicitly rejects phrase-based interpretation and wants this improvement before public deployment.
 
@@ -115,4 +115,4 @@ The implementation plan should sequence repository migration, bounded read API, 
 
 No hosted vector service, AWS resource, new paid subscription, provider-budget increase, retailer integration, real inventory reservation, account system, cart persistence or frontend redesign is included. SQLite driver/runtime compatibility and the semantic backend are implementation decisions backed by checks, not new product features. Public HTTPS, global inference allowances and abuse controls remain separate deployment gates.
 
-The next step is owner review of this written design, followed by the implementation plan. This document is not evidence that retrieval is implemented, benchmarked or qualified.
+The next step is owner review of the implementation plan and confirmation of execution method. This document is not evidence that retrieval is implemented, benchmarked or qualified.
