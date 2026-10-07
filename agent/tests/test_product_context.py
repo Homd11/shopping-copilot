@@ -3,11 +3,11 @@
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 
 from agent.app import create_app
 from agent.catalogue import CatalogueSnapshot
 from agent.llm import LLMChunk, LLMSettings
+from agent.tests.http_client import TestClient
 from agent.tests.test_cart_conversation_repair import cart_snapshot
 from agent.tests.test_catalogue import catalogue
 from agent.tests.test_real_task import action_result, snapshot_at

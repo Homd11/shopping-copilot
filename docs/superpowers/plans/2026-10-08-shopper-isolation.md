@@ -10,7 +10,9 @@
 
 **Spec:** [Approved shopper isolation design](../specs/2026-10-07-shopper-isolation-design.md).
 
-**Status:** ready for owner plan review and execution-method selection; no implementation changes yet. Recommended method: native implementation in this session, followed by separate Spec and Standards reviews. The tasks share security-sensitive interfaces, so implement them sequentially rather than in parallel.
+**Status:** implemented locally in `codex/shopper-isolation` on 8 October 2026 using native sequential execution and separate Spec and Standards reviews. See the [verification record](../../shopper-isolation-verification.md). The detailed checklist below is the original execution recipe; its suggested commands are retained rather than retrospectively claiming every command ran verbatim.
+
+Delivered: Storefront ownership (Task 1), private linking/service configuration (Task 2), Agent authorization/lifetimes (Task 3), browser integration/recovery (Task 4), and adversarial verification/documentation (Task 5). No push or cloud deployment is included.
 
 ## Global constraints
 

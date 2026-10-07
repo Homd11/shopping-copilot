@@ -5,10 +5,10 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any
 from urllib.parse import parse_qsl, urlencode, urlsplit
-from urllib.request import Request, urlopen
 
 from playwright.sync_api import BrowserContext, BrowserType, Frame, expect, sync_playwright
 
+from eval.browser_http import browser_post
 from eval.cases import (
     DISCOVERY_CASES,
     TICKET_08_CASES,
@@ -60,13 +60,10 @@ def state_value(state: Mapping[str, Any], path: str) -> Any:
     return value
 
 
-def _reset_storefront(timeout_ms: int) -> None:
-    request = Request(RESET_URL, method="POST")
-    with urlopen(  # noqa: S310 - fixed local evaluation URL
-        request, timeout=max(timeout_ms / 1000, 0.001)
-    ) as response:
-        if response.status != 204:
-            raise RuntimeError(f"Storefront reset failed with {response.status}")
+def _reset_storefront(context: BrowserContext, timeout_ms: int) -> None:
+    response = browser_post(context, RESET_URL, timeout=max(timeout_ms, 1))
+    if response.status != 204:
+        raise RuntimeError(f"Storefront reset failed with {response.status}")
 
 
 def _frame_for_storefront(page) -> Frame:
@@ -87,16 +84,21 @@ def authoritative_state_url(frame_url: str) -> str:
     return f"{STATE_URL}?{query}" if query else STATE_URL
 
 
-def _authoritative_store_state(frame_url: str, timeout_ms: int) -> dict[str, Any]:
+def _authoritative_store_state(
+    context: BrowserContext, frame_url: str, timeout_ms: int
+) -> dict[str, Any]:
     url = authoritative_state_url(frame_url)
-    with urlopen(url, timeout=max(timeout_ms / 1000, 0.001)) as response:  # noqa: S310
-        return json.load(response)
+    response = context.request.get(url, timeout=max(timeout_ms, 1))
+    if not response.ok:
+        raise RuntimeError(f"Storefront state unavailable: {response.status}")
+    return response.json()
 
 
 def _prepare_case_setup(context: BrowserContext, case: EvaluationCase, timeout_ms: int) -> None:
     if case.setup != "authenticated":
         return
-    response = context.request.post(
+    response = browser_post(
+        context,
         LOGIN_URL,
         form=_TEST_SHOPPER_CREDENTIALS,
         timeout=max(timeout_ms, 1),
@@ -225,7 +227,7 @@ def run_evaluation(
             page.on("request", count_action_result)
             failure: str | None = None
             try:
-                _reset_storefront(remaining_timeout_ms(deadline))
+                _reset_storefront(context, remaining_timeout_ms(deadline))
                 _prepare_case_setup(context, case, remaining_timeout_ms(deadline))
                 page.goto(
                     PANEL_URL,
@@ -244,7 +246,9 @@ def run_evaluation(
                         "data-task-state", "completed", timeout=remaining_timeout_ms(deadline)
                     )
                 frame = _frame_for_storefront(page)
-                store_state = _authoritative_store_state(frame.url, remaining_timeout_ms(deadline))
+                store_state = _authoritative_store_state(
+                    context, frame.url, remaining_timeout_ms(deadline)
+                )
                 for assertion in case.assertions:
                     _assert_outcome(
                         page,

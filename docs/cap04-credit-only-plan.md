@@ -1,6 +1,6 @@
 # CAP-04: credit-only deployment constraints
 
-**Updated:** 7 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
+**Updated:** 8 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
 
 ## Owner decisions
 
@@ -35,7 +35,11 @@ Recommendation: **finish local cloud-readiness work before deploying resources**
 
 ## Public-link design changes needed
 
-The Storefront has a shared in-memory cart. Separate Agent sessions do not isolate carts. The earlier client-certificate/IP-allowlist proposal also does not provide the requested shareable public experience. Resolve these items before exposure:
+The original shared-cart limitation is addressed by the local
+[shopper-isolation implementation](shopper-isolation-verification.md), whose final
+verification is recorded separately. State remains ephemeral and anonymous.
+The earlier client-certificate/IP-allowlist proposal does not provide the requested
+shareable public experience. Resolve and verify these items before exposure:
 
 1. Server-issued shopper identity and authorization binding browser, Agent session, cart, fictional orders and mutation authority. Every read, Action, ActionResult, Confirmation and Undo must respect ownership. Caller-supplied IDs and CORS alone are insufficient.
 2. Independent shopper state, expiry and measured concurrency limits. Ephemeral state remains acceptable for a graduation demo with explicit reset notices and fresh authority after restart. Never replay uncertain Actions. If parallel public use cannot be made safe within scope, keep deployment pending.

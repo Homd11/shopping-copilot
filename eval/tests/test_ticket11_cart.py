@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from eval.browser_http import browser_post
 from eval.services import local_services
 
 
@@ -15,7 +16,7 @@ def browser():
 @pytest.fixture
 def page(browser):
     page = browser.new_page()
-    page.request.post("http://localhost:4000/__test/reset")
+    browser_post(page, "http://localhost:4000/__test/reset")
     page.goto("http://localhost:4100/")
     frame = page.frame_locator("#storefront-frame")
     expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
@@ -86,7 +87,8 @@ def test_undo_expires_after_ten_seconds_in_browser(page):
 
 def test_refresh_keeps_only_remaining_undo_time_and_restores_exact_cart(page):
     frame = add(page)
-    second = page.request.post(
+    second = browser_post(
+        page,
         "http://localhost:4000/cart/items",
         data={
             "product_id": "shoe-14",
@@ -201,7 +203,8 @@ def test_manual_clear_requires_confirmation_and_cancel_keeps_cart(page):
 
 def test_named_relative_quantity_changes_only_one_line_and_undo_restores_it(page):
     frame = add(page)
-    response = page.request.post(
+    response = browser_post(
+        page,
         "http://localhost:4000/cart/items",
         data={
             "product_id": "shoe-14",
@@ -248,7 +251,8 @@ def test_manual_clear_refuses_stale_cart_and_bridge_cannot_skip_confirmation(pag
     }""")
     page.wait_for_function("window.manualResult !== undefined")
     assert page.evaluate("window.manualResult.status") == "blocked"
-    response = page.request.post(
+    response = browser_post(
+        page,
         "http://localhost:4000/cart/quantity",
         data={
             "product_id": "shoe-09",

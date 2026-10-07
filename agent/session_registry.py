@@ -10,12 +10,28 @@ SESSION_TTL_SECONDS = 30 * 60
 
 
 class SessionRegistry:
-    def __init__(self, *, clock: Callable[[], float] = monotonic) -> None:
+    def __init__(self, *, clock: Callable[[], float] = monotonic, capacity: int = 800) -> None:
         self._clock = clock
+        self._capacity = capacity
         self._sessions: dict[str, Session] = {}
-        self._expired_ids: set[str] = set()
+        self._expired_ids: dict[str, float] = {}
+
+    def _expire(self) -> None:
+        now = self._clock()
+        for key, session in list(self._sessions.items()):
+            if now - session.last_activity_at > SESSION_TTL_SECONDS:
+                del self._sessions[key]
+                self._expired_ids[key] = now
+        for key, expired_at in list(self._expired_ids.items()):
+            if now - expired_at > SESSION_TTL_SECONDS:
+                del self._expired_ids[key]
+        while len(self._expired_ids) > self._capacity:
+            del self._expired_ids[next(iter(self._expired_ids))]
 
     def create(self, tab_id: str | None = None) -> Session:
+        self._expire()
+        if len(self._sessions) >= self._capacity:
+            raise OverflowError("Session capacity reached")
         session = Session(
             session_id=f"session-{uuid4().hex}",
             lease_tab_id=tab_id,
@@ -25,16 +41,13 @@ class SessionRegistry:
         return session
 
     def get(self, session_id: str) -> Session:
+        self._expire()
         if session_id in self._expired_ids:
             raise SessionExpired(session_id)
         try:
             session = self._sessions[session_id]
         except KeyError as error:
             raise SessionNotFound(session_id) from error
-        if self._clock() - session.last_activity_at > SESSION_TTL_SECONDS:
-            del self._sessions[session_id]
-            self._expired_ids.add(session_id)
-            raise SessionExpired(session_id)
         return session
 
     def touch(self, session: Session) -> None:

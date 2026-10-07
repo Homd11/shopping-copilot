@@ -1,6 +1,7 @@
 # Shopper isolation before public deployment
 
-**Status:** owner approved on 8 October 2026; implementation has not started.
+**Status:** owner approved and implemented locally on 8 October 2026; see the
+[verification record](../../shopper-isolation-verification.md) for checks and remaining deployment gates.
 **Requested:** 7 October 2026. The owner authorized fixing the single-shopper limitation before deployment.
 
 ## Outcome and limits
@@ -11,7 +12,7 @@ For this graduation demo, a shopper is identified by a server-issued browser ses
 
 The AWS account stays on its Free plan. This work is local and makes no paid calls, account changes or deployment. Public HTTPS, global spending limits, abuse protection and Bedrock qualification remain separate deployment gates in the [CAP-04 constraints](../../cap04-credit-only-plan.md).
 
-## Findings in the current implementation
+## Findings before implementation
 
 - `store/src/app.ts` constructs one `GuardedCart` for all requests. Its lines, revision, orders, confirmation ledger, Undo and operation deduplication therefore share one ownerless lifetime.
 - Agent session endpoints use session IDs and tab IDs without an independent authenticated shopper binding. Tab leases coordinate execution; they are not an authorization boundary.
@@ -78,4 +79,4 @@ Run focused checks during implementation, then format/lint/typecheck/build and t
 
 ## Review and implementation handoff
 
-This design selects anonymous browser-bound shoppers, separate ephemeral commerce state and a verified cross-service linking boundary. It deliberately does not silently turn the fictional login into real account authentication. The next implementation plan should sequence Storefront ownership, linking/Agent authorization, browser integration and adversarial multi-shopper verification, preserving unrelated working-tree changes. Implementation has not started and the one-shopper bug is not yet fixed.
+This design selects anonymous browser-bound shoppers, separate ephemeral commerce state and a verified cross-service linking boundary. It deliberately does not silently turn the fictional login into real account authentication. The implementation now covers Storefront ownership, linking/Agent authorization, browser integration and adversarial multi-shopper verification in the isolated `codex/shopper-isolation` worktree. Unrelated working-tree changes are preserved. Public deployment remains gated separately; see the verification record above.

@@ -20,6 +20,20 @@ const snapshot = {
   elements: [],
 };
 
+it("blocks late messages and snapshots after shopper authority is lost", async () => {
+  const { controller, root, emit, actions } = setup();
+  await controller.start();
+  controller.receiveStorefront({ type: "snapshot", snapshot });
+  controller.invalidateShopper();
+  controller.receiveStorefront({ type: "snapshot", snapshot });
+  emit({ type: "narration", data: { text: "late" } });
+  expect(
+    root.querySelector<HTMLInputElement>("#shopper-message")!.disabled,
+  ).toBe(true);
+  expect(root.querySelector("#task-status")!.textContent).toContain("Reload");
+  expect(actions).toEqual([]);
+});
+
 function setup(options?: {
   savedSessionId?: string;
   restoredState?: SessionView;
@@ -190,6 +204,20 @@ function setup(options?: {
 }
 
 describe("PanelController", () => {
+  it("does not enable shopping before linked session startup completes", async () => {
+    const context = setup();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")!
+        .disabled,
+    ).toBe(true);
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")!
+        .disabled,
+    ).toBe(false);
+  });
   it("shows uncertain delivery without replaying a cart change when result submission fails", async () => {
     const context = setup({ resultError: new Error("HTTP 422") });
     await context.controller.start();

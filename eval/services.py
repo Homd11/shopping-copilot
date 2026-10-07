@@ -1,4 +1,5 @@
 import os
+import secrets
 import shutil
 import socket
 import subprocess
@@ -11,6 +12,35 @@ from urllib.error import URLError
 from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class ServiceController:
+    """Evaluation-only process restart; the fixture owns these exact children."""
+
+    def __init__(self, processes, commands, environment, creation_flags):
+        self.processes = processes
+        self.commands = commands
+        self.environment = environment
+        self.creation_flags = creation_flags
+
+    def restart(self, service: str) -> None:
+        index = {"agent": 0, "store": 1}[service]
+        process = self.processes[index]
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+        self.processes[index] = subprocess.Popen(
+            self.commands[index],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=self.creation_flags,
+            env=self.environment,
+        )
+        _wait_for("http://127.0.0.1:8000/health" if index == 0 else "http://127.0.0.1:4000/")
 
 
 def _pnpm_command() -> str:
@@ -54,6 +84,8 @@ def service_environment(
 ) -> dict[str, str]:
     """Return the isolated environment used by the local evaluation services."""
     environment = dict(os.environ if base is None else base)
+    environment["COPILOT_SERVICE_SECRET"] = secrets.token_hex(32)
+    environment["COPILOT_EVALUATION"] = "1"
     if real_model:
         if environment.get("LLM_PROVIDER") in {None, "scripted"} or not environment.get(
             "LLM_MODEL"
@@ -87,7 +119,7 @@ def local_services(
     real_model: bool = False,
     test_clock: bool = False,
     agent_app: str = "agent.app:app",
-) -> Iterator[None]:
+) -> Iterator[ServiceController]:
     pnpm = _pnpm_command()
     node = shutil.which("node")
     if node is None:
@@ -124,7 +156,7 @@ def local_services(
         _wait_for("http://127.0.0.1:4100/")
         if any(process.poll() is not None for process in processes):
             raise RuntimeError("An evaluation service exited during startup")
-        yield
+        yield ServiceController(processes, commands, environment, creation_flags)
     finally:
         for process in processes:
             process.terminate()

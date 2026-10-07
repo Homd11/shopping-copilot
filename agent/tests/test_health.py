@@ -1,6 +1,5 @@
-from fastapi.testclient import TestClient
-
 from agent.app import app
+from agent.tests.http_client import TestClient
 
 
 def test_health_reports_service_ready() -> None:

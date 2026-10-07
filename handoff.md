@@ -1,5 +1,32 @@
 # Shopping Copilot — project handoff
 
+## Shopper isolation implemented locally — 2026-10-08
+
+The approved pre-deployment isolation slice is implemented in the separate
+`codex/shopper-isolation` worktree. Each browser profile owns its cart, revision,
+Undo, confirmations, fictional login/orders and Agent sessions; same-profile tabs
+share commerce and retain explicit task takeover. Private challenge-bound linking,
+cookie/CSRF authorization, bounded registries and per-event/model-admission checks
+prevent foreign-session access and stale ownership. Restart, expiry and identity
+changes require safe recovery without replaying uncertain Actions.
+
+[Verification and operational limits](docs/shopper-isolation-verification.md) record
+passing evidence for all **511 distinct Python tests** across full/focused runs and
+**169 TypeScript tests**, plus builds/typechecks, lint/format and credential/artifact
+checks. This is not an uninterrupted green full Python run: a login fixture and SSE
+reconnect/teardown issues were corrected and affected checks rerun. Both independent
+reviews have no outstanding actionable findings. Temporary SSE interruptions retain
+cursor-based reconnect; revoked/expired authority still closes delivery.
+
+Normal local startup now requires `python scripts/init_local_identity.py` once to
+create the ignored restricted service-identity file; scripted evaluation supplies
+its own ephemeral secret. The initializer was not run against the owner's local
+workspace. No provider calls, AWS resources, budget changes, push or deployment
+occurred. Original dirty checkout changes are preserved; implementation is not merged
+there. Public HTTPS/cookie topology, global inference allowances, abuse controls and
+Bedrock qualification remain CAP-04/05/06 gates. CAP-02/03 independent evaluation is
+unchanged and remains open.
+
 ## CAP-04 credit-only planning — 2026-10-07
 
 The owner requires zero out-of-pocket spending, a domain-free public link for independent testers and approximately two months of hosting. They created a personal AWS account during planning; their screenshot shows Free account plan, $100 remaining and plan end 7 April 2027. This is screenshot evidence, not an account/service-access audit. The additional advertised $100 is conditional, not a current balance.

@@ -10,10 +10,27 @@ import {
   type SessionView,
 } from "./panel.js";
 import "./styles.css";
+import { linkShopper } from "./shopper-link.js";
 import { subscribeAgentStream } from "./event-stream.js";
 
 const AGENT_ORIGIN = "http://localhost:8000";
 const STOREFRONT_ORIGIN = "http://localhost:4000";
+
+let browserCsrf = "";
+let shopperContext = "";
+async function agentFetch(
+  url: string,
+  options: RequestInit = {},
+): Promise<Response> {
+  const response = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: { ...options.headers, "x-csrf-token": browserCsrf },
+  });
+  if (response.status === 401 || response.status === 403)
+    controller.invalidateShopper();
+  return response;
+}
 
 class HttpAgentTransport implements AgentTransport {
   readonly #tabId: string;
@@ -23,7 +40,7 @@ class HttpAgentTransport implements AgentTransport {
   }
 
   async createSession(tabId = this.#tabId): Promise<string> {
-    const response = await fetch(`${AGENT_ORIGIN}/sessions`, {
+    const response = await agentFetch(`${AGENT_ORIGIN}/sessions`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -31,6 +48,7 @@ class HttpAgentTransport implements AgentTransport {
       },
       body: JSON.stringify({ tab_id: tabId }),
     });
+    if (!response.ok) throw new Error("Session creation failed");
     const payload = (await response.json()) as { session_id: string };
     return payload.session_id;
   }
@@ -46,11 +64,13 @@ class HttpAgentTransport implements AgentTransport {
       handler,
       after,
       onCursor,
+      undefined,
+      () => controller.invalidateShopper(),
     );
   }
 
   async restoreSession(sessionId: string, tabId: string): Promise<SessionView> {
-    const response = await fetch(
+    const response = await agentFetch(
       `${AGENT_ORIGIN}/sessions/${sessionId}/state?tab_id=${encodeURIComponent(tabId)}`,
     );
     if (!response.ok)
@@ -87,14 +107,14 @@ class HttpAgentTransport implements AgentTransport {
   }
 
   async speechAvailable(): Promise<boolean> {
-    const response = await fetch(`${AGENT_ORIGIN}/speech/availability`);
+    const response = await agentFetch(`${AGENT_ORIGIN}/speech/availability`);
     if (!response.ok) return false;
     const result = (await response.json()) as { available: boolean };
     return result.available === true;
   }
 
   async transcribeSpeech(audio: Blob, language: "ar" | "en"): Promise<string> {
-    const response = await fetch(
+    const response = await agentFetch(
       `${AGENT_ORIGIN}/speech/transcribe?language=${language}`,
       {
         method: "POST",
@@ -122,7 +142,7 @@ class HttpAgentTransport implements AgentTransport {
     text: string,
     snapshot: Snapshot,
   ): Promise<"resumed" | "awaiting_login"> {
-    const response = await fetch(
+    const response = await agentFetch(
       `${AGENT_ORIGIN}/sessions/${sessionId}/tasks/${taskId}/answers`,
       {
         method: "POST",
@@ -156,7 +176,7 @@ class HttpAgentTransport implements AgentTransport {
   }
 
   async #post(path: string, body: object): Promise<void> {
-    const response = await fetch(`${AGENT_ORIGIN}${path}`, {
+    const response = await agentFetch(`${AGENT_ORIGIN}${path}`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -173,7 +193,7 @@ class HttpAgentTransport implements AgentTransport {
     body: object,
     tabId: string,
   ): Promise<SessionView> {
-    const response = await fetch(`${AGENT_ORIGIN}${path}`, {
+    const response = await agentFetch(`${AGENT_ORIGIN}${path}`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-tab-id": tabId },
       body: JSON.stringify(body),
@@ -194,7 +214,7 @@ class WindowStorefrontChannel implements StorefrontChannel {
 
   sendAction(action: Action): void {
     this.#frame.contentWindow?.postMessage(
-      { type: "action", action },
+      { type: "action", action, shopper_context: shopperContext },
       STOREFRONT_ORIGIN,
     );
   }
@@ -219,8 +239,10 @@ const frame = document.querySelector<HTMLIFrameElement>("#storefront-frame");
 if (root === null || frame === null)
   throw new Error("Panel shell is incomplete");
 const spaVariant = new URL(window.location.href).searchParams.get("spa");
-if (spaVariant === "url" || spaVariant === "component" || spaVariant === "off")
-  frame.src = `${STOREFRONT_ORIGIN}/?spa=${spaVariant}`;
+const storefrontUrl =
+  spaVariant === "url" || spaVariant === "component" || spaVariant === "off"
+    ? `${STOREFRONT_ORIGIN}/?spa=${spaVariant}`
+    : `${STOREFRONT_ORIGIN}/`;
 
 const SESSION_KEY = "shopping-copilot.session-id";
 const CURSOR_KEY = "shopping-copilot.event-cursor";
@@ -256,8 +278,38 @@ window.addEventListener("message", (event) => {
   )
     return;
   const message = event.data as StorefrontMessage;
+  if (event.data?.type === "shopper_reset") {
+    controller.invalidateShopper();
+    return;
+  }
   if (message.type === "snapshot" || message.type === "action_result") {
+    if (!shopperContext) return;
+    if (event.data.shopper_context !== shopperContext) {
+      controller.invalidateShopper();
+      return;
+    }
     controller.receiveStorefront(message);
   }
 });
-void controller.start();
+async function startLinked() {
+  try {
+    const begin = async () => {
+      // Serialize the first Storefront navigation too: cookies are shared across tabs.
+      frame!.src = storefrontUrl;
+      const linked = await linkShopper(frame!, AGENT_ORIGIN, STOREFRONT_ORIGIN);
+      browserCsrf = linked.csrf;
+      shopperContext = linked.context;
+      await controller.start();
+    };
+    if (navigator.locks)
+      await navigator.locks.request("copilot-shopper-link", begin);
+    else throw new Error("A secure browser with Web Locks is required");
+  } catch {
+    const status = document.createElement("p");
+    status.setAttribute("role", "alert");
+    status.textContent =
+      "تعذر ربط جلسة التسوق. أعد تحميل الصفحة للمحاولة. / Shopping session unavailable. Reload to retry.";
+    root!.prepend(status);
+  }
+}
+void startLinked();

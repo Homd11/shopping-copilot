@@ -24,6 +24,7 @@ from agent.session_state import (
     TaskConflict,
     TaskStatus,
 )
+from agent.shopper_access import ShopperBinding
 from agent.task_runtime import TaskRuntime
 
 __all__ = [
@@ -50,7 +51,8 @@ class SessionStore:
         planner: ScriptedPlanner | None = None,
         *,
         clock: Any = monotonic,
-        confirmation_registrar: Callable[[str, str, str, str, int], bool] | None = None,
+        confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool]
+        | None = None,
     ) -> None:
         self._registry = SessionRegistry(clock=clock)
         self._runtime = TaskRuntime(

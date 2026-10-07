@@ -37,14 +37,29 @@ async def session_event_response(
     async def event_stream() -> AsyncIterator[str]:
         cursor = after
         while True:
-            pending = sessions.events_after(session_id, cursor)
+            if not await request.state.shopper_authorized():
+                yield "event: shopper_reset\ndata: {}\n\n"
+                return
+            try:
+                pending = sessions.events_after(session_id, cursor)
+            except SessionNotFound:
+                yield "event: shopper_reset\ndata: {}\n\n"
+                return
             for event in pending:
+                if not await request.state.shopper_authorized():
+                    yield "event: shopper_reset\ndata: {}\n\n"
+                    return
                 cursor = event.id
-                if event.event == "action" and not sessions.owns_lease(session_id, tab_id):
-                    continue
+                try:
+                    sessions.get(session_id)
+                    if event.event == "action" and not sessions.owns_lease(session_id, tab_id):
+                        continue
+                except SessionNotFound:
+                    yield "event: shopper_reset\ndata: {}\n\n"
+                    return
                 yield encode_sse(event.id, event.event, event.data)
             if once or await request.is_disconnected():
                 return
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

@@ -174,6 +174,7 @@ def answer(
         if not task.confirmation.can_confirm(question_id, "Confirm", current):
             raise ActionResultMismatch("Confirmation expired or was already used")
         if runtime.confirmation_registrar is None or not runtime.confirmation_registrar(
+            session.shopper,
             snapshot.url,
             question_id,
             task.task_id,

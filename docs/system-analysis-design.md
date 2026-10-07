@@ -6,6 +6,13 @@ Status: **local-system design documented; cloud design awaiting CAP-04 decisions
 
 ## 1. Problem, purpose and scope
 
+**8 October implementation supplement:** [Anonymous shopper isolation](shopper-isolation-verification.md)
+replaces the shared cart and session-ID-only access described in the original
+snapshot. It documents per-profile commerce, authenticated service linking,
+CSRF/Origin checks, stream lifetime and restart behavior. The older MVP anchor
+remains historical; public hosting and real account authentication remain outside
+the implemented local boundary.
+
 Shoppers can struggle both to choose between products and to carry out shopping steps. Shopping Copilot combines conversation grounded in Catalogue Facts with visible, controlled Storefront interactions. The LLM interprets the Shopper's language and references; runtime code checks whether a proposed interaction is supported and safe. Advice helps the Shopper decide without gaining authority to execute an Action.
 
 The implemented scope is one project-owned Controlled Storefront, multilingual text, optional speech transcription, catalogue discovery, product explanations/comparisons, navigation, cart editing, ten-second Undo, guarded cart clearing and fictional checkout, account/order guidance, Stop and refresh reconciliation. Payment, login and other Sensitive Fields remain manual.
