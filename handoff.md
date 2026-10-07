@@ -1,5 +1,22 @@
 # Shopping Copilot — project handoff
 
+## Catalogue retrieval design prepared — 2026-10-08
+
+The owner approved the direction of database-backed, model-directed product retrieval
+before deployment. The [written design](docs/superpowers/specs/2026-10-08-catalogue-retrieval-design.md)
+proposes a Storefront-owned SQLite repository, bounded search/details operations,
+model-owned query/refinement and advice, and fresh deterministic eligibility and
+mutation checks. It corrects the premise that the entire catalogue currently enters
+every model call: the Agent fetches it internally, while advice sees a small selected
+subset. The proposed change also removes fixed three-product preselection from the
+advisor's evidence pool.
+
+Written-design review and the implementation plan are next. No runtime migration,
+retrieval benchmark, provider call, dependency installation or cloud action occurred.
+Semantic retrieval is a measured candidate, not an already selected/deployed backend.
+CAP-02/03 frozen evidence and the original dirty checkout remain unchanged. This
+documentation lives alongside the completed isolation work on `codex/shopper-isolation`.
+
 ## Shopper isolation implemented locally — 2026-10-08
 
 The approved pre-deployment isolation slice is implemented in the separate
