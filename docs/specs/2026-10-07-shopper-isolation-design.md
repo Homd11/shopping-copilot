@@ -1,6 +1,6 @@
 # Shopper isolation before public deployment
 
-**Status:** proposed design for owner review; implementation has not started.
+**Status:** owner approved on 8 October 2026; implementation has not started.
 **Requested:** 7 October 2026. The owner authorized fixing the single-shopper limitation before deployment.
 
 ## Outcome and limits
