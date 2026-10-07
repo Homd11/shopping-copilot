@@ -2,6 +2,12 @@
 
 **Last updated:** 2026-10-07
 
+## Executed CAP-03 Jupyter notebook — 2026-10-07
+
+The owner requested a notebook presentation of the seven-family results. [The executed notebook](notebooks/cap03-model-comparison.ipynb) contains 18 cells, including nine successfully executed code cells: source/release integrity checks, independent metric recomputation, model and language tables, saved charts, selectable full error analysis, all 46 trials, timings, provenance and optional reproduction instructions. [Opening instructions](notebooks/README.md) cover VS Code/JupyterLab.
+
+Run All only reads local evidence. It does not retrain, download weights, load joblib artifacts, call providers or modify the Storefront. Saved outputs are included for notebook viewers. The same synthetic/exposed and reused-validation limits remain explicit. Notebook schema validation, clean-kernel execution, saved output checks, source integrity and repository formatting passed; application tests were not repeated for this presentation-only addition. Both reviews found no actionable findings. Original experiment reports, runtime source, provider settings and unrelated local edits remain unchanged. CAP-02/03 final evaluation remains open; no paid calls or push occurred.
+
 ## Seven-family offline comparison completed — 2026-10-07
 
 The owner approved extending CAP-03’s exploratory comparison to five TF-IDF classifiers and two frozen-embedding heads, then authorized the local RTX 3060. The [pre-fit protocol](docs/cap03-model-comparison-protocol.md) fixed 46 candidates on the unchanged 210-training / 53-validation / zero-unseen release. All 46 converged. [Results](docs/cap03-model-comparison-results.md) retain all trials, errors, language metrics, predictions, matrices, timings, package/source hashes and local artifact bindings.

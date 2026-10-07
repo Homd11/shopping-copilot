@@ -1,5 +1,7 @@
 # Seven-model offline comparison — 7 October 2026
 
+[Open the executed Jupyter notebook](../notebooks/cap03-model-comparison.ipynb) for tables, charts, all trials and selectable error analysis. Run All reads the saved evidence without retraining.
+
 **Frozen multilingual embeddings + Logistic Regression led this exploratory comparison: 23/53 correct, 43.40% accuracy and ten-label macro-F1 0.4304.** The embedding MLP scored 22/53; the strongest TF-IDF model was Complement Naive Bayes at 21/53. Differences of one or two examples are not evidence of reliable superiority. Overall classification quality remains weak.
 
 The owner approved seven model families and subsequently authorized the local RTX 3060. The [pre-fit protocol](cap03-model-comparison-protocol.md) fixes 46 candidates and the unchanged [210-training / 53-validation release](../eval/datasets/capstone-v1/pilot-20261007/release.json). All 46 fits converged; none failed or was discarded for nonconvergence. Validation selected each family configuration; there was no refitting on validation or post-score expansion. Existing pilots are unchanged.
