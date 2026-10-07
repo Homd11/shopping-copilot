@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## Second synthetic pilot frozen and evaluated — 2026-10-07
+
+The [expanded protocol](docs/cap03-expanded-pilot-protocol.md) and [results](docs/cap03-expanded-pilot-results.md) record a second development-only pilot: 308 synthetic/exposed drafts, 263 eligible and 45 excluded, frozen into **210 training / 53 validation / zero unseen**. Bounded legacy/context overlap review added four conservative links; 37 whole components remain, largest 137 original rows. All ten intents meet declared row, language and group support. The pre-fit policy explicitly accepts two training/one validation components per intent instead of the earlier four-family authoring target. Independent human gold and exhaustive private-history deduplication remain unavailable.
+
+All twelve unchanged TF-IDF/Logistic Regression candidates converged. Selected character 3–5 grams, C=0.1, balanced weights: **20/53 correct (37.74%), ten-label macro-F1 0.3776**. Advice and guarded mutation each scored 0/4. This is validation-selected synthetic development evidence, not an unseen quality claim, controlled improvement over pilot 1 or LLM comparison. All trials, predictions and confusion matrices are published. The original pilot, runtime, prompts and phrase rules remain unchanged.
+
+Verification: deterministic allocation reconstructed identically; both releases and all report/source bindings validate. Separate Spec and Standards reviews found no remaining actionable issues after fixing atomic publication; failed formatting/validation leaves no partial release. All 472 distinct Python tests have passing evidence across the combined/focused runs, alongside 155 TypeScript tests, builds/typechecks, ESLint, Ruff and repository Prettier. The first combined Python invocation passed 432 but encountered 40 browser setup failures/errors because another evaluation run already owned the local ports; that evaluation run completed with 92 passed in 392.22s, and all seven new focused regressions passed (including the final additional export-failure case). No application fix was needed for the port collision. Document links and both confusion-matrix renderings were checked.
+
+CAP-02 final release and CAP-03 final evaluation remain open. Next: establish a feasible independent evaluation/label-review arrangement and separately authorize any same-input LLM comparison; CAP-04 cloud design decisions can proceed alongside those gates. No paid inference, spending-cap change, cloud provisioning or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
 ## CAP-02 coverage expansion prepared; no new fit or freeze
 
 The owner approved the dataset-first next step. [The coverage plan](docs/cap02-expansion-plan.md) and [review](docs/cap02-expansion-review.md) accompany 168 new synthetic/exposed draft records: 160 intent candidates (four per intent/language cell) plus eight contextual fragments excluded from text-only classification. Combined with the original 140, the pool contains 308 records and 263 provisional primary candidates. This is not independent human data or an unseen set.

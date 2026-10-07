@@ -1,8 +1,8 @@
 # Capstone dataset preparation structure
 
-**State (6 October 2026):** CAP-02 final release remains open. The owner authorized a separate [synthetic pilot](pilot-20261006/README.md): 140 annotated drafts, 103 eligible cases frozen into 82 training / 21 validation / zero unseen. The [offline pilot results](../../../docs/cap03-pilot-results.md) are development evidence only. The owner and coding assistant remain the only active contributors; independent human review and unseen custody are unavailable. Original intake and the final split placeholder remain untouched.
+**State (7 October 2026):** CAP-02 final release remains open. Two separately frozen synthetic development pilots exist: [pilot 1](pilot-20261006/README.md), 82 training / 21 validation, and [pilot 2](pilot-20261007/README.md), 210 training / 53 validation. Both contain **zero unseen cases**. The expanded pool has 308 records, 263 eligible candidates and 45 exclusions. See [current results](../../../docs/cap03-expanded-pilot-results.md) for coverage and limitations.
 
-**Subsequent development expansion:** [batch 002](development/synthetic-batch-002.json) adds 168 drafts, bringing the pool to 308 records / 263 primary candidates. The [review](../../../docs/cap02-expansion-review.md) records 41 provisional components and the remaining mutation-family coverage limitation. No new release is frozen; the first pilot and its reported score remain unchanged.
+The owner and coding assistant are the only active contributors; independent human review and unseen custody remain unavailable. All draft annotations remain exposed, synthetic and non-gold. The separate pilot exception does not close final CAP-02. Original intake, first pilot and final empty split placeholder remain unchanged.
 
 - `manifest.json`: hashes and counts of the exposed source corpora; not a released training dataset.
 - `splits.json`: empty group assignments and a metadata-only slot for a future sealed unseen release.
@@ -19,6 +19,6 @@ Keep `train`, `validation` and `regression` membership disjoint for the capstone
 
 The evaluation custodian collects and seals unseen messages and labels outside the development checkout. The committed split file stores only count, checksum and release/custody metadata after freezing; do not put unseen text, labels or personally identifying information in this repository during development. At execution, provide an authorized local path to the sealed release without committing it. Pseudonymous custodian IDs refer to the restricted team register.
 
-Before release, validate required fields, unique IDs, supported labels, group isolation, reviewed duplicates, permission, checksum consistency and input eligibility. No executable loader/validator or training command is claimed at this preparation stage.
+Before release, validate required fields, unique IDs, supported labels, group isolation, reviewed duplicates, permission, checksum consistency and input eligibility. The synthetic pilots have separate validated loaders and offline training commands; they do not authorize a final unseen release.
 
-See [the first synthetic development batch](development/README.md) for 40 annotated draft records and grouped split proposal, plus a separate 100-message Gemini intake awaiting mapping. Release split assignments and unseen cases remain zero.
+See [the first synthetic development batch](development/README.md) for 40 annotated draft records and grouped split proposal, plus the mapped 100-message Gemini intake and 168-record expansion. Pilot assignments live only in their versioned releases; final release assignments and unseen cases remain zero.

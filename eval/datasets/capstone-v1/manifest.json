@@ -58,7 +58,7 @@
     "This manifest does not establish label correctness or model quality."
   ],
   "protocol": "docs/capstone-dataset.md",
-  "updated_on": "2026-10-06",
+  "updated_on": "2026-10-07",
   "exposure_inventory": "eval/datasets/capstone-v1/exposure-inventory.json",
   "new_human_case_count": 0,
   "reviewed_release_case_count": 0,
@@ -120,6 +120,21 @@
     "split_assigned": false,
     "four_components_per_intent_target_met": false,
     "unseen": 0,
-    "training_run": false
+    "training_run": false,
+    "status": "historical_pre_pilot2_inventory_see_expanded_synthetic_pilot"
+  },
+  "expanded_synthetic_pilot": {
+    "release": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+    "protocol": "docs/cap03-expanded-pilot-protocol.md",
+    "results": "docs/cap03-expanded-pilot-results.md",
+    "source_case_count": 308,
+    "eligible_case_count": 263,
+    "excluded_case_count": 45,
+    "components": 37,
+    "train": 210,
+    "validation": 53,
+    "unseen": 0,
+    "independent_human_review": false,
+    "final_evaluation_open": true
   }
 }

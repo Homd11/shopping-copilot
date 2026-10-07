@@ -2,7 +2,7 @@
 
 ## Current expansion
 
-[Batch 002](synthetic-batch-002.json) adds 168 exposed synthetic drafts: 160 text-only intent candidates (four per intent/language cell) and eight contextual exclusions. See [coverage plan](../../../../docs/cap02-expansion-plan.md), [review and remaining gates](../../../../docs/cap02-expansion-review.md), [overlap ledger](batch-002-overlap-review.json) and [expanded component map](expanded-group-map.json). Both batches plus Gemini now contain 308 records and 263 provisional primary candidates. The first pilot remains immutable; no new split or training run accompanies this expansion.
+[Batch 002](synthetic-batch-002.json) adds 168 exposed synthetic drafts: 160 text-only intent candidates (four per intent/language cell) and eight contextual exclusions. See [coverage plan](../../../../docs/cap02-expansion-plan.md), [review and remaining gates](../../../../docs/cap02-expansion-review.md), [overlap ledger](batch-002-overlap-review.json) and [expanded component map](expanded-group-map.json). Both batches plus Gemini now contain 308 records and 263 provisional primary candidates. The first pilot remains immutable. The subsequent [second pilot](../pilot-20261007/README.md) freezes 210 training / 53 validation rows after four additional overlap links; see [results](../../../../docs/cap03-expanded-pilot-results.md). This does not change the original draft annotations or final release gate.
 
 ## Original batch 001
 
