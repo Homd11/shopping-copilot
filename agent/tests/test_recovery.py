@@ -1,10 +1,10 @@
 import pytest
-from fastapi.testclient import TestClient
 
 from agent.app import create_app
 from agent.cart import scripted_cart_intent
 from agent.schemas import ActionResult, AskShopperAction, Snapshot
 from agent.sessions import ActionResultMismatch, SessionStore, TaskConflict
+from agent.tests.http_client import TestClient
 from agent.tests.test_cart_task import intent as cart_intent
 from agent.tests.test_cart_task import snapshot as product_snapshot
 from agent.tests.test_guarded_task import cart_snapshot, clear_intent

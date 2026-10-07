@@ -45,6 +45,14 @@
     else if (!undoForm.hidden) undoForm.querySelector("button").focus();
   }
   function render(next, showUndo = true) {
+    if (
+      next.shopper_context !==
+      document.querySelector('meta[name="copilot-context"]')?.content
+    ) {
+      document.documentElement.dataset.shopperInvalid = "true";
+      document.dispatchEvent(new Event("shopper:reset"));
+      throw new Error("Shopper context changed; reload before continuing");
+    }
     state = next;
     badge.textContent = `السلة (${next.count})`;
     if (miniCartCount) miniCartCount.textContent = String(next.count);
@@ -56,6 +64,17 @@
     if (contents) {
       const incoming = document.createElement("div");
       incoming.innerHTML = next.html;
+      // Cart fragments replace native guarded forms too. Preserve browser authority.
+      for (const form of incoming.querySelectorAll('form[method="post"]')) {
+        const csrf = document.createElement("input");
+        csrf.type = "hidden";
+        csrf.name = "copilot_csrf";
+        csrf.dataset.sensitive = "true";
+        csrf.value = document.querySelector(
+          'meta[name="copilot-csrf"]',
+        ).content;
+        form.prepend(csrf);
+      }
       // Initial state hydration must not detach controls already observed by
       // the Bridge when the server-rendered cart is unchanged.
       if (contents.innerHTML !== incoming.innerHTML)
@@ -108,13 +127,14 @@
       const button = document.getElementById("confirm-manual-clear");
       button.disabled = true;
       try {
-        const token = `confirmation-${crypto.randomUUID().replaceAll("-", "")}`;
-        const response = await fetch("/__copilot/confirmations", {
+        const response = await fetch("/__copilot/manual-confirmation", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-csrf-token": document.querySelector('meta[name="copilot-csrf"]')
+              ?.content,
+          },
           body: JSON.stringify({
-            token,
-            task_id: `task-manual-${crypto.randomUUID()}`,
             kind: "clear_cart",
             cart_revision: Number(form.elements.cart_revision.value),
           }),
@@ -122,7 +142,9 @@
         });
         if (!response.ok) throw new Error("Stale cart confirmation");
         if (!clearDialog.open) return;
-        form.elements.copilot_confirmation.value = token;
+        form.elements.copilot_confirmation.value = (
+          await response.json()
+        ).token;
         form.requestSubmit();
       } catch {
         document.getElementById("manual-clear-summary").textContent =
@@ -205,7 +227,11 @@
       });
       const response = await fetch(form.action, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-csrf-token": document.querySelector('meta[name="copilot-csrf"]')
+            ?.content,
+        },
         body: JSON.stringify(data),
         signal: AbortSignal.timeout(8000),
       });

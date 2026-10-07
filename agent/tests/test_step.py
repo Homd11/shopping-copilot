@@ -1,10 +1,11 @@
-from fastapi.testclient import TestClient
-
-from agent.app import app
+from agent.app import create_app
 from agent.planner import ActionIdentity, ScriptedPlanner
 from agent.schemas import Snapshot, parse_action
 from agent.storefront import parse_storefront_definition
+from agent.tests.http_client import TestClient
 from agent.tests.test_storefront import valid_definition
+
+app = create_app(evaluation=True)
 
 
 def home_snapshot() -> dict[str, object]:

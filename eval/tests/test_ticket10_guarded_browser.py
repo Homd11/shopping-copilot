@@ -1,5 +1,6 @@
 from playwright.sync_api import expect, sync_playwright
 
+from eval.browser_http import browser_post
 from eval.services import local_services
 
 
@@ -8,7 +9,8 @@ def test_bulk_clear_requires_visible_shopper_confirmation_in_real_browser() -> N
         browser = playwright.chromium.launch(headless=True)
         try:
             page = browser.new_page()
-            seed = page.request.post(
+            seed = browser_post(
+                page,
                 "http://localhost:4000/__test/cart",
                 data={"lines": [{"product_id": "shoe-09", "quantity": 2}]},
             )
@@ -43,7 +45,8 @@ def test_fictional_checkout_never_reads_card_values_and_needs_confirmation() -> 
         try:
             page = browser.new_page()
             assert (
-                page.request.post(
+                browser_post(
+                    page,
                     "http://localhost:4000/__test/cart",
                     data={"lines": [{"product_id": "shoe-09", "quantity": 1}]},
                 ).status
@@ -86,7 +89,8 @@ def test_changed_cart_invalidates_a_visible_confirmation_before_execution() -> N
         browser = playwright.chromium.launch(headless=True)
         try:
             page = browser.new_page()
-            page.request.post(
+            browser_post(
+                page,
                 "http://localhost:4000/__test/cart",
                 data={"lines": [{"product_id": "shoe-09", "quantity": 1}]},
             )
@@ -100,7 +104,8 @@ def test_changed_cart_invalidates_a_visible_confirmation_before_execution() -> N
             card = page.locator(".confirmation-card")
             expect(card).to_be_visible()
 
-            page.request.post(
+            browser_post(
+                page,
                 "http://localhost:4000/__test/cart",
                 data={"lines": [{"product_id": "shoe-09", "quantity": 2}]},
             )
@@ -122,7 +127,8 @@ def test_expired_browser_confirmation_never_mutates_cart() -> None:
         browser = playwright.chromium.launch(headless=True)
         try:
             page = browser.new_page()
-            page.request.post(
+            browser_post(
+                page,
                 "http://localhost:4000/__test/cart",
                 data={"lines": [{"product_id": "shoe-09", "quantity": 1}]},
             )
@@ -136,8 +142,8 @@ def test_expired_browser_confirmation_never_mutates_cart() -> None:
             card = page.locator(".confirmation-card")
             expect(card).to_be_visible()
 
-            advanced = page.request.post(
-                "http://127.0.0.1:8000/__test/advance-time", data={"seconds": 61}
+            advanced = browser_post(
+                page, "http://localhost:8000/__test/advance-time", data={"seconds": 61}
             )
             assert advanced.status == 204
             card.get_by_role("button", name="Confirm").click()
@@ -153,7 +159,8 @@ def test_browser_refresh_invalidates_unused_confirmation() -> None:
         browser = playwright.chromium.launch(headless=True)
         try:
             page = browser.new_page()
-            page.request.post(
+            browser_post(
+                page,
                 "http://localhost:4000/__test/cart",
                 data={"lines": [{"product_id": "shoe-09", "quantity": 1}]},
             )

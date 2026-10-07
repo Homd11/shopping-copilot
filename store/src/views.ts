@@ -222,13 +222,24 @@ export function renderLogin(nextPath: string): string {
   );
 }
 
-export function renderOrders(): string {
+export function renderOrders(
+  orders: Array<{ id: string; lines: CartLine[] }> = [],
+): string {
   return layout(
     "الطلبات",
     `<h1>الطلبات</h1>
     <ol aria-label="سجل الطلبات">
+      ${orders
+        .slice()
+        .reverse()
+        .map(
+          (order, index) =>
+            `<li><a href="/order/complete/${escapeHtml(order.id)}">${index === 0 ? "أحدث طلب" : escapeHtml(order.id)}</a></li>`,
+        )
+        .join("")}
+      <li>سجل تجريبي توضيحي مستقل عن الطلبات الجديدة</li>
       <li id="order-1003">
-        <a href="#order-1003">أحدث طلب</a>
+        <a href="#order-1003">${orders.length ? "طلب تجريبي توضيحي" : "أحدث طلب"}</a>
         <span>رقم الطلب 1003 · ٢٣ سبتمبر ٢٠٢٦</span>
       </li>
       <li id="order-1002">رقم الطلب 1002</li>

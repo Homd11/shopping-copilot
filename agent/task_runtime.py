@@ -21,6 +21,7 @@ from agent.schemas import (
 )
 from agent.session_registry import SessionRegistry
 from agent.session_state import ActiveTask, EventType, Session, SessionEvent, TaskConflict
+from agent.shopper_access import ShopperBinding
 
 
 @dataclass
@@ -28,7 +29,7 @@ class TaskRuntime:
     sessions: SessionRegistry
     planner: ScriptedPlanner
     clock: Callable[[], float]
-    confirmation_registrar: Callable[[str, str, str, str, int], bool] | None
+    confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool] | None
 
     def record_snapshot(self, session: Session, snapshot: Snapshot) -> None:
         location = urlsplit(snapshot.url)

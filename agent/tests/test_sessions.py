@@ -1,10 +1,9 @@
 import json
 
-from fastapi.testclient import TestClient
-
 from agent.app import create_app
 from agent.schemas import AskShopperAction, Snapshot
 from agent.sessions import SessionStore
+from agent.tests.http_client import TestClient
 from agent.tests.test_step import home_snapshot
 
 

@@ -2,11 +2,11 @@ import asyncio
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 from agent.app import create_app
 from agent.llm import LLMChunk, LLMSettings
+from agent.tests.http_client import TestClient, authorize_async
 from agent.tests.test_catalogue import catalogue
 from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
@@ -25,6 +25,32 @@ class RecordingModel:
 class Reader:
     async def read(self):
         return catalogue()
+
+
+def test_revocation_during_catalogue_read_prevents_another_model_call():
+    async def scenario():
+        model = RecordingModel(decision(), advice("must not be requested"))
+
+        class RevokingReader:
+            async def read(self):
+                app.state.storefront_service.revoked = True
+                return catalogue()
+
+        app = create_app(
+            llm_settings=LLMSettings(provider="groq", model="test"),
+            llm_client=model,
+            catalogue_reader=RevokingReader(),
+        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
+            sid = (await client.post("/sessions")).json()["session_id"]
+            await client.post(
+                f"/sessions/{sid}/messages",
+                json={"text": "what goes together?", "snapshot": home_snapshot()},
+            )
+            assert len(model.requests) == 1
+
+    asyncio.run(scenario())
 
 
 def decision(**changes):
@@ -281,6 +307,7 @@ def test_late_advice_is_discarded_after_stop_or_refresh(interruption, discovery)
             catalogue_reader=Reader(),
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
             session = (await client.post("/sessions", json={"tab_id": "tab-1"})).json()[
                 "session_id"
             ]

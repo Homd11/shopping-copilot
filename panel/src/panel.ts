@@ -236,6 +236,7 @@ export class PanelController {
   readonly #persistence: SessionPersistence | undefined;
   readonly #tabId: string;
   #sessionId: string | undefined;
+  #shopperInvalid = false;
   #snapshot: Snapshot | undefined;
   #unsubscribe: (() => void) | undefined;
   #activeTaskId: string | undefined;
@@ -312,7 +313,24 @@ export class PanelController {
     this.#unsubscribe?.();
   }
 
+  invalidateShopper(): void {
+    this.#shopperInvalid = true;
+    this.dispose();
+    if (this.#activeTaskId) this.#storefront.cancelTask(this.#activeTaskId);
+    this.#sessionId = undefined;
+    // Keep the opaque saved session reference for refresh reconciliation.
+    // A changed identity gets 404 on restore; it cannot resume this task.
+    this.#setInputEnabled(false);
+    this.#root
+      .querySelectorAll<HTMLButtonElement>("button")
+      .forEach((button) => {
+        button.disabled = true;
+      });
+    this.#setStatus("");
+  }
+
   receiveStorefront(message: StorefrontMessage): void {
+    if (this.#shopperInvalid) return;
     if (message.type === "snapshot") {
       this.#snapshot = message.snapshot;
       if (
@@ -334,7 +352,11 @@ export class PanelController {
         if (!this.#recoveryInFlight) void this.#completeRecovery();
         return;
       }
-      if (this.#activeTaskId === undefined && !this.#submitting) {
+      if (
+        this.#sessionId !== undefined &&
+        this.#activeTaskId === undefined &&
+        !this.#submitting
+      ) {
         this.#setInputEnabled(true);
         this.#setStatus("جاهز لاستقبال طلبك");
       }
@@ -463,6 +485,7 @@ export class PanelController {
   }
 
   #receiveAgent(event: AgentEvent): void {
+    if (this.#shopperInvalid) return;
     if (event.type === "task_started") {
       this.#setTaskState("active");
       this.#renderSuggestions(null);
@@ -980,7 +1003,10 @@ export class PanelController {
 
   #setStatus(message: string): void {
     const status = this.#root.querySelector<HTMLElement>("#task-status");
-    if (status !== null) status.textContent = message;
+    if (status !== null)
+      status.textContent = this.#shopperInvalid
+        ? "انقطع اتصال جلسة التسوق. أعد تحميل الصفحة وراجع السلة قبل المحاولة. / Shopping session disconnected. Reload and check your cart before retrying."
+        : message;
   }
 
   #setTaskState(value: string): void {
@@ -989,6 +1015,7 @@ export class PanelController {
   }
 
   #setInputEnabled(enabled: boolean): void {
+    enabled = enabled && !this.#shopperInvalid;
     const input =
       this.#root.querySelector<HTMLInputElement>("#shopper-message");
     if (input !== null) input.disabled = !enabled;

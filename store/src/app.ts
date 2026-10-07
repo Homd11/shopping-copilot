@@ -1,8 +1,18 @@
 import express, { type Express } from "express";
-import { randomUUID } from "node:crypto";
+import {
+  LinkTickets,
+  privateShopperRoutes,
+  browserLinkRoutes,
+} from "./shopper-link.js";
+import {
+  ShopperRegistry,
+  credentialDigest,
+  type ShopperState,
+} from "./shopper-state.js";
+import { shopperHttp, shopper } from "./shopper-http.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { GuardedCart, type CartLine } from "./guarded-cart.js";
+import { type CartLine } from "./guarded-cart.js";
 
 import {
   categories,
@@ -29,16 +39,6 @@ import {
 
 const orderHistoryPath = "/account/orders";
 const loginPath = `/login?next=${encodeURIComponent(orderHistoryPath)}`;
-
-function sessionIdFromCookie(
-  cookieHeader: string | undefined,
-): string | undefined {
-  return cookieHeader
-    ?.split(";")
-    .map((part) => part.trim())
-    .find((part) => part.startsWith("fictional_session="))
-    ?.slice("fictional_session=".length);
-}
 
 function requestedNextPath(value: unknown): string {
   const requestedPath = firstQueryValue(value);
@@ -113,10 +113,19 @@ function stateFilters(constraints: ProductConstraints) {
   };
 }
 
-export function createApp(options: { clock?: () => number } = {}): Express {
+export function createApp(
+  options: {
+    serviceSecret?: string;
+    panelOrigin?: string;
+    clock?: () => number;
+    evaluation?: boolean;
+    origin?: string;
+    capacity?: number;
+    ttlMs?: number;
+  } = {},
+): Express {
   const app = express();
-  const fictionalSessions = new Set<string>();
-  const cart = new GuardedCart(options.clock);
+  const registry = new ShopperRegistry(options);
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
@@ -126,15 +135,40 @@ export function createApp(options: { clock?: () => number } = {}): Express {
     express.static(resolve(sourceDirectory, "../../bridge/dist")),
   );
 
+  const audience = options.panelOrigin ?? "http://localhost:4100";
+  const tickets = new LinkTickets(options.clock);
+  app.use(
+    "/__internal",
+    privateShopperRoutes(
+      registry,
+      tickets,
+      options.serviceSecret ?? "",
+      audience,
+    ),
+  );
+  app.use(
+    shopperHttp(registry, {
+      origin: options.origin ?? "http://localhost:4000",
+      secure: (options.origin ?? "").startsWith("https:"),
+      evaluation: options.evaluation === true,
+    }),
+  );
+  app.use("/__copilot", browserLinkRoutes(tickets, audience));
+  app.get("/__shopper", (_request, response) => {
+    response.json({ csrf: shopper(response).csrf });
+  });
+
   app.get("/", (_request, response) => {
     response.type("html").send(renderHome());
   });
 
   app.get("/cart", (_request, response) => {
+    const cart = shopper(response).cart;
     response.type("html").send(renderCart(cart.lines, cart.revision));
   });
 
   app.post("/cart/clear", (request, response) => {
+    const cart = shopper(response).cart;
     if (
       !cart.consume(
         request.body?.copilot_confirmation,
@@ -159,6 +193,7 @@ export function createApp(options: { clock?: () => number } = {}): Express {
   });
 
   app.post("/cart/items", (request, response) => {
+    const cart = shopper(response).cart;
     const productId = request.body?.product_id;
     const product =
       typeof productId === "string"
@@ -176,11 +211,15 @@ export function createApp(options: { clock?: () => number } = {}): Express {
       response.status(409).json({ error: "invalid_or_stale_cart_edit" });
       return;
     }
-    response.json(cartView());
+    response.json(cartView(shopper(response)));
   });
 
-  function cartView() {
+  function cartView(state: ShopperState) {
+    const { cart, binding } = state;
     return {
+      shopper_context: credentialDigest(
+        binding.shopper_id + ":" + binding.generation,
+      ),
       ...cart.state,
       undo: cart.undo,
       count: cart.lines.reduce((sum, line) => sum + line.quantity, 0),
@@ -188,23 +227,26 @@ export function createApp(options: { clock?: () => number } = {}): Express {
     };
   }
   app.get("/cart/state", (_request, response) => {
-    response.set("Cache-Control", "no-store").json(cartView());
+    response.set("Cache-Control", "no-store").json(cartView(shopper(response)));
   });
   for (const kind of ["quantity", "remove", "undo"] as const) {
     app.post(`/cart/${kind}`, (request, response) => {
+      const cart = shopper(response).cart;
       if (!cart.edit(kind, request.body ?? {})) {
         response.status(409).json({ error: "invalid_or_stale_cart_edit" });
         return;
       }
-      response.json(cartView());
+      response.json(cartView(shopper(response)));
     });
   }
 
   app.get("/checkout", (_request, response) => {
+    const cart = shopper(response).cart;
     response.type("html").send(renderCheckout(cart.lines, cart.revision));
   });
 
   app.post("/checkout/submit", (request, response) => {
+    const cart = shopper(response).cart;
     if (
       !cart.consume(
         request.body?.copilot_confirmation,
@@ -245,6 +287,7 @@ export function createApp(options: { clock?: () => number } = {}): Express {
   });
 
   app.get("/order/complete/:orderId", (request, response) => {
+    const cart = shopper(response).cart;
     if (
       !cart.state.orders.some((order) => order.id === request.params.orderId)
     ) {
@@ -252,14 +295,6 @@ export function createApp(options: { clock?: () => number } = {}): Express {
       return;
     }
     response.type("html").send(renderOrderComplete(request.params.orderId));
-  });
-
-  app.post("/__copilot/confirmations", (request, response) => {
-    if (!cart.register(request.body)) {
-      response.status(409).json({ error: "invalid_or_stale_confirmation" });
-      return;
-    }
-    response.status(201).json({ status: "registered" });
   });
 
   app.get("/account", (_request, response) => {
@@ -286,23 +321,17 @@ export function createApp(options: { clock?: () => number } = {}): Express {
       return;
     }
 
-    const sessionId = randomUUID();
-    fictionalSessions.add(sessionId);
-    response.cookie("fictional_session", sessionId, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-    });
+    shopper(response).loggedIn = true;
     response.redirect(303, requestedNextPath(body.next));
   });
 
   app.get(orderHistoryPath, (request, response) => {
-    const sessionId = sessionIdFromCookie(request.headers.cookie);
-    if (sessionId === undefined || !fictionalSessions.has(sessionId)) {
+    const cart = shopper(response).cart;
+    if (!shopper(response).loggedIn) {
       response.redirect(302, loginPath);
       return;
     }
-    response.type("html").send(renderOrders());
+    response.type("html").send(renderOrders(cart.state.orders));
   });
 
   app.get("/__catalogue/v1/products", (_request, response) => {
@@ -351,11 +380,13 @@ export function createApp(options: { clock?: () => number } = {}): Express {
   });
 
   app.post("/__test/reset", (_request, response) => {
+    const cart = shopper(response).cart;
     cart.reset();
     response.status(204).send();
   });
 
   app.post("/__test/cart", (request, response) => {
+    const cart = shopper(response).cart;
     if (!cart.seed(request.body?.lines as CartLine[])) {
       response.status(400).json({ error: "invalid_cart_seed" });
       return;
@@ -364,6 +395,7 @@ export function createApp(options: { clock?: () => number } = {}): Express {
   });
 
   app.get("/__test/cart-state", (_request, response) => {
+    const cart = shopper(response).cart;
     response.set("Cache-Control", "no-store").json(cart.state);
   });
 

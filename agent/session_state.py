@@ -7,6 +7,7 @@ from agent.confirmation import ConfirmationLedger, MutationProposal
 from agent.planner import Language
 from agent.product_context import ProductContext
 from agent.schemas import Action, ActionResult, Snapshot
+from agent.shopper_access import ShopperBinding
 
 EventType = Literal[
     "task_started", "narration", "action", "suggestions", "done", "cancelled", "error"
@@ -73,6 +74,7 @@ class AcceptedResult:
 @dataclass
 class Session:
     session_id: str
+    shopper: ShopperBinding | None = None
     events: list[SessionEvent] = field(default_factory=list)
     active_task: ActiveTask | None = None
     accepted_results: dict[tuple[str, str, int], AcceptedResult] = field(default_factory=dict)

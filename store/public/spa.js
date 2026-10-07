@@ -84,6 +84,13 @@
       // A deliberate loading interval exercises settled observation rather than URL-only success.
       await new Promise((resolve) => setTimeout(resolve, 350));
       if (ticket !== generation || signal?.aborted) return;
+      for (const name of ["copilot-csrf", "copilot-context"]) {
+        const incoming = parsed.querySelector('meta[name="' + name + '"]');
+        const current = document.querySelector('meta[name="' + name + '"]');
+        if (!incoming || !current)
+          throw new Error("Shopper context unavailable");
+        current.content = incoming.content;
+      }
       main.replaceChildren(...content.childNodes);
       document.title = parsed.title;
       const pending = [];
