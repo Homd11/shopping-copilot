@@ -99,6 +99,12 @@ The local-system content and [additional diagrams/wireframes](system-design-view
 2. Record lecturer approval/feedback and rubric details when supplied; resolve the review-heading ambiguity.
 3. Obtain the organization repository invitation and confirm final file/export conventions.
 4. Maintain contribution rows from actual artifacts without assigning past work to nominal members.
-5. Export/upload agreed documents and record the official submission commit. The infographic content brief is prepared; its final image remains outstanding.
+5. Review the [three exported PDFs](cap01-export-readme.md) and [editable infographic plus PNG](../output/infographic/README.md), then upload agreed documents and record the official submission commit. Exports are prepared; official submission remains pending.
 
-CAP-01 content alignment is prepared; owner/instructor review and official submission remain pending. CAP-02 annotation can continue alongside those external inputs. CAP-03 still requires reviewed data and frozen splits.
+CAP-01 content alignment is prepared; owner/instructor review and official submission remain pending.
+
+## Readiness update — 7 October 2026
+
+The existing PDF exports preserve the 2 October source snapshots and are not a current experiment report. Before final submission, carry forward the [seven-family comparison](cap03-model-comparison-results.md) and [executed notebook](../notebooks/cap03-model-comparison.ipynb): 210 training / 53 validation / zero unseen examples, all synthetic and exposed, with the best selected validation result 23/53 correct (43.40%). This is exploratory evidence, not a completed independent evaluation or final LLM comparison. CAP-02/03 final gates remain open. The three source documents and their exported PDF hashes are unchanged by this register update.
+
+AWS planning now records the owner's [credit-only, public-link constraints](cap04-credit-only-plan.md); a personal Free-plan account now exists ($100 shown, plan ending 7 April 2027), but no deployment is approved. Update the editable submission sources and regenerate their exports together after owner review of the final package, preserving the distinction between completed local work, exploratory experiments and planned AWS work. The supplied guidelines, 16 October deadline, missing organization-repository invitation and pending lecturer record remain unchanged. Nominal academic assignments do not claim work by absent teammates.
