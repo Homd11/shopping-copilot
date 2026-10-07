@@ -142,6 +142,7 @@ python -m pip install -r requirements.lock
 pnpm install --frozen-lockfile
 Copy-Item .env.example .env
 python scripts/init_local_identity.py
+pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts
 python -m playwright install chromium
 ```
 
@@ -154,6 +155,7 @@ python -m pip install -r requirements.lock
 pnpm install --frozen-lockfile
 cp .env.example .env
 python scripts/init_local_identity.py
+pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts
 python -m playwright install chromium
 ```
 
