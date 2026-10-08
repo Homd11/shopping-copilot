@@ -60,3 +60,22 @@ def test_redirect_errors_and_oversized_records_never_become_empty_results(status
             await client.search(SearchQuery(query="anything"))
 
     asyncio.run(scenario())
+
+
+def test_shared_wire_fixtures_match_the_storefront_contract():
+    import json
+    from pathlib import Path
+
+    from pydantic import ValidationError
+
+    rows = json.loads(
+        (Path(__file__).resolve().parents[2] / "protocol/catalogue/fixtures.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    for row in rows:
+        if row["valid"]:
+            SearchQuery.model_validate(row["query"])
+        else:
+            with pytest.raises(ValidationError):
+                SearchQuery.model_validate(row["query"])

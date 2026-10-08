@@ -155,3 +155,36 @@ def test_stop_discards_late_model_completion():
             )
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("provider", ["groq", "nvidia"])
+def test_provider_http_retries_cannot_escape_coordinator_budget(provider):
+    import httpx
+
+    from agent.llm import load_llm_settings
+    from agent.llm.groq import GroqClient
+    from agent.llm.nvidia import NvidiaNIMClient
+
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(500, json={"error": "fixture failure"})
+
+    settings = load_llm_settings(
+        {
+            "LLM_PROVIDER": provider,
+            "LLM_MODEL": "fixture",
+            ("GROQ_API_KEY" if provider == "groq" else "NVIDIA_API_KEY"): "fixture-key",
+        }
+    )
+    client = (GroqClient if provider == "groq" else NvidiaNIMClient)(
+        settings, transport=httpx.MockTransport(handler)
+    )
+    budget = RetrievalBudget()
+    for _ in range(3):
+        with pytest.raises(httpx.HTTPStatusError):
+            asyncio.run(run(client, Reads(), budget=budget))
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(run(client, Reads(), budget=budget))
+    assert len(calls) == budget.decisions == 3

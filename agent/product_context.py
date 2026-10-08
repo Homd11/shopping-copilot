@@ -87,6 +87,10 @@ class ProductContext:
         while len(self.products) > MAX_PRODUCTS:
             self.products.pop(next(iter(self.products)))
 
+    def remember_catalogue(self, references: Sequence[Mapping[str, Any]]) -> None:
+        """Retain refreshed identities from comparisons as well as visible cards."""
+        self._remember(references)
+
     def remember_suggestions(self, references: Sequence[Mapping[str, Any]]) -> None:
         self._remember(references)
         self.suggestions = [

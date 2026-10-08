@@ -59,7 +59,7 @@ const norm = (value: string) => value.normalize("NFKC").trim().toLowerCase();
 function string(value: unknown, max: number, empty = false): string {
   if (
     typeof value !== "string" ||
-    value.length > max ||
+    [...value].length > max ||
     (!empty && !value.trim())
   )
     invalid();
@@ -88,6 +88,8 @@ function predicates(value: unknown): Predicate[] {
     if (p.field === "available") {
       if (p.op !== "eq" || typeof p.value !== "boolean") invalid();
     } else if (
+      typeof p.field !== "string" ||
+      typeof p.op !== "string" ||
       !["category", "product_type", "color", "size", "feature", "use"].includes(
         String(p.field),
       ) ||
@@ -114,6 +116,7 @@ export function parseSearch(input: unknown): SearchQuery {
   ]);
   if (
     body.v !== 1 ||
+    typeof body.sort !== "string" ||
     !["relevance", "cheapest", "newest"].includes(String(body.sort))
   )
     invalid();

@@ -18,23 +18,27 @@ from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition
 
 
-class SearchDecision(WireModel):
+class Decision(WireModel):
+    v: Literal[1] = 1
+
+
+class SearchDecision(Decision):
     kind: Literal["search"]
     query: SearchQuery
 
 
-class DetailsDecision(WireModel):
+class DetailsDecision(Decision):
     kind: Literal["details"]
     query: DetailsQuery
 
 
-class FinishDecision(WireModel):
+class FinishDecision(Decision):
     kind: Literal["finish"]
     intent: StructuredIntent
     selected_ids: list[str] = Field(max_length=3)
 
 
-class ClarifyDecision(WireModel):
+class ClarifyDecision(Decision):
     kind: Literal["clarify"]
     question: str = Field(min_length=1, max_length=500)
     language: Literal["ar", "en"]
@@ -122,8 +126,8 @@ def _request(message, state, snapshot, storefront, history, feedback, budget):
             "/cart/remove or /cart/undo; use cart lines/variant groups and current quantities. "
             "No product_id or cart_target for cart_edit. Resolve references using conversation, "
             "but never invent a target or arbitrarily pick a variant. If quantity/removal needs "
-            "the cart opened first, leave cart_target_id null. cart_quantity_mode increment or "
-            "decrement means a delta; set means replacement. Add defaults quantity one only when "
+            "the cart opened first, leave cart_target_id null. cart_quantity_mode increase or "
+            "decrease means a delta; set means replacement. Add defaults quantity one only when "
             "none requested. Size/color preserve current choices unless shopper changes them. "
             "Empty cart is mutate/clear_cart, checkout is mutate/submit_checkout: these always "
             "need bound Confirmation. Navigation is not consent. Never read sensitive fields, "
@@ -136,6 +140,7 @@ def _request(message, state, snapshot, storefront, history, feedback, budget):
         messages=(LLMMessage(role="shopper", content=_json(context)),),
         response_schema=DECISION.json_schema(),
         response_validator=DECISION.validate_json,
+        provider_attempt_limit=1,
         prompt_version="catalogue-decision-v1",
         schema_version=1,
         max_tokens=2200,

@@ -15,7 +15,7 @@ from starlette.responses import StreamingResponse
 from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
-from agent.catalogue_turn import configured_client, prepare_turn
+from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
@@ -184,7 +184,7 @@ def create_app(
                         or current.requires_reconciliation
                         or current.last_snapshot != observed
                     ):
-                        raise SessionNotFound(session_id)
+                        raise CatalogueTurnInterrupted()
                     await verify_owner(session_id)
                     # Ownership validation awaits external I/O; recheck task identity afterwards.
                     current = sessions.get(session_id)
@@ -195,7 +195,7 @@ def create_app(
                         or current.requires_reconciliation
                         or current.last_snapshot != observed
                     ):
-                        raise SessionNotFound(session_id)
+                        raise CatalogueTurnInterrupted()
 
                 await ensure_active()
                 reader = catalogue_client or await configured_client(identity_settings)
@@ -205,6 +205,7 @@ def create_app(
                     task, observed, planner.storefront, llm_client, reader, ensure_active
                 )
                 await ensure_active()
+                sessions.get(session_id).product_context.remember_catalogue(prepared.references)
                 # Remember verified identities only, never DOM targets or mutation authority.
                 task.resolved_state["_known_products"] = [
                     *task.resolved_state.get("_known_products", []),
@@ -218,6 +219,13 @@ def create_app(
                         prepared.intent,
                         prepared.evidence.discovery,
                         advice_text=prepared.summary,
+                    )
+                    session = sessions.get(session_id)
+                    session.advice_context["retrieval_requirements"] = list(
+                        prepared.evidence.requirements
+                    )
+                    session.advice_context["unverified_requirements"] = list(
+                        prepared.evidence.unverified_requirements
                     )
                 else:
                     sessions.finish_interpretation(session_id, task_id, call_id, prepared.intent)
@@ -307,6 +315,9 @@ def create_app(
                 return
             await verify_owner(session_id)
             sessions.finish_interpretation(session_id, task_id, call_id, intent)
+        except CatalogueTurnInterrupted:
+            sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+            return
         except SessionNotFound:
             return
         except asyncio.CancelledError:

@@ -11,14 +11,16 @@ function strings(value: unknown): string[] {
   if (
     !Array.isArray(value) ||
     value.length > 100 ||
-    value.some((v) => typeof v !== "string" || !v.trim() || v.length > 200) ||
+    value.some(
+      (v) => typeof v !== "string" || !v.trim() || [...v].length > 200,
+    ) ||
     new Set(value).size !== value.length
   )
     throw new Error("Invalid catalogue string list");
   return [...value];
 }
 function text(value: unknown, max = 200): string {
-  if (typeof value !== "string" || !value.trim() || value.length > max)
+  if (typeof value !== "string" || !value.trim() || [...value].length > max)
     throw new Error("Invalid catalogue text");
   return value;
 }
@@ -61,8 +63,20 @@ function validate(input: Product): ProductEvidence {
   };
   if (
     !/^[a-z0-9][a-z0-9-]*$/.test(record.id) ||
-    record.features.some((v) => record.absent_features.includes(v)) ||
-    record.suitableFor.some((v) => record.absent_uses.includes(v))
+    record.features.some((v) =>
+      record.absent_features.some(
+        (a) =>
+          a.normalize("NFKC").trim().toLowerCase() ===
+          v.normalize("NFKC").trim().toLowerCase(),
+      ),
+    ) ||
+    record.suitableFor.some((v) =>
+      record.absent_uses.some(
+        (a) =>
+          a.normalize("NFKC").trim().toLowerCase() ===
+          v.normalize("NFKC").trim().toLowerCase(),
+      ),
+    )
   )
     throw new Error("Contradictory or invalid catalogue fact");
   return record;
@@ -126,7 +140,11 @@ export function importCatalogue(
       .get()!;
     if (meta.schema_version !== 1)
       throw new Error("Unsupported catalogue schema");
-    const before = db.prepare("SELECT * FROM products ORDER BY ordinal").all();
+    const before = db
+      .prepare(
+        "SELECT id,revision,document,absent_features,absent_uses FROM products ORDER BY ordinal",
+      )
+      .all();
     const next = records.map(
       ({ absent_features, absent_uses, ...product }) => ({
         document: JSON.stringify(product),
@@ -186,7 +204,7 @@ export function importCatalogue(
             attribute.run(
               record.id,
               kind,
-              value.normalize("NFKC").toLowerCase(),
+              value.normalize("NFKC").trim().toLowerCase(),
               present,
             );
         fts.run(

@@ -54,7 +54,7 @@ class NvidiaNIMClient:
     async def _complete_with_retry(
         self, request: LLMRequest
     ) -> tuple[list[LLMChunk], dict[str, int] | None]:
-        for attempt in range(2):
+        for attempt in range(request.provider_attempt_limit):
             try:
                 return await self._complete_stream(request)
             except (
@@ -62,7 +62,7 @@ class NvidiaNIMClient:
                 httpx.TimeoutException,
                 httpx.TransportError,
             ) as error:
-                if attempt or not _is_retryable(error):
+                if attempt + 1 >= request.provider_attempt_limit or not _is_retryable(error):
                     raise
                 await asyncio.sleep(0.25 + random.uniform(0, 0.1))
         raise AssertionError("unreachable")

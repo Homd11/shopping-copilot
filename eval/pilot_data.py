@@ -22,6 +22,25 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
+def pinned_source(root: Path, source: str, expected: str) -> Path:
+    resolved = (root / source).resolve()
+    if not resolved.is_relative_to(root.resolve()):
+        raise ValueError(f"Source outside repository: {source}")
+    if resolved.is_file() and digest(resolved) == expected:
+        return resolved
+    # The historical catalogue module moved to SQLite. Preserve its exact release
+    # bytes without weakening hashes for annotations, splits, or other sources.
+    if (
+        source == "store/src/catalogue.ts"
+        and len(expected) == 64
+        and all(c in "0123456789abcdef" for c in expected)
+    ):
+        archived = root / "eval/frozen-sources" / (expected + ".txt")
+        if archived.is_file() and digest(archived) == expected:
+            return archived
+    raise ValueError(f"Source hash mismatch: {source}")
+
+
 def validate_release(data: dict) -> None:
     if data.get("kind") != "synthetic_development_pilot" or data.get("unseen_count") != 0:
         raise ValueError("Pilot cannot claim unseen evaluation")
@@ -53,9 +72,7 @@ def load_release(path: Path, root: Path) -> dict:
     data = json.loads(content)
     validate_release(data)
     for source, expected in data["source_hashes"].items():
-        resolved = (root / source).resolve()
-        if not resolved.is_relative_to(root.resolve()) or digest(resolved) != expected:
-            raise ValueError(f"Source hash mismatch: {source}")
+        pinned_source(root, source, expected)
     required = [*data["annotation_files"], data["group_map"]]
     if any(name not in data["source_hashes"] for name in required):
         raise ValueError("Unhashed annotation/group source")

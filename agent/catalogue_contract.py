@@ -1,10 +1,11 @@
 """Bounded read-only catalogue wire contract; no language interpretation."""
 
+from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
 
-Text = Annotated[str, Field(min_length=1, max_length=200)]
+Text = Annotated[str, Field(min_length=1, max_length=200, pattern=r"\S")]
 ProductId = Annotated[str, Field(min_length=1, max_length=100)]
 Revision = Annotated[int, Field(ge=1)]
 
@@ -20,10 +21,23 @@ class WireModel(BaseModel):
         return data
 
 
+def _storage_amount(value: str) -> str:
+    if Decimal(value) * 100 > 9223372036854775807:
+        raise ValueError("Money exceeds catalogue storage bound")
+    return value
+
+
+MoneyAmount = Annotated[
+    str,
+    Field(pattern=r"^(?:0|[1-9]\d*)(?:\.\d{1,2})?$", max_length=24),
+    AfterValidator(_storage_amount),
+]
+
+
 class MoneyPredicate(WireModel):
     field: Literal["price"]
     op: Literal["gte", "lte"]
-    amount: str = Field(pattern=r"^(?:0|[1-9]\d*)(?:\.\d{1,2})?$", max_length=24)
+    amount: MoneyAmount
     currency: Literal["EGP"]
 
 
@@ -54,7 +68,7 @@ class SearchQuery(WireModel):
     requirements: Predicates = Field(default_factory=list)
     unverified_requirements: Unknowns = Field(default_factory=list)
     sort: Literal["relevance", "cheapest", "newest"] = "relevance"
-    cursor: str | None = Field(default=None, max_length=2048)
+    cursor: str | None = Field(default=None, min_length=1, max_length=2048)
 
     @model_validator(mode="after")
     def predicate_budget(self):
@@ -77,7 +91,7 @@ class DetailsQuery(WireModel):
 
 
 class ProductMoney(WireModel):
-    amount: str = Field(pattern=r"^(?:0|[1-9]\d*)(?:\.\d{1,2})?$", max_length=24)
+    amount: MoneyAmount
     currency: Literal["EGP"]
 
 
@@ -116,7 +130,7 @@ class SearchResult(WireModel):
     candidates: list[Candidate] = Field(max_length=10)
     ranking: Literal["lexical", "hybrid"]
     exact_count: int | None = Field(ge=0)
-    next_cursor: str | None = Field(max_length=2048)
+    next_cursor: str | None = Field(min_length=1, max_length=2048)
     truncated: bool
     unverified_requirements: Unknowns
 

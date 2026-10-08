@@ -130,6 +130,10 @@ export function createApp(options: {
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+  // Catalogue/commerce handlers below are synchronous. Hold one read snapshot from
+  // validation through response/order serialization so an offline import cannot
+  // interleave a different price or variant between those steps.
+  app.use((_request, _response, next) => repository.snapshot(next));
   app.use(
     "/__internal/catalogue",
     catalogueRoutes(

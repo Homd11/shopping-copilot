@@ -23,6 +23,7 @@
         "value": {
           "maxLength": 200,
           "minLength": 1,
+          "pattern": "\\S",
           "title": "Value",
           "type": "string"
         }
@@ -132,6 +133,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 20,
@@ -178,6 +180,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 20,
@@ -236,24 +239,28 @@
         "category": {
           "maxLength": 200,
           "minLength": 1,
+          "pattern": "\\S",
           "title": "Category",
           "type": "string"
         },
         "nameAr": {
           "maxLength": 200,
           "minLength": 1,
+          "pattern": "\\S",
           "title": "Namear",
           "type": "string"
         },
         "nameEn": {
           "maxLength": 200,
           "minLength": 1,
+          "pattern": "\\S",
           "title": "Nameen",
           "type": "string"
         },
         "type": {
           "maxLength": 200,
           "minLength": 1,
+          "pattern": "\\S",
           "title": "Type",
           "type": "string"
         },
@@ -264,6 +271,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -274,6 +282,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -293,6 +302,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -303,6 +313,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -325,6 +336,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -335,6 +347,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 100,
@@ -480,6 +493,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 20,
@@ -496,6 +510,7 @@
           "anyOf": [
             {
               "maxLength": 2048,
+              "minLength": 1,
               "type": "string"
             },
             {
@@ -552,6 +567,7 @@
           "anyOf": [
             {
               "maxLength": 2048,
+              "minLength": 1,
               "type": "string"
             },
             {
@@ -568,6 +584,7 @@
           "items": {
             "maxLength": 200,
             "minLength": 1,
+            "pattern": "\\S",
             "type": "string"
           },
           "maxItems": 20,

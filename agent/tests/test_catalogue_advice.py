@@ -70,3 +70,163 @@ def test_no_category_no_vocabulary_whitelist_and_no_reads_for_navigation():
         events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
         assert any(e["event"] == "action" for e in events)
         assert not reads.calls
+
+
+def test_known_excluded_product_is_comparison_only_never_a_recommendation():
+    from agent.advice import prepare_retrieved_advice
+    from agent.catalogue_retrieval import RetrievalBudget, RetrievalOutcome
+    from agent.llm.intent import StructuredIntent
+    from agent.tests.test_catalogue_retrieval import candidate
+
+    query = SearchQuery(
+        query="bag", requirements=[{"field": "feature", "op": "exclude", "value": "leather"}]
+    )
+    outcome = RetrievalOutcome(
+        StructuredIntent.model_validate(decision()),
+        ["p-4"],
+        [candidate(status="violated")],
+        RetrievalBudget(),
+        query.requirements,
+    )
+    evidence = prepare_retrieved_advice(outcome)
+    assert not evidence.discovery.suggestions
+    assert evidence.products[0]["eligibility"]["label"] == "comparison_only"
+
+
+def test_exhausted_budget_ends_with_question_not_an_unusable_retry():
+    model = RecordingModel({}, {}, {})
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=Reads(),
+        catalogue_retrieval_enabled=True,
+    )
+    with TestClient(app) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        client.post(
+            f"/sessions/{sid}/messages",
+            json={"text": "anything messy", "snapshot": home_snapshot()},
+        )
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+        assert events[-1]["event"] == "done"
+        assert not any(e["event"] == "error" for e in events)
+        assert len(model.requests) == 3
+
+
+def test_comparison_only_ids_survive_for_the_next_turn():
+    model = RecordingModel(
+        {
+            "kind": "details",
+            "query": {"v": 1, "ids": ["p-4"], "requirements": [], "unverified_requirements": []},
+        },
+        {
+            "kind": "finish",
+            "intent": decision(constraints={}, advice_product_ids=["p-4"]),
+            "selected_ids": [],
+        },
+        advice("A comparison, no card.", ["p-4"]),
+        {
+            "kind": "finish",
+            "intent": decision(
+                intent="open_product", constraints={}, product_id="p-4", navigation_source="open it"
+            ),
+            "selected_ids": [],
+        },
+    )
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=Reads(),
+        catalogue_retrieval_enabled=True,
+    )
+    with TestClient(app) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        for text in ["compare it", "open it"]:
+            client.post(
+                f"/sessions/{sid}/messages", json={"text": text, "snapshot": home_snapshot()}
+            )
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+        assert any(
+            e["event"] == "action" and e["data"]["action"]["type"] == "navigate" for e in events
+        )
+        assert any(
+            p["id"] == "p-4"
+            for p in json.loads(model.requests[-1].messages[0].content)["known_products"]
+        )
+
+
+def test_revoked_shopper_during_retrieval_cannot_reach_another_model_call():
+    import asyncio
+
+    from httpx import ASGITransport, AsyncClient
+
+    from agent.tests.http_client import authorize_async
+
+    async def scenario():
+        class RevokingReads(Reads):
+            async def search(self, query):
+                result = await super().search(query)
+                app.state.storefront_service.revoked = True
+                return result
+
+        model = RecordingModel({"kind": "search", "query": SearchQuery(query="bag").model_dump()})
+        app = create_app(
+            llm_settings=LLMSettings(provider="groq", model="test"),
+            llm_client=model,
+            catalogue_client=RevokingReads(),
+            catalogue_retrieval_enabled=True,
+        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
+            sid = (await client.post("/sessions")).json()["session_id"]
+            await client.post(
+                f"/sessions/{sid}/messages", json={"text": "any bag", "snapshot": home_snapshot()}
+            )
+            assert len(model.requests) == 1
+
+    asyncio.run(scenario())
+
+
+def test_changed_snapshot_during_decision_pauses_without_publishing():
+    import asyncio
+
+    from httpx import ASGITransport, AsyncClient
+
+    from agent.llm import LLMChunk
+    from agent.planner import ScriptedPlanner
+    from agent.schemas import Snapshot
+    from agent.sessions import SessionStore
+    from agent.tests.http_client import authorize_async
+
+    async def scenario():
+        sessions = SessionStore(ScriptedPlanner())
+
+        class ChangingModel:
+            async def complete(self, request):
+                sessions.get(sid).last_snapshot = Snapshot.model_validate(
+                    {**home_snapshot(), "title": "changed"}
+                )
+                yield LLMChunk(
+                    text=json.dumps({"kind": "finish", "intent": decision(), "selected_ids": []})
+                )
+
+        app = create_app(
+            session_store=sessions,
+            llm_settings=LLMSettings(provider="groq", model="test"),
+            llm_client=ChangingModel(),
+            catalogue_client=Reads(),
+            catalogue_retrieval_enabled=True,
+        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
+            sid = (await client.post("/sessions")).json()["session_id"]
+            await client.post(
+                f"/sessions/{sid}/messages", json={"text": "any bag", "snapshot": home_snapshot()}
+            )
+            task = sessions.get(sid).active_task
+            assert task.status == "paused" and task.model_call_id is None
+            assert not any(
+                e.event in {"action", "suggestions", "done"} for e in sessions.get(sid).events
+            )
+
+    asyncio.run(scenario())

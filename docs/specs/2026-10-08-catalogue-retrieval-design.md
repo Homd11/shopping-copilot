@@ -1,12 +1,12 @@
 # Catalogue retrieval for the Shopping Copilot
 
-**Status:** written design approved by the owner on 8 October 2026. The [implementation plan](../plans/2026-10-08-catalogue-retrieval.md) is prepared for review; no implementation or model evaluation has started.
+**Status:** owner-approved design implemented locally on 8 October 2026; new retrieval mode remains opt-in. See [verification and open qualification gates](../../catalogue-retrieval-verification.md).
 
 **Purpose:** let the Shopping Copilot investigate products and give useful advice using a small amount of relevant, current evidence. Preserve natural Egyptian Arabic, Franco-Arabic, English and mixed-language interpretation, the existing advice experience and deterministic Action safety. The owner explicitly rejects phrase-based interpretation and wants this improvement before public deployment.
 
 This design builds on [shopper isolation](../../shopper-isolation-verification.md) at commit `1a4fa1c`. It assumes the existing single Controlled Storefront and a single-host graduation demo. It does not claim support for independent retailers or production commerce. The zero-out-of-pocket [cloud constraints](../../cap04-credit-only-plan.md) remain unchanged.
 
-## Current behavior and actual problem
+## Pre-migration behavior and original problem
 
 - `store/src/catalogue.ts` contains source-code product seeds. Storefront pages, filtering and `GuardedCart` directly use exported product arrays.
 - `agent/catalogue.py` downloads the complete catalogue for relevant discovery/advice requests. This is an internal HTTP transfer, not a full catalogue sent to every model call.
