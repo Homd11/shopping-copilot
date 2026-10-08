@@ -339,6 +339,12 @@ def finish_catalogue_interpretation(
             if intent.language == "ar"
             else "These are styling suggestions from available Storefront products."
         )
+    elif result.exact_count is None:
+        summary = (
+            "دي منتجات من نتائج البحث؛ راجع التفاصيل اللي لسه مش مؤكدة."
+            if intent.language == "ar"
+            else "These are retrieved products; review any unverified requirements."
+        )
     elif result.exact_count:
         summary = (
             f"وجدت {result.exact_count} منتج مطابق ومتحقق منه."
@@ -413,6 +419,7 @@ def begin_answer_interpretation(
         if len(candidates) == 1 and text in task.action.options:
             selected = candidates[0]
     task.message = text
+    task.retrieval_budget = None
     answers = _bounded_answers(task.resolved_state.get("_answers"))
     task.resolved_state["_answers"] = [*answers, text[:_CONTEXT_TEXT_LIMIT]][
         -_CONTEXT_ANSWER_LIMIT:

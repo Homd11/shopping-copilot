@@ -1,7 +1,10 @@
 """Shared in-memory Session and Shopping Task records and domain errors."""
 
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from agent.catalogue_retrieval import RetrievalBudget
 
 from agent.confirmation import ConfirmationLedger, MutationProposal
 from agent.planner import Language
@@ -63,6 +66,7 @@ class ActiveTask:
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
+    retrieval_budget: "RetrievalBudget | None" = None
 
 
 @dataclass(frozen=True)

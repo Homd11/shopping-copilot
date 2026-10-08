@@ -8,7 +8,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agent.catalogue import CatalogueSnapshot, DiscoveryResult, evaluate_catalogue
+from agent.catalogue import CatalogueSnapshot, DiscoveryResult, Suggestion, evaluate_catalogue
 from agent.llm.contract import LLMClient, LLMMessage, LLMRequest
 from agent.llm.intent import StructuredIntent
 from agent.llm.intent_pipeline import snapshot_context
@@ -27,6 +27,8 @@ class AdviceResponse(BaseModel):
 class AdviceEvidence:
     discovery: DiscoveryResult
     products: tuple[dict[str, Any], ...]
+    requirements: tuple[dict[str, Any], ...] = ()
+    unverified_requirements: tuple[str, ...] = ()
 
 
 def prepare_advice(catalogue: CatalogueSnapshot, intent: StructuredIntent) -> AdviceEvidence:
@@ -104,6 +106,8 @@ def build_advice_request(
         "previous_advice_context": state.get("_advice_context", {}),
         "products": list(evidence.products),
         "discovery": evidence.discovery.to_wire(),
+        "original_requirements": list(evidence.requirements),
+        "unverified_requirements": list(evidence.unverified_requirements),
         "current_snapshot": snapshot_context(snapshot),
     }
     return LLMRequest(
@@ -134,6 +138,8 @@ def build_advice_request(
             "never claim absolute best or invent disadvantages. Honour explicit constraints "
             "and exclusions. Preserve eligibility labels: alternatives have named unmet "
             "requirements; comparison_only or unavailable products are not recommendations. "
+            "A null exact_count means the catalogue-wide count is unknown, not zero. "
+            "Unknown requirement statuses cannot be presented as satisfied exclusions. "
             "Use the Shopper's corrections and preferences; previous assistant suggestions "
             "are neither facts nor preferences the Shopper necessarily endorsed. Ask one "
             "focused question only when it would materially improve the choice. With no "
@@ -171,3 +177,73 @@ async def compose_advice(client: LLMClient, request: LLMRequest, evidence: Advic
     if not response.message.strip() or not set(response.product_ids).issubset(known):
         raise ValueError("Advice must reference supplied evidence")
     return response.message
+
+
+def prepare_retrieved_advice(outcome) -> AdviceEvidence:
+    """Use current service evidence and the model's selection; never rank by phrase rules."""
+    cards, products = [], []
+    requirements = tuple(p.model_dump(mode="json") for p in outcome.requirements)
+    for candidate in outcome.products:
+        product = candidate.product
+        unmet = [
+            json.dumps(requirements[r.index], ensure_ascii=False) + ": " + r.status
+            for r in candidate.requirements
+            if r.status != "satisfied"
+        ] + list(outcome.unverified_requirements)
+        if not product.available:
+            unmet.append("unavailable")
+        selected = product.id in outcome.selected_ids and product.available
+        label = (
+            "comparison_only"
+            if not selected
+            else "alternative"
+            if unmet
+            else "exact_match"
+            if requirements
+            else "styling_suggestion"
+        )
+        reason = (
+            "Some requested facts are unverified or unmet."
+            if unmet
+            else "Based on the supplied catalogue facts; suitability is an opinion."
+        )
+        eligibility = {"label": label, "reason": reason, "unmet": unmet}
+        products.append(
+            {
+                "id": product.id,
+                "category": product.category,
+                "name_ar": product.nameAr,
+                "name_en": product.nameEn,
+                "product_type": product.type,
+                "price": product.price.model_dump(),
+                "sizes": product.sizes,
+                "colors": product.colors,
+                "available": product.available,
+                "features": product.features,
+                "suitable_for": product.suitableFor,
+                "absent_features": product.absent_features,
+                "absent_uses": product.absent_uses,
+                "requirement_statuses": [r.model_dump() for r in candidate.requirements],
+                "product_revision": candidate.product_revision,
+                "eligibility": eligibility,
+            }
+        )
+        if selected:
+            cards.append(
+                Suggestion(
+                    product.id,
+                    label,
+                    product.nameAr if outcome.intent.language == "ar" else product.nameEn,
+                    product.price.amount,
+                    product.price.currency,
+                    reason,
+                    tuple(unmet),
+                )
+            )
+    # A bounded semantic pool is not an exhaustive catalogue count.
+    return AdviceEvidence(
+        DiscoveryResult(None, tuple(cards)),
+        tuple(products),
+        requirements,
+        tuple(outcome.unverified_requirements),
+    )
