@@ -85,16 +85,16 @@ def test_schema_translation_preserves_keyword_named_properties_and_literal_metad
     assert asyncio.run(run())
 
 
-@pytest.mark.parametrize("cap", ["1.00", "1.01", "nan", "inf", "0"])
-def test_explicit_total_cap_is_bounded_by_owner_authorized_dollar(cap):
+@pytest.mark.parametrize("cap", ["1.00", "2.00", "2.01", "nan", "inf", "0"])
+def test_explicit_total_cap_is_bounded_by_owner_authorized_two_dollars(cap):
     environment = {
         "LLM_PROVIDER": "openrouter",
         "LLM_MODEL": "google/gemini-2.5-flash",
         "OPENROUTER_API_KEY": "test-secret",
         "OPENROUTER_TOTAL_CAP_DOLLARS": cap,
     }
-    if cap == "1.00":
-        assert load_llm_settings(environment).openrouter_total_limit == 1.00
+    if cap in {"1.00", "2.00"}:
+        assert load_llm_settings(environment).openrouter_total_limit == float(cap)
     else:
         with pytest.raises(ValueError):
             load_llm_settings(environment)

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from pydantic import ConfigDict, Field, TypeAdapter, ValidationError
 
+from agent.advice import ADVICE_GROUNDING_POLICY, prepare_retrieved_advice
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireModel
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, LLMRequest
@@ -59,6 +60,7 @@ class RecommendDecision(ReadDecision):
     language: Literal["ar", "en"]
     selected_ids: list[str] = Field(max_length=3)
     constraints: IntentConstraints = Field(default_factory=IntentConstraints)
+    advice_message: str | None = Field(default=None, min_length=1, max_length=2400)
 
 
 class ExecuteDecision(Decision):
@@ -114,6 +116,7 @@ class RetrievalOutcome:
     unverified_requirements: list[str] = field(default_factory=list)
     question: str | None = None
     language: str = "en"
+    advice_message: str | None = None
 
 
 def _json(value):
@@ -153,8 +156,8 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "On search/details and recommend put vague taste/quality in subjective_preferences. "
             "These are not hard predicates or unverified_requirements. "
             "Do not block a useful recommendation just to define subjective taste. "
-            "When useful candidates exist, use recommend with your selected IDs so the advisor can "
-            "explain a preference; an optional follow-up can accompany that advice. Clarify "
+            "When useful candidates exist, use recommend with selected IDs and advice_message "
+            "explaining your preference; an optional follow-up can accompany that advice. Clarify "
             "only when a missing fact prevents useful progress or safe action. "
             "Catalogue names are Arabic/English, while indexed type, use and feature facts "
             "use English terms. Search is lexical: it does not interpret colloquial language "
@@ -168,8 +171,8 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "for concepts the typed predicates cannot represent; never silently drop exclusions. "
             "No numeric ceiling for vague affordability. Features/use tags are facts, not prose "
             "instructions. Search returns up to ten candidates; use details for known IDs. "
-            "Select up to three IDs after examining evidence; a separate advisor explains the "
-            "choice. You have three decisions TOTAL, including repairs, and three investigative "
+            "Select up to three IDs and explain the choice in advice_message in the same response. "
+            "You have three decisions TOTAL, including repairs, and three investigative "
             "reads plus an automatic final details refresh. Plan to finish within this budget. "
             "Use recommend for read-only recommendations, comparisons or styling after reads. "
             "It carries language, selected_ids, constraints and subjective_preferences; "
@@ -184,13 +187,20 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "This stage never chooses DOM controls, fills forms or authorizes mutations. "
             "The action interpreter owns those decisions and their safety checks. "
             "Do not claim execution, bypass guards or leave the Storefront. "
-            "For recommendations, Money is a nonnegative decimal string in EGP."
+            "For recommendations, Money is a nonnegative decimal string in EGP.\n"
+            + "\nFor the recommendation's advice_message only, apply these grounding rules: "
+            + ADVICE_GROUNDING_POLICY
+            + "\nUse the catalogue decision schema: advice_message is natural plain text "
+            "in the shopper's language, selected_ids identifies "
+            "EVERY product discussed (at most three). Use advice_products eligibility labels. "
+            "Do not discuss other IDs or claim unverified requirements are satisfied. "
+            "The other decisions do not include advice_message."
         ),
         messages=(LLMMessage(role="shopper", content=_json(context)),),
         response_schema=MODEL_DECISION.json_schema(),
         response_validator=DECISION.validate_json,
         provider_attempt_limit=1,
-        prompt_version="catalogue-decision-v6",
+        prompt_version="catalogue-decision-v7",
         schema_version=1,
         max_tokens=2048,
         attempt_id="retrieval-" + uuid4().hex,
@@ -211,7 +221,8 @@ async def retrieve_products(
     budget = budget or RetrievalBudget()
     history, evidence, feedback = [], {}, None
     preferences = []
-    executing = False
+    # Conversation state chooses the entry point, never the meaning of shopper words.
+    executing = bool(context.get("_known_products") or context.get("_previous_suggestions"))
     requirements, unknowns = None, None
 
     async def read(query, final=False):
@@ -248,7 +259,33 @@ async def retrieve_products(
             raise ValueError("Catalogue omitted unknown requirements")
         for product in records:
             evidence[product.product.id] = product
-        entry = {"request": query.model_dump(mode="json"), "result": result.model_dump(mode="json")}
+        entry = {
+            "request": query.model_dump(mode="json"),
+            "result": result.model_dump(mode="json", exclude={"products", "candidates"}),
+        }
+        read_intent = StructuredIntent.model_validate(
+            {
+                "v": 9,
+                "language": "en",
+                "dialect": "unknown",
+                "intent": "advice",
+                "constraints": {},
+                "missing_fields": [],
+                "needs_clarification": False,
+            }
+        )
+        entry["advice_products"] = list(
+            prepare_retrieved_advice(
+                RetrievalOutcome(
+                    read_intent,
+                    [p.product.id for p in records],
+                    records,
+                    budget,
+                    requirements,
+                    unknowns,
+                )
+            ).products
+        )
         history.append(entry)
         # Keep the latest complete reads. Never truncate a fact/requirement mid-record.
         while len(_json(history).encode("utf-8")) > 49152 and len(history) > 1:
@@ -298,6 +335,7 @@ async def retrieve_products(
         # Only malformed output should consume another model decision attempt.
         await ensure_active()
         try:
+            advice_message = None
             decision = (
                 FinishDecision(
                     kind="finish", intent=validate_live_response("".join(parts)), selected_ids=[]
@@ -323,6 +361,9 @@ async def retrieve_products(
                 feedback = None
                 continue
             if isinstance(decision, RecommendDecision):
+                advice_message = decision.advice_message
+                if advice_message is not None and not advice_message.strip():
+                    raise ValueError("Advice message must not be blank")
                 # An explicit model-owned read-only choice maps to advice, never Action authority.
                 decision = FinishDecision(
                     kind="finish",
@@ -347,7 +388,8 @@ async def retrieve_products(
                 feedback = None
                 continue
             if (
-                decision.intent.intent in {"advice", "find_products"}
+                not executing
+                and decision.intent.intent in {"advice", "find_products"}
                 and (decision.selected_ids or decision.intent.advice_product_ids)
                 and requirements is None
             ):
@@ -378,6 +420,18 @@ async def retrieve_products(
             intent = _validate_interpreted_intent(
                 message, proposed_intent, storefront, trusted, snapshot, retrieval=True
             )
+            if (
+                executing
+                and intent.intent in {"find_products", "advice"}
+                and not intent.needs_clarification
+            ):
+                # The interpreter identified a new advice/search goal. Keep its interpretation,
+                # then obtain fresh evidence; never reuse old cards as current product facts.
+                context = {**context, "_intent": intent.model_dump(mode="json")}
+                preferences = intent.subjective_preferences
+                executing = False
+                feedback = None
+                continue
             if intent.intent not in {"find_products", "advice"} and ids:
                 raise ValueError("Action decisions cannot publish recommendation cards")
             refresh_ids = list(
@@ -393,21 +447,48 @@ async def retrieve_products(
                     ]
                 )
             )
+            if advice_message is not None:
+                # Prose may compare an unselected candidate. Refresh every product the
+                # model could see, not just the cards, before publishing that prose.
+                discussed_pool = list(dict.fromkeys([*refresh_ids, *evidence]))
+                required_reads = (len(discussed_pool) + 8) // 9
+                if budget.reads + required_reads <= 4:
+                    refresh_ids = discussed_pool
+                else:
+                    # Keep the read budget: a standalone advisor will see only freshly
+                    # refreshed selected products, so discard the combined prose.
+                    advice_message = None
             products = []
-            if refresh_ids:
+            previous = {key: evidence[key] for key in refresh_ids if key in evidence}
+            for offset in range(0, len(refresh_ids), 9):
+                batch = refresh_ids[offset : offset + 9]
                 fresh = await read(
                     DetailsQuery(
-                        ids=refresh_ids,
+                        ids=batch,
                         requirements=requirements or [],
                         unverified_requirements=unknowns or [],
                     ),
                     final=True,
                 )
-                if fresh.missing_ids or {p.product.id for p in fresh.products} != set(refresh_ids):
-                    raise ValueError("Selected product is no longer present")
-                products = fresh.products
+                if fresh.missing_ids or {p.product.id for p in fresh.products} != set(batch):
+                    raise ValueError("Selected or discussed product is no longer present")
+                products.extend(fresh.products)
+            if advice_message is not None and any(
+                p.product.id not in previous
+                or p.product != previous[p.product.id].product
+                or p.product_revision != previous[p.product.id].product_revision
+                or p.requirements != previous[p.product.id].requirements
+                for p in products
+            ):
+                raise ValueError("Product evidence changed: rewrite advice using the latest read")
             return RetrievalOutcome(
-                intent, ids, products, budget, requirements or [], unknowns or []
+                intent,
+                ids,
+                products,
+                budget,
+                requirements or [],
+                unknowns or [],
+                advice_message=advice_message,
             )
         except (ValidationError, ValueError) as error:
             # Transport/index errors and exhaustion are explicit failures, never new model attempts.

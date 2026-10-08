@@ -22,7 +22,12 @@ def intent(name="advice", **fields):
 
 class FixtureModel:
     async def complete(self, request):
-        context = json.loads(request.messages[0].content)
+        interpreting = request.prompt_version.startswith("intent-")
+        if interpreting:
+            context = json.loads(request.system.split("\n", 1)[0].split(": ", 1)[1])
+            context["message"] = request.messages[0].content
+        else:
+            context = json.loads(request.messages[0].content)
         if request.prompt_version.startswith("advice-"):
             products = context["products"]
             response = {
@@ -40,7 +45,14 @@ class FixtureModel:
                     ).model_dump(),
                 }
             else:
-                response = {"kind": "finish", "intent": intent(), "selected_ids": ["shoe-09"]}
+                response = {
+                    "kind": "recommend",
+                    "language": "en",
+                    "selected_ids": ["shoe-09"],
+                    "advice_message": (
+                        "Catalogue evidence checked; unrecorded material remains unknown."
+                    ),
+                }
         elif context["message"] == "[fixture:open]":
             response = {
                 "kind": "finish",
@@ -89,6 +101,8 @@ class FixtureModel:
             }
         else:
             raise ValueError("Unknown explicit fixture operation")
+        if interpreting:
+            response = response["intent"]
         yield LLMChunk(text=json.dumps(response, ensure_ascii=False))
 
 

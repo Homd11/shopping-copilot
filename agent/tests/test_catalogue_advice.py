@@ -192,13 +192,9 @@ def test_comparison_only_ids_survive_for_the_next_turn():
             "selected_ids": [],
         },
         advice("A comparison, no card.", ["p-4"]),
-        {
-            "kind": "finish",
-            "intent": decision(
-                intent="open_product", constraints={}, product_id="p-4", navigation_source="open it"
-            ),
-            "selected_ids": [],
-        },
+        decision(
+            intent="open_product", constraints={}, product_id="p-4", navigation_source="open it"
+        ),
     )
     app = create_app(
         llm_settings=LLMSettings(provider="groq", model="test"),
@@ -218,7 +214,9 @@ def test_comparison_only_ids_survive_for_the_next_turn():
         )
         assert any(
             p["id"] == "p-4"
-            for p in json.loads(model.requests[-1].messages[0].content)["known_products"]
+            for p in json.loads(model.requests[-1].system.split("\n", 1)[0].split(": ", 1)[1])[
+                "known_products"
+            ]
         )
 
 
