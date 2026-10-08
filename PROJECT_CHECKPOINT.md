@@ -2,6 +2,28 @@
 
 **Last updated:** 2026-10-08
 
+## Retrieval repair: first-read constraint preservation — 2026-10-08
+
+A further owner-approved four-request diagnostic set exposed the first-read
+duplicate-field rejection: the model supplied size as a predicate without repeating
+it in requirements. Rejecting this read consumed repair attempts and allowed a later
+read to establish a different original-requirement set. The coordinator now freezes
+the union of both model-supplied lists, deduplicates equal predicates and retains
+normal schema/bounds checks. Regression tests verify refinements and final refresh
+cannot lose that initial condition, and explicit exclusions are preserved.
+
+The retrieval prompt restores the established subjective-preference guidance,
+describes English indexed attribute terms so the model can translate descriptive
+queries, and requests shopper-language questions. No phrase dictionaries were added.
+The four diagnostic requests reported $0.0025549 combined. They did not establish a
+complete recommendation/advice success: v1 clarified taste after an empty lexical
+search; intermediate v2 encountered the duplicate-field problem. Raw responses and
+validation diagnostics were retained only under ignored `work/manual-test/`.
+
+All 430 Agent tests and Ruff checks pass; both independent review axes found no
+outstanding issues. Browser/full-workspace tests were not repeated. The previous
+chat path remains active until the repaired retrieval path passes live verification.
+
 ## Live retrieval qualification failed; manual runtime rolled back — 2026-10-08
 
 The owner's next manual request exposed a separate provider HTTP 400. One

@@ -133,6 +133,51 @@ def test_requirements_cannot_disappear_on_refinement():
     assert outcome.products[0].requirements[0].status == "unknown"
 
 
+def test_initial_filter_is_preserved_without_requiring_duplicate_model_fields():
+    size = {"field": "size", "op": "eq", "value": "43"}
+    model = RecordingModel(
+        {"kind": "search", "query": {"query": "football", "predicates": [size]}},
+        {"kind": "search", "query": {"query": "shoes", "requirements": []}},
+        {"kind": "finish", "intent": decision(constraints={}), "selected_ids": ["p-4"]},
+    )
+    reads = Reads()
+    result = asyncio.run(run(model, reads))
+    assert len(reads.calls) == 3
+    assert result.selected_ids == ["p-4"]
+    for query in reads.calls:
+        assert [p.model_dump() for p in query.requirements] == [size]
+
+
+def test_freezing_initial_filters_keeps_explicit_exclusions_and_deduplicates():
+    size = {"field": "size", "op": "eq", "value": "43"}
+    excluded = {"field": "feature", "op": "exclude", "value": "leather"}
+
+    class EmptyReads(Reads):
+        async def search(self, query):
+            self.calls.append(query)
+            return SearchResult(
+                v=1,
+                catalogue_revision=1,
+                candidates=[],
+                ranking="lexical",
+                exact_count=0,
+                truncated=False,
+                next_cursor=None,
+                unverified_requirements=[],
+            )
+
+    model = RecordingModel(
+        {
+            "kind": "search",
+            "query": {"query": "shoes", "predicates": [size], "requirements": [excluded, size]},
+        },
+        {"kind": "finish", "intent": decision(constraints={}), "selected_ids": []},
+    )
+    reads = EmptyReads()
+    asyncio.run(run(model, reads))
+    assert [p.model_dump() for p in reads.calls[0].requirements] == [excluded, size]
+
+
 def test_stop_discards_late_model_completion():
     async def scenario():
         stopped = False
