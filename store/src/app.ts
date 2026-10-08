@@ -1,3 +1,4 @@
+import type { ProductRepository } from "./product-repository.js";
 import express, { type Express } from "express";
 import {
   LinkTickets,
@@ -16,9 +17,7 @@ import { type CartLine } from "./guarded-cart.js";
 
 import {
   categories,
-  filterProducts,
   money,
-  products,
   type Category,
   type Money,
   type ProductConstraints,
@@ -113,17 +112,17 @@ function stateFilters(constraints: ProductConstraints) {
   };
 }
 
-export function createApp(
-  options: {
-    serviceSecret?: string;
-    panelOrigin?: string;
-    clock?: () => number;
-    evaluation?: boolean;
-    origin?: string;
-    capacity?: number;
-    ttlMs?: number;
-  } = {},
-): Express {
+export function createApp(options: {
+  repository: ProductRepository;
+  serviceSecret?: string;
+  panelOrigin?: string;
+  clock?: () => number;
+  evaluation?: boolean;
+  origin?: string;
+  capacity?: number;
+  ttlMs?: number;
+}): Express {
+  const repository = options.repository;
   const app = express();
   const registry = new ShopperRegistry(options);
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
@@ -164,7 +163,9 @@ export function createApp(
 
   app.get("/cart", (_request, response) => {
     const cart = shopper(response).cart;
-    response.type("html").send(renderCart(cart.lines, cart.revision));
+    response
+      .type("html")
+      .send(renderCart(repository, cart.lines, cart.revision));
   });
 
   app.post("/cart/clear", (request, response) => {
@@ -181,6 +182,7 @@ export function createApp(
         .type("html")
         .send(
           renderCart(
+            repository,
             cart.lines,
             cart.revision,
             "انتهى التأكيد أو تغيرت السلة. لم يتم الإفراغ.",
@@ -196,9 +198,7 @@ export function createApp(
     const cart = shopper(response).cart;
     const productId = request.body?.product_id;
     const product =
-      typeof productId === "string"
-        ? products.find((item) => item.id === productId)
-        : undefined;
+      typeof productId === "string" ? repository.get(productId) : undefined;
     if (product === undefined) {
       response.status(404).json({ error: "unknown_product" });
       return;
@@ -223,7 +223,7 @@ export function createApp(
       ...cart.state,
       undo: cart.undo,
       count: cart.lines.reduce((sum, line) => sum + line.quantity, 0),
-      html: renderCartContents(cart.lines, cart.revision),
+      html: renderCartContents(repository, cart.lines, cart.revision),
     };
   }
   app.get("/cart/state", (_request, response) => {
@@ -242,7 +242,9 @@ export function createApp(
 
   app.get("/checkout", (_request, response) => {
     const cart = shopper(response).cart;
-    response.type("html").send(renderCheckout(cart.lines, cart.revision));
+    response
+      .type("html")
+      .send(renderCheckout(repository, cart.lines, cart.revision));
   });
 
   app.post("/checkout/submit", (request, response) => {
@@ -259,6 +261,7 @@ export function createApp(
         .type("html")
         .send(
           renderCheckout(
+            repository,
             cart.lines,
             cart.revision,
             "انتهى التأكيد أو تغيرت السلة. لم يتم تسجيل طلب.",
@@ -276,6 +279,7 @@ export function createApp(
         .type("html")
         .send(
           renderCheckout(
+            repository,
             cart.lines,
             cart.revision,
             "استخدم بيانات الدفع الخيالية المعروضة فقط. لم يتم تسجيل طلب.",
@@ -338,7 +342,7 @@ export function createApp(
     response.set("Cache-Control", "no-store").json({
       v: 1,
       currency: "EGP",
-      products: products.map((product) => ({
+      products: repository.all().map((product) => ({
         id: product.id,
         category: product.category,
         name_ar: product.nameAr,
@@ -357,9 +361,7 @@ export function createApp(
   });
 
   app.get("/p/:productId", (request, response) => {
-    const product = products.find(
-      (item) => item.id === request.params.productId,
-    );
+    const product = repository.get(request.params.productId);
     if (product === undefined) {
       response.status(404).type("text").send("Unknown product");
       return;
@@ -376,7 +378,7 @@ export function createApp(
     const constraints = constraintsFromQuery(category, request.query);
     response
       .type("html")
-      .send(renderCategory(filterProducts(constraints), constraints));
+      .send(renderCategory(repository.filter(constraints), constraints));
   });
 
   app.post("/__test/reset", (_request, response) => {
@@ -408,7 +410,7 @@ export function createApp(
       return;
     }
     const constraints = constraintsFromQuery(category, request.query);
-    const matchingProducts = filterProducts(constraints);
+    const matchingProducts = repository.filter(constraints);
     const legacyShoeState = request.query.category === undefined;
     response.json({
       ...(legacyShoeState ? {} : { category }),

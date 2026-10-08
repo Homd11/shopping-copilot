@@ -1,6 +1,6 @@
 import { browser } from "./browser.js";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
+import { createApp } from "./app.js";
 
 const item = { product_id: "shoe-09", size: "43", color: "blue", quantity: 1 };
 describe("Reversible cart HTTP journey", () => {

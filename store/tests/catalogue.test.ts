@@ -1,11 +1,11 @@
+import { seedProducts as products } from "../src/catalogue-seed.js";
 import { describe, expect, it } from "vitest";
 
 import {
   categories,
   compareMoney,
-  filterProducts,
+  filterProductRecords,
   money,
-  products,
 } from "../src/catalogue.js";
 
 describe("deterministic bilingual catalogue", () => {
@@ -35,7 +35,7 @@ describe("deterministic bilingual catalogue", () => {
 
   it("preserves the tracer's first three available running shoes at or below EGP 2000", () => {
     expect(
-      filterProducts({
+      filterProductRecords(products, {
         category: "shoes",
         type: "running",
         maxPrice: money("2000"),
@@ -45,7 +45,7 @@ describe("deterministic bilingual catalogue", () => {
 
   it("combines type, inclusive prices, size, color, and availability", () => {
     expect(
-      filterProducts({
+      filterProductRecords(products, {
         category: "clothing",
         type: "outerwear",
         minPrice: money("1000"),
@@ -59,25 +59,33 @@ describe("deterministic bilingual catalogue", () => {
 
   it("searches Arabic and English product text without changing the category", () => {
     expect(
-      filterProducts({ category: "bags", query: "Nile" }).map(
+      filterProductRecords(products, { category: "bags", query: "Nile" }).map(
         (product) => product.id,
       ),
     ).toEqual(["bag-01"]);
     expect(
-      filterProducts({ category: "electronics", query: "النيل" }).map(
-        (product) => product.id,
-      ),
+      filterProductRecords(products, {
+        category: "electronics",
+        query: "النيل",
+      }).map((product) => product.id),
     ).toEqual(["electronics-01"]);
   });
 
   it("does not return other clothing for a brown shirt request", () => {
     expect(
-      filterProducts({ category: "clothing", type: "shirts", color: "brown" }),
+      filterProductRecords(products, {
+        category: "clothing",
+        type: "shirts",
+        color: "brown",
+      }),
     ).toEqual([]);
   });
 
   it("sorts matching products by cheapest with stable id tie-breaking", () => {
-    const result = filterProducts({ category: "bags", sort: "cheapest" });
+    const result = filterProductRecords(products, {
+      category: "bags",
+      sort: "cheapest",
+    });
 
     expect(result.map((product) => product.price.amount)).toEqual(
       [...result]
@@ -89,7 +97,10 @@ describe("deterministic bilingual catalogue", () => {
   });
 
   it("sorts matching products by newest with stable id tie-breaking", () => {
-    const result = filterProducts({ category: "electronics", sort: "newest" });
+    const result = filterProductRecords(products, {
+      category: "electronics",
+      sort: "newest",
+    });
 
     expect(result.slice(0, 3).map((product) => product.id)).toEqual([
       "electronics-15",
@@ -100,7 +111,7 @@ describe("deterministic bilingual catalogue", () => {
 
   it("keeps a valid zero-result query empty", () => {
     expect(
-      filterProducts({
+      filterProductRecords(products, {
         category: "shoes",
         size: "99",
         color: "purple",

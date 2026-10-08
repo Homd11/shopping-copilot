@@ -1,7 +1,7 @@
 import { browser } from "./browser.js";
 import { describe, expect, it } from "vitest";
 
-import { createApp } from "../src/app.js";
+import { createApp } from "./app.js";
 
 describe("Controlled Storefront", () => {
   it("opens a recommended product by stable ID without relying on search text", async () => {

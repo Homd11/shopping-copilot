@@ -4,30 +4,8 @@ export type Category = (typeof categories)[number];
 export type ProductSort = "cheapest" | "newest";
 export type Currency = "EGP";
 
-export interface Money {
-  readonly amount: string;
-  readonly currency: Currency;
-}
-
-export function money(amount: string): Money {
-  if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(amount))
-    throw new TypeError(
-      "Money amount must be a non-negative decimal with at most two places",
-    );
-  return { amount, currency: "EGP" };
-}
-
-function minorUnits(value: Money): bigint {
-  const [whole, fraction = ""] = value.amount.split(".");
-  return BigInt(whole!) * 100n + BigInt(fraction.padEnd(2, "0"));
-}
-
-export function compareMoney(left: Money, right: Money): number {
-  if (left.currency !== right.currency)
-    throw new TypeError("Money currencies must match");
-  const difference = minorUnits(left) - minorUnits(right);
-  return difference < 0n ? -1 : difference > 0n ? 1 : 0;
-}
+import { compareMoney, type Money } from "./catalogue-money.js";
+export { money, compareMoney, type Money } from "./catalogue-money.js";
 
 export interface Product {
   id: string;
@@ -44,14 +22,6 @@ export interface Product {
   suitableFor: readonly string[];
   wearPosition: "upper" | "lower" | null;
 }
-
-// Compatibility during repository migration; removed when runtime consumers migrate.
-import { seedProducts } from "./catalogue-seed.js";
-export const products = seedProducts;
-
-export const shoes: readonly Product[] = products.filter(
-  (product) => product.category === "shoes",
-);
 
 export interface ProductConstraints {
   category: Category;
@@ -141,16 +111,8 @@ export function filterProductRecords(
   return matches;
 }
 
-export function filterProducts(constraints: ProductConstraints): Product[] {
-  return filterProductRecords(products, constraints);
-}
-
 export interface ShoeConstraints {
   type?: string;
   minPrice?: Money;
   maxPrice?: Money;
-}
-
-export function filterShoes(constraints: ShoeConstraints): Product[] {
-  return filterProducts({ category: "shoes", ...constraints });
 }
