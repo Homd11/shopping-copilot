@@ -2,6 +2,32 @@
 
 **Last updated:** 2026-10-08
 
+## Live retrieval qualification failed; manual runtime rolled back — 2026-10-08
+
+The owner's next manual request exposed a separate provider HTTP 400. One
+authorized diagnostic request reproduced `reference to undefined schema at oneOf.0`.
+The subsequent authorized verification was capped at three requests / $0.06
+reserved, within the unchanged $1 non-resetting key allowance. Reference expansion
+first exposed Gemini's `too many states for serving` rejection. The OpenRouter
+adapter now expands references and sends structural constraints, with all original
+value/resource bounds still enforced by the unchanged local response validators.
+Its traversal preserves property names and literal metadata.
+
+The remaining two requests accepted this schema: one produced a valid search for
+football shoes, size 43, with distinctive/eye-catching preferences; the next failed
+local validation. The exact second-output validation details were not retained.
+The two completions reported a combined $0.0014136; rejected requests returned no
+usage. No full search/advice success is claimed. The four authorized requests were
+used; further live verification requires approval. All 428 Agent tests pass, plus
+Ruff and focused schema/provider regressions; browser/full-workspace tests were
+not repeated. Offline passes do not close live qualification.
+
+The current local Agent was restarted with `CATALOGUE_RETRIEVAL_ENABLED=0` to restore
+the previous chat path. SQLite, shopper isolation and the running Storefront remain
+active. The new retrieval flow stays opt-in and unqualified; investigate the exact
+remaining response-validation failure before activating it again. No deployment,
+push, key-limit increase or phrase matching was introduced.
+
 ## Manual retrieval test: provider-boundary correction — 2026-10-08
 
 Manual testing exposed a startup-blocking integration error: retrieval requested

@@ -13,6 +13,7 @@ import httpx
 
 from agent.llm.config import LLMConfigurationError, LLMSettings
 from agent.llm.contract import LLMChunk, LLMInvalidResponseError, LLMRequest
+from agent.llm.provider_schema import openrouter_response_schema
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,7 @@ class OpenRouterClient:
                     "json_schema": {
                         "name": "shopping_intent",
                         "strict": True,
-                        "schema": dict(request.response_schema),
+                        "schema": openrouter_response_schema(request.response_schema),
                     },
                 }
             # Conservative byte-based reservation, including schema and protocol overhead.

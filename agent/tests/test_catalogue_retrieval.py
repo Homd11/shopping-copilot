@@ -218,6 +218,12 @@ def test_real_openrouter_adapter_accepts_retrieval_requests_within_existing_cap(
             return httpx.Response(
                 200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
             )
+        schema = json.loads(request.content)["response_format"]["json_schema"]["schema"]
+        # Replay the observed provider rejection for unresolved union references.
+        if schema["oneOf"][0].get("$ref"):
+            return httpx.Response(
+                400, json={"error": {"message": "reference to undefined schema at oneOf.0"}}
+            )
         return httpx.Response(
             200,
             json={
