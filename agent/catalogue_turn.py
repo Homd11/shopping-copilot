@@ -114,6 +114,8 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
     if intent.intent not in {"find_products", "advice"} or intent.needs_clarification:
         return PreparedTurn(intent, None, None, references)
     evidence = prepare_retrieved_advice(outcome)
+    if outcome.advice_message is not None:
+        return PreparedTurn(intent, evidence, outcome.advice_message, references)
     if outcome.budget.advice >= 1:
         return _exhausted_turn(task)
     await ensure_active()

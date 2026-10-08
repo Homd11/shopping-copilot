@@ -2,6 +2,65 @@
 
 **Last updated:** 2026-10-08
 
+## Retrieval latency: fewer calls and bounded live timings — 2026-10-08
+
+The owner reported roughly 20-second replies and a stopped product-opening request.
+Read-only provider metadata confirmed $0.987338002 used under the unchanged $1
+non-resetting cap, leaving $0.012661998. The preflight reservation can block a request
+before that balance reaches zero. This allowance problem is separate from latency.
+The owner subsequently raised the key cap to $2 total. Read-only metadata confirmed
+limit=2, reset=null and $1.012661998 remaining before verification. The application
+now permits an explicitly configured cap up to $2; its default remains $0.25. The
+private local configuration was updated to match. No top-up or guard bypass occurred.
+
+The previous recorded successful search spent 10.063s, 1.719s and 2.358s in three
+sequential model requests. The approved optimization combines read-only product
+selection and grounded advice in `catalogue-decision-v7`, reducing the normal
+search/advice path from three model calls to two. Existing known-product context
+starts follow-ups in the established intent interpreter, reducing product opening
+from two calls to one. The model still decides meaning: a changed goal routes back
+to fresh retrieval within the same three-decision budget. No phrase rules were added.
+
+Combined advice receives the shared grounding policy and complete bounded product
+facts with deterministic eligibility labels. Final details refresh compares product
+facts, revision and requirement statuses against the evidence used for the response.
+This refresh includes unselected candidates that may be mentioned in comparisons,
+in batches of at most nine. Any change discards that prose and requests a rewrite
+within the original budget. If the full evidence pool cannot be refreshed within
+the read budget, discard combined prose and use the existing standalone advisor
+with only freshly checked selected products.
+Legacy responses lacking combined prose retain the standalone advisor fallback.
+No action/confirmation authority is granted by advice, and current action validators,
+ownership checks and cancellation checks remain in place.
+
+Verification: 516 non-browser Python tests pass, plus two subsequently added
+focused large-pool regressions (518 distinct passes). Checks include preparation and HTTP/SSE call-count
+checks, changed-fact rejection, unknown-ID rejection, goal changes and the real
+OpenRouter adapter with mocked HTTP and unchanged budget bounds. A full Python run
+had 514 passes, but 31 failures and 17 setup errors because browser evaluation ports
+were occupied by the owner's manual services. That run is not a full-suite pass;
+the services were retained to preserve the owner's cart. The browser fixture was
+updated for the new protocol. Ruff lint/format checks pass.
+
+One bounded live search returned three products and Arabic advice in two model calls
+(2.219s + 3.313s = 5.532s in provider requests), versus 14.140s across three calls
+in the prior recorded trace. A follow-up asking to open the Keeper product resolved
+the correct product ID in one 2.155s intent call. These are single-run preparation
+measurements, not browser end-to-end latency or a distribution. The subsequent
+all-discussed-products refresh correction passed offline regression checks without
+another paid call. The three live requests reported $0.0036626 combined cost.
+Ignored traces: `work/manual-test/live-latency-v7.json` and
+`work/manual-test/live-latency-open-v7.json`. Broader language and live browser
+qualification remain open; no universal speed or correctness claim is made.
+
+Independent review started on both axes but hit reviewer usage limits. Before that,
+the specification reviewer identified missing added-date and garment-position facts
+in the shortened evidence projection; both were restored with a regression check.
+Final review completion remains unavailable. Local changes are not pushed or deployed.
+The local Agent was restarted with retrieval enabled and the matching $2 cap;
+Agent health and both UI roots return HTTP 200. Refresh the Panel for a new session.
+The Storefront and Panel processes were retained, preserving existing carts.
+
 ## Retrieval repair: targeted live recommendation and routing checks pass — 2026-10-08
 
 This entry supersedes the failed verification and runtime rollback below. The owner
