@@ -2,6 +2,52 @@
 
 **Last updated:** 2026-10-08
 
+## Short conversational answers: role-aware context verified — 2026-10-08
+
+The owner requested fixing the known styling failure before handing testing back.
+The restored path remains active; experimental retrieval stays disabled. Interpreter
+prompt `intent-v29` now receives bounded previous turns as actual shopper/assistant
+messages rather than embedding them in system metadata. Only the newest shopper
+message is the request to execute. System/tool roles from history are excluded.
+The latest Copilot reply is retained up to the advice contract's 2,400-character
+bound, preserving a question after a long comparison; older entries remain capped
+at 500 characters and history remains limited to 12 entries.
+
+The prompt explicitly distinguishes an answer about an owned item from constraints
+on a desired product. The model continues to perform that interpretation. No phrase,
+colour-word or category-matching logic was added. Schema/prompt descriptions also
+tell the model to retain an identifiable desired category for catalogue-backed
+advice, avoiding empty product evidence when a requested type is known. Action,
+confirmation, snapshot and ownership validators are unchanged.
+
+Verification:
+
+- 520 non-browser Python tests pass; Ruff lint and format checks pass. Regression
+  coverage verifies question retention, role routing, bounded history, and existing
+  cross-session/origin isolation. Browser checks were not run against the owner's
+  occupied manual-service ports. Independent reviewer completion remains unavailable
+  after the earlier reviewer usage-limit failures; the change received local review.
+- A real HTTP/SSE two-turn run correctly attached the short colour answer to shoes
+  and continued advice. That run exposed an omitted desired category; the subsequent
+  contract-description correction was then verified separately through the real
+  interpreter, SQLite compatibility reader and advisor.
+- Four exposed live semantic cases passed: Arabic shoe-colour answer, Franco-Arabic
+  `aswd kda`, explicit desired green shirt, and correcting the shoes to blue while
+  requesting a white shirt. In the original case, desired shirt colour remained null,
+  shoes became black, and fresh cards plus Arabic advice included blue/white options.
+- The observed product-page add request still produced the correct cart-edit intent,
+  using one format repair in its live probe. No real cart mutation was performed by
+  these probes. These bounded cases are regression evidence, not unseen accuracy.
+
+Raw traces remain ignored at `work/manual-test/live-conversation-v29.json`,
+`work/manual-test/live-conversation-v29-flow.json`, and
+`work/manual-test/live-answer-semantics-v29.json`. Together they report approximately
+$0.0143 in provider usage under the unchanged $2 total, non-resetting cap.
+Latency remains variable: some interpretation calls took about 2.4–3.9 seconds,
+another 16.6 seconds, and one 47.3 seconds. This fixes the reproduced interpretation
+failure; it does not establish a response-time guarantee or solve provider latency.
+SQLite and shopper isolation are retained. No push, AWS deployment or budget increase.
+
 ## Established conversation path restored; styling interpretation still open — 2026-10-08
 
 At the owner's request, experimental catalogue retrieval is disabled again:

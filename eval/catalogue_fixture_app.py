@@ -25,7 +25,7 @@ class FixtureModel:
         interpreting = request.prompt_version.startswith("intent-")
         if interpreting:
             context = json.loads(request.system.split("\n", 1)[0].split(": ", 1)[1])
-            context["message"] = request.messages[0].content
+            context["message"] = request.messages[-1].content
         else:
             context = json.loads(request.messages[0].content)
         if request.prompt_version.startswith("advice-"):

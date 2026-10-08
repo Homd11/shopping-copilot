@@ -86,7 +86,9 @@ class IntentConstraints(IntentModel):
         default=None,
         description=(
             "Catalogue category key. Required for a completed find_products decision, "
-            "including browsing a section or filtering by product_type. "
+            "including browsing a section or filtering by product_type. Also supply it "
+            "for advice seeking a known product type: it selects the catalogue evidence "
+            "the advisor receives. Null is for conversation without a desired category. "
             "Resolve from the request and catalogue categories; if genuinely ambiguous, "
             "set needs_clarification=true and missing_fields=['category']."
         ),

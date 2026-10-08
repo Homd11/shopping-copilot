@@ -172,7 +172,10 @@ def test_verified_product_survives_other_tasks_and_refresh(intervening):
         new = actions(client, sid)[before:]
         assert [a["url"] for a in new] == ["/p/white-shirt"]
         assert '"known_products"' in model.requests[-1].system
-        assert "Recommend a shirt for the outfit" in model.requests[-1].system
+    assert any(
+        "Recommend a shirt for the outfit" in message.content
+        for message in model.requests[-1].messages[:-1]
+    )
 
 
 @pytest.mark.parametrize("observation", ["action_result", "reconcile"])
@@ -251,7 +254,7 @@ def test_remembered_identity_does_not_cross_session_or_origin(change):
         assert len(actions(client, sid)) == before
         context = json.loads(model.requests[-1].system.split("\n", 1)[0].split(": ", 1)[1])
         assert context["known_products"] == []
-        assert context["recent_conversation"] == []
+    assert len(model.requests[-1].messages) == 1
 
 
 @pytest.mark.parametrize("continuation", ["answer", "retry"])

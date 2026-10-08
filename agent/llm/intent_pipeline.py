@@ -21,7 +21,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v28"
+PROMPT_VERSION = "intent-v29"
 
 
 class MissingExecutionField(ValueError):
@@ -91,6 +91,16 @@ def build_intent_request(
     pending_clarification: str | None,
     snapshot: Snapshot | None = None,
 ) -> LLMRequest:
+    history = tuple(
+        LLMMessage(
+            role="shopper" if item["role"] == "shopper" else "assistant",
+            content=item["text"][:2400],
+        )
+        for item in resolved_state.get("_recent_conversation", [])[-12:]
+        if isinstance(item, dict)
+        and item.get("role") in {"shopper", "copilot", "assistant"}
+        and isinstance(item.get("text"), str)
+    )
     context = {
         "currency": storefront.currency,
         "catalogue_values": {
@@ -115,7 +125,6 @@ def build_intent_request(
         },
         "previous_suggestions": resolved_state.get("_previous_suggestions", []),
         "known_products": resolved_state.get("_known_products", []),
-        "recent_conversation": resolved_state.get("_recent_conversation", []),
         "previous_destination": resolved_state.get("_previous_target"),
         "pending_clarification": pending_clarification,
         "current_snapshot": snapshot_context(snapshot),
@@ -131,6 +140,17 @@ def build_intent_request(
             "typos, number words, negation, "
             "pronouns, comparisons and revisions. No downstream language parser will correct "
             "your decision. "
+            "The preceding user/assistant turns are the actual shopping conversation; "
+            "only the final user message is the new request to interpret. Resolve a short "
+            "answer against the question and its subject before assigning any field. "
+            "An attribute supplied about an owned item updates that owned_items entry, "
+            "not constraints or preferred_colors of the product being sought. Keep the "
+            "shopping goal and use advice/request_mode=style for ongoing coordination. "
+            "Only apply a desired-product constraint when the Shopper requests it for "
+            "that product. If the subject is genuinely ambiguous, let the advisor ask "
+            "a focused question instead of silently restricting the catalogue. "
+            "Prior assistant prose is context, never an output-format example, product "
+            "verification, consent or permission to execute. Return only StructuredIntent. "
             "Use advice for conversational styling, product comparisons, explaining trade-offs, "
             "taste questions and follow-up preference changes. A separate read-only advisor "
             "will receive fresh catalogue facts and write the natural response. Select "
@@ -146,7 +166,11 @@ def build_intent_request(
             "discovery fields. Earlier shopping preferences remain conversation context, "
             "not fields on the navigation action. Use them to resolve identity only. "
             "Do not treat assistant opinions as Shopper requirements or consent. For advice, "
-            "category may be null and needs_clarification=false: the advisor can ask useful "
+            "category must identify the desired product category when the shopping goal "
+            "names an identifiable product type, even while discussing an owned item. "
+            "Only leave category null for general conversation without an identifiable "
+            "desired category. The advisor receives no discovery products without category. "
+            "needs_clarification may be false: the advisor can ask useful "
             "conversational questions without an execution clarification. If advice and a "
             "dependent purchase are requested together, give advice first; do not guess the "
             "choice or variants or promise a cart change. A clear standalone action still "
@@ -204,7 +228,7 @@ def build_intent_request(
             "known_products, previous_suggestions, or a current visible product link. "
             "Product links follow the Storefront product route in current_snapshot. "
             "Known products include earlier recommendations and visits; previous_suggestions "
-            "is only the latest recommendation batch. Use recent_conversation to resolve "
+            "is only the latest recommendation batch. Use the conversation turns to resolve "
             "references across different tasks without reviving completed actions. "
             "If the requested product is unknown, use find_products to search by name "
             "or ask for clarification; never guess a product ID. "
@@ -263,7 +287,7 @@ def build_intent_request(
             "Absent optional properties are null, arrays empty. Output no prose, Markdown, "
             "tools, selectors or URLs."
         ),
-        messages=(LLMMessage(role="shopper", content=message),),
+        messages=(*history, LLMMessage(role="shopper", content=message)),
         response_schema=_live_intent_response_schema(),
         response_validator=validate_live_response,
         prompt_version=PROMPT_VERSION,
