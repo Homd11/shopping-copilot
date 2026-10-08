@@ -2,6 +2,48 @@
 
 **Last updated:** 2026-10-08
 
+## Established conversation path restored; styling interpretation still open — 2026-10-08
+
+At the owner's request, experimental catalogue retrieval is disabled again:
+`CATALOGUE_RETRIEVAL_ENABLED=0` in the private local configuration and both ignored
+manual-service launchers. Only the Agent was restarted. SQLite, the Storefront
+process, shopper isolation and existing carts were retained. Agent health and both
+UI roots return HTTP 200. Refresh the Panel for a fresh Agent session.
+Repository defaults already disable retrieval; experimental code is retained but
+inactive. No combined-response/routing optimization was ported into the restored
+path, and no prompt, language rule or safety guard changed during this rollback.
+
+The established `interpret_message` / catalogue-reader / standalone-advisor path
+is active. Its catalogue compatibility endpoint reads the SQLite repository.
+All 449 Agent tests pass. Browser/full-workspace checks were not rerun for this
+configuration rollback; the manual Storefront was left running to retain carts.
+
+Bounded live baseline with the existing $2 total non-resetting cap:
+
+- Styling request through the HTTP/SSE application seam returned advice and cards
+  in two model calls, about 11.0s overall in this run.
+- A subsequent bare "black" completed in one call, about 2.8s, but was wrongly
+  applied to the desired shirt colour. A separate reconstruction including the
+  explicit question about the shoes' colour also produced that wrong assignment.
+  **This semantic bug remains open in the restored interpreter.** Rollback is not
+  evidence that all prior behaviour or this exact conversation now works.
+- The green, size-43 add request on a supplied product-page snapshot produced a
+  valid cart-edit intent with the observed button ID, quantity one, in one 3.485s
+  call. This is interpretation evidence, not a browser cart mutation or a complete
+  recommendation-to-add journey.
+
+Five model requests reported $0.0057311 combined cost. Single-run timings are not
+latency guarantees. The live probes used isolated test sessions/snapshots and did
+not alter the owner's cart. Ignored traces are
+`work/manual-test/live-stable-rollback.json` and
+`work/manual-test/live-stable-targets.json`.
+
+Next: address the general distinction between an answer about an owned item and
+a requirement for a desired product, using conversation-level evidence without
+phrase matching. Keep experimental retrieval disabled while doing that work;
+optimize the established flow only against measured, complete conversations.
+No push, AWS deployment or additional budget increase occurred.
+
 ## Retrieval latency: fewer calls and bounded live timings — 2026-10-08
 
 The owner reported roughly 20-second replies and a stopped product-opening request.
