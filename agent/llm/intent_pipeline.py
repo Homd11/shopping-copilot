@@ -16,12 +16,13 @@ from agent.llm.intent import (
     StructuredIntentDraftError,
     collect_structured_intent,
 )
+from agent.llm.intent_wire import wire_intent_adapter
 from agent.navigation import DESTINATION_TERMS, destination_label
 from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v29"
+PROMPT_VERSION = "intent-v31"
 
 
 class MissingExecutionField(ValueError):
@@ -270,8 +271,13 @@ def build_intent_request(
             "never increase/decrease. Remove and undo have null quantity mode. "
             "Cart constraints may contain ONLY requested size/color. Preserve "
             "already-selected variants otherwise. "
-            "For cart_edit, product_id is null even after opening or discussing that product; "
-            "the observed cart_target_id button determines the actual form or cart line. "
+            "For add, resolve the chosen product from known_products, previous_suggestions "
+            "and the conversation into product_id. Keep requested size/color and quantity. "
+            "If its product page is not open, leave cart_target_id null: runtime will open "
+            "that verified product and bind its fresh add form. Missing page controls alone "
+            "do not require clarification. Do not replace an add request with open_product. "
+            "For quantity/remove/undo, product_id is null; the observed cart_target_id "
+            "button determines the cart line. "
             "Leave catalogue_requirements/owned_items empty and owned_item null. Preserve "
             "the requested cart operation, quantity, mode and size/color. "
             "cart_source and navigation_source describe the current request. Emptying the "
@@ -297,9 +303,7 @@ def build_intent_request(
 
 
 def _live_intent_response_schema() -> dict[str, Any]:
-    schema = StructuredIntent.model_json_schema()
-    schema["properties"]["v"] = {"const": 9, "type": "integer"}
-    return schema
+    return wire_intent_adapter.json_schema()
 
 
 def validate_live_response(text: str) -> StructuredIntent:
@@ -380,7 +384,9 @@ def _repair_feedback(error, intent, snapshot, schema):
         )
     cause = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(cause, ValidationError):
-        properties = schema.get("properties", {})
+        # Runtime errors refer to the persisted contract, including field validators.
+        # The provider generation schema is a union and has no root properties.
+        properties = StructuredIntent.model_json_schema()["properties"]
         issues = cause.errors(include_input=False, include_context=False)
         fields = {
             issue["loc"][0] for issue in issues if issue["loc"] and issue["loc"][0] in properties
@@ -389,7 +395,7 @@ def _repair_feedback(error, intent, snapshot, schema):
         if any(issue["type"] == "cart_authority_isolation" for issue in issues):
             feedback["cross_field_rules"] = {
                 "cart_authority_isolation": {
-                    "null_fields": ["product_id", "owned_item"],
+                    "null_fields": ["owned_item"],
                     "empty_arrays": ["catalogue_requirements", "owned_items"],
                     "allowed_constraint_fields": ["size", "color"],
                     "preserve_fields": [
@@ -397,10 +403,12 @@ def _repair_feedback(error, intent, snapshot, schema):
                         "cart_target_id",
                         "cart_quantity",
                         "cart_quantity_mode",
+                        "product_id for add only",
                     ],
                     "instruction": "Keep the requested cart edit and requested size/color. "
-                    "Use the observed cart button ID, not catalogue identity or earlier "
-                    "discovery context. "
+                    "For add keep the chosen known product_id; runtime opens its page "
+                    "before binding an add button. Other cart operations use observed "
+                    "button IDs and null product_id. Do not carry discovery constraints. "
                     "Do not change the requested amount or select a different variant.",
                 }
             }
@@ -477,6 +485,8 @@ def _validate_interpreted_intent(
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
     if intent.intent == "cart_edit":
         intent = validate_cart_intent(message, intent, snapshot)
+        if intent.product_id is not None:
+            require_known_product(intent.product_id, state, snapshot, storefront)
     for product_id in intent.advice_product_ids:
         require_known_product(product_id, state, snapshot, storefront)
     if intent.needs_clarification:

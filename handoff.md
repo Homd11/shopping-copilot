@@ -1,5 +1,21 @@
 # Shopping Copilot — project handoff
 
+## Recommended-product add and latency repair — 2026-10-09
+
+See [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md) for the newest evidence. The
+model can select an observed product for cart add from recommendations; runtime
+opens its verified route, binds the fresh add form and executes validated variants.
+Operation-specific generation schemas reduce irrelevant discovery fields on cart
+requests. Provider string enums and local numeric/version validation avoid the
+captured malformed/empty-output failures. Private Storefront HTTP checks reuse
+connections while still checking shopper authorization on every request.
+
+The actual browser reproduction passed: recommendations 6.954 seconds, add 5.375
+seconds, no repair calls; another shopper remained isolated. These are exposed
+regression observations, not a guarantee. SQLite remains active, experimental
+retrieval remains disabled, and the $2 total key cap is unchanged. Normal local
+services have been restored. No push or AWS deployment.
+
 ## Catalogue retrieval implemented locally; activation pending — 2026-10-08
 
 The approved SQLite repository, private bounded search/details service and opt-in

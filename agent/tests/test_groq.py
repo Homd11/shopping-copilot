@@ -84,9 +84,11 @@ def test_groq_client_uses_strict_structured_output_behind_the_llm_interface() ->
     schema_definition = payload["response_format"]["json_schema"]
     assert schema_definition["strict"] is True
     schema = schema_definition["schema"]
-    assert schema["additionalProperties"] is False
-    assert set(schema["required"]) == set(schema["properties"])
-    constraints = schema["$defs"]["IntentConstraints"]
+    for reference in schema["anyOf"]:
+        branch = schema["$defs"][reference["$ref"].split("/")[-1]]
+        assert branch["additionalProperties"] is False
+        assert set(branch["required"]) == set(branch["properties"])
+    constraints = schema["$defs"]["DiscoveryConstraints"]
     assert constraints["additionalProperties"] is False
     assert set(constraints["required"]) == set(constraints["properties"])
     assert client.call_metadata[-1].usage == {

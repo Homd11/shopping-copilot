@@ -57,6 +57,15 @@ def openrouter_response_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
     def structural(value):
         if not isinstance(value, dict):
             return value
+        # The pinned Gemini route supports string enums. Numeric enums caused
+        # empty decisions in live probes; their values remain locally validated.
+        if "const" in value:
+            if "enum" in value and value["const"] not in value["enum"]:
+                raise LLMConfigurationError("Provider schema has contradictory literals")
+            value = {**value, "enum": [value["const"]]}
+            value.pop("const")
+        if "enum" in value and any(not isinstance(item, str) for item in value["enum"]):
+            value = {key: item for key, item in value.items() if key != "enum"}
         return _map_subschemas(
             {key: item for key, item in value.items() if key not in local_constraints}, structural
         )

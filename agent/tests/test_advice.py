@@ -442,7 +442,7 @@ def test_navigation_target_on_discovery_repairs_target_without_discarding_requir
     assert not any(event["event"] == "action" for event in events)
 
 
-def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch():
+def test_discovery_constraints_on_cart_add_get_scoped_repair_preserving_product_identity():
     from agent.tests.test_cart_task import snapshot
 
     clean = decision(
@@ -452,8 +452,11 @@ def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch()
         cart_target_id=4,
         cart_quantity=1,
         cart_quantity_mode="set",
+        product_id="shoe-09",
     )
-    model = RecordingModel({**clean, "product_id": "shoe-09"}, clean)
+    model = RecordingModel(
+        {**clean, "constraints": {**clean["constraints"], "category": "shoes"}}, clean
+    )
     with client_for(model) as client:
         session = client.post("/sessions").json()["session_id"]
         events = send(
@@ -464,7 +467,7 @@ def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch()
         )
     repair = json.loads(model.requests[-1].system.split("Runtime validation feedback: ")[-1])
     rule = repair["cross_field_rules"]["cart_authority_isolation"]
-    assert "product_id" in rule["null_fields"]
+    assert "product_id for add only" in rule["preserve_fields"]
     assert rule["allowed_constraint_fields"] == ["size", "color"]
     assert "cart_quantity" in rule["preserve_fields"]
     actions = [e["data"]["action"] for e in events if e["event"] == "action"]

@@ -103,6 +103,7 @@ class OpenRouterClient:
                 "stream": self._settings.stream,
                 "reasoning": {"enabled": False},
                 "provider": {
+                    "sort": "latency",
                     "require_parameters": True,
                     "max_price": {"prompt": 0.3, "completion": 2.5},
                 },

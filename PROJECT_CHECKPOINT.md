@@ -1,6 +1,72 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-08
+**Last updated:** 2026-10-09
+
+## Recommendation-to-cart boundary and latency repair — 2026-10-08
+
+The reported “first football shoe, blue, size 43, add it” failure was reproduced
+with captured provider output. Two application defects were involved: the model
+could select the known product but `cart_edit` prohibited its identity, and the
+flat generation schema invited discovery fields that runtime cart validation
+rejected. Earlier probes on an already-open product page did not cover this
+navigation-to-add transition.
+
+The established path now retains the model-selected, observed product identity
+for add only. Runtime opens that product, checks the returned origin and product
+path, binds the sole enabled visible add form, validates requested variants and
+executes the existing cart sequence. Unknown products, ambiguous/disabled forms,
+truncated snapshots, wrong pages and intervening page changes cannot authorize
+the add. Existing cart-line edits still require observed line controls. Duplicate
+results and uncertain mutation recovery retain their existing safeguards.
+
+`intent-v31` uses operation-specific generation schemas derived from persisted
+field types; cart/navigation decisions no longer expose discovery metadata.
+Runtime still validates `StructuredIntent`, quantities, capabilities and authority.
+Repair diagnostics use that persisted schema. OpenRouter's schema adapter converts
+string `const` restrictions to equivalent string `enum` restrictions after a live
+response invented an unsupported action name. Numeric enums caused empty decisions
+on the pinned Gemini route: an isolated probe removing only the numeric enum
+succeeded, while adding an object type to the union did not. Numeric literal
+restrictions therefore remain local; existing live version-8/9 compatibility is
+preserved and versions outside that policy are rejected. No transport wrapper is
+needed. No language phrase rules, output
+alias rewriting, or automatic variant substitution were added.
+
+Latency changes: OpenRouter prioritizes latency within the unchanged model and
+price ceilings; private Storefront requests reuse an HTTP connection pool. Every
+shopper authorization check still sends a fresh validation request, with revocation
+and distinct-shopper coverage. Constructing a new HTTP client had cost roughly
+160–250 ms per check before a 5–40 ms local request. The pool closes at app shutdown.
+
+Live evidence so far includes a full HTTP/SSE recommendation/advice/add sequence
+and successful actual Panel/Bridge/Storefront cart mutations in separate browser
+contexts. The exact selected cart line was `shoe-12`, blue, size 43, quantity 1;
+a second shopper's cart stayed empty. After pooling, full browser recommendation
+took about 7 seconds and add 5.9 seconds; another add needed a model repair and
+took about 9.6 seconds before the singleton-enum adjustment. These are exposed
+regression observations, not an unseen accuracy score or latency guarantee.
+
+Final verification on 2026-10-09 (local time): the actual browser reproduction
+passed with recommendations in 6.954 seconds and add in 5.375 seconds, including
+navigation and fresh variant selection. Three model calls, no repair calls, exact
+`shoe-12` / blue / 43 / quantity 1 cart line, and an independent shopper remained
+empty. This is a measured regression result, not a latency or universal-success
+guarantee. Normal services were restored after the bounded diagnostic runtime.
+
+Verification includes an earlier full Python run (583 passed), followed after the
+provider compatibility correction by 536 non-browser tests and focused tests for
+the retained live-version policy (11 focused schema checks). All 182 TypeScript
+tests, builds, ESLint, Ruff, Prettier and diff-whitespace checks passed. No
+application safety checks were weakened to accept
+an invalid model decision. Two independent reviewers examined execution/schema
+changes; their repair-feedback finding was fixed. Final review also corrected a
+test/report mismatch: version 8 remains accepted by the existing live compatibility
+policy, despite the generation schema requesting version 9. The regression now
+checks the actual live validator. Raw traces and browser timing artifacts remain
+ignored under `work/manual-test/`.
+The key's total non-resetting cap remains $2; latest metadata reports about
+$1.089 used in total (provider accounting may lag). SQLite and shopper isolation remain active; experimental
+retrieval stays disabled. No AWS resources, push or cap increase.
 
 ## Short conversational answers: role-aware context verified — 2026-10-08
 

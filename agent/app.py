@@ -113,7 +113,12 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.storefront_service.validate_configuration()
-        yield
+        try:
+            yield
+        finally:
+            close = getattr(app.state.storefront_service, "aclose", None)
+            if close is not None:
+                await close()
 
     app = FastAPI(title="Shopping Copilot Agent", lifespan=lifespan)
     app.state.llm_settings = settings

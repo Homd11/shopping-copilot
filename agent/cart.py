@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from agent.product_reference import names_product
@@ -26,6 +27,30 @@ CART_ROUTES = {
     "remove": "/cart/remove",
     "undo": "/cart/undo",
 }
+
+
+def bind_product_add(
+    intent: StructuredIntent, snapshot: Snapshot, product_route: str
+) -> StructuredIntent:
+    """Bind a model-selected product to its sole current add form, never by prose."""
+    if intent.cart_operation != "add" or intent.product_id is None:
+        return intent
+    expected = product_route.replace("{product_id}", intent.product_id)
+    if urlsplit(snapshot.url).path != expected:
+        raise ValueError("Selected product does not match the current add page")
+    buttons = [
+        e
+        for e in snapshot.elements
+        if e.visible
+        and not e.sensitive
+        and not e.disabled
+        and e.role == "button"
+        and e.form_action == CART_ROUTES["add"]
+    ]
+    target = buttons[0].id if len(buttons) == 1 and not snapshot.truncated else None
+    if intent.cart_target_id is not None and intent.cart_target_id != target:
+        raise ValueError("Proposed add button does not match the selected product form")
+    return intent.model_copy(update={"cart_target_id": target})
 
 
 def validate_cart_intent(
