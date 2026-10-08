@@ -1,4 +1,5 @@
 import type { ProductRepository } from "./product-repository.js";
+import { catalogueRoutes } from "./catalogue-api.js";
 import express, { type Express } from "express";
 import {
   LinkTickets,
@@ -128,6 +129,10 @@ export function createApp(options: {
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
+  app.use(
+    "/__internal/catalogue",
+    catalogueRoutes(repository, options.serviceSecret ?? ""),
+  );
   app.use("/assets", express.static(resolve(sourceDirectory, "../public")));
   app.use(
     "/bridge",
