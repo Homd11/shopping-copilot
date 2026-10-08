@@ -14,6 +14,8 @@ from starlette.responses import StreamingResponse
 
 from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
+from agent.catalogue_client import CatalogueReadError
+from agent.catalogue_turn import configured_client, prepare_turn
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
@@ -95,6 +97,8 @@ def create_app(
     llm_settings: LLMSettings | None = None,
     llm_client: LLMClient | None = None,
     catalogue_reader: CatalogueReader | None = None,
+    catalogue_client=None,
+    catalogue_retrieval_enabled: bool | None = None,
     confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool]
     | None = None,
     speech_transcriber: SpeechTranscriber | None = None,
@@ -138,6 +142,12 @@ def create_app(
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
+    retrieval_enabled = (
+        os.environ.get("CATALOGUE_RETRIEVAL_ENABLED") == "1"
+        if catalogue_retrieval_enabled is None
+        else catalogue_retrieval_enabled
+    )
+
     active_interpretations: set[tuple[str, str, str]] = set()
 
     async def verify_owner(session_id: str) -> None:
@@ -162,6 +172,56 @@ def create_app(
         phase = "intent"
         try:
             await verify_owner(session_id)
+            if retrieval_enabled:
+                phase = "catalogue"
+
+                async def ensure_active():
+                    current = sessions.get(session_id)
+                    if (
+                        current.active_task is not task
+                        or task.model_call_id != call_id
+                        or task.status != "interpreting"
+                        or current.requires_reconciliation
+                        or current.last_snapshot != observed
+                    ):
+                        raise SessionNotFound(session_id)
+                    await verify_owner(session_id)
+                    # Ownership validation awaits external I/O; recheck task identity afterwards.
+                    current = sessions.get(session_id)
+                    if (
+                        current.active_task is not task
+                        or task.model_call_id != call_id
+                        or task.status != "interpreting"
+                        or current.requires_reconciliation
+                        or current.last_snapshot != observed
+                    ):
+                        raise SessionNotFound(session_id)
+
+                await ensure_active()
+                reader = catalogue_client or await configured_client(identity_settings)
+                await ensure_active()
+                phase = "intent"
+                prepared = await prepare_turn(
+                    task, observed, planner.storefront, llm_client, reader, ensure_active
+                )
+                await ensure_active()
+                # Remember verified identities only, never DOM targets or mutation authority.
+                task.resolved_state["_known_products"] = [
+                    *task.resolved_state.get("_known_products", []),
+                    *prepared.references,
+                ][-24:]
+                if prepared.evidence is not None:
+                    sessions.finish_catalogue_interpretation(
+                        session_id,
+                        task_id,
+                        call_id,
+                        prepared.intent,
+                        prepared.evidence.discovery,
+                        advice_text=prepared.summary,
+                    )
+                else:
+                    sessions.finish_interpretation(session_id, task_id, call_id, prepared.intent)
+                return
             intent = await interpret_message(
                 llm_client,
                 task.message,
@@ -255,7 +315,7 @@ def create_app(
         except Exception as error:
             reason = (
                 "catalogue_unavailable"
-                if phase == "catalogue"
+                if phase == "catalogue" or isinstance(error, CatalogueReadError)
                 else interpretation_pause_reason(error)
             )
             sessions.fail_interpretation(

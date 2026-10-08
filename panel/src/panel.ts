@@ -35,7 +35,7 @@ export interface Suggestion {
 }
 
 export interface SuggestionResult {
-  exact_count: number;
+  exact_count: number | null;
   suggestions: Suggestion[];
 }
 
@@ -43,8 +43,9 @@ function parseSuggestionResult(
   data: Record<string, unknown>,
 ): SuggestionResult {
   if (
-    !Number.isSafeInteger(data.exact_count) ||
-    (data.exact_count as number) < 0
+    data.exact_count !== null &&
+    (!Number.isSafeInteger(data.exact_count) ||
+      (data.exact_count as number) < 0)
   )
     throw new TypeError("Invalid exact match count");
   if (!Array.isArray(data.suggestions) || data.suggestions.length > 3)
@@ -71,7 +72,7 @@ function parseSuggestionResult(
       unmet: item.unmet as string[],
     };
   });
-  return { exact_count: data.exact_count as number, suggestions };
+  return { exact_count: data.exact_count as number | null, suggestions };
 }
 
 function eventData(payload: unknown): Record<string, unknown> {
