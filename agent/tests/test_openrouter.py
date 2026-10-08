@@ -64,7 +64,7 @@ def test_schema_translation_preserves_keyword_named_properties_and_literal_metad
         sent = json.loads(request.content)["response_format"]["json_schema"]["schema"]
         assert set(sent["properties"]) == set(sent["required"])
         assert sent["properties"]["maximum"] == {"type": "integer"}
-        assert sent["properties"]["pattern"] == schema["properties"]["pattern"]
+        assert sent["properties"]["pattern"] == {"default": literal}
         return httpx.Response(
             200,
             json={
@@ -83,6 +83,54 @@ def test_schema_translation_preserves_keyword_named_properties_and_literal_metad
         return [chunk async for chunk in client.complete(request)]
 
     assert asyncio.run(run())
+
+
+def test_operation_union_reaches_provider_and_runtime_validates_the_decision():
+    from agent.llm.intent_wire import wire_intent_adapter
+
+    decision = dict(
+        v=9,
+        intent="cart_edit",
+        language="en",
+        dialect="english",
+        constraints={"size": "43", "color": "blue"},
+        missing_fields=[],
+        needs_clarification=False,
+        cart_operation="add",
+        product_id="shoe-12",
+    )
+
+    def handler(request):
+        if request.method == "GET":
+            return httpx.Response(
+                200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
+            )
+        schema = json.loads(request.content)["response_format"]["json_schema"]["schema"]
+        assert schema["anyOf"]
+        assert "enum" not in schema["anyOf"][0]["properties"]["v"]
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(decision)},
+                    }
+                ]
+            },
+        )
+
+    async def run():
+        client = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))
+        request = LLMRequest(
+            system="fixture",
+            messages=(),
+            response_schema=wire_intent_adapter.json_schema(),
+            response_validator=wire_intent_adapter.validate_json,
+        )
+        return "".join([c.text async for c in client.complete(request)])
+
+    assert json.loads(asyncio.run(run())) == decision
 
 
 @pytest.mark.parametrize("cap", ["1.00", "2.00", "2.01", "nan", "inf", "0"])
@@ -190,6 +238,7 @@ def test_bounded_openrouter_request_validates_output_and_records_cost():
         assert payload["reasoning"] == {"enabled": False}
         assert payload["provider"]["max_price"] == {"prompt": 0.3, "completion": 2.5}
         assert payload["provider"]["require_parameters"] is True
+        assert payload["provider"]["sort"] == "latency"
         assert payload["response_format"]["json_schema"]["strict"] is True
         return httpx.Response(
             200,
@@ -276,7 +325,7 @@ def test_real_intent_request_fits_the_paid_budget_bound():
                         "message": {
                             "content": json.dumps(
                                 {
-                                    "v": 8,
+                                    "v": 9,
                                     "language": "ar",
                                     "dialect": "egyptian_arabic",
                                     "intent": "cart_edit",

@@ -4,7 +4,7 @@ from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from agent.cart import plan_cart_edit, validate_cart_intent
+from agent.cart import bind_product_add, plan_cart_edit, validate_cart_intent
 from agent.catalogue import DiscoveryResult
 from agent.confirmation import (
     validate_mutation_interpretation,
@@ -182,7 +182,7 @@ def finish_interpretation(
         session.conversation.append({"role": "copilot", "text": summary})
         runtime.sessions.touch(session)
         return task
-    if intent.intent == "open_product" and not intent.needs_clarification:
+    if intent.product_id is not None and not intent.needs_clarification:
         require_known_product(
             intent.product_id,
             task.resolved_state,
@@ -193,7 +193,28 @@ def finish_interpretation(
         intent = validate_cart_intent(task.message, intent, session.last_snapshot)
     if intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation
-        if (
+        product_url = (
+            runtime.planner.storefront.product_route.replace("{product_id}", intent.product_id)
+            if intent.cart_operation == "add" and intent.product_id
+            else None
+        )
+        if product_url and urlsplit(session.last_snapshot.url).path != product_url:
+            # DOM IDs belong to the old page; bind only after verified navigation.
+            intent = intent.model_copy(update={"cart_target_id": None})
+            task.cart_actions = [
+                NavigateAction(
+                    v=1,
+                    type="navigate",
+                    task_id=task_id,
+                    action_id=f"action-{uuid4().hex}",
+                    sequence_number=task.step_count + 1,
+                    narration="هفتح المنتج وأختار المواصفات المطلوبة عشان أضيفه للسلة."
+                    if intent.language == "ar"
+                    else "I'll open that product and add the requested variant.",
+                    url=product_url,
+                )
+            ]
+        elif (
             intent.cart_operation in {"quantity", "remove"}
             and session.last_snapshot is not None
             and urlsplit(session.last_snapshot.url).path != "/cart"
@@ -212,6 +233,9 @@ def finish_interpretation(
                 )
             ]
         else:
+            intent = bind_product_add(
+                intent, session.last_snapshot, runtime.planner.storefront.product_route
+            )
             task.cart_actions = plan_cart_edit(
                 intent, session.last_snapshot, task_id, task.step_count + 1
             )

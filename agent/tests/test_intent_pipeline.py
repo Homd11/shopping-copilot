@@ -193,7 +193,11 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["currency"] == "EGP"
     assert context["resolved_state"] == {"category": "shoes"}
     assert context["pending_clarification"] == "size"
-    assert request.response_schema["properties"]["v"]["const"] == 9
+    assert all(
+        request.response_schema["$defs"][branch["$ref"].split("/")[-1]]["properties"]["v"]["const"]
+        == 9
+        for branch in request.response_schema["anyOf"]
+    )
 
 
 def test_prompt_injection_stays_in_the_untrusted_shopper_message_channel() -> None:

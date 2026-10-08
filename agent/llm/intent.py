@@ -145,8 +145,10 @@ class StructuredIntent(IntentModel):
     product_id: str | None = Field(
         default=None,
         description=(
-            "Only open_product uses this catalogue ID. For cart_edit use the observed "
-            "cart_target_id button and leave product_id null."
+            "Verified catalogue identity for open_product or cart_edit/add. For add, "
+            "supply the chosen known product ID even when its page is not open yet; "
+            "runtime navigates there before binding a fresh add button. Never use this "
+            "to select an existing cart line for quantity/remove/undo."
         ),
     )
     revised_fields: list[RevisionField] = Field(default_factory=list)
@@ -250,7 +252,11 @@ class StructuredIntent(IntentModel):
                 raise PydanticCustomError(
                     "cart_authority_isolation", "Cart edits cannot carry discovery constraints"
                 )
-            if self.product_id or self.catalogue_requirements or self.context_items:
+            if (
+                (self.product_id and self.cart_operation != "add")
+                or self.catalogue_requirements
+                or self.context_items
+            ):
                 raise PydanticCustomError("cart_authority_isolation", "Cart edits must be isolated")
         elif any(
             value is not None
@@ -309,7 +315,11 @@ class StructuredIntent(IntentModel):
             )
         if self.intent == "open_product" and self.constraints.target is not None:
             raise ValueError("A product target cannot be a Storefront destination")
-        if self.intent != "open_product" and self.product_id is not None:
+        if (
+            self.intent != "open_product"
+            and not (self.intent == "cart_edit" and self.cart_operation == "add")
+            and self.product_id is not None
+        ):
             raise ValueError("Product ID is only valid for opening a recommended product")
         minimum = self.constraints.min_price
         maximum = self.constraints.max_price

@@ -334,7 +334,11 @@ def test_live_intent_request_requires_schema_version_nine():
         pending_clarification=None,
     )
 
-    assert request.response_schema["properties"]["v"] == {"const": 9, "type": "integer"}
+    assert all(
+        request.response_schema["$defs"][branch["$ref"].split("/")[-1]]["properties"]["v"]["const"]
+        == 9
+        for branch in request.response_schema["anyOf"]
+    )
 
 
 def test_context_is_restored_before_api_routes_to_suggestions():

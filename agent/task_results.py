@@ -4,7 +4,7 @@ import re
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from agent.cart import MESSAGES, plan_cart_edit
+from agent.cart import MESSAGES, bind_product_add, plan_cart_edit
 from agent.llm.intent import StructuredIntent
 from agent.planner import (
     ActionIdentity,
@@ -78,13 +78,19 @@ def accept_result(
         )
         runtime.record_snapshot(session, action_result.snapshot)
         if isinstance(action, NavigateAction):
+            intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
+            product_add = intent.cart_operation == "add" and intent.product_id is not None
+            expected = (
+                runtime.planner.storefront.product_route.replace("{product_id}", intent.product_id)
+                if product_add
+                else "/cart"
+            )
             if (
                 same_origin
                 and action_result.status in {"ok", "navigated"}
-                and urlsplit(action_result.snapshot.url).path == "/cart"
+                and urlsplit(action_result.snapshot.url).path == expected
             ):
-                intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
-                if intent.v >= 8:
+                if intent.v >= 8 and not product_add:
                     # Navigation supplied the previously unavailable cart context.
                     # Resolve a DOM target from this fresh snapshot before any edit.
                     task.action = None
@@ -94,6 +100,11 @@ def accept_result(
                     task.model_call_id = f"call-{uuid4().hex}"
                     runtime.sessions.touch(session)
                     return task
+                if product_add:
+                    intent = bind_product_add(
+                        intent, action_result.snapshot, runtime.planner.storefront.product_route
+                    )
+                    task.resolved_state["_intent"] = intent.model_dump(mode="json")
                 task.cart_actions = plan_cart_edit(
                     intent, action_result.snapshot, task.task_id, task.step_count + 1
                 )
@@ -104,6 +115,8 @@ def accept_result(
                     if isinstance(task.action, AskShopperAction)
                     else "awaiting_action_result"
                 )
+                if isinstance(task.action, AskShopperAction) and not task.action.options:
+                    task.pending_clarification = task.action.question
                 runtime.append(
                     session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
                 )
@@ -112,9 +125,9 @@ def accept_result(
                 task.action = None
                 task.cart_actions.clear()
                 task.pause_message = (
-                    "تعذر فتح السلة. حاول تاني."
+                    "تعذر فتح الصفحة المطلوبة. حاول تاني."
                     if task.language == "ar"
-                    else "Could not open the cart. Retry."
+                    else "Could not open the requested page. Retry."
                 )
                 runtime.append(
                     session, "error", {"task_id": task.task_id, "message": task.pause_message}
@@ -122,6 +135,12 @@ def accept_result(
             runtime.sessions.touch(session)
             return task
         success = action_result.status == "ok" and same_origin
+        intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
+        if intent.cart_operation == "add" and intent.product_id is not None:
+            expected = runtime.planner.storefront.product_route.replace(
+                "{product_id}", intent.product_id
+            )
+            success = success and urlsplit(action_result.snapshot.url).path == expected
         if success and task.cart_actions:
             task.action = task.cart_actions.pop(0)
             task.step_count += 1

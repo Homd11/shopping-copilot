@@ -26,6 +26,17 @@ class StorefrontService:
     def __init__(self, config: dict[str, str] | None = None):
         self.config = config or identity_config()
         self.headers = {"x-service-secret": self.config["secret"]}
+        self._client: httpx.AsyncClient | None = None
+
+    def _connection(self) -> httpx.AsyncClient:
+        if self._client is None:
+            self._client = httpx.AsyncClient(timeout=2, follow_redirects=False)
+        return self._client
+
+    async def aclose(self) -> None:
+        if self._client is not None:
+            await self._client.aclose()
+            self._client = None
 
     def validate_configuration(self) -> None:
         if len(self.config["secret"]) < 32:
@@ -55,16 +66,15 @@ class StorefrontService:
         return self.config["private_url"].rstrip("/") + "/__internal/" + path
 
     async def redeem(self, ticket: str, challenge: str) -> ShopperBinding:
-        async with httpx.AsyncClient(timeout=2, follow_redirects=False) as client:
-            response = await client.post(
-                self._url("link/redeem"),
-                headers=self.headers,
-                json={
-                    "ticket": ticket,
-                    "challenge": challenge,
-                    "audience": self.config["panel_origin"],
-                },
-            )
+        response = await self._connection().post(
+            self._url("link/redeem"),
+            headers=self.headers,
+            json={
+                "ticket": ticket,
+                "challenge": challenge,
+                "audience": self.config["panel_origin"],
+            },
+        )
         response.raise_for_status()
         data = response.json()
         if (
@@ -81,10 +91,9 @@ class StorefrontService:
         return ShopperBinding(**data)
 
     async def validate(self, binding: ShopperBinding) -> bool:
-        async with httpx.AsyncClient(timeout=2, follow_redirects=False) as client:
-            response = await client.post(
-                self._url("shopper/validate"), headers=self.headers, json=asdict(binding)
-            )
+        response = await self._connection().post(
+            self._url("shopper/validate"), headers=self.headers, json=asdict(binding)
+        )
         return response.status_code == 200 and response.json() == {"valid": True}
 
     def register_confirmation(

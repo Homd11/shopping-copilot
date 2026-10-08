@@ -51,3 +51,43 @@ def test_provider_structural_schema_keeps_types_while_local_validator_enforces_b
 
     with pytest.raises(ValidationError):
         DECISION.validate_json(json.dumps({"kind": "search", "query": {"query": "x" * 1025}}))
+
+
+def test_provider_literals_use_single_value_enums_including_nested_operations():
+    from agent.llm.intent_wire import wire_intent_adapter
+
+    schema = openrouter_response_schema(wire_intent_adapter.json_schema())
+    cart = next(b for b in schema["anyOf"] if b["title"] == "CartDecision")
+    assert cart["properties"]["intent"]["enum"] == ["cart_edit"]
+    assert cart["properties"]["v"]["type"] == "integer"
+    assert "enum" not in cart["properties"]["v"]
+    assert "const" not in cart["properties"]["v"]
+    # A property named const is application data, not a schema keyword to rewrite.
+    named = openrouter_response_schema(
+        {"type": "object", "properties": {"const": {"const": "value", "type": "string"}}}
+    )
+    assert named["properties"]["const"] == {"type": "string", "enum": ["value"]}
+    with pytest.raises(LLMConfigurationError, match="contradictory literals"):
+        openrouter_response_schema({"type": "string", "const": "add", "enum": ["remove"]})
+
+
+@pytest.mark.parametrize("version", [7, 8, 9, 10])
+def test_live_validation_retains_version_policy_without_provider_numeric_enum(version):
+    from agent.llm.intent_pipeline import validate_live_response
+
+    raw = json.dumps(
+        dict(
+            v=version,
+            intent="help",
+            constraints={},
+            language="en",
+            dialect="english",
+            missing_fields=[],
+            needs_clarification=False,
+        )
+    )
+    if version in {8, 9}:
+        assert validate_live_response(raw).v == version
+    else:
+        with pytest.raises(ValueError):
+            validate_live_response(raw)
