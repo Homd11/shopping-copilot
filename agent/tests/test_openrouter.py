@@ -37,6 +37,54 @@ def settings():
     )
 
 
+def test_schema_translation_preserves_keyword_named_properties_and_literal_metadata():
+    literal = {"$ref": "literal", "pattern": "unchanged"}
+    schema = {
+        "type": "object",
+        "properties": {
+            "maximum": {"type": "integer", "maximum": 5},
+            "$ref": {"type": "string"},
+            "pattern": {"const": literal, "default": literal, "enum": [literal]},
+        },
+        "required": ["maximum", "$ref", "pattern"],
+    }
+
+    def handler(request):
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "limit": 0.25,
+                        "limit_remaining": 0.25,
+                        "limit_reset": None,
+                    }
+                },
+            )
+        sent = json.loads(request.content)["response_format"]["json_schema"]["schema"]
+        assert set(sent["properties"]) == set(sent["required"])
+        assert sent["properties"]["maximum"] == {"type": "integer"}
+        assert sent["properties"]["pattern"] == schema["properties"]["pattern"]
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": "{}"},
+                    }
+                ]
+            },
+        )
+
+    async def run():
+        client = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))
+        request = LLMRequest(system="fixture", messages=(), response_schema=schema)
+        return [chunk async for chunk in client.complete(request)]
+
+    assert asyncio.run(run())
+
+
 @pytest.mark.parametrize("cap", ["1.00", "1.01", "nan", "inf", "0"])
 def test_explicit_total_cap_is_bounded_by_owner_authorized_dollar(cap):
     environment = {
