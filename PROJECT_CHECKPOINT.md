@@ -2,6 +2,25 @@
 
 **Last updated:** 2026-10-08
 
+## Final bounded verification: technical errors cleared, recommendation gate failed — 2026-10-08
+
+The owner authorized one final set of at most four model requests / $0.08 reserved
+within the unchanged $1 total cap. The current `catalogue-decision-v2` flow completed
+in two requests, reporting $0.0014316 combined, with no provider or response-validation
+errors. The model searched `football shoes`, retained size 43 and received catalogue
+results. It nevertheless classified the vague style preferences as unverified
+requirements and ended with an Arabic clarification about their meaning, with zero
+recommendation cards. No advice completion was requested. This does not pass the
+intended recommendation/advice acceptance case; successful JSON is not UX success.
+
+No additional calls were made after this result. Diagnostics remain ignored at
+`work/manual-test/live-final-verification.json`. The previous chat flow remains active
+with retrieval disabled; SQLite and shopper isolation are unchanged. Next work must
+address how retrieval carries subjective preferences into recommendations, without
+phrase rules or weaker factual/action validation. Do not reactivate the new path on
+the basis of this check. No runtime code changed during this verification turn;
+the preceding 430-test evidence remains the last automated run.
+
 ## Retrieval repair: first-read constraint preservation — 2026-10-08
 
 A further owner-approved four-request diagnostic set exposed the first-read
