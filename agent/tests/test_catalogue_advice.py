@@ -72,6 +72,73 @@ def test_no_category_no_vocabulary_whitelist_and_no_reads_for_navigation():
         assert not reads.calls
 
 
+def test_read_preferences_reach_advisor_without_becoming_factual_requirements():
+    model = RecordingModel(
+        {
+            "kind": "search",
+            "query": {"query": "shirt"},
+            "subjective_preferences": ["something a bit different"],
+        },
+        {"kind": "recommend", "language": "en", "selected_ids": ["p-4"]},
+        advice("In my opinion, purple could suit your preference.", ["p-4"]),
+    )
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=Reads(),
+        catalogue_retrieval_enabled=True,
+    )
+    with TestClient(app) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        client.post(
+            f"/sessions/{sid}/messages",
+            json={"text": "shirt but a bit different", "snapshot": home_snapshot()},
+        )
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+        assert any(e["event"] == "suggestions" for e in events)
+        assert not any(e["event"] == "action" for e in events)
+        context = json.loads(model.requests[-1].messages[0].content)
+        assert context["intent"]["subjective_preferences"] == ["something a bit different"]
+        assert context["products"][0]["eligibility"]["label"] == "styling_suggestion"
+
+
+def test_recommendation_cannot_smuggle_action_authority():
+    import pytest
+    from pydantic import ValidationError
+
+    from agent.catalogue_retrieval import DECISION
+
+    with pytest.raises(ValidationError):
+        DECISION.validate_python(
+            {"kind": "recommend", "language": "en", "selected_ids": [], "cart_operation": "add"}
+        )
+    model = RecordingModel(
+        *[
+            {
+                "kind": "recommend",
+                "language": "en",
+                "selected_ids": [],
+                "constraints": {"target": "cart"},
+            }
+        ]
+        * 3
+    )
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=Reads(),
+        catalogue_retrieval_enabled=True,
+    )
+    with TestClient(app) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        client.post(
+            f"/sessions/{sid}/messages",
+            json={"text": "recommend something", "snapshot": home_snapshot()},
+        )
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+        assert not any(e["event"] == "action" for e in events)
+
+
 def test_known_excluded_product_is_comparison_only_never_a_recommendation():
     from agent.advice import prepare_retrieved_advice
     from agent.catalogue_retrieval import RetrievalBudget, RetrievalOutcome

@@ -126,6 +126,12 @@ def build_advice_request(
             "Do not infer greater comfort or poorer quality from a missing feature/use tag. "
             "Explain that the comparison is uncertain when the relevant evidence is absent. "
             "Separate styling opinions from facts naturally (for example, in my opinion). "
+            "For subjective style wishes, offer a provisional personal preference using the "
+            "supplied colours/design facts before an optional follow-up question. Do not "
+            "require the shopper to define their taste before offering useful advice. "
+            "An opinion is not a verified product property: do not claim uncertain quality "
+            "or factual requirements are satisfied. If choices differ, explain the visible "
+            "trade-off and which you would lean toward for the stated preference. "
             "Explain why an option fits the Shopper's priorities and its relevant trade-offs; "
             "When discovery contains exact matches, briefly connect the shown products' "
             "verified facts to the Shopper's actual request instead of merely announcing a "
@@ -154,7 +160,7 @@ def build_advice_request(
         messages=(LLMMessage(role="shopper", content=json.dumps(context, ensure_ascii=False)),),
         response_schema=AdviceResponse.model_json_schema(),
         response_validator=AdviceResponse.model_validate_json,
-        prompt_version="advice-v3",
+        prompt_version="advice-v4",
         schema_version=1,
         max_tokens=1000,
     )
