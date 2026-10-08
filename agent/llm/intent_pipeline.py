@@ -443,6 +443,8 @@ def _validate_interpreted_intent(
     storefront: StorefrontDefinition,
     state: Mapping[str, Any],
     snapshot: Snapshot | None,
+    *,
+    retrieval: bool = False,
 ) -> StructuredIntent:
     for money in (intent.constraints.min_price, intent.constraints.max_price):
         if money is not None:
@@ -454,6 +456,8 @@ def _validate_interpreted_intent(
     for product_id in intent.advice_product_ids:
         require_known_product(product_id, state, snapshot, storefront)
     if intent.needs_clarification:
+        return intent
+    if retrieval and intent.intent in {"find_products", "advice"}:
         return intent
     if intent.intent == "find_products" and intent.constraints.category is None:
         raise MissingExecutionField("category")
