@@ -11,7 +11,7 @@ from pydantic import Field, TypeAdapter, ValidationError
 
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireModel
-from agent.llm.contract import LLMClient, LLMMessage, LLMRequest
+from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, LLMRequest
 from agent.llm.intent import StructuredIntent
 from agent.llm.intent_pipeline import _validate_interpreted_intent, snapshot_context
 from agent.schemas import Snapshot
@@ -143,7 +143,7 @@ def _request(message, state, snapshot, storefront, history, feedback, budget):
         provider_attempt_limit=1,
         prompt_version="catalogue-decision-v1",
         schema_version=1,
-        max_tokens=2200,
+        max_tokens=2048,
         attempt_id="retrieval-" + uuid4().hex,
     )
 
@@ -215,13 +215,19 @@ async def retrieve_products(
                 async for chunk in stream:
                     await ensure_active()
                     if chunk.tool_call is not None:
-                        raise ValueError("Expected one structured decision")
+                        raise LLMInvalidResponseError("Expected one structured decision")
                     text = chunk.text or ""
                     size += len(text.encode("utf-8"))
                     if size > 32768:
-                        raise ValueError("Decision exceeds byte budget")
+                        raise LLMInvalidResponseError("Decision exceeds byte budget")
                     parts.append(text)
-            await ensure_active()
+        except (LLMInvalidResponseError, ValidationError) as error:
+            feedback = {"error": str(error)[:1000]}
+            continue
+        # Provider configuration, budget, and transport failures are operational errors.
+        # Only malformed output should consume another model decision attempt.
+        await ensure_active()
+        try:
             decision = DECISION.validate_json("".join(parts))
             if isinstance(decision, ClarifyDecision):
                 return RetrievalOutcome(

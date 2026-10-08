@@ -188,3 +188,66 @@ def test_provider_http_retries_cannot_escape_coordinator_budget(provider):
     with pytest.raises(RetrievalExhausted):
         asyncio.run(run(client, Reads(), budget=budget))
     assert len(calls) == budget.decisions == 3
+
+
+@pytest.mark.parametrize("malformed_first", [False, True])
+def test_real_openrouter_adapter_accepts_retrieval_requests_within_existing_cap(malformed_first):
+    import httpx
+
+    from agent.catalogue_contract import SearchQuery
+    from agent.llm.openrouter import OpenRouterClient
+    from agent.tests.test_openrouter import settings
+
+    answers = iter(
+        [
+            *([{}] if malformed_first else []),
+            {
+                "kind": "search",
+                "query": SearchQuery(
+                    query="football", requirements=[{"field": "size", "op": "eq", "value": "43"}]
+                ).model_dump(),
+            },
+            {"kind": "finish", "intent": decision(constraints={}), "selected_ids": ["p-4"]},
+        ]
+    )
+    methods = []
+
+    def handler(request):
+        methods.append(request.method)
+        if request.method == "GET":
+            return httpx.Response(
+                200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
+            )
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {"finish_reason": "stop", "message": {"content": json.dumps(next(answers))}}
+                ]
+            },
+        )
+
+    client = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))
+    result = asyncio.run(run(client, Reads()))
+    assert result.selected_ids == ["p-4"]
+    assert result.budget.decisions == 2 + int(malformed_first) and result.budget.reads == 2
+    assert methods == ["GET", "POST"] * (2 + int(malformed_first))
+
+
+@pytest.mark.parametrize("failure_kind", ["budget", "configuration"])
+def test_provider_failure_is_not_retried_as_bad_language_output(failure_kind):
+    from agent.llm.config import LLMConfigurationError
+    from agent.llm.openrouter import OpenRouterBudgetError
+
+    error_type = OpenRouterBudgetError if failure_kind == "budget" else LLMConfigurationError
+    calls = []
+
+    class BudgetBlocked:
+        async def complete(self, request):
+            calls.append(request)
+            raise error_type("Fixture operational failure")
+            yield
+
+    with pytest.raises(error_type):
+        asyncio.run(run(BudgetBlocked(), Reads()))
+    assert len(calls) == 1

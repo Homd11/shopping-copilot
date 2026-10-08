@@ -2,6 +2,21 @@
 
 **Last updated:** 2026-10-08
 
+## Manual retrieval test: provider-boundary correction — 2026-10-08
+
+Manual testing exposed a startup-blocking integration error: retrieval requested
+2,200 output tokens while OpenRouter permits at most 2,048 under the existing
+application budget guard. The coordinator then misclassified the budget rejection
+as invalid model output and exhausted its attempts before asking a misleading
+clarification. Retrieval now requests 2,048 tokens and only retries malformed
+provider output; operational failures propagate to the existing error handling.
+All 421 Agent tests pass, including actual OpenRouter adapter tests with mocked
+HTTP for valid/malformed responses and budget/configuration propagation. Ruff
+checks pass. Browser/full-workspace tests were not repeated for this Agent-only
+correction. No paid verification calls, spending-limit changes or language rules
+were added. Live semantic qualification remains open; local manual testing uses
+the opt-in retrieval path with lexical ranking.
+
 ## Catalogue retrieval implemented locally; activation pending — 2026-10-08
 
 The approved SQLite repository, private bounded search/details service and opt-in
