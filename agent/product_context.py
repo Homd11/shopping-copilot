@@ -119,11 +119,19 @@ class ProductContext:
     ) -> dict[str, Any]:
         self.observe(snapshot, storefront, len(conversation))
         start = max(self.conversation_start, len(conversation) - MAX_CONVERSATION_ENTRIES)
+        latest_reply = next(
+            (
+                i
+                for i in range(len(conversation) - 1, start - 1, -1)
+                if conversation[i]["role"] == "copilot"
+            ),
+            None,
+        )
         return {
             "_known_products": list(self.products.values()),
             "_previous_suggestions": list(self.suggestions),
             "_recent_conversation": [
-                {"role": entry["role"], "text": entry["text"][:500]}
-                for entry in conversation[start:]
+                {"role": entry["role"], "text": entry["text"][: 2400 if i == latest_reply else 500]}
+                for i, entry in enumerate(conversation[start:], start=start)
             ],
         }
