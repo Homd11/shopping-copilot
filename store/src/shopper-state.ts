@@ -1,3 +1,4 @@
+import type { ProductRepository } from "./product-repository.js";
 import { createHash, randomBytes } from "node:crypto";
 import { GuardedCart } from "./guarded-cart.js";
 
@@ -24,9 +25,14 @@ export class ShopperRegistry {
   readonly #clock: () => number;
   readonly #capacity: number;
   readonly #ttlMs: number;
-  constructor(
-    options: { clock?: () => number; capacity?: number; ttlMs?: number } = {},
-  ) {
+  readonly #repository: ProductRepository;
+  constructor(options: {
+    repository: ProductRepository;
+    clock?: () => number;
+    capacity?: number;
+    ttlMs?: number;
+  }) {
+    this.#repository = options.repository;
     this.#clock = options.clock ?? Date.now;
     this.#capacity = options.capacity ?? 100;
     this.#ttlMs = options.ttlMs ?? 24 * 60 * 60 * 1000;
@@ -44,7 +50,7 @@ export class ShopperRegistry {
     const credential = opaqueToken();
     const state: ShopperState = {
       binding: { shopper_id: opaqueToken(), generation: this.generation },
-      cart: new GuardedCart(this.#clock),
+      cart: new GuardedCart(this.#clock, this.#repository),
       csrf: opaqueToken(),
       loggedIn: false,
       lastActivity: this.#clock(),

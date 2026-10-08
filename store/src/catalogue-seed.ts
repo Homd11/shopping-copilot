@@ -1,4 +1,5 @@
-import { money, type Category, type Product } from "./catalogue.js";
+import type { Category, Product } from "./catalogue.js";
+import { money } from "./catalogue-money.js";
 
 type ProductSeed = Omit<
   Product,

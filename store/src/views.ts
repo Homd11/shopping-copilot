@@ -4,8 +4,8 @@ import type {
   ProductConstraints,
   ShoeConstraints,
 } from "./catalogue.js";
-import { products } from "./catalogue.js";
-import { lineKey, type CartLine } from "./guarded-cart.js";
+import type { ProductRepository } from "./product-repository.js";
+import { lineKey, type CartLine, type OrderLine } from "./guarded-cart.js";
 
 const categoryNames: Record<Category, { ar: string; en: string }> = {
   shoes: { ar: "الأحذية", en: "Shoes" },
@@ -87,6 +87,7 @@ export function renderHome(): string {
 }
 
 export function renderCart(
+  repository: ProductRepository,
   lines: CartLine[] = [],
   revision = 0,
   error?: string,
@@ -95,7 +96,7 @@ export function renderCart(
     "السلة",
     `<h1>السلة</h1>
     ${error ? `<p role="alert">${escapeHtml(error)}</p>` : ""}
-    <div id="cart-contents">${renderCartContents(lines, revision)}</div>
+    <div id="cart-contents">${renderCartContents(repository, lines, revision)}</div>
     <a href="/checkout">إتمام الشراء</a>
     <dialog id="manual-clear-dialog" aria-labelledby="manual-clear-title">
       <h2 id="manual-clear-title">إفراغ السلة بالكامل؟</h2>
@@ -112,6 +113,7 @@ export function renderCart(
 }
 
 export function renderCartContents(
+  repository: ProductRepository,
   lines: CartLine[],
   revision: number,
 ): string {
@@ -120,7 +122,7 @@ export function renderCartContents(
     : `<p role="status">السلة فيها ${lines.length} منتج</p>
     <ul class="cart-lines">${lines
       .map((line) => {
-        const product = products.find((item) => item.id === line.product_id);
+        const product = repository.get(line.product_id);
         const name = escapeHtml(product?.nameAr ?? line.product_id);
         const fields = `<input type="hidden" name="product_id" value="${escapeHtml(line.product_id)}">
           <input type="hidden" name="size" value="${escapeHtml(line.size ?? "")}">
@@ -138,7 +140,7 @@ export function renderCartContents(
       })
       .join(
         "",
-      )}</ul><div class="cart-total"><span>الإجمالي</span><strong>${cartTotal(lines)} EGP</strong></div><p class="muted">تقدر تتراجع عن آخر تعديل خلال ١٠ ثوانٍ.</p>
+      )}</ul><div class="cart-total"><span>الإجمالي</span><strong>${cartTotal(repository, lines)} EGP</strong></div><p class="muted">تقدر تتراجع عن آخر تعديل خلال ١٠ ثوانٍ.</p>
     <form action="/cart/clear" method="post">
       <input type="hidden" name="cart_revision" value="${revision}" />
       <input type="hidden" name="copilot_confirmation" value="" />
@@ -146,11 +148,9 @@ export function renderCartContents(
     </form>`;
 }
 
-function cartTotal(lines: CartLine[]): string {
+function cartTotal(repository: ProductRepository, lines: CartLine[]): string {
   const total = lines.reduce((sum, line) => {
-    const price =
-      products.find((product) => product.id === line.product_id)?.price
-        .amount ?? "0";
+    const price = repository.get(line.product_id)?.price.amount ?? "0";
     const [whole, fraction = ""] = price.split(".");
     return (
       sum +
@@ -162,6 +162,7 @@ function cartTotal(lines: CartLine[]): string {
 }
 
 export function renderCheckout(
+  repository: ProductRepository,
   lines: CartLine[] = [],
   revision = 0,
   error?: string,
@@ -171,7 +172,7 @@ export function renderCheckout(
     `<h1>إتمام الشراء</h1>
     ${error ? `<p role="alert">${escapeHtml(error)}</p>` : ""}
     <p class="checkout-notice">هذه تجربة شراء خيالية. لا تدخل بطاقة حقيقية؛ استخدم <bdi>0000 0000 0000 0000</bdi>، و<bdi>01/30</bdi>، و<bdi>000</bdi> فقط. لا تتم عملية دفع.</p>
-    <div class="cart-total"><span>إجمالي الطلب الخيالي</span><strong>${cartTotal(lines)} EGP</strong></div>
+    <div class="cart-total"><span>إجمالي الطلب الخيالي</span><strong>${cartTotal(repository, lines)} EGP</strong></div>
     <p role="status">${lines.length === 0 ? "السلة فارغة" : `السلة فيها ${lines.length} منتج`}</p>
     <form action="/checkout/submit" method="post">
     <input type="hidden" name="cart_revision" value="${revision}" />
@@ -223,7 +224,7 @@ export function renderLogin(nextPath: string): string {
 }
 
 export function renderOrders(
-  orders: Array<{ id: string; lines: CartLine[] }> = [],
+  orders: Array<{ id: string; lines: OrderLine[] }> = [],
 ): string {
   return layout(
     "الطلبات",
@@ -234,7 +235,7 @@ export function renderOrders(
         .reverse()
         .map(
           (order, index) =>
-            `<li><a href="/order/complete/${escapeHtml(order.id)}">${index === 0 ? "أحدث طلب" : escapeHtml(order.id)}</a></li>`,
+            `<li><a href="/order/complete/${escapeHtml(order.id)}">${index === 0 ? "أحدث طلب" : escapeHtml(order.id)}</a><ul>${order.lines.map((line) => `<li>${escapeHtml(line.name_ar)} · ${line.quantity} × ${line.unit_price.amount} ${line.unit_price.currency}</li>`).join("")}</ul></li>`,
         )
         .join("")}
       <li>سجل تجريبي توضيحي مستقل عن الطلبات الجديدة</li>

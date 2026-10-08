@@ -8,6 +8,7 @@ import time
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -138,31 +139,47 @@ def local_services(
     creation_flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     commands = service_commands(Path(node))
     commands[0][3] = agent_app
-    environment = service_environment(real_model=real_model, test_clock=test_clock)
-    processes = [
-        subprocess.Popen(  # noqa: S603 - fixed local commands without a shell
-            command,
+    with TemporaryDirectory(prefix="copilot-eval-catalogue-") as database_directory:
+        catalogue_file = str(Path(database_directory) / "catalogue.sqlite")
+        subprocess.run(  # noqa: S603 - owned local importer and temporary database
+            [
+                str(node),
+                str(ROOT / "store/node_modules/tsx/dist/cli.mjs"),
+                str(ROOT / "store/scripts/catalogue-import.ts"),
+                "--database",
+                catalogue_file,
+            ],
             cwd=ROOT,
+            check=True,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
             creationflags=creation_flags,
-            env=environment,
         )
-        for command in commands
-    ]
-    try:
-        _wait_for("http://127.0.0.1:8000/health")
-        _wait_for("http://127.0.0.1:4000/")
-        _wait_for("http://127.0.0.1:4100/")
-        if any(process.poll() is not None for process in processes):
-            raise RuntimeError("An evaluation service exited during startup")
-        yield ServiceController(processes, commands, environment, creation_flags)
-    finally:
-        for process in processes:
-            process.terminate()
-        for process in processes:
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait(timeout=5)
+        environment = service_environment(real_model=real_model, test_clock=test_clock)
+        environment["COPILOT_CATALOGUE_DB"] = catalogue_file
+        processes = [
+            subprocess.Popen(  # noqa: S603 - fixed local commands without a shell
+                command,
+                cwd=ROOT,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=creation_flags,
+                env=environment,
+            )
+            for command in commands
+        ]
+        try:
+            _wait_for("http://127.0.0.1:8000/health")
+            _wait_for("http://127.0.0.1:4000/")
+            _wait_for("http://127.0.0.1:4100/")
+            if any(process.poll() is not None for process in processes):
+                raise RuntimeError("An evaluation service exited during startup")
+            yield ServiceController(processes, commands, environment, creation_flags)
+        finally:
+            for process in processes:
+                process.terminate()
+            for process in processes:
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)

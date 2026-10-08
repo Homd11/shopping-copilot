@@ -2,7 +2,7 @@ import { afterEach, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { products } from "../src/catalogue.js";
+import { seedProducts as products } from "../src/catalogue-seed.js";
 import { importCatalogue, openCatalogue } from "../src/catalogue-db.js";
 
 const folders: string[] = [];

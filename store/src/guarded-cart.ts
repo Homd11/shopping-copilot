@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
-import { products } from "./catalogue.js";
+import type { Money } from "./catalogue.js";
+import type { ProductRepository } from "./product-repository.js";
 
 export type MutationKind = "clear_cart" | "submit_checkout";
 export interface CartLine {
@@ -16,6 +17,12 @@ export function lineKey(
   return [line.product_id, line.size ?? "", line.color ?? ""].join("~");
 }
 
+export interface OrderLine extends CartLine {
+  name_ar: string;
+  name_en: string;
+  unit_price: Money;
+}
+
 interface UndoRecord {
   id: string;
   before: CartLine[];
@@ -28,6 +35,7 @@ interface UndoRecord {
 interface Confirmation {
   kind: MutationKind;
   cartRevision: number;
+  catalogueRevision: number;
   issuedAt: number;
 }
 
@@ -35,16 +43,21 @@ export class GuardedCart {
   #lines: CartLine[] = [];
   #revision = 0;
   #confirmations = new Map<string, Confirmation>();
-  #orders: Array<{ id: string; lines: CartLine[] }> = [];
+  #orders: Array<{ id: string; lines: OrderLine[] }> = [];
   #undo: UndoRecord | null = null;
   #operations = new Set<string>();
   readonly #clock: () => number;
 
-  constructor(clock: () => number = Date.now) {
+  #terms = "";
+  constructor(
+    clock: () => number,
+    readonly repository: ProductRepository,
+  ) {
     this.#clock = clock;
   }
 
   get revision(): number {
+    this.refreshProductTerms();
     return this.#revision;
   }
 
@@ -53,12 +66,16 @@ export class GuardedCart {
   }
 
   get state() {
+    this.refreshProductTerms();
     return {
       revision: this.#revision,
       lines: this.lines,
       orders: this.#orders.map((order) => ({
         id: order.id,
-        lines: order.lines.map((line) => ({ ...line })),
+        lines: order.lines.map((line) => ({
+          ...line,
+          unit_price: { ...line.unit_price },
+        })),
       })),
     };
   }
@@ -68,7 +85,7 @@ export class GuardedCart {
     const before = record?.before.find((line) => lineKey(line) === record.line);
     const after = this.#lines.find((line) => lineKey(line) === record?.line);
     const item = after ?? before;
-    const product = products.find((product) => product.id === item?.product_id);
+    const product = item ? this.repository.get(item.product_id) : undefined;
     return record !== null &&
       record.expiresAt > this.#clock() &&
       record.revision === this.#revision
@@ -86,6 +103,7 @@ export class GuardedCart {
     kind: "add" | "quantity" | "remove" | "undo",
     input: Record<string, unknown>,
   ): boolean {
+    this.refreshProductTerms();
     const operation = input.operation_id;
     if (
       typeof operation !== "string" ||
@@ -102,17 +120,24 @@ export class GuardedCart {
       this.#lines = undo.before.map((line) => ({ ...line }));
       this.#undo = null;
     } else {
-      const product = products.find((item) => item.id === input.product_id);
-      if (!product || !product.available) return false;
+      const product =
+        typeof input.product_id === "string"
+          ? this.repository.get(input.product_id)
+          : undefined;
+      if (kind !== "remove" && (!product || !product.available)) return false;
       const size = typeof input.size === "string" ? input.size : undefined;
       const color = typeof input.color === "string" ? input.color : undefined;
       if (
         kind === "add" &&
-        (!product.sizes.includes(size ?? "") ||
-          !product.colors.includes(color ?? ""))
+        (!product!.sizes.includes(size ?? "") ||
+          !product!.colors.includes(color ?? ""))
       )
         return false;
-      const key = lineKey({ product_id: product.id, size, color });
+      const key = lineKey({
+        product_id: String(input.product_id),
+        size,
+        color,
+      });
       const index = this.#lines.findIndex((line) => lineKey(line) === key);
       if (kind !== "add" && index === -1) return false;
       const quantity = input.quantity;
@@ -149,7 +174,7 @@ export class GuardedCart {
       else if (index !== -1) this.#lines[index].quantity = nextQuantity;
       else
         this.#lines.push({
-          product_id: product.id,
+          product_id: String(input.product_id),
           size,
           color,
           quantity: nextQuantity,
@@ -158,6 +183,7 @@ export class GuardedCart {
     this.#revision++;
     this.#operations.add(operation);
     this.#confirmations.clear();
+    this.#terms = this.terms();
     return true;
   }
 
@@ -170,15 +196,14 @@ export class GuardedCart {
           !Number.isSafeInteger(line.quantity) ||
           line.quantity < 1 ||
           line.quantity > 99 ||
-          !products.some(
-            (product) => product.id === line.product_id && product.available,
-          ),
+          !this.repository.get(line.product_id)?.available,
       )
     )
       return false;
     this.#lines = lines.map((line) => ({ ...line }));
     this.#revision++;
     this.#undo = null;
+    this.#terms = this.terms();
     return true;
   }
 
@@ -188,6 +213,7 @@ export class GuardedCart {
     kind: MutationKind;
     cart_revision: number;
   }): boolean {
+    this.refreshProductTerms();
     if (
       !/^confirmation-[0-9a-f]{32}$/.test(input.token) ||
       !/^task-[a-zA-Z0-9-]+$/.test(input.task_id) ||
@@ -200,18 +226,22 @@ export class GuardedCart {
     this.#confirmations.set(input.token, {
       kind: input.kind,
       cartRevision: input.cart_revision,
+      catalogueRevision: this.repository.revision(),
       issuedAt: this.#clock(),
     });
     return true;
   }
 
   consume(token: unknown, kind: MutationKind, revision: unknown): boolean {
+    this.refreshProductTerms();
     if (typeof token !== "string") return false;
     const confirmation = this.#confirmations.get(token);
     if (confirmation === undefined) return false;
     this.#confirmations.delete(token);
     return (
       confirmation.kind === kind &&
+      confirmation.catalogueRevision === this.repository.revision() &&
+      (kind !== "submit_checkout" || this.purchasable()) &&
       confirmation.cartRevision === this.#revision &&
       String(confirmation.cartRevision) === revision &&
       this.#clock() - confirmation.issuedAt < 60_000 &&
@@ -223,13 +253,59 @@ export class GuardedCart {
     this.#lines = [];
     this.#revision++;
     this.#undo = null;
+    this.#terms = this.terms();
   }
 
   submitOrder(): string {
+    this.refreshProductTerms();
+    if (!this.purchasable())
+      throw new Error("Cart products are no longer purchasable");
     const id = randomUUID();
-    this.#orders.push({ id, lines: this.lines });
+    this.#orders.push({
+      id,
+      lines: this.lines.map((line) => {
+        const product = this.repository.get(line.product_id)!;
+        return {
+          ...line,
+          name_ar: product.nameAr,
+          name_en: product.nameEn,
+          unit_price: { ...product.price },
+        };
+      }),
+    });
     this.clear();
     return id;
+  }
+
+  private terms(): string {
+    return JSON.stringify(
+      this.#lines.map((line) => [
+        line.product_id,
+        this.repository.productRevision(line.product_id) ?? null,
+      ]),
+    );
+  }
+  refreshProductTerms(): void {
+    const next = this.terms();
+    if (this.#terms && this.#terms !== next) {
+      this.#revision++;
+      this.#confirmations.clear();
+      if (this.#undo) this.#undo.revision = this.#revision;
+    }
+    this.#terms = next;
+  }
+  private purchasable(): boolean {
+    return (
+      this.#lines.length > 0 &&
+      this.#lines.every((line) => {
+        const product = this.repository.get(line.product_id);
+        return (
+          product?.available &&
+          (line.size === undefined || product.sizes.includes(line.size)) &&
+          (line.color === undefined || product.colors.includes(line.color))
+        );
+      })
+    );
   }
 
   reset(): void {
@@ -239,5 +315,6 @@ export class GuardedCart {
     this.#orders = [];
     this.#undo = null;
     this.#operations.clear();
+    this.#terms = this.terms();
   }
 }

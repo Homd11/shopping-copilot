@@ -1,7 +1,7 @@
 import { browser } from "./browser.js";
 import { describe, expect, it } from "vitest";
 
-import { createApp } from "../src/app.js";
+import { createApp } from "./app.js";
 
 describe("fictional guarded Storefront mutations", () => {
   it("rejects an unconfirmed bulk clear and consumes one matching confirmation", async () => {

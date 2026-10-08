@@ -1,6 +1,6 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
+import { createApp } from "./app.js";
 import { browser } from "./browser.js";
 const secret = "test-only-service-credential-not-a-real-secret";
 
