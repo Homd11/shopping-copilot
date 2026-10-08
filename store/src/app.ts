@@ -115,6 +115,7 @@ function stateFilters(constraints: ProductConstraints) {
 
 export function createApp(options: {
   repository: ProductRepository;
+  catalogueRanking?: "lexical" | "hybrid";
   serviceSecret?: string;
   panelOrigin?: string;
   clock?: () => number;
@@ -131,7 +132,11 @@ export function createApp(options: {
   app.use(express.json());
   app.use(
     "/__internal/catalogue",
-    catalogueRoutes(repository, options.serviceSecret ?? ""),
+    catalogueRoutes(
+      repository,
+      options.serviceSecret ?? "",
+      options.catalogueRanking,
+    ),
   );
   app.use("/assets", express.static(resolve(sourceDirectory, "../public")));
   app.use(

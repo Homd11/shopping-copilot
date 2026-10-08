@@ -13,6 +13,13 @@ const repository = openCatalogue(
       "../../work/catalogue.sqlite",
     ),
 );
-createApp({ ...identityConfig(), repository }).listen(port, "127.0.0.1", () => {
-  console.log(`Shopping Copilot Store listening on http://localhost:${port}`);
-});
+const catalogueRanking = process.env.CATALOGUE_RANKING ?? "lexical";
+if (catalogueRanking !== "lexical" && catalogueRanking !== "hybrid")
+  throw new Error("Invalid catalogue ranking");
+createApp({ ...identityConfig(), repository, catalogueRanking }).listen(
+  port,
+  "127.0.0.1",
+  () => {
+    console.log(`Shopping Copilot Store listening on http://localhost:${port}`);
+  },
+);

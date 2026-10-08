@@ -1,3 +1,4 @@
+import { semanticRanker } from "./catalogue-semantic.js";
 import { Router } from "express";
 import { equalSecret } from "./shopper-http.js";
 import type { ProductRepository } from "./product-repository.js";
@@ -10,7 +11,11 @@ import {
   productDetails,
 } from "./catalogue-query.js";
 
-export function catalogueRoutes(repository: ProductRepository, secret: string) {
+export function catalogueRoutes(
+  repository: ProductRepository,
+  secret: string,
+  ranking: "lexical" | "hybrid" = "lexical",
+) {
   const router = Router();
   router.use((request, response, next) => {
     response.set("Cache-Control", "no-store");
@@ -23,11 +28,28 @@ export function catalogueRoutes(repository: ProductRepository, secret: string) {
   for (const kind of ["search", "details"] as const)
     router.post("/" + kind, (request, response) => {
       try {
+        const body = request.body;
+        const hybrid = kind === "search" && ranking === "hybrid";
+        const { query_embedding, ...searchBody } =
+          hybrid && body && typeof body === "object" ? body : {};
+        // Validate freshness even for conditional reads: a stale index is not a cache hit.
+        const ranker = hybrid
+          ? semanticRanker(repository, query_embedding)
+          : undefined;
         const query =
           kind === "search"
-            ? parseSearch(request.body)
+            ? parseSearch(hybrid ? searchBody : body)
             : parseDetails(request.body);
-        const etag = '"' + digest([kind, query, repository.revision()]) + '"';
+        const etag =
+          '"' +
+          digest([
+            kind,
+            query,
+            ranking,
+            hybrid ? query_embedding : null,
+            repository.revision(),
+          ]) +
+          '"';
         response.set("ETag", etag);
         if (request.headers["if-none-match"] === etag) {
           response.status(304).end();
@@ -36,7 +58,7 @@ export function catalogueRoutes(repository: ProductRepository, secret: string) {
         const result =
           "ids" in query
             ? productDetails(repository, query)
-            : searchProducts(repository, query, secret);
+            : searchProducts(repository, query, secret, ranker);
         response.json(result);
       } catch (error) {
         const code =
