@@ -186,13 +186,17 @@ def prepare_retrieved_advice(outcome) -> AdviceEvidence:
     for candidate in outcome.products:
         product = candidate.product
         unmet = [
-            json.dumps(requirements[r.index], ensure_ascii=False) + ": " + r.status
+            _requirement_label(requirements[r.index], r.status, outcome.intent.language)
             for r in candidate.requirements
             if r.status != "satisfied"
         ] + list(outcome.unverified_requirements)
         if not product.available:
             unmet.append("unavailable")
-        selected = product.id in outcome.selected_ids and product.available
+        excluded = any(
+            status.status == "violated" and requirements[status.index].get("op") == "exclude"
+            for status in candidate.requirements
+        )
+        selected = product.id in outcome.selected_ids and product.available and not excluded
         label = (
             "comparison_only"
             if not selected
@@ -247,3 +251,20 @@ def prepare_retrieved_advice(outcome) -> AdviceEvidence:
         requirements,
         tuple(outcome.unverified_requirements),
     )
+
+
+def _requirement_label(requirement, status, language):
+    """Display a typed fact check; this does not interpret shopper language."""
+    value = str(requirement.get("value", requirement.get("amount", "")))
+    operation = requirement["op"]
+    prefix = (
+        {"exclude": "بدون ", "gte": "على الأقل ", "lte": "بحد أقصى "}
+        if language == "ar"
+        else {"exclude": "without ", "gte": "at least ", "lte": "at most "}
+    )
+    state = (
+        {"unknown": "غير مؤكد", "violated": "غير متحقق"}
+        if language == "ar"
+        else {"unknown": "unverified", "violated": "unmet"}
+    )
+    return prefix.get(operation, "") + value + " — " + state[status]

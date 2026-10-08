@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { parseSearch } from "../src/catalogue-query.js";
 import type { ProductEvidence } from "../src/product-repository.js";
 import { expect, it } from "vitest";
 import request from "supertest";
@@ -125,5 +127,18 @@ it("bounds input/output and revalidates ETags against a canonical query", async 
           .send(payload)
       ).status,
     ).toBe(400);
+  }
+});
+
+it("matches the shared wire fixtures", () => {
+  const rows = JSON.parse(
+    readFileSync(
+      new URL("../../protocol/catalogue/fixtures.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  for (const row of rows) {
+    if (row.valid) expect(() => parseSearch(row.query)).not.toThrow();
+    else expect(() => parseSearch(row.query)).toThrow();
   }
 });

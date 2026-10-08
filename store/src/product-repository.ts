@@ -13,6 +13,19 @@ export interface ProductEvidence extends Product {
 /** Owns current catalogue facts; consumers never read the seed artifact. */
 export class ProductRepository {
   constructor(readonly database: DatabaseSync) {}
+  /** One synchronous request observes one catalogue version, including order prices. */
+  snapshot<T>(read: () => T): T {
+    this.database.exec("BEGIN");
+    try {
+      this.revision(); // Establish the SQLite read snapshot before any commerce checks.
+      const result = read();
+      this.database.exec("COMMIT");
+      return result;
+    } catch (error) {
+      this.database.exec("ROLLBACK");
+      throw error;
+    }
+  }
   revision(): number {
     return Number(
       this.database

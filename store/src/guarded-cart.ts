@@ -128,7 +128,7 @@ export class GuardedCart {
       const size = typeof input.size === "string" ? input.size : undefined;
       const color = typeof input.color === "string" ? input.color : undefined;
       if (
-        kind === "add" &&
+        (kind === "add" || kind === "quantity") &&
         (!product!.sizes.includes(size ?? "") ||
           !product!.colors.includes(color ?? ""))
       )

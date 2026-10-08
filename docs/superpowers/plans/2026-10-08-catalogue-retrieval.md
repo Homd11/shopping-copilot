@@ -10,7 +10,7 @@
 
 **Spec:** [Approved catalogue retrieval design](../specs/2026-10-08-catalogue-retrieval-design.md), approved by the owner's “lets go” on 8 October 2026.
 
-**Status:** plan prepared for owner review; implementation has not started. Recommend native sequential execution, followed by the existing independent Spec/Standards review workflow. This minimizes repeated context while keeping ownership of the coupled contracts clear.
+**Status:** owner approved native execution. Tasks 1–6 are implemented locally; Task 7 automated verification and reviews are complete. Live-model/default activation and whole-stack host qualification remain explicitly open. See [verification](../../catalogue-retrieval-verification.md).
 
 ## Global constraints
 
@@ -23,6 +23,15 @@
 - No paid calls during ordinary implementation/tests, no budget increase, AWS resource, push, hosted vector service or unrelated refactor. Actual-model qualification remains open until explicitly budgeted; do not call it passed using scripted responses.
 - Work from the existing isolated `codex/shopper-isolation` checkout after `7ec10c8`; preserve the original dirty `D:/agent depi` checkout. Commit each verified implementation slice locally.
 - Read `CONTEXT.md`, current checkpoint/handoff, the approved spec and original local-MVP specification before implementation. Keep CAP-02/03 frozen datasets/results untouched.
+
+## Execution evidence
+
+Tasks 1–3, 5 and 6 have local implementation and regression evidence. Task 4 has
+an exposed offline comparison and optional hybrid backend, but end-to-end CPU
+latency and whole-stack memory qualification are still open. Task 7 has combined
+browser/HTTP safety evidence and independent reviews; live-model evaluation and
+default activation remain open. Checkbox completion below refers to implementation
+work, not to the explicitly deferred live-model or deployment gates.
 
 ## Review focus
 
@@ -120,7 +129,7 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
 **Modify:** `store/src/catalogue.ts`, `store/package.json`, README startup instructions. Runtime consumers switch in Task 2; only seed import/tests may read the extracted seed array thereafter.
 **Produces:** `openCatalogue(path: string): ProductRepository`, `importCatalogue(path: string, products: readonly Product[]): void`, `exportCatalogue(path: string): readonly Product[]`. Opening never seeds. Keep connection close available on the concrete repository for tests/shutdown.
 
-- [ ] Write a temporary-file database round-trip test and verify all existing seeds exactly, including Money strings, ordering used by category pages and the current independent size/color choice semantics. Add reopen, invalid-import rollback, idempotent reimport and missing-database tests.
+- [x] Write a temporary-file database round-trip test and verify all existing seeds exactly, including Money strings, ordering used by category pages and the current independent size/color choice semantics. Add reopen, invalid-import rollback, idempotent reimport and missing-database tests.
 
   ```typescript
   importCatalogue(path, seedProducts);
@@ -133,8 +142,8 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   expect(repo.revision()).toBe(before);
   ```
 
-- [ ] Run `pnpm --filter @shopping-copilot/store exec vitest run tests/product-repository.test.ts` and capture the intended missing-repository failure.
-- [ ] Implement products, variants, facts, revision metadata and FTS tables transactionally. Use stable imports, foreign keys and unique IDs. For SQL price comparison, store exact integer minor units and convert through BigInt; validate signed 64-bit storage bounds and retain original canonical decimal strings in the API. No floating-point money comparisons.
+- [x] Run `pnpm --filter @shopping-copilot/store exec vitest run tests/product-repository.test.ts` and capture the intended missing-repository failure.
+- [x] Implement products, variants, facts, revision metadata and FTS tables transactionally. Use stable imports, foreign keys and unique IDs. For SQL price comparison, store exact integer minor units and convert through BigInt; validate signed 64-bit storage bounds and retain original canonical decimal strings in the API. No floating-point money comparisons.
 
   ```typescript
   db.exec("BEGIN IMMEDIATE");
@@ -148,8 +157,8 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   }
   ```
 
-- [ ] Add `pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts --database <path>` with an ignored `work/catalogue.sqlite` default. Export and index-import modes are offline CLI modes, never public routes. Recheck SQLite/FTS on CI's pinned Node and document its experimental API status. Local read-only planning probe passed on Node 24.13.0; this is not repository implementation evidence.
-- [ ] Run repository and existing catalogue unit tests plus Storefront build. Commit `Introduce SQLite product repository and explicit seed import`.
+- [x] Add `pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts --database <path>` with an ignored `work/catalogue.sqlite` default. Export and index-import modes are offline CLI modes, never public routes. Recheck SQLite/FTS on CI's pinned Node and document its experimental API status. Local read-only planning probe passed on Node 24.13.0; this is not repository implementation evidence.
+- [x] Run repository and existing catalogue unit tests plus Storefront build. Commit `Introduce SQLite product repository and explicit seed import`.
 
 ## Task 2: One source for Storefront, cart checks and order facts
 
@@ -157,7 +166,7 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
 **Test:** `store/tests/catalogue-freshness.test.ts`, existing cart/shopper suites.
 **Consumes:** `ProductRepository`; inject the same instance into `createApp`, `ShopperRegistry` and each `GuardedCart`. Views receive product data/resolver explicitly; no hidden default seed repository.
 
-- [ ] Add a failing HTTP test: seed an owned cart, obtain checkout confirmation at displayed revision, import a changed price, submit the old confirmation, and assert rejection/no order with cart lines retained. Repeat for availability/variant removal and explicit known absence facts. Compare checkout and product-page prices from the same database.
+- [x] Add a failing HTTP test: seed an owned cart, obtain checkout confirmation at displayed revision, import a changed price, submit the old confirmation, and assert rejection/no order with cart lines retained. Repeat for availability/variant removal and explicit known absence facts. Compare checkout and product-page prices from the same database.
 
   ```typescript
   const displayedRevision = cart.revision;
@@ -176,11 +185,11 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   expect(cart.state.orders).toHaveLength(0);
   ```
 
-- [ ] Run the new freshness test, then replace every runtime array consumer with repository reads, including the temporary legacy catalogue export endpoint. Evaluation bootstraps a temporary database per Storefront service lifecycle; never seed the owner's persistent file.
-- [ ] Implement `GuardedCart.refreshProductTerms(): void`: detect changes to authoritative products referenced by the cart using their revisions, increment the cart revision and clear confirmations before rendering, registering, editing or consuming. Persist the catalogue revision in each confirmation as an additional conservative check. An import is atomic, and consume/check/order creation runs without an asynchronous gap. Thus existing `cart:<revision>` Snapshot/Action signatures detect changed terms without weakening the browser protocol.
-- [ ] Preserve Undo's original deadline; reconcile its operation revision when terms change, never extend it. Undo restores exact cart lines, not a promise of old prices/availability. Unavailable/deleted items can be removed; restoring an obsolete line produces a non-purchasable line whose checkout remains blocked. Never silently substitute a variant. Add these tests.
-- [ ] Store completed order line names, unit Money and chosen variants at submission; render those immutable facts after later catalogue edits. Keep fictional seed history clearly labelled. Add price-edit-after-order and two-shopper tests.
-- [ ] Run Storefront tests/build and Python isolation/cart/checkout browser tests serially. Commit `Use authoritative products throughout storefront commerce`.
+- [x] Run the new freshness test, then replace every runtime array consumer with repository reads, including the temporary legacy catalogue export endpoint. Evaluation bootstraps a temporary database per Storefront service lifecycle; never seed the owner's persistent file.
+- [x] Implement `GuardedCart.refreshProductTerms(): void`: detect changes to authoritative products referenced by the cart using their revisions, increment the cart revision and clear confirmations before rendering, registering, editing or consuming. Persist the catalogue revision in each confirmation as an additional conservative check. An import is atomic, and consume/check/order creation runs without an asynchronous gap. Thus existing `cart:<revision>` Snapshot/Action signatures detect changed terms without weakening the browser protocol.
+- [x] Preserve Undo's original deadline; reconcile its operation revision when terms change, never extend it. Undo restores exact cart lines, not a promise of old prices/availability. Unavailable/deleted items can be removed; restoring an obsolete line produces a non-purchasable line whose checkout remains blocked. Never silently substitute a variant. Add these tests.
+- [x] Store completed order line names, unit Money and chosen variants at submission; render those immutable facts after later catalogue edits. Keep fictional seed history clearly labelled. Add price-edit-after-order and two-shopper tests.
+- [x] Run Storefront tests/build and Python isolation/cart/checkout browser tests serially. Commit `Use authoritative products throughout storefront commerce`.
 
 ## Task 3: Bounded search and detail service
 
@@ -188,7 +197,7 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
 **Modify:** Storefront route composition and private service authentication reuse.
 **Produces:** `POST /__internal/catalogue/search` with `SearchQuery`; `POST /__internal/catalogue/details` with `{v:1, ids:string[], requirements:Predicate[], unverified_requirements:string[]}`. Maximum nine distinct IDs; preserve requested order and report missing IDs.
 
-- [ ] Add HTTP contract tests using the real repository. Cover authentication, query/predicate/byte bounds, SQL/FTS syntax treated as data, negative facts, unknown facts, cross-category search, top-ten filtering, explicit price/newest ordering and stale pagination.
+- [x] Add HTTP contract tests using the real repository. Cover authentication, query/predicate/byte bounds, SQL/FTS syntax treated as data, negative facts, unknown facts, cross-category search, top-ten filtering, explicit price/newest ordering and stale pagination.
 
   ```typescript
   // An omitted feature must not satisfy a negative requirement.
@@ -209,10 +218,10 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   );
   ```
 
-- [ ] Run `pnpm --filter @shopping-copilot/store exec vitest run tests/catalogue-api.test.ts` and capture the missing-route failure. Implement bound predicates and quote user tokens before constructing FTS syntax. Unicode/case/spacing normalization is allowed; Arabic/Franco phrase mapping is not.
-- [ ] Apply structured conditions before top-k. Search may return unknown-evidence candidates for inspection but must label them; known contradictory required/excluded facts are not eligible recommendations. An explicit alternative read keeps the original `requirements`. Exact counts are null if semantic/unverified requirements prevent exhaustive certification.
-- [ ] Use an authenticated cursor bound to canonical query, catalogue revision and stable position. Invalid/stale cursor yields `stale_cursor`; no hidden query changes. Bound result construction before sending, set truncation/pagination explicitly, and reject an oversized single record. Test real multi-byte Arabic, not only ASCII length.
-- [ ] Share valid/invalid contract fixtures with the later Python client. Run focused service tests, Storefront build and formatting. Commit `Expose bounded authenticated catalogue reads`.
+- [x] Run `pnpm --filter @shopping-copilot/store exec vitest run tests/catalogue-api.test.ts` and capture the missing-route failure. Implement bound predicates and quote user tokens before constructing FTS syntax. Unicode/case/spacing normalization is allowed; Arabic/Franco phrase mapping is not.
+- [x] Apply structured conditions before top-k. Search may return unknown-evidence candidates for inspection but must label them; known contradictory required/excluded facts are not eligible recommendations. An explicit alternative read keeps the original `requirements`. Exact counts are null if semantic/unverified requirements prevent exhaustive certification.
+- [x] Use an authenticated cursor bound to canonical query, catalogue revision and stable position. Invalid/stale cursor yields `stale_cursor`; no hidden query changes. Bound result construction before sending, set truncation/pagination explicitly, and reject an oversized single record. Test real multi-byte Arabic, not only ASCII length.
+- [x] Share valid/invalid contract fixtures with the later Python client. Run focused service tests, Storefront build and formatting. Commit `Expose bounded authenticated catalogue reads`.
 
 ## Task 4: Compare retrieval and qualify the optional semantic path
 
@@ -244,8 +253,8 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
 
 `RetrievalOutcome` carries the final `StructuredIntent` or clarification, verified evidence, model-selected IDs, all attempt/read counts and explicit error/exhaustion status. `ensure_active` is an async callback checking the original task, shopper binding and cancellation. Pass existing attempt IDs to the existing model-accounting layer; do not add a second independent spend ledger.
 
-- [ ] Define the versioned JSON decision union in `catalogue_retrieval.py`: `search` with SearchQuery; `details` with IDs and original requirements; `finish` with existing StructuredIntent and at most three selected IDs; `clarify` with one bounded question. Persist the interpreted original requirements within the turn; a search's narrowed/relaxed predicates never overwrite them. Shopper corrections may replace requirements only through a new model interpretation of the new message.
-- [ ] Write tests with event-controlled scripted clients: search/details/refine succeeds within limits; direct non-shopping navigation finishes with no catalogue reads; the fourth decision attempt never starts; failed parses count; repeated same-revision queries reuse evidence; Stop/ownership loss discards a released completion.
+- [x] Define the versioned JSON decision union in `catalogue_retrieval.py`: `search` with SearchQuery; `details` with IDs and original requirements; `finish` with existing StructuredIntent and at most three selected IDs; `clarify` with one bounded question. Persist the interpreted original requirements within the turn; a search's narrowed/relaxed predicates never overwrite them. Shopper corrections may replace requirements only through a new model interpretation of the new message.
+- [x] Write tests with event-controlled scripted clients: search/details/refine succeeds within limits; direct non-shopping navigation finishes with no catalogue reads; the fourth decision attempt never starts; failed parses count; repeated same-revision queries reuse evidence; Stop/ownership loss discards a released completion.
 
   ```python
   # Scripted turns use the real coordinator and fake protocol clients, not phrase dispatch.
@@ -255,22 +264,22 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   assert len(serialized_evidence.encode("utf-8")) <= 49152
   ```
 
-- [ ] Run `python -m pytest agent/tests/test_catalogue_client.py agent/tests/test_catalogue_retrieval.py -q` and inspect intended failures. Implement strict shared schema parsing, fixed-origin/no-redirect requests, five-second read timeout, status/size errors, private credential handling and bounded UTF-8 evidence assembly. A JSON response cannot allocate an unbounded body before the size check.
-- [ ] Implement the shared attempt budget across interpretation/repair/refinement; reserve one of four reads for a final details refresh. The coordinator refreshes selected IDs after `finish`, then checks selection eligibility. References alone remain non-authorizing. Exhaustion returns available verified partial information or a clarification state without synthesizing a success claim.
-- [ ] Record content hashes/revisions for turn-local reuse. Use HTTP ETags bound to the canonical request and catalogue revision; the service returns 304 only after checking its current revision. This revalidation consumes one of the four read operations, even if it avoids a response body. Never reuse a stale price across turns or treat a repeated request as a free new attempt. Before/after each await invoke `ensure_active`. Do not store raw read bodies or credentials in telemetry. Test truncation, oversized records, stale-index errors and late async results.
-- [ ] Run focused Agent tests and Ruff. Commit `Add bounded model-directed catalogue read coordinator`.
+- [x] Run `python -m pytest agent/tests/test_catalogue_client.py agent/tests/test_catalogue_retrieval.py -q` and inspect intended failures. Implement strict shared schema parsing, fixed-origin/no-redirect requests, five-second read timeout, status/size errors, private credential handling and bounded UTF-8 evidence assembly. A JSON response cannot allocate an unbounded body before the size check.
+- [x] Implement the shared attempt budget across interpretation/repair/refinement; reserve one of four reads for a final details refresh. The coordinator refreshes selected IDs after `finish`, then checks selection eligibility. References alone remain non-authorizing. Exhaustion returns available verified partial information or a clarification state without synthesizing a success claim.
+- [x] Record content hashes/revisions for turn-local reuse. Use HTTP ETags bound to the canonical request and catalogue revision; the service returns 304 only after checking its current revision. This revalidation consumes one of the four read operations, even if it avoids a response body. Never reuse a stale price across turns or treat a repeated request as a free new attempt. Before/after each await invoke `ensure_active`. Do not store raw read bodies or credentials in telemetry. Test truncation, oversized records, stale-index errors and late async results.
+- [x] Run focused Agent tests and Ruff. Commit `Add bounded model-directed catalogue read coordinator`.
 
 ## Task 6: Integrate discovery, product references and advice
 
 **Modify:** `agent/app.py`, `agent/advice.py`, `agent/catalogue.py`, `agent/llm/intent_pipeline.py`, `agent/product_context.py`; task state/command interfaces only as required to carry outcome/evidence. **Test:** `agent/tests/test_catalogue_advice.py`, existing advice/semantic/cart suites.
 
-- [ ] Add failing integration tests where the scripted model selects a valid candidate outside the old first three, searches without a category, keeps an unknown attribute in the request, honors an exclusion and requests details of an earlier suggestion. Verify it does not need a specific spelling in code. Also pin ordinary quantity/account navigation paths and no extra retrieval calls.
-- [ ] Wire the coordinator into the existing task interpretation seam. Build a compact request from existing bounded conversation/cart/Snapshot plus read-capability descriptions. For retrieval, remove the full vocabulary whitelist and category-required rejection; retain schema/currency/bounds validation. Existing navigation/filter Actions must still use supported destinations/controls. Unknown requested facts remain unknown, not a fabricated supported filter.
-- [ ] Replace `prepare_advice` full-catalogue selection with `prepare_retrieved_advice(outcome: RetrievalOutcome) -> AdviceEvidence`, using fresh details and server-computed eligibility. Use model-selected IDs; remove neutral-palette/product-ID ranking and templated recommendation reasons from the new discovery path. Do not delete code still required by the frozen historical evaluation baseline; move that baseline into evaluation-only code when runtime no longer uses it.
-- [ ] Carry original hard requirements and unknowns into the final advice request and validate proposed IDs/eligibility before publishing cards. Model prose remains natural and subjective advice remains clearly opinion; schema checks alone are not evidence that every sentence is factual. Test grounded/unsupported claims via scripted contract checks and record prose fidelity in the later live evaluation.
-- [ ] Keep action execution on the existing protocol. Trusted retrieval can add observed catalogue identities to bounded known-product references, but opening/mutating still requires configured routes/current DOM targets and fresh state. Stop/restart/revocation prevents later advice or Actions. Update prompt/schema versions and provider-independent fixtures honestly.
-- [ ] Remove normal Agent full-catalogue reads only once all runtime consumers are migrated. Keep the database-backed compatibility path operational until this task is complete; it is the same source of truth, not a fallback array. Gate new Agent mode behind `CATALOGUE_RETRIEVAL_ENABLED` until Task 7 qualification, with default remaining current mode meanwhile.
-- [ ] Run new integration tests plus existing advice, semantic boundary, navigation, guarded mutation and recovery suites. Commit `Integrate catalogue retrieval with grounded shopping advice`.
+- [x] Add failing integration tests where the scripted model selects a valid candidate outside the old first three, searches without a category, keeps an unknown attribute in the request, honors an exclusion and requests details of an earlier suggestion. Verify it does not need a specific spelling in code. Also pin ordinary quantity/account navigation paths and no extra retrieval calls.
+- [x] Wire the coordinator into the existing task interpretation seam. Build a compact request from existing bounded conversation/cart/Snapshot plus read-capability descriptions. For retrieval, remove the full vocabulary whitelist and category-required rejection; retain schema/currency/bounds validation. Existing navigation/filter Actions must still use supported destinations/controls. Unknown requested facts remain unknown, not a fabricated supported filter.
+- [x] Replace `prepare_advice` full-catalogue selection with `prepare_retrieved_advice(outcome: RetrievalOutcome) -> AdviceEvidence`, using fresh details and server-computed eligibility. Use model-selected IDs; remove neutral-palette/product-ID ranking and templated recommendation reasons from the new discovery path. Do not delete code still required by the frozen historical evaluation baseline; move that baseline into evaluation-only code when runtime no longer uses it.
+- [x] Carry original hard requirements and unknowns into the final advice request and validate proposed IDs/eligibility before publishing cards. Model prose remains natural and subjective advice remains clearly opinion; schema checks alone are not evidence that every sentence is factual. Test grounded/unsupported claims via scripted contract checks and record prose fidelity in the later live evaluation.
+- [x] Keep action execution on the existing protocol. Trusted retrieval can add observed catalogue identities to bounded known-product references, but opening/mutating still requires configured routes/current DOM targets and fresh state. Stop/restart/revocation prevents later advice or Actions. Update prompt/schema versions and provider-independent fixtures honestly.
+- [x] Remove normal Agent full-catalogue reads only once all runtime consumers are migrated. Keep the database-backed compatibility path operational until this task is complete; it is the same source of truth, not a fallback array. Gate new Agent mode behind `CATALOGUE_RETRIEVAL_ENABLED` until Task 7 qualification, with default remaining current mode meanwhile.
+- [x] Run new integration tests plus existing advice, semantic boundary, navigation, guarded mutation and recovery suites. Commit `Integrate catalogue retrieval with grounded shopping advice`.
 
 ## Task 7: End-to-end evidence and activation gate
 
@@ -287,10 +296,10 @@ The HTTP service returns errors with `code` from `invalid_query`, `stale_cursor`
   assert order_unit_price == price_at_submission
   ```
 
-- [ ] Run focused browser cases with no other harness holding the service ports. Then run the existing repository CI commands once after fixes: Prettier, ESLint, Ruff check/format, recursive TypeScript tests/builds, test-inclusive Bridge/Panel typechecks, and `python -m pytest agent/tests eval/tests`. Use `D:/agent depi/.venv/Scripts/python.exe` on this host. Inspect every exit code; distinguish clean full runs from focused rerun evidence.
+- [x] Run focused browser cases with no other harness holding the service ports. Then run the existing repository CI commands once after fixes: Prettier, ESLint, Ruff check/format, recursive TypeScript tests/builds, test-inclusive Bridge/Panel typechecks, and `python -m pytest agent/tests eval/tests`. Use `D:/agent depi/.venv/Scripts/python.exe` on this host. Inspect every exit code; distinguish clean full runs from focused rerun evidence.
 - [ ] Prepare a bounded live evaluation from the frozen messy queries with grouped follow-ups and traceable product evidence. Before any provider call, inspect remaining authorized allowance without printing the key; prior capped acceptance authorizations are not blanket permission for new paid experiments. If a specific allowance is not already approved, present the concrete cost/call cap for approval and leave live qualification open. Do not consume funds merely to complete the checklist.
 - [ ] Record actual decisions, retrieval recall, requirement preservation, prose grounding, unknown handling, tokens/calls, latency and failures. Default activation requires the spec's real-model gate as well as automated safety. An unavailable allowance or unmet backend/host gate leaves the new mode opt-in for local scripted evaluation and the work explicitly not deployment-ready.
-- [ ] Run independent Spec/Standards code reviews using the requested `implement`/`code-review` workflow, fix actionable findings and repeat affected checks only. Audit changed browser/network artifacts for credentials; stage no database, vectors, model weights, `.env`, logs or private input files. Commit `Verify catalogue retrieval and document activation evidence` with the actual qualification status, not a fabricated completion claim.
+- [x] Run independent Spec/Standards code reviews using the requested `implement`/`code-review` workflow, fix actionable findings and repeat affected checks only. Audit changed browser/network artifacts for credentials; stage no database, vectors, model weights, `.env`, logs or private input files. Commit `Verify catalogue retrieval and document activation evidence` with the actual qualification status, not a fabricated completion claim.
 
 ## Self-review and handoff
 
@@ -298,4 +307,4 @@ Coverage: storage/import/rollback (1), shared commerce and freshness (2), read s
 
 Task test snippets pin representative observable assertions; each accompanying step names the additional cases and exact test files. Do not substitute a large set of shallow mocks for the shared HTTP/browser behavior. Keep the historical CAP-03 results unchanged and label all generated retrieval evaluation data honestly.
 
-Owner review of this plan is next. Recommended execution remains native and sequential under `implement`, with independent review at the end. The plan does not authorize paid evaluation or default activation before the evidence gates pass.
+Owner approval was received and native implementation proceeded under `implement`, with independent Spec/Standards review. The plan does not authorize paid evaluation or default activation before the evidence gates pass.

@@ -1,3 +1,4 @@
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -78,4 +79,52 @@ it("retains unknown absence and rejects contradictory explicit negative facts", 
   repo = openCatalogue(file);
   expect(repo.revision()).toBe(1);
   repo.close();
+});
+
+it("holds one catalogue version across synchronous request reads and releases it on errors", () => {
+  const file = path();
+  importCatalogue(file, products);
+  const repo = openCatalogue(file);
+  const writer = new DatabaseSync(file);
+  writer.exec("PRAGMA busy_timeout=0");
+  try {
+    repo.snapshot(() => {
+      expect(() =>
+        writer.exec("UPDATE catalogue_meta SET revision=revision+1"),
+      ).toThrow();
+      expect(repo.revision()).toBe(1);
+    });
+    writer.exec("UPDATE catalogue_meta SET revision=revision+1");
+    expect(repo.revision()).toBe(2);
+    expect(() =>
+      repo.snapshot(() => {
+        throw new Error("fixture");
+      }),
+    ).toThrow("fixture");
+    writer.exec("UPDATE catalogue_meta SET revision=revision+1");
+    expect(repo.revision()).toBe(3);
+  } finally {
+    writer.close();
+    repo.close();
+  }
+});
+
+it("round-trips large exact Money without converting SQLite integers to JS numbers", () => {
+  const file = path();
+  const rows = products.map((p, i) =>
+    i
+      ? p
+      : {
+          ...p,
+          price: { amount: "92233720368547758.07", currency: "EGP" as const },
+        },
+  );
+  importCatalogue(file, rows);
+  importCatalogue(file, rows);
+  const repo = openCatalogue(file);
+  try {
+    expect(repo.get(rows[0].id)?.price.amount).toBe("92233720368547758.07");
+  } finally {
+    repo.close();
+  }
 });

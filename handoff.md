@@ -1,23 +1,24 @@
 # Shopping Copilot — project handoff
 
-## Catalogue retrieval design prepared — 2026-10-08
+## Catalogue retrieval implemented locally; activation pending — 2026-10-08
 
-The owner approved the direction of database-backed, model-directed product retrieval
-before deployment. The [written design](docs/superpowers/specs/2026-10-08-catalogue-retrieval-design.md)
-proposes a Storefront-owned SQLite repository, bounded search/details operations,
-model-owned query/refinement and advice, and fresh deterministic eligibility and
-mutation checks. It corrects the premise that the entire catalogue currently enters
-every model call: the Agent fetches it internally, while advice sees a small selected
-subset. The proposed change also removes fixed three-product preselection from the
-advisor's evidence pool.
+The approved SQLite repository, private bounded search/details service and opt-in
+model-directed retrieval/advice flow are implemented on `codex/shopper-isolation`.
+Shopper isolation and Action/Confirmation boundaries are preserved. The combined
+browser scenario passes through real database reads, advice, open/add/multi-line
+quantity changes and two independent shopper contexts. Verification covers 534
+distinct Python tests (531 in a clean full run plus three focused additions) and
+182 TypeScript tests across full/focused runs, with format/lint/build checks green.
 
-The written design is now owner-approved. The [implementation plan](docs/superpowers/plans/2026-10-08-catalogue-retrieval.md)
-is ready for review; native sequential execution is recommended. A read-only in-memory
-probe confirmed FTS5 on local Node 24.13.0, whose SQLite API is experimental. No runtime migration,
-retrieval benchmark, provider call, dependency installation or cloud action occurred.
-Semantic retrieval is a measured candidate, not an already selected/deployed backend.
-CAP-02/03 frozen evidence and the original dirty checkout remain unchanged. This
-documentation lives alongside the completed isolation work on `codex/shopper-isolation`.
+[Verification and qualification](docs/catalogue-retrieval-verification.md) records
+checks, review fixes and the exposed offline comparison. Lexical/hybrid overall
+target recall@10 is 67.5%/85%, but raw Egyptian Arabic remains 0%/40%. The new
+path stays opt-in (`CATALOGUE_RETRIEVAL_ENABLED=0` by default) pending separately
+budgeted actual-model evaluation and host measurements. SQLite is active; the
+legacy advice path reads the same database through its compatibility endpoint.
+No paid calls, budget increases, AWS resources, push or deployment occurred.
+Original dirty checkout and frozen CAP-02/03 datasets/results remain unchanged.
+The old catalogue source is archived by its existing hash for baseline loading.
 
 ## Shopper isolation implemented locally — 2026-10-08
 

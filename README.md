@@ -320,3 +320,17 @@ Some historical notes reflect older frontiers or formatting failures. The curren
 CI badge and this README's scope summary provide context for those dated records.
 Detailed local ticket/spec files remain in ignored `.scratch/` and are not included
 in a fresh clone; the roadmap above summarizes the remaining public scope.
+
+### SQLite catalogue and bounded retrieval
+
+The local Storefront now reads one SQLite catalogue for pages, cart validation
+and checkout. Initialize it explicitly with the seed-import command above;
+startup fails if the database is missing. Runtime state stays under ignored
+`work/`; do not commit databases, model weights or private identity files.
+
+An opt-in model-directed retrieval path lets the assistant search/refine product
+queries and select from broader evidence before giving advice. Enable locally
+with `CATALOGUE_RETRIEVAL_ENABLED=1`; `CATALOGUE_RANKING=lexical` needs no embedding
+model. Keep the default off until the actual-model qualification is completed.
+[Verification, comparison results and remaining gates](docs/catalogue-retrieval-verification.md)
+explain the limits, including weak raw Arabic retrieval and unmeasured host fit.

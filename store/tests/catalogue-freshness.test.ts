@@ -23,13 +23,9 @@ function fixture() {
 it("rejects confirmation for a changed price and renders current terms from the same repository", async () => {
   const { file, repository } = fixture();
   const client = await browser(createApp({ evaluation: true, repository }));
-  await client
-    .post("/__test/cart")
-    .send({
-      lines: [
-        { product_id: "shoe-01", size: "40", color: "blue", quantity: 1 },
-      ],
-    });
+  await client.post("/__test/cart").send({
+    lines: [{ product_id: "shoe-01", size: "40", color: "blue", quantity: 1 }],
+  });
   const old = (await client.get("/cart/state")).body.revision;
   const token = (
     await client
@@ -44,16 +40,13 @@ it("rejects confirmation for a changed price and renders current terms from the 
         : p,
     ),
   );
-  const response = await client
-    .post("/checkout/submit")
-    .type("form")
-    .send({
-      copilot_confirmation: token,
-      cart_revision: old,
-      card_number: "0000 0000 0000 0000",
-      card_expiry: "01/30",
-      card_security_code: "000",
-    });
+  const response = await client.post("/checkout/submit").type("form").send({
+    copilot_confirmation: token,
+    cart_revision: old,
+    card_number: "0000 0000 0000 0000",
+    card_expiry: "01/30",
+    card_security_code: "000",
+  });
   expect(response.status).toBe(403);
   const state = (await client.get("/cart/state")).body;
   expect(state.revision).toBeGreaterThan(old);
@@ -116,4 +109,38 @@ it("keeps order facts immutable and lets obsolete cart lines be removed and undo
   expect(() => cart.submitOrder()).toThrow();
   expect(cart.lines).toHaveLength(1);
   expect(cart.undo).toBeNull();
+});
+
+it("rejects quantity changes after variant withdrawal while allowing removal", () => {
+  const { file, repository } = fixture();
+  const cart = new GuardedCart(() => 0, repository);
+  const line = { product_id: "shoe-01", size: "40", color: "blue" };
+  expect(
+    cart.edit("add", {
+      ...line,
+      quantity: 1,
+      revision: 0,
+      operation_id: "add",
+    }),
+  ).toBe(true);
+  importCatalogue(
+    file,
+    seedProducts.map((p) => (p.id === "shoe-01" ? { ...p, sizes: ["41"] } : p)),
+  );
+  expect(
+    cart.edit("quantity", {
+      ...line,
+      quantity: 2,
+      revision: cart.revision,
+      operation_id: "change",
+    }),
+  ).toBe(false);
+  expect(cart.lines[0].quantity).toBe(1);
+  expect(
+    cart.edit("remove", {
+      ...line,
+      revision: cart.revision,
+      operation_id: "remove",
+    }),
+  ).toBe(true);
 });

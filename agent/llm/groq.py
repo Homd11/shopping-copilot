@@ -65,7 +65,7 @@ class GroqClient:
     async def _complete_with_retry(
         self, request: LLMRequest
     ) -> tuple[list[LLMChunk], dict[str, int] | None]:
-        for attempt in range(2):
+        for attempt in range(request.provider_attempt_limit):
             try:
                 return await self._complete(request)
             except (
@@ -74,7 +74,7 @@ class GroqClient:
                 httpx.TransportError,
                 ValueError,
             ) as error:
-                if attempt or not _is_retryable(error):
+                if attempt + 1 >= request.provider_attempt_limit or not _is_retryable(error):
                     raise
                 await asyncio.sleep(0.25)
         raise AssertionError("unreachable")
