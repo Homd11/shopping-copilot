@@ -2,6 +2,52 @@
 
 **Last updated:** 2026-10-08
 
+## Retrieval repair: targeted live recommendation and routing checks pass — 2026-10-08
+
+This entry supersedes the failed verification and runtime rollback below. The owner
+authorized continued repair within the existing $1 total, non-resetting OpenRouter
+key cap. No cap increase, top-up, deployment or push was performed.
+
+Captured responses exposed repeated empty nested action intents in the retrieval
+response. The model-facing retrieval contract now separates read-only recommendations
+from an `execute` routing decision. Execution routes the original shopper message,
+context and snapshot through the established action interpreter and validators;
+routing annotations confer no action authority. Routing and interpretation share
+the existing three-decision budget, cancellation checks and single provider attempt.
+Legacy nested finish responses remain supported internally, but are not requested
+from the provider. No phrase matching or language dictionaries were introduced.
+
+Read decisions can carry subjective preferences separately from factual requirements.
+The advice prompt asks for a provisional, grounded styling comparison before an
+optional follow-up question. Existing fact, target, quantity, confirmation and
+mutation guards remain in force. Models can still classify taste imperfectly;
+this change does not claim universal semantic accuracy.
+
+Final live evidence using `catalogue-decision-v6` and `advice-v4`:
+
+- The original Egyptian Arabic football-shoe request (size 43, distinctive style)
+  returned three catalogue products and an Arabic comparison grounded in their
+  colours, followed by an optional preference question, with no failure events.
+- The cart-navigation request produced a valid navigation intent through the
+  established interpreter, using two model calls and no catalogue reads. This
+  verifies the preparation seam, not a browser click or a cart mutation.
+- All 434 Agent tests pass, with Ruff checks passing. Independent specification
+  review found no outstanding safety issue; the separate standards reviewer was
+  unavailable because of its usage limit. Browser/full-workspace checks were not
+  repeated for this Agent-only change. Broader live qualification remains open.
+
+Raw traces remain ignored under `work/manual-test/live-final-v6.json` and
+`work/manual-test/live-navigation-routed.json`. The latest read-only key metadata
+reports $0.973327902 used and approximately $0.02667 remaining. Reported usage rose
+by about $0.01947 during this repair; these are provider-reported snapshots, not a
+separate billing reconciliation. No further paid probes are needed for this fix.
+
+The local manual-test Agent was restarted with retrieval enabled and lexical
+ranking; Agent health and both UI roots return HTTP 200. Repository defaults remain
+opt-in. SQLite and shopper isolation remain
+active; the Storefront process and existing carts are retained. Refresh the Panel
+after the restart to establish a fresh Agent session.
+
 ## Final bounded verification: technical errors cleared, recommendation gate failed — 2026-10-08
 
 The owner authorized one final set of at most four model requests / $0.08 reserved

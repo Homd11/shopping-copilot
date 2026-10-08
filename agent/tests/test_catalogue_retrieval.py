@@ -108,6 +108,42 @@ def test_direct_navigation_has_no_reads_and_preserves_action_validation():
     assert outcome.intent.intent == "navigate" and not reads.calls
 
 
+def test_execution_routing_uses_original_request_and_existing_intent_validation_without_reads():
+    model = RecordingModel(
+        {"kind": "execute", "target": "https://evil.example", "cart_quantity": 99},
+        decision(intent="navigate", constraints={"target": "cart"}),
+    )
+    reads = Reads()
+    outcome = asyncio.run(run(model, reads))
+    assert outcome.intent.intent == "navigate"
+    assert outcome.intent.constraints.target == "cart"
+    assert not reads.calls
+    assert outcome.budget.decisions == 2
+    assert "evil.example" not in model.requests[1].messages[0].content
+    assert model.requests[1].provider_attempt_limit == 1
+
+
+def test_execution_routing_cannot_remove_cart_guards_or_expand_decision_budget():
+    model = RecordingModel(
+        {"kind": "execute"},
+        *[
+            {
+                **decision(intent="cart_edit", constraints={}),
+                "cart_operation": "quantity",
+                "cart_quantity": 3,
+                "cart_quantity_mode": "increase",
+                "product_id": "untrusted-id",
+            }
+        ]
+        * 2,
+    )
+    reads = Reads()
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(run(model, reads))
+    assert not reads.calls
+    assert len(model.requests) == 3
+
+
 def test_failed_decisions_and_retries_share_three_attempt_budget():
     budget = RetrievalBudget()
     model = RecordingModel({}, {}, {}, {})

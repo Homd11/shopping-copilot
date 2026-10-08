@@ -66,7 +66,14 @@ class SearchQuery(WireModel):
     query: str = Field(max_length=1024)
     predicates: Predicates = Field(default_factory=list)
     requirements: Predicates = Field(default_factory=list)
-    unverified_requirements: Unknowns = Field(default_factory=list)
+    unverified_requirements: Unknowns = Field(
+        default_factory=list,
+        description=(
+            "Explicit factual must-haves that the typed predicates cannot represent. "
+            "Subjective taste/style wishes belong in the decision's "
+            "subjective_preferences, not here."
+        ),
+    )
     sort: Literal["relevance", "cheapest", "newest"] = "relevance"
     cursor: str | None = Field(default=None, min_length=1, max_length=2048)
 
@@ -81,7 +88,14 @@ class DetailsQuery(WireModel):
     v: Literal[1] = 1
     ids: list[ProductId] = Field(min_length=1, max_length=9)
     requirements: Predicates = Field(default_factory=list)
-    unverified_requirements: Unknowns = Field(default_factory=list)
+    unverified_requirements: Unknowns = Field(
+        default_factory=list,
+        description=(
+            "Explicit factual must-haves that the typed predicates cannot represent. "
+            "Subjective taste/style wishes belong in the decision's "
+            "subjective_preferences, not here."
+        ),
+    )
 
     @model_validator(mode="after")
     def unique_ids(self):
