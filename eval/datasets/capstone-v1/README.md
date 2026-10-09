@@ -1,5 +1,7 @@
 # Capstone dataset preparation structure
 
+**Current status (9 October 2026): CAP-02 closed under the owner-approved synthetic scope.** The [new release](holdout-20261009/README.md) adds 120 synthetic test messages; earlier training/validation releases remain unchanged. Independent human evaluation is not claimed. See [closeout](../../../docs/cap02-cap03-closeout.md). The historical preparation notes below describe the superseded independent-data gate.
+
 **State (7 October 2026):** CAP-02 final release remains open. Two separately frozen synthetic development pilots exist: [pilot 1](pilot-20261006/README.md), 82 training / 21 validation, and [pilot 2](pilot-20261007/README.md), 210 training / 53 validation. Both contain **zero unseen cases**. The expanded pool has 308 records, 263 eligible candidates and 45 exclusions. See [current results](../../../docs/cap03-expanded-pilot-results.md) for coverage and limitations.
 
 The owner and coding assistant are the only active contributors; independent human review and unseen custody remain unavailable. All draft annotations remain exposed, synthetic and non-gold. The separate pilot exception does not close final CAP-02. Original intake, first pilot and final empty split placeholder remain unchanged.

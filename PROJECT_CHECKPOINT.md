@@ -2,6 +2,34 @@
 
 **Last updated:** 2026-10-09
 
+## CAP-02 / CAP-03 closed under approved synthetic scope — 2026-10-09
+
+The owner approved replacing independent-human evaluation with a clearly disclosed
+synthetic benchmark and at most $0.20 of API usage inside the existing $2 key cap.
+[Closeout](docs/cap02-cap03-closeout.md) and the
+[executed notebook](notebooks/cap03-synthetic-holdout.ipynb) record completion.
+The 120 new messages cover ten intents/four languages, three per cell. Existing
+210 training / 53 validation and seven selected artifacts are unchanged. Protocol
+commit `f2695b1` precedes authoring; reviewed dataset/runner commit `7e20365` precedes
+predictions. The coordinator AI reviewed all drafts after an additional reviewer
+hit usage limits; no human review is claimed. Shared scenario semantics and explicit
+disambiguators limit independence and realism.
+
+All eight contenders completed 120 predictions: Gemini 120 correct, Complement
+Naive Bayes 74, Logistic Regression 69, Linear SVM 63, embedding LR 59, embedding
+MLP 55, Random Forest 46, XGBoost 40. This is intent-only synthetic classification,
+not a whole-agent accuracy/safety score. Paid usage was $0.0148178, all known,
+120 attempts and zero repairs/failures. Embedding startup failures were retained;
+a cache-only recovery made their first predictions, retaining five other results.
+No refitting, prompt retuning or label changes after predictions.
+
+567 non-browser Python tests passed; four recovery tests additionally passed.
+Notebook execution, release/artifact checks and formatting/lint checks pass.
+Current runtime and running services are unchanged. Independent real-shopper
+validation is a disclosed future limitation outside the amended ticket closure.
+Next: CAP-04 credit-only architecture/public HTTPS/abuse controls, then CAP-05
+model qualification; no provisioning, push, deposit or cap increase occurred.
+
 ## Recommendation-to-cart boundary and latency repair — 2026-10-08
 
 The reported “first football shoe, blue, size 43, add it” failure was reproduced

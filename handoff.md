@@ -1,5 +1,14 @@
 # Shopping Copilot — project handoff
 
+## CAP-02 and CAP-03 closed — 2026-10-09
+
+Closed under the explicitly approved synthetic benchmark amendment. See
+[closeout](docs/cap02-cap03-closeout.md), [notebook](notebooks/cap03-synthetic-holdout.ipynb)
+and PROJECT_CHECKPOINT.md for current evidence. 120 fresh synthetic messages were
+scored once across seven frozen classifiers and Gemini; cost $0.0148178 within the
+unchanged $2 total cap. No independent human-data or whole-agent accuracy claim.
+CAP-04 is the next active gate. No runtime change or AWS deployment.
+
 ## Recommended-product add and latency repair — 2026-10-09
 
 See [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md) for the newest evidence. The
