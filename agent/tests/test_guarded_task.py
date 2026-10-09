@@ -1,13 +1,13 @@
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 
 from agent.app import create_app
 from agent.llm import LLMChunk, LLMSettings, ScriptedLLMClient
 from agent.llm.intent import StructuredIntent
 from agent.schemas import ActionResult, AskShopperAction, GuardedClickAction, Snapshot
 from agent.sessions import ActionResultMismatch, SessionStore
+from agent.tests.http_client import TestClient
 from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
 
@@ -293,7 +293,7 @@ def test_agent_api_registers_only_the_exact_shopper_confirmed_mutation(schema_ve
         json={"question_id": question["action_id"], "text": "Confirm", "snapshot": snapshot},
     )
     assert answer.status_code == 202
-    assert registered == [
+    assert [parts[1:] for parts in registered] == [
         ("http://localhost:4000/cart", question["action_id"], task_id, "clear_cart", 3)
     ]
     all_events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)

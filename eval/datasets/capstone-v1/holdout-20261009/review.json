@@ -1,0 +1,1099 @@
+{
+  "status": "approved_ai_review",
+  "reviewed_on": "2026-10-09",
+  "reviewer_id": "ai-coordinator-review-20261009",
+  "author_id": "ai-holdout-author-20261009",
+  "reviewed_count": 120,
+  "human_review_count": 0,
+  "separate_review_attempt": "Additional label-review subagent hit usage limit before producing a review; coordinator reviewed all saved drafts before any candidate predictions.",
+  "disagreements": [],
+  "clarifications": [
+    "Case112 is actual billing-currency mutation, not a price conversion question.",
+    "Case118 strict below900 threshold is preserved in semantic notes; not scored as inclusive price constraint.",
+    "References to current listings/cart need evidence to execute but do not obscure intent classification.",
+    "Franco-Arabic includes conventional English product terms; mixed uses Arabic script plus English.",
+    "Several messages explicitly disambiguate intent and are longer/cleaner than spontaneous traffic; likely easier than unprompted shopper conversations."
+  ],
+  "records": [
+    {
+      "case_id": "holdout-20261009-001",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-002",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-003",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-004",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-005",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-006",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-007",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-008",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-009",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-010",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-011",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-012",
+      "first_intent": "advice",
+      "final_intent": "advice",
+      "status": "accepted",
+      "reason": "Asks for reasons, evidence limits or styling opinion rather than a product list.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-013",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-014",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-015",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-016",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-017",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-018",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-019",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-020",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-021",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-022",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-023",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-024",
+      "first_intent": "find_products",
+      "final_intent": "find_products",
+      "status": "accepted",
+      "reason": "Asks to retrieve options satisfying explicit requirements; missing catalogue facts do not change capability.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-025",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-026",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-027",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-028",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-029",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-030",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-031",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-032",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-033",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-034",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-035",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-036",
+      "first_intent": "locate",
+      "final_intent": "locate",
+      "status": "accepted",
+      "reason": "Requests identifying/highlighting a control while explicitly leaving activation to the shopper.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-037",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-038",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-039",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-040",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-041",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-042",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-043",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-044",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-045",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-046",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-047",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-048",
+      "first_intent": "navigate",
+      "final_intent": "navigate",
+      "status": "accepted",
+      "reason": "Requests opening a general destination, not a product or final checkout submission.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-049",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-050",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-051",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-052",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-053",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-054",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-055",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-056",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-057",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-058",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-059",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-060",
+      "first_intent": "open_product",
+      "final_intent": "open_product",
+      "status": "accepted",
+      "reason": "Requests a particular product detail page; product resolution is execution context, not intent ambiguity.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-061",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-062",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-063",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-064",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-065",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-066",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-067",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-068",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-069",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-070",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-071",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-072",
+      "first_intent": "mutate",
+      "final_intent": "mutate",
+      "status": "accepted",
+      "reason": "Explicit whole-cart clearing or final fictional checkout submission; classification grants no confirmation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-073",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-074",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-075",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-076",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-077",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-078",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-079",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-080",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-081",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-082",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-083",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-084",
+      "first_intent": "cart_edit",
+      "final_intent": "cart_edit",
+      "status": "accepted",
+      "reason": "Reversible line-level add/quantity/remove/undo, not whole-cart clearing or checkout.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-085",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-086",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-087",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-088",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-089",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-090",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-091",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-092",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-093",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-094",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-095",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-096",
+      "first_intent": "help",
+      "final_intent": "help",
+      "status": "accepted",
+      "reason": "General assistance using the shopping assistant, not a specific shopping operation.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-097",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-098",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-099",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-100",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-101",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-102",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-103",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-104",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-105",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-106",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-107",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-108",
+      "first_intent": "off_topic",
+      "final_intent": "off_topic",
+      "status": "accepted",
+      "reason": "Non-shopping study, science, creative writing or office-software request.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-109",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-110",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-111",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-112",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-113",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-114",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-115",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-116",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-117",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-118",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-119",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    },
+    {
+      "case_id": "holdout-20261009-120",
+      "first_intent": "unsupported",
+      "final_intent": "unsupported",
+      "status": "accepted",
+      "reason": "Shopping-related operation outside the frozen supported capabilities.",
+      "overlap_status": "resolved",
+      "overlap_disposition": "No exact normalized duplicate; closest lexical candidates inspected. Shared capability/workflow wording remains, especially navigation, undo and final checkout; this is new-message synthetic evaluation, not scenario-family-independent generalisation."
+    }
+  ]
+}

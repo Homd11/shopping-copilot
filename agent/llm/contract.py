@@ -46,6 +46,8 @@ class LLMRequest:
     max_tokens: int = 512
     # Local telemetry correlation only; never transmitted as model instructions.
     attempt_id: str | None = None
+    # Coordinators can own retries and prohibit hidden provider attempts.
+    provider_attempt_limit: Literal[1, 2] = 2
 
 
 class LLMClient(Protocol):

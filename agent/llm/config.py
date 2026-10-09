@@ -60,8 +60,8 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
             openrouter_total_limit = float(values.get("OPENROUTER_TOTAL_CAP_DOLLARS", "0.25"))
         except ValueError as error:
             raise LLMConfigurationError("OPENROUTER_TOTAL_CAP_DOLLARS must be a number") from error
-        if not isfinite(openrouter_total_limit) or not 0 < openrouter_total_limit <= 1.00:
-            raise LLMConfigurationError("OpenRouter total cap must be between $0 and $1.00")
+        if not isfinite(openrouter_total_limit) or not 0 < openrouter_total_limit <= 2.00:
+            raise LLMConfigurationError("OpenRouter total cap must be between $0 and $2.00")
     if provider == "gemini":
         if not api_key_text:
             raise LLMConfigurationError("GEMINI_API_KEY is required for the gemini provider")

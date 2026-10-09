@@ -2,11 +2,11 @@ import asyncio
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 from agent.app import create_app
 from agent.llm import LLMChunk, LLMSettings
+from agent.tests.http_client import TestClient, authorize_async
 from agent.tests.test_catalogue import catalogue
 from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
@@ -25,6 +25,32 @@ class RecordingModel:
 class Reader:
     async def read(self):
         return catalogue()
+
+
+def test_revocation_during_catalogue_read_prevents_another_model_call():
+    async def scenario():
+        model = RecordingModel(decision(), advice("must not be requested"))
+
+        class RevokingReader:
+            async def read(self):
+                app.state.storefront_service.revoked = True
+                return catalogue()
+
+        app = create_app(
+            llm_settings=LLMSettings(provider="groq", model="test"),
+            llm_client=model,
+            catalogue_reader=RevokingReader(),
+        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
+            sid = (await client.post("/sessions")).json()["session_id"]
+            await client.post(
+                f"/sessions/{sid}/messages",
+                json={"text": "what goes together?", "snapshot": home_snapshot()},
+            )
+            assert len(model.requests) == 1
+
+    asyncio.run(scenario())
 
 
 def decision(**changes):
@@ -281,6 +307,7 @@ def test_late_advice_is_discarded_after_stop_or_refresh(interruption, discovery)
             catalogue_reader=Reader(),
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
             session = (await client.post("/sessions", json={"tab_id": "tab-1"})).json()[
                 "session_id"
             ]
@@ -415,7 +442,7 @@ def test_navigation_target_on_discovery_repairs_target_without_discarding_requir
     assert not any(event["event"] == "action" for event in events)
 
 
-def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch():
+def test_discovery_constraints_on_cart_add_get_scoped_repair_preserving_product_identity():
     from agent.tests.test_cart_task import snapshot
 
     clean = decision(
@@ -425,8 +452,11 @@ def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch()
         cart_target_id=4,
         cart_quantity=1,
         cart_quantity_mode="set",
+        product_id="shoe-09",
     )
-    model = RecordingModel({**clean, "product_id": "shoe-09"}, clean)
+    model = RecordingModel(
+        {**clean, "constraints": {**clean["constraints"], "category": "shoes"}}, clean
+    )
     with client_for(model) as client:
         session = client.post("/sessions").json()["session_id"]
         events = send(
@@ -437,7 +467,7 @@ def test_navigation_product_id_on_cart_edit_gets_scoped_repair_before_dispatch()
         )
     repair = json.loads(model.requests[-1].system.split("Runtime validation feedback: ")[-1])
     rule = repair["cross_field_rules"]["cart_authority_isolation"]
-    assert "product_id" in rule["null_fields"]
+    assert "product_id for add only" in rule["preserve_fields"]
     assert rule["allowed_constraint_fields"] == ["size", "color"]
     assert "cart_quantity" in rule["preserve_fields"]
     actions = [e["data"]["action"] for e in events if e["event"] == "action"]

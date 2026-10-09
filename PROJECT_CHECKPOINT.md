@@ -1,6 +1,530 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-09
+
+## CAP-02 / CAP-03 closed under approved synthetic scope — 2026-10-09
+
+The owner approved replacing independent-human evaluation with a clearly disclosed
+synthetic benchmark and at most $0.20 of API usage inside the existing $2 key cap.
+[Closeout](docs/cap02-cap03-closeout.md) and the
+[executed notebook](notebooks/cap03-synthetic-holdout.ipynb) record completion.
+The 120 new messages cover ten intents/four languages, three per cell. Existing
+210 training / 53 validation and seven selected artifacts are unchanged. Protocol
+commit `f2695b1` precedes authoring; reviewed dataset/runner commit `7e20365` precedes
+predictions. The coordinator AI reviewed all drafts after an additional reviewer
+hit usage limits; no human review is claimed. Shared scenario semantics and explicit
+disambiguators limit independence and realism.
+
+All eight contenders completed 120 predictions: Gemini 120 correct, Complement
+Naive Bayes 74, Logistic Regression 69, Linear SVM 63, embedding LR 59, embedding
+MLP 55, Random Forest 46, XGBoost 40. This is intent-only synthetic classification,
+not a whole-agent accuracy/safety score. Paid usage was $0.0148178, all known,
+120 attempts and zero repairs/failures. Embedding startup failures were retained;
+a cache-only recovery made their first predictions, retaining five other results.
+No refitting, prompt retuning or label changes after predictions.
+
+567 non-browser Python tests passed; four recovery tests additionally passed.
+Notebook execution, release/artifact checks and formatting/lint checks pass.
+Current runtime and running services are unchanged. Independent real-shopper
+validation is a disclosed future limitation outside the amended ticket closure.
+Next: CAP-04 credit-only architecture/public HTTPS/abuse controls, then CAP-05
+model qualification; no provisioning, push, deposit or cap increase occurred.
+
+## Recommendation-to-cart boundary and latency repair — 2026-10-08
+
+The reported “first football shoe, blue, size 43, add it” failure was reproduced
+with captured provider output. Two application defects were involved: the model
+could select the known product but `cart_edit` prohibited its identity, and the
+flat generation schema invited discovery fields that runtime cart validation
+rejected. Earlier probes on an already-open product page did not cover this
+navigation-to-add transition.
+
+The established path now retains the model-selected, observed product identity
+for add only. Runtime opens that product, checks the returned origin and product
+path, binds the sole enabled visible add form, validates requested variants and
+executes the existing cart sequence. Unknown products, ambiguous/disabled forms,
+truncated snapshots, wrong pages and intervening page changes cannot authorize
+the add. Existing cart-line edits still require observed line controls. Duplicate
+results and uncertain mutation recovery retain their existing safeguards.
+
+`intent-v31` uses operation-specific generation schemas derived from persisted
+field types; cart/navigation decisions no longer expose discovery metadata.
+Runtime still validates `StructuredIntent`, quantities, capabilities and authority.
+Repair diagnostics use that persisted schema. OpenRouter's schema adapter converts
+string `const` restrictions to equivalent string `enum` restrictions after a live
+response invented an unsupported action name. Numeric enums caused empty decisions
+on the pinned Gemini route: an isolated probe removing only the numeric enum
+succeeded, while adding an object type to the union did not. Numeric literal
+restrictions therefore remain local; existing live version-8/9 compatibility is
+preserved and versions outside that policy are rejected. No transport wrapper is
+needed. No language phrase rules, output
+alias rewriting, or automatic variant substitution were added.
+
+Latency changes: OpenRouter prioritizes latency within the unchanged model and
+price ceilings; private Storefront requests reuse an HTTP connection pool. Every
+shopper authorization check still sends a fresh validation request, with revocation
+and distinct-shopper coverage. Constructing a new HTTP client had cost roughly
+160–250 ms per check before a 5–40 ms local request. The pool closes at app shutdown.
+
+Live evidence so far includes a full HTTP/SSE recommendation/advice/add sequence
+and successful actual Panel/Bridge/Storefront cart mutations in separate browser
+contexts. The exact selected cart line was `shoe-12`, blue, size 43, quantity 1;
+a second shopper's cart stayed empty. After pooling, full browser recommendation
+took about 7 seconds and add 5.9 seconds; another add needed a model repair and
+took about 9.6 seconds before the singleton-enum adjustment. These are exposed
+regression observations, not an unseen accuracy score or latency guarantee.
+
+Final verification on 2026-10-09 (local time): the actual browser reproduction
+passed with recommendations in 6.954 seconds and add in 5.375 seconds, including
+navigation and fresh variant selection. Three model calls, no repair calls, exact
+`shoe-12` / blue / 43 / quantity 1 cart line, and an independent shopper remained
+empty. This is a measured regression result, not a latency or universal-success
+guarantee. Normal services were restored after the bounded diagnostic runtime.
+
+Verification includes an earlier full Python run (583 passed), followed after the
+provider compatibility correction by 536 non-browser tests and focused tests for
+the retained live-version policy (11 focused schema checks). All 182 TypeScript
+tests, builds, ESLint, Ruff, Prettier and diff-whitespace checks passed. No
+application safety checks were weakened to accept
+an invalid model decision. Two independent reviewers examined execution/schema
+changes; their repair-feedback finding was fixed. Final review also corrected a
+test/report mismatch: version 8 remains accepted by the existing live compatibility
+policy, despite the generation schema requesting version 9. The regression now
+checks the actual live validator. Raw traces and browser timing artifacts remain
+ignored under `work/manual-test/`.
+The key's total non-resetting cap remains $2; latest metadata reports about
+$1.089 used in total (provider accounting may lag). SQLite and shopper isolation remain active; experimental
+retrieval stays disabled. No AWS resources, push or cap increase.
+
+## Short conversational answers: role-aware context verified — 2026-10-08
+
+The owner requested fixing the known styling failure before handing testing back.
+The restored path remains active; experimental retrieval stays disabled. Interpreter
+prompt `intent-v29` now receives bounded previous turns as actual shopper/assistant
+messages rather than embedding them in system metadata. Only the newest shopper
+message is the request to execute. System/tool roles from history are excluded.
+The latest Copilot reply is retained up to the advice contract's 2,400-character
+bound, preserving a question after a long comparison; older entries remain capped
+at 500 characters and history remains limited to 12 entries.
+
+The prompt explicitly distinguishes an answer about an owned item from constraints
+on a desired product. The model continues to perform that interpretation. No phrase,
+colour-word or category-matching logic was added. Schema/prompt descriptions also
+tell the model to retain an identifiable desired category for catalogue-backed
+advice, avoiding empty product evidence when a requested type is known. Action,
+confirmation, snapshot and ownership validators are unchanged.
+
+Verification:
+
+- 520 non-browser Python tests pass; Ruff lint and format checks pass. Regression
+  coverage verifies question retention, role routing, bounded history, and existing
+  cross-session/origin isolation. Browser checks were not run against the owner's
+  occupied manual-service ports. Independent reviewer completion remains unavailable
+  after the earlier reviewer usage-limit failures; the change received local review.
+- A real HTTP/SSE two-turn run correctly attached the short colour answer to shoes
+  and continued advice. That run exposed an omitted desired category; the subsequent
+  contract-description correction was then verified separately through the real
+  interpreter, SQLite compatibility reader and advisor.
+- Four exposed live semantic cases passed: Arabic shoe-colour answer, Franco-Arabic
+  `aswd kda`, explicit desired green shirt, and correcting the shoes to blue while
+  requesting a white shirt. In the original case, desired shirt colour remained null,
+  shoes became black, and fresh cards plus Arabic advice included blue/white options.
+- The observed product-page add request still produced the correct cart-edit intent,
+  using one format repair in its live probe. No real cart mutation was performed by
+  these probes. These bounded cases are regression evidence, not unseen accuracy.
+
+Raw traces remain ignored at `work/manual-test/live-conversation-v29.json`,
+`work/manual-test/live-conversation-v29-flow.json`, and
+`work/manual-test/live-answer-semantics-v29.json`. Together they report approximately
+$0.0143 in provider usage under the unchanged $2 total, non-resetting cap.
+Latency remains variable: some interpretation calls took about 2.4–3.9 seconds,
+another 16.6 seconds, and one 47.3 seconds. This fixes the reproduced interpretation
+failure; it does not establish a response-time guarantee or solve provider latency.
+SQLite and shopper isolation are retained. No push, AWS deployment or budget increase.
+
+## Established conversation path restored; styling interpretation still open — 2026-10-08
+
+At the owner's request, experimental catalogue retrieval is disabled again:
+`CATALOGUE_RETRIEVAL_ENABLED=0` in the private local configuration and both ignored
+manual-service launchers. Only the Agent was restarted. SQLite, the Storefront
+process, shopper isolation and existing carts were retained. Agent health and both
+UI roots return HTTP 200. Refresh the Panel for a fresh Agent session.
+Repository defaults already disable retrieval; experimental code is retained but
+inactive. No combined-response/routing optimization was ported into the restored
+path, and no prompt, language rule or safety guard changed during this rollback.
+
+The established `interpret_message` / catalogue-reader / standalone-advisor path
+is active. Its catalogue compatibility endpoint reads the SQLite repository.
+All 449 Agent tests pass. Browser/full-workspace checks were not rerun for this
+configuration rollback; the manual Storefront was left running to retain carts.
+
+Bounded live baseline with the existing $2 total non-resetting cap:
+
+- Styling request through the HTTP/SSE application seam returned advice and cards
+  in two model calls, about 11.0s overall in this run.
+- A subsequent bare "black" completed in one call, about 2.8s, but was wrongly
+  applied to the desired shirt colour. A separate reconstruction including the
+  explicit question about the shoes' colour also produced that wrong assignment.
+  **This semantic bug remains open in the restored interpreter.** Rollback is not
+  evidence that all prior behaviour or this exact conversation now works.
+- The green, size-43 add request on a supplied product-page snapshot produced a
+  valid cart-edit intent with the observed button ID, quantity one, in one 3.485s
+  call. This is interpretation evidence, not a browser cart mutation or a complete
+  recommendation-to-add journey.
+
+Five model requests reported $0.0057311 combined cost. Single-run timings are not
+latency guarantees. The live probes used isolated test sessions/snapshots and did
+not alter the owner's cart. Ignored traces are
+`work/manual-test/live-stable-rollback.json` and
+`work/manual-test/live-stable-targets.json`.
+
+Next: address the general distinction between an answer about an owned item and
+a requirement for a desired product, using conversation-level evidence without
+phrase matching. Keep experimental retrieval disabled while doing that work;
+optimize the established flow only against measured, complete conversations.
+No push, AWS deployment or additional budget increase occurred.
+
+## Retrieval latency: fewer calls and bounded live timings — 2026-10-08
+
+The owner reported roughly 20-second replies and a stopped product-opening request.
+Read-only provider metadata confirmed $0.987338002 used under the unchanged $1
+non-resetting cap, leaving $0.012661998. The preflight reservation can block a request
+before that balance reaches zero. This allowance problem is separate from latency.
+The owner subsequently raised the key cap to $2 total. Read-only metadata confirmed
+limit=2, reset=null and $1.012661998 remaining before verification. The application
+now permits an explicitly configured cap up to $2; its default remains $0.25. The
+private local configuration was updated to match. No top-up or guard bypass occurred.
+
+The previous recorded successful search spent 10.063s, 1.719s and 2.358s in three
+sequential model requests. The approved optimization combines read-only product
+selection and grounded advice in `catalogue-decision-v7`, reducing the normal
+search/advice path from three model calls to two. Existing known-product context
+starts follow-ups in the established intent interpreter, reducing product opening
+from two calls to one. The model still decides meaning: a changed goal routes back
+to fresh retrieval within the same three-decision budget. No phrase rules were added.
+
+Combined advice receives the shared grounding policy and complete bounded product
+facts with deterministic eligibility labels. Final details refresh compares product
+facts, revision and requirement statuses against the evidence used for the response.
+This refresh includes unselected candidates that may be mentioned in comparisons,
+in batches of at most nine. Any change discards that prose and requests a rewrite
+within the original budget. If the full evidence pool cannot be refreshed within
+the read budget, discard combined prose and use the existing standalone advisor
+with only freshly checked selected products.
+Legacy responses lacking combined prose retain the standalone advisor fallback.
+No action/confirmation authority is granted by advice, and current action validators,
+ownership checks and cancellation checks remain in place.
+
+Verification: 516 non-browser Python tests pass, plus two subsequently added
+focused large-pool regressions (518 distinct passes). Checks include preparation and HTTP/SSE call-count
+checks, changed-fact rejection, unknown-ID rejection, goal changes and the real
+OpenRouter adapter with mocked HTTP and unchanged budget bounds. A full Python run
+had 514 passes, but 31 failures and 17 setup errors because browser evaluation ports
+were occupied by the owner's manual services. That run is not a full-suite pass;
+the services were retained to preserve the owner's cart. The browser fixture was
+updated for the new protocol. Ruff lint/format checks pass.
+
+One bounded live search returned three products and Arabic advice in two model calls
+(2.219s + 3.313s = 5.532s in provider requests), versus 14.140s across three calls
+in the prior recorded trace. A follow-up asking to open the Keeper product resolved
+the correct product ID in one 2.155s intent call. These are single-run preparation
+measurements, not browser end-to-end latency or a distribution. The subsequent
+all-discussed-products refresh correction passed offline regression checks without
+another paid call. The three live requests reported $0.0036626 combined cost.
+Ignored traces: `work/manual-test/live-latency-v7.json` and
+`work/manual-test/live-latency-open-v7.json`. Broader language and live browser
+qualification remain open; no universal speed or correctness claim is made.
+
+Independent review started on both axes but hit reviewer usage limits. Before that,
+the specification reviewer identified missing added-date and garment-position facts
+in the shortened evidence projection; both were restored with a regression check.
+Final review completion remains unavailable. Local changes are not pushed or deployed.
+The local Agent was restarted with retrieval enabled and the matching $2 cap;
+Agent health and both UI roots return HTTP 200. Refresh the Panel for a new session.
+The Storefront and Panel processes were retained, preserving existing carts.
+
+## Retrieval repair: targeted live recommendation and routing checks pass — 2026-10-08
+
+This entry supersedes the failed verification and runtime rollback below. The owner
+authorized continued repair within the existing $1 total, non-resetting OpenRouter
+key cap. No cap increase, top-up, deployment or push was performed.
+
+Captured responses exposed repeated empty nested action intents in the retrieval
+response. The model-facing retrieval contract now separates read-only recommendations
+from an `execute` routing decision. Execution routes the original shopper message,
+context and snapshot through the established action interpreter and validators;
+routing annotations confer no action authority. Routing and interpretation share
+the existing three-decision budget, cancellation checks and single provider attempt.
+Legacy nested finish responses remain supported internally, but are not requested
+from the provider. No phrase matching or language dictionaries were introduced.
+
+Read decisions can carry subjective preferences separately from factual requirements.
+The advice prompt asks for a provisional, grounded styling comparison before an
+optional follow-up question. Existing fact, target, quantity, confirmation and
+mutation guards remain in force. Models can still classify taste imperfectly;
+this change does not claim universal semantic accuracy.
+
+Final live evidence using `catalogue-decision-v6` and `advice-v4`:
+
+- The original Egyptian Arabic football-shoe request (size 43, distinctive style)
+  returned three catalogue products and an Arabic comparison grounded in their
+  colours, followed by an optional preference question, with no failure events.
+- The cart-navigation request produced a valid navigation intent through the
+  established interpreter, using two model calls and no catalogue reads. This
+  verifies the preparation seam, not a browser click or a cart mutation.
+- All 434 Agent tests pass, with Ruff checks passing. Independent specification
+  review found no outstanding safety issue; the separate standards reviewer was
+  unavailable because of its usage limit. Browser/full-workspace checks were not
+  repeated for this Agent-only change. Broader live qualification remains open.
+
+Raw traces remain ignored under `work/manual-test/live-final-v6.json` and
+`work/manual-test/live-navigation-routed.json`. The latest read-only key metadata
+reports $0.973327902 used and approximately $0.02667 remaining. Reported usage rose
+by about $0.01947 during this repair; these are provider-reported snapshots, not a
+separate billing reconciliation. No further paid probes are needed for this fix.
+
+The local manual-test Agent was restarted with retrieval enabled and lexical
+ranking; Agent health and both UI roots return HTTP 200. Repository defaults remain
+opt-in. SQLite and shopper isolation remain
+active; the Storefront process and existing carts are retained. Refresh the Panel
+after the restart to establish a fresh Agent session.
+
+## Final bounded verification: technical errors cleared, recommendation gate failed — 2026-10-08
+
+The owner authorized one final set of at most four model requests / $0.08 reserved
+within the unchanged $1 total cap. The current `catalogue-decision-v2` flow completed
+in two requests, reporting $0.0014316 combined, with no provider or response-validation
+errors. The model searched `football shoes`, retained size 43 and received catalogue
+results. It nevertheless classified the vague style preferences as unverified
+requirements and ended with an Arabic clarification about their meaning, with zero
+recommendation cards. No advice completion was requested. This does not pass the
+intended recommendation/advice acceptance case; successful JSON is not UX success.
+
+No additional calls were made after this result. Diagnostics remain ignored at
+`work/manual-test/live-final-verification.json`. The previous chat flow remains active
+with retrieval disabled; SQLite and shopper isolation are unchanged. Next work must
+address how retrieval carries subjective preferences into recommendations, without
+phrase rules or weaker factual/action validation. Do not reactivate the new path on
+the basis of this check. No runtime code changed during this verification turn;
+the preceding 430-test evidence remains the last automated run.
+
+## Retrieval repair: first-read constraint preservation — 2026-10-08
+
+A further owner-approved four-request diagnostic set exposed the first-read
+duplicate-field rejection: the model supplied size as a predicate without repeating
+it in requirements. Rejecting this read consumed repair attempts and allowed a later
+read to establish a different original-requirement set. The coordinator now freezes
+the union of both model-supplied lists, deduplicates equal predicates and retains
+normal schema/bounds checks. Regression tests verify refinements and final refresh
+cannot lose that initial condition, and explicit exclusions are preserved.
+
+The retrieval prompt restores the established subjective-preference guidance,
+describes English indexed attribute terms so the model can translate descriptive
+queries, and requests shopper-language questions. No phrase dictionaries were added.
+The four diagnostic requests reported $0.0025549 combined. They did not establish a
+complete recommendation/advice success: v1 clarified taste after an empty lexical
+search; intermediate v2 encountered the duplicate-field problem. Raw responses and
+validation diagnostics were retained only under ignored `work/manual-test/`.
+
+All 430 Agent tests and Ruff checks pass; both independent review axes found no
+outstanding issues. Browser/full-workspace tests were not repeated. The previous
+chat path remains active until the repaired retrieval path passes live verification.
+
+## Live retrieval qualification failed; manual runtime rolled back — 2026-10-08
+
+The owner's next manual request exposed a separate provider HTTP 400. One
+authorized diagnostic request reproduced `reference to undefined schema at oneOf.0`.
+The subsequent authorized verification was capped at three requests / $0.06
+reserved, within the unchanged $1 non-resetting key allowance. Reference expansion
+first exposed Gemini's `too many states for serving` rejection. The OpenRouter
+adapter now expands references and sends structural constraints, with all original
+value/resource bounds still enforced by the unchanged local response validators.
+Its traversal preserves property names and literal metadata.
+
+The remaining two requests accepted this schema: one produced a valid search for
+football shoes, size 43, with distinctive/eye-catching preferences; the next failed
+local validation. The exact second-output validation details were not retained.
+The two completions reported a combined $0.0014136; rejected requests returned no
+usage. No full search/advice success is claimed. The four authorized requests were
+used; further live verification requires approval. All 428 Agent tests pass, plus
+Ruff and focused schema/provider regressions; browser/full-workspace tests were
+not repeated. Offline passes do not close live qualification.
+
+The current local Agent was restarted with `CATALOGUE_RETRIEVAL_ENABLED=0` to restore
+the previous chat path. SQLite, shopper isolation and the running Storefront remain
+active. The new retrieval flow stays opt-in and unqualified; investigate the exact
+remaining response-validation failure before activating it again. No deployment,
+push, key-limit increase or phrase matching was introduced.
+
+## Manual retrieval test: provider-boundary correction — 2026-10-08
+
+Manual testing exposed a startup-blocking integration error: retrieval requested
+2,200 output tokens while OpenRouter permits at most 2,048 under the existing
+application budget guard. The coordinator then misclassified the budget rejection
+as invalid model output and exhausted its attempts before asking a misleading
+clarification. Retrieval now requests 2,048 tokens and only retries malformed
+provider output; operational failures propagate to the existing error handling.
+All 421 Agent tests pass, including actual OpenRouter adapter tests with mocked
+HTTP for valid/malformed responses and budget/configuration propagation. Ruff
+checks pass. Browser/full-workspace tests were not repeated for this Agent-only
+correction. No paid verification calls, spending-limit changes or language rules
+were added. Live semantic qualification remains open; local manual testing uses
+the opt-in retrieval path with lexical ranking.
+
+## Catalogue retrieval implemented locally; activation pending — 2026-10-08
+
+The approved SQLite repository, private bounded search/details service and opt-in
+model-directed retrieval/advice flow are implemented on `codex/shopper-isolation`.
+Shopper isolation and Action/Confirmation boundaries are preserved. The combined
+browser scenario passes through real database reads, advice, open/add/multi-line
+quantity changes and two independent shopper contexts. Verification covers 534
+distinct Python tests (531 in a clean full run plus three focused additions) and
+182 TypeScript tests across full/focused runs, with format/lint/build checks green.
+
+[Verification and qualification](docs/catalogue-retrieval-verification.md) records
+checks, review fixes and the exposed offline comparison. Lexical/hybrid overall
+target recall@10 is 67.5%/85%, but raw Egyptian Arabic remains 0%/40%. The new
+path stays opt-in (`CATALOGUE_RETRIEVAL_ENABLED=0` by default) pending separately
+budgeted actual-model evaluation and host measurements. SQLite is active; the
+legacy advice path reads the same database through its compatibility endpoint.
+No paid calls, budget increases, AWS resources, push or deployment occurred.
+Original dirty checkout and frozen CAP-02/03 datasets/results remain unchanged.
+The old catalogue source is archived by its existing hash for baseline loading.
+
+## Shopper isolation implemented locally — 2026-10-08
+
+The approved pre-deployment isolation slice is implemented in the separate
+`codex/shopper-isolation` worktree. Each browser profile owns its cart, revision,
+Undo, confirmations, fictional login/orders and Agent sessions; same-profile tabs
+share commerce and retain explicit task takeover. Private challenge-bound linking,
+cookie/CSRF authorization, bounded registries and per-event/model-admission checks
+prevent foreign-session access and stale ownership. Restart, expiry and identity
+changes require safe recovery without replaying uncertain Actions.
+
+[Verification and operational limits](docs/shopper-isolation-verification.md) record
+passing evidence for all **511 distinct Python tests** across full/focused runs and
+**169 TypeScript tests**, plus builds/typechecks, lint/format and credential/artifact
+checks. This is not an uninterrupted green full Python run: a login fixture and SSE
+reconnect/teardown issues were corrected and affected checks rerun. Both independent
+reviews have no outstanding actionable findings. Temporary SSE interruptions retain
+cursor-based reconnect; revoked/expired authority still closes delivery.
+
+Normal local startup now requires `python scripts/init_local_identity.py` once to
+create the ignored restricted service-identity file; scripted evaluation supplies
+its own ephemeral secret. The initializer was not run against the owner's local
+workspace. No provider calls, AWS resources, budget changes, push or deployment
+occurred. Original dirty checkout changes are preserved; implementation is not merged
+there. Public HTTPS/cookie topology, global inference allowances, abuse controls and
+Bedrock qualification remain CAP-04/05/06 gates. CAP-02/03 independent evaluation is
+unchanged and remains open.
+
+## CAP-04 credit-only planning — 2026-10-07
+
+The owner requires zero out-of-pocket spending, a domain-free public link for independent testers and approximately two months of hosting. They created a personal AWS account during planning; their screenshot shows Free account plan, $100 remaining and plan end 7 April 2027. This is screenshot evidence, not an account/service-access audit. The additional advertised $100 is conditional, not a current balance.
+
+[Current constraints](docs/cap04-credit-only-plan.md) supersede the older supervised/domain assumptions. [Official-source research](docs/cap04-pricing-research.md) gives a us-east-1 reference: $40.35 for 60 days of t3.small, 20 GB gp3 and one public IPv4; roughly $44.31–$50.24 including 10,000 assumed model calls plus 300 qualification calls for one candidate. Public HTTPS, transfer/logging and other costs remain excluded; no complete quote or spending authorization is claimed. Stay on Free plan; no upgrade or resource creation is authorized. Resolve shopper/cart isolation, domain-free HTTPS, abuse limits, model eligibility and full cost locally before provisioning. CAP-04 remains open.
+
+The CAP-01 execution register now links the prepared PDFs/infographic and seven-family exploratory results. Existing PDF/source hashes remain unchanged; owner/lecturer review and official submission are pending. Verification: estimate arithmetic, local links, seven PDF/source hashes and repository formatting passed. Separate Spec and Standards reviews found no outstanding issues after updating account status. Documentation only; runtime tests were not repeated. No AWS API access, provider calls, resources, secrets, budget changes or push occurred. Unrelated local changes are preserved.
+
+## Executed CAP-03 Jupyter notebook — 2026-10-07
+
+The owner requested a notebook presentation of the seven-family results. [The executed notebook](notebooks/cap03-model-comparison.ipynb) contains 18 cells, including nine successfully executed code cells: source/release integrity checks, independent metric recomputation, model and language tables, saved charts, selectable full error analysis, all 46 trials, timings, provenance and optional reproduction instructions. [Opening instructions](notebooks/README.md) cover VS Code/JupyterLab.
+
+Run All only reads local evidence. It does not retrain, download weights, load joblib artifacts, call providers or modify the Storefront. Saved outputs are included for notebook viewers. The same synthetic/exposed and reused-validation limits remain explicit. Notebook schema validation, clean-kernel execution, saved output checks, source integrity and repository formatting passed; application tests were not repeated for this presentation-only addition. Both reviews found no actionable findings. Original experiment reports, runtime source, provider settings and unrelated local edits remain unchanged. CAP-02/03 final evaluation remains open; no paid calls or push occurred.
+
+## Seven-family offline comparison completed — 2026-10-07
+
+The owner approved extending CAP-03’s exploratory comparison to five TF-IDF classifiers and two frozen-embedding heads, then authorized the local RTX 3060. The [pre-fit protocol](docs/cap03-model-comparison-protocol.md) fixed 46 candidates on the unchanged 210-training / 53-validation / zero-unseen release. All 46 converged. [Results](docs/cap03-model-comparison-results.md) retain all trials, errors, language metrics, predictions, matrices, timings, package/source hashes and local artifact bindings.
+
+Frozen multilingual embeddings + Logistic Regression led at **23/53 correct (43.40%), macro-F1 0.4304**; embedding MLP 22/53, 0.4189; Complement Naive Bayes 21/53, 0.3987; TF-IDF Logistic Regression 20/53, 0.3776; Linear SVM 18/53, 0.3294; Random Forest 17/53, 0.3071; XGBoost 13/53, 0.2615. Small selected-on-validation differences are exploratory, not independent quality evidence. Overall classification remains weak. The encoder used CUDA 13.0 on the RTX 3060; classifier heads used CPU. No encoder fine-tuning, new phrase rules, runtime integration or paid inference occurred.
+
+Verification: 14 focused experiment regressions passed. Full Python run: 485 passed and one browser page-creation infrastructure failure; the affected SPA test passed in isolation, giving passing evidence for all 486 distinct tests without claiming a clean uninterrupted run. All 155 TypeScript tests, builds/typechecks, ESLint, Ruff, formatting, both frozen-release checks and report/model/embedding hashes passed. Ordered cached feature IDs/shapes match the release. Spec review found a missing persisted embedding artifact; it was fixed before fitting and rechecked. Standards review found no actionable issue. Original data, both earlier pilots, application source and unrelated local changes are preserved.
+
+The CUDA installer initially stalled at the mirror; the official primary-host download was resumed and verified against PyTorch’s published SHA-256 before installation. Evaluation-only dependencies and large artifacts remain outside runtime packaging; cached weights, local models, features and installer files are ignored. CAP-02 independent evaluation and CAP-03 final same-input LLM comparison remain open. No cloud resources, provider cap change or push occurred. The next evidence step needs an explicit independent evaluation arrangement rather than further tuning this reused validation set; CAP-04 design can proceed separately.
+
+## Second synthetic pilot frozen and evaluated — 2026-10-07
+
+The [expanded protocol](docs/cap03-expanded-pilot-protocol.md) and [results](docs/cap03-expanded-pilot-results.md) record a second development-only pilot: 308 synthetic/exposed drafts, 263 eligible and 45 excluded, frozen into **210 training / 53 validation / zero unseen**. Bounded legacy/context overlap review added four conservative links; 37 whole components remain, largest 137 original rows. All ten intents meet declared row, language and group support. The pre-fit policy explicitly accepts two training/one validation components per intent instead of the earlier four-family authoring target. Independent human gold and exhaustive private-history deduplication remain unavailable.
+
+All twelve unchanged TF-IDF/Logistic Regression candidates converged. Selected character 3–5 grams, C=0.1, balanced weights: **20/53 correct (37.74%), ten-label macro-F1 0.3776**. Advice and guarded mutation each scored 0/4. This is validation-selected synthetic development evidence, not an unseen quality claim, controlled improvement over pilot 1 or LLM comparison. All trials, predictions and confusion matrices are published. The original pilot, runtime, prompts and phrase rules remain unchanged.
+
+Verification: deterministic allocation reconstructed identically; both releases and all report/source bindings validate. Separate Spec and Standards reviews found no remaining actionable issues after fixing atomic publication; failed formatting/validation leaves no partial release. All 472 distinct Python tests have passing evidence across the combined/focused runs, alongside 155 TypeScript tests, builds/typechecks, ESLint, Ruff and repository Prettier. The first combined Python invocation passed 432 but encountered 40 browser setup failures/errors because another evaluation run already owned the local ports; that evaluation run completed with 92 passed in 392.22s, and all seven new focused regressions passed (including the final additional export-failure case). No application fix was needed for the port collision. Document links and both confusion-matrix renderings were checked.
+
+CAP-02 final release and CAP-03 final evaluation remain open. Next: establish a feasible independent evaluation/label-review arrangement and separately authorize any same-input LLM comparison; CAP-04 cloud design decisions can proceed alongside those gates. No paid inference, spending-cap change, cloud provisioning or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
+## CAP-02 coverage expansion prepared; no new fit or freeze
+
+The owner approved the dataset-first next step. [The coverage plan](docs/cap02-expansion-plan.md) and [review](docs/cap02-expansion-review.md) accompany 168 new synthetic/exposed draft records: 160 intent candidates (four per intent/language cell) plus eight contextual fragments excluded from text-only classification. Combined with the original 140, the pool contains 308 records and 263 provisional primary candidates. This is not independent human data or an unseen set.
+
+Review merged equivalent clear-cart scenarios, retained 15 known cross-source links and replaced twelve name-substitution drafts with ordinal/cart-line/shortlist-price product resolution tasks before training. Prior authored wording is archived. The expanded graph preserves all old components and all related turns: 41 provisional components, largest 128. All ten intents now have multiple components, but `mutate` has three rather than the desired four. No new split is assigned. Full legacy/private-source overlap adjudication and this allocation limitation must be settled before a new frozen pilot. The existing freeze command still reconstructs pilot 1 only.
+
+Verification: v2 schema, 308 unique IDs/normalized texts, four-per-cell counts, all context hashes and antecedents, transitive membership, 212 catalogue identity/variant/line-key/price checks, repository formatting and seven offline experiment regressions passed. Spec review corrected three substantive annotation errors plus a stale scenario tag; Standards review corrected two grouping issues. Rechecks found no unresolved annotation findings. These are AI draft reviews, not independent human gold. The full runtime suite was not repeated for this data-only change.
+
+The first pilot's sources, frozen release, protocol and results remain unchanged. No runtime code, prompt, phrase rules, training, paid inference, cloud resources, spending limit or remote repository changed. CAP-02 final release and CAP-03 final evaluation remain open. Unrelated working-tree changes are preserved.
+
+## CAP-01 exports and synthetic CAP-03 pilot prepared — 2026-10-06
+
+The owner approved a synthetic development pilot while explicitly keeping final evaluation open. [The protocol](docs/cap03-pilot-protocol.md), [annotation review](docs/cap02-annotation-review.md) and [results](docs/cap03-pilot-results.md) record 140 synthetic messages, 103 eligible cases, 37 exclusions and a frozen 82-training / 21-validation / zero-unseen release. All 15 conversation/paraphrase components remain intact. AI-reviewed draft labels are not independent human gold; the final CAP-02 split placeholder remains unfrozen.
+
+Twelve offline TF-IDF/Logistic Regression configurations converged. Selected word 1–2 grams, C=0.1, balanced weights: 4/21 validation correct (19.05%), ten-label macro-F1 0.1024. Strong class imbalance and four absent validation classes limit interpretation. This is selected-on-validation development evidence, not an unbiased test result or an LLM comparison. All trials, per-case predictions, plots and source hashes are retained. The model is offline-only; no application runtime, prompt, phrase rules or provider configuration changed.
+
+The [three CAP-01 PDFs](docs/cap01-export-readme.md) and [editable one-slide infographic plus 2560×1440 PNG](output/infographic/README.md) are exported for AWS ML Engineering. The PDFs preserve the 2 October source dates and pending lecturer record; all 23 pages were inspected. The [CAP-04 AWS brief](docs/cap04-aws-design-draft.md) proposes a supervised single-host demo with cost, access, reset and safety decisions explicit. It is not an approved deployment.
+
+Verification: 465 Python tests (including seven new offline experiment checks) passed in 406.14s; 155 TypeScript tests, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. Independent Spec and Standards reviews found three experiment-integrity/reporting issues; all were fixed and rechecked, with zero unresolved findings on either axis. Frozen-release/source hashes, artifact hashes, document links and staged credential-pattern checks passed. PDF/PPTX files are marked binary in Git to preserve exported bytes.
+
+CAP-01 still needs owner/lecturer review and the Skills Dynamix organization-repository invitation; no official upload is claimed. CAP-02 final unseen release, CAP-03 same-input LLM comparison and CAP-04 account/Region/model/budget/access decisions remain open. Next: expand independent conversation families and review labels before a new experiment version; do not repair this frozen release after seeing scores. No paid inference, AWS account access, provisioning, budget increase or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
+## DEPI guidelines mapped; CAP-01 drafts aligned — 2026-10-02
+
+The owner supplied five DEPI PDFs and confirmed the official track name **AWS ML Engineering**. The [alignment register](docs/depi-guideline-alignment.md) maps their requirements and unchanged DEPI dates. Official submission is through a Skills Dynamix organization repository; its invitation/URL remains unprovided. The newer Literature Review heading retains older Lecturer Review bullets, so the research synthesis is preserved alongside a separate pending lecturer-feedback/approval record. No grading weights or approval were invented.
+
+Planning now includes proposed Gantt windows, actual resource constraints and KPI definitions; requirements include user stories and acceptance mapping. The [design supplement](docs/system-design-views.md) adds use-case, context/detail DFD, activity, class, local-deployment and schematic wireframe views. It reflects the session refactor and current in-memory/shared Storefront state; AWS decisions remain CAP-04 work. The [infographic brief](docs/project-infographic-brief.md) uses the confirmed track and verified content; a final slide/image has not been exported.
+
+Verification: all 13 Mermaid diagrams across planning and design parsed/rendered; document links and formatting checked. Standards review found no actionable issues; Spec review found an omitted final-attendance checklist item and a misleading read-only activity branch, both corrected. This is documentation-only; no fresh application test run, paid model call, remote change, upload or push is claimed. Existing unrelated working-tree edits are preserved.
+
+Next: owner reviews the aligned package; obtain lecturer evidence and organization-repository access/export conventions; produce final submission exports and infographic. Final discussion attendance is required, but its actual appointment remains unconfirmed. CAP-01 is not officially submitted, CAP-02 remains open with exposed synthetic drafts, and CAP-04 remains open for cloud decisions.
+
+## CAP-02 synthetic development collection prepared — 2026-10-02
+
+At the owner's request CAP-02 remains open and active. The [development batch](eval/datasets/capstone-v1/development/README.md) contains 40 assistant-generated draft records: ten Egyptian Arabic, ten Franco-Arabic, ten English and ten mixed. Record format 2 adds explicit cart/mutation operations, catalogue requirements and semantic notes without changing runtime schemas. Thirteen hashed synthetic context fixtures preserve referents and conversation states. A grouped 32-training/8-validation/0-unseen proposal is tentative; actual release assignments remain empty.
+
+The owner confirmed the supplied 100-message file was generated by Gemini. Its [intake record](eval/datasets/capstone-v1/development/intake/README.md) preserves the original bytes and labels separately, with provenance and annotation gaps. It is not merged or approved for training. Both batches are synthetic/exposed; 140 draft messages is not a count of reviewed, independent or unseen examples. No participant observations or unseen evidence were invented.
+
+Verification: 40-record shape assertions, runtime label/Constraint vocabulary, ten-per-language counts, unique IDs/text, context hashes/predecessors, grouping isolation and the draft 32/8/0 allocation passed. The Gemini original checksum matches. Independent AI Spec/Standards reviews of the 40-record draft found no actionable issues; they do not constitute independent human label approval or review of the separate Gemini intake. Formatting is checked separately. Application tests were not rerun for this data/documentation-only change; no paid model calls, training, runtime changes or push occurred.
+
+Next: map the Gemini labels with context and explicit constraints, review cross-source paraphrase groups and labels with the owner, then resolve release validation and honest held-out evaluation arrangements before CAP-03. CAP-02 is not closed or frozen.
+
+## Session modularity refactor completed; actual working arrangement — 2026-10-02
+
+The owner clarified that only the owner and coding assistant actively perform the work; nominal team members are not available contributors. Do not request their help, infer contributions from role titles or depend on independent human review that does not exist. The assistant took over the session refactor. CAP-02 is deferred and incomplete: its preparation/inventory is ready, but new collection, reviewed labels, release validation and frozen splits are absent. It was not closed under the owner's conditional request.
+
+The [refactor record](docs/session-modularity-refactor.md) describes the preserved interface and new modules. `agent/sessions.py` shrank from 1,822 to 203 lines; session registry/state, SSE delivery, interpretation, shopper commands, ActionResult handling and recovery now have distinct modules with explicit composition. Original public method signatures/domain imports remain; no mixins, dynamic dispatch, new shopper phrase rules, prompt edits or feature changes. The large ActionResult method remains a documented future extraction opportunity rather than being rewritten in this pass.
+
+Runtime commits: `b47ea0d` registry/state, `46a941d` SSE adapter, `7df44d9` task modules. Each stage passed the unchanged **458-test Python suite** (395.80s, 389.86s, 388.99s). **155 TypeScript tests**, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. AST comparisons and independent Spec/Standards reviews found no unintended logic/signature changes. No paid model calls or budget changes occurred; the MVP tag and unrelated work remain untouched. These changes are committed locally; no push occurred in this refactor turn.
+
+Next: review the refactor at its new module interfaces, then decide a feasible owner/assistant CAP-02 collection and evaluation protocol with honest independence limitations. Do not silently convert exposed/synthetic examples into unseen evidence. The earlier System Analysis & Design independent review remains separate and pending.
+
+## CAP-02 initiated; academic document leads confirmed — 2026-10-02
+
+CAP-02 is active with [collection/permission guidance](docs/cap02-collection-packet.md), a [current label guide and legacy coverage audit](docs/cap02-label-guide.md), and an explicit exposure inventory under eval/datasets/capstone-v1. All 104 legacy source-case references and 89 pinned development/test sources are exposed; these are not 104 independent utterances. No new human data, independently reviewed labels, training or frozen splits are claimed. Unseen custody, independent review, contributor capacity and permission arrangements remain unconfirmed; unseen content must stay outside the development checkout/chat. Release validation and freeze remain outstanding.
+
+The owner confirmed academic leads: Mohamed Hamdi for Planning & Management, Ahmed Yasser for Literature Review and Rana Ali for Requirements Gathering, due 16 October. The owner coordinates submission; template/location remain unprovided. Dataset custody and model-training ownership are separate and pending. The owner is handling the first session-management refactor slice; this work changed no runtime, prompt, original corpus or session file.
+
+Verification: all 89 pinned source hashes, 104 case identities/exposure markers, historical source hashes, documented label counts, empty unfrozen splits and non-evaluable template were checked. Changed Markdown/JSON formatting and relative links were checked. Independent CAP-02 Spec and Standards reviews reported no actionable findings. Application tests were not rerun for this documentation/data-inventory change; no paid calls or cloud operations occurred. The earlier System Analysis & Design independent review is still pending and is not covered by these CAP-02 reviews.
+
+## System Analysis & Design drafted ahead of 6 November — 2026-10-01
+
+The [design document](docs/system-analysis-design.md) now records the implemented local system: actors/use cases, component and trust boundaries, execution/Confirmation sequences, task states, logical data model, interfaces, failures and requirements/evidence mapping. It explicitly identifies the Storefront's shared in-memory cart and loss of server state on restart; separate Agent sessions do not imply isolated carts.
+
+The local-system content is prepared for review. Final graduation design still needs CAP-04's costed AWS service selection, region/model access, budget, audience/access policy, state isolation and restart/storage decisions. CAP-04 remains open; no runtime change, paid model call, cloud provisioning or deployment is claimed. Independent Spec and Standards reviewers were attempted but both hit the account usage limit; their review is incomplete. Documentation formatting and local-link checks are the validation for this change; application tests were not rerun.
+
+## CAP-01 drafts prepared; owner coordinates submission — 2026-10-01
+
+Three review drafts are prepared for the confirmed **16 October 2026** deadline: [planning and management](docs/cap01-project-planning.md), [literature review](docs/cap01-literature-review.md), and [requirements/traceability](docs/cap01-requirements.md). The literature review synthesizes seven primary sources with citations; external findings, project rationale and planned experiments are distinguished. No model training, dataset collection, paid inference or cloud provisioning occurred.
+
+The owner will coordinate the overall submission. Additional academic assignments, literature ownership, unseen-data custody and classical-training ownership remain pending at his explicit request. DEPI has not supplied an official document template or submission location; these remain unconfirmed. Existing technical roles and DEPI dates are preserved. CAP-01 remains in progress for team review and submission-readiness work; these documents are not submitted or instructor-approved. The [execution register](docs/cap01-execution.md) links the current drafts and supersedes stale preparation wording in older local documents.
+
+Verification is documentation-only: changed Markdown formatting, relative-link checks and independent Spec/Standards review. No fresh application test run is claimed because runtime behaviour did not change. Preserve the existing local MVP tag and provider cap; CAP-02/03 experiments have not started.
 
 ## CAP-01 active: team allocation and DEPI deadlines confirmed — 2026-10-01
 

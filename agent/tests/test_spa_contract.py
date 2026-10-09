@@ -1,8 +1,7 @@
-from fastapi.testclient import TestClient
-
 from agent.app import create_app
 from agent.planner import snapshot_matches_url
 from agent.schemas import Snapshot
+from agent.tests.http_client import TestClient
 from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
 

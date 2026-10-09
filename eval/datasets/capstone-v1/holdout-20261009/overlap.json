@@ -1,0 +1,3418 @@
+{
+  "method": "char_wb TF-IDF 3-5 cosine; top three per case; review signals, not semantic independence proof",
+  "inputs_sha256": "f89c5c3e48c05a39cfa47c4a25f4f2bffad9d89dedeeaebe083c48ecd8a91e84",
+  "prior_candidate_count": 2199,
+  "source_hashes": {
+    "agent/tests/contract_fixtures.py": "8d1e14ef6446cd7f3c778218907978d61e2734ccb6481dcdbaaa0e7941e2b504",
+    "agent/tests/http_client.py": "4e5e9bb8f0fab15657ff81e00859c542d544d073ce297f90398450c01847bedc",
+    "agent/tests/test_action_contract.py": "678fa3e5a3fb61d674a4d868318ff9b15b2f0a92bfe96b0bd1ba43f70d77f938",
+    "agent/tests/test_action_result_contract.py": "c4eab7d8fac7f12e720368f84e7a2899b484767c779d7d536dc646d5af735cd3",
+    "agent/tests/test_advice.py": "952f3a487855d4873b81d6ad1232327b0b723d48824dc54a9a910cc7bc9e8f63",
+    "agent/tests/test_cart_conversation_repair.py": "2985cf321320622ca2547339d95bd88317c2bc6af2c060b60622a220f1e466cc",
+    "agent/tests/test_cart_feedback.py": "067a57a1ae07908817db1006b0b61a8a477d5d604f379f105fdb4ecb0ac1a792",
+    "agent/tests/test_cart_task.py": "cae6a52ed3ff88177d3017aa23b974f73bca018da3150fb532a508bb2a59d4a0",
+    "agent/tests/test_catalogue.py": "35c8f4ac0c975344400dac4f64998a727cebeba6bc04ddbf7bd16de392369d88",
+    "agent/tests/test_catalogue_advice.py": "4ee89d68f17fd7bb5751dbbec948ab09374ede04e324a2ea8000e9485f26947a",
+    "agent/tests/test_catalogue_client.py": "367703da9a24b1c88029ae455b230418df976eff9916d778749a813061ba7b75",
+    "agent/tests/test_catalogue_latency.py": "423541cef80aa0e7401af304a5e8e7a90d18a3ff27f118ffdb5f869e22477d6b",
+    "agent/tests/test_catalogue_retrieval.py": "5e6fae89e31e57a712ceb177e8b8cca281a97988435a70c673b7fb0cfd36c3fd",
+    "agent/tests/test_confirmation.py": "c61d8fd7951d5d88b0b8dd1451aedf47504911b66c2f41d87a725f2654d36781",
+    "agent/tests/test_conversation_answers.py": "15ead5145c98858a9e5d2f7cd914f160dd957c722c3241ce9882f674d28d417b",
+    "agent/tests/test_discovery.py": "4b02ae9c471e6967a70e7a3a51213a94d5b323b012a3c9a3e4373cd8dbad8873",
+    "agent/tests/test_egyptian_cart_boundary.py": "65fb25990827843e08098b21abf477d94e51aec46c14af849bb2c486dd8fb019",
+    "agent/tests/test_gemini.py": "11579e5c6ab04ce35cc70c0df525c5f078eeb364b18ce581800d6fe2edd15ec4",
+    "agent/tests/test_groq.py": "e1b7fd363302dad110714ff9252393e2c5762dfb66e4c7eb904020ba9f787c74",
+    "agent/tests/test_guarded_task.py": "1f3870ad55a9cf6228fdba8909f59c41149db5d943f1f1407c28f7dcdf702ab4",
+    "agent/tests/test_health.py": "157fbb1b630eb937800839872f9d2372ad6b4f1669385faedd09e9c9eac3143d",
+    "agent/tests/test_intent_pipeline.py": "08e59438bb3aad8b4f2120ca7cceeb0915cfd4e0371e5c54ac50248674452d7f",
+    "agent/tests/test_intent_wire_schema.py": "edbd1d3ba903a26a24b63944e5951bc2c7f04399cb05d0f2ab4e6467831f8260",
+    "agent/tests/test_interpretation_recovery.py": "44030b443ef432778b7d34d63a2551e69bbee3f42a14862f8041a3da25eccd19",
+    "agent/tests/test_llm_contract.py": "876794d6f58c8d1af9f0ebdf5c20134d2ccff8d7254ca9d76b260d27f49044e0",
+    "agent/tests/test_nvidia_nim.py": "8a133c243009102c5c0da0f1fb438bb175de5a6dfa340f8d59354a3cdcec7a6a",
+    "agent/tests/test_openrouter.py": "0514dcfb241e0f89ace7c4b2a0114372442e7a76f01733e10a7866eb05d86275",
+    "agent/tests/test_product_context.py": "69ed1c328a3dec188c2aff489a7b38f6ce081fadfba706f73d09196054bf545b",
+    "agent/tests/test_provider_schema.py": "f6be8ef8ef48885f5dc8f0298da068152d27bfdc74a567051975a4265b71e1d8",
+    "agent/tests/test_real_task.py": "51beea4191db1dc2af087bfce47ca4f50a5c6d5fb0fc0dcf7e739133b8b87e7f",
+    "agent/tests/test_recommended_add.py": "baa27a19f37bd2f953651b954077ee0dfbc91c4b2696aca4293b772cb582110b",
+    "agent/tests/test_recovery.py": "e0d1f77c846515fec58517e25d81253f3ae1f4525a325fad87f6152a18f3ea65",
+    "agent/tests/test_semantic_boundary.py": "c38b8850bfa86b0c7de8415ebbcad26912e5bde0e71806858df7ab6f9d2c7d85",
+    "agent/tests/test_semantic_intent.py": "d595596ff5a5fa0297a5072d34c68f2828be1aae2259d4ef7241c66dea9163af",
+    "agent/tests/test_sessions.py": "3e9c0f960fe834eeac9d87947f249cba948250fbc695a7e55bbcaaeaf137e040",
+    "agent/tests/test_shopper_access.py": "1c9782cdbec129bc1a710939c1676983a8312fbeff3f9a28218a0273d42cdce4",
+    "agent/tests/test_snapshot_contract.py": "cc5a68915e936ed0c63b29183e6332c5eab5421173444d08ecb66da61c8a3230",
+    "agent/tests/test_spa_contract.py": "da2baee8c6a8145fe39732548bde1e93c8517b5f921c0102078d5962b1f8a96f",
+    "agent/tests/test_speech.py": "3bc4b9c1534bb2abcca54f5b2104fe632f1429b3d189c6fea2b61ba9cc038cda",
+    "agent/tests/test_step.py": "c249f148c41666cfc72b9a6ba18a43e41e51a1627ab5211d5fd71c8fd9f7e71a",
+    "agent/tests/test_storefront.py": "ea49e0b1bdce80161407edad151603252331b250f9a438a366d7ece8dd2c4633",
+    "agent/tests/test_storefront_connections.py": "4067dc63ffef6f910e7e541a871a305566c3d78a7528152f3813224f4539d74a",
+    "agent/tests/test_storefront_service.py": "11ce079c4c082fa73285fb9d8a6cbaffe25fd485059783fa70f81b05e526746e",
+    "eval/baseline_pilot.py": "f4eee3637aa0ccc23a7b4ac3983e3eb022e3804a87eebe527bbfbb92d429882a",
+    "eval/browser_http.py": "7f2ba57932828fe9e211ba11ceccf116302a550952e91086fc1315b4ec2b25cb",
+    "eval/cases.py": "55b6e159521d9c548b4104468714c47011e9622ed16cbfd9200c89f1af0e605c",
+    "eval/catalogue_fixture_app.py": "2f919c60358cc875c5b558de431fa509b79d29edba82b34057b203e3d1ab4d75",
+    "eval/catalogue_retrieval.py": "31af77dc6e33469a9d01828e2d42b14ba5465fd32017ee77b47906f15234c7f8",
+    "eval/compare_models.py": "4c68ad90ba7634310f519ff0f1d4144e150518a05e7023339a71a468d2a2c8be",
+    "eval/comparison_encoder.py": "63835b1f82ef63490483cc57f42b58126580d265a5ce282b902eee16cb75e201",
+    "eval/comparison_models.py": "4eb5986b9bef3288d5f13fe61b4ec3e17eea72c34d8bea955410d170693ca291",
+    "eval/conversation_live.py": "630cf460d0d77bc4fc66e8850bb3def9a4aef04fce92ec9c8e4a79533e7983c6",
+    "eval/datasets/capstone-v1/development/contexts/ar-cart-after.json": "155138872d86635152e7edd66a16ba007b60d32f7ed9f6283894fad17b615465",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-161.json": "925f0e18a2de4e87c1056612b11ddcec5f6474a95d86a6599214c5a5cf06ad49",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-162.json": "1f91bc861d5fbad11ea801a7ced24866a86806af65bf56eb510581b7980ebf45",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-163.json": "354723476344de90ef27e4e5b01d36f9ad53fc70eb759e604f8a271d3e854689",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-164.json": "366d69c102bcdc2206e21855b4678c83746a8c2d04d1bc27f034d25a0cca7fe2",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-165.json": "bc9459f4e14bf71167f40c61124f37caadd69c454da5314d5f2bc7db0def2d37",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-166.json": "423a007fe108c3eb354b7b718d0529e2ab385fc84c5d0022c5af5ab7872b22ca",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-167.json": "cc4aa25a98919694511e3d1b121db33fed7e1aa60d31301a5c335e24806742b7",
+    "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-168.json": "9a097d50a071adc8837c5616cf42ea3c30c8045aa9760e986256f2f609acda8a",
+    "eval/datasets/capstone-v1/development/contexts/en-return-shirt.json": "58c834e0821cbc21514e6f71090557a860766fdd62700e801cab161f499d6e4e",
+    "eval/datasets/capstone-v1/development/contexts/fr-cart-after.json": "e8347adf1b19e147fbd4ae70542f03d900b6164051820aef4a5aeb6b2457a94b",
+    "eval/datasets/capstone-v1/development/contexts/mix-cart-answer.json": "31d549d967328166e32adef17d42b0f00a0888b3b2a19092ae6b7e26f0abfb14",
+    "eval/datasets/capstone-v1/development/contexts/remove-then-undo.json": "1bec6c85bbedf4022890c86b10d2895d48e5298d6ca7c1390d76ebad20c10406",
+    "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json": "78a236eab1caacb43e73b0da9907599ab3d1c766ceb369563f41d4a6cabb2497",
+    "eval/datasets/capstone-v1/development/synthetic-batch-001.json": "579d7267177ddec35cfdda4f6ee6f1a7964def9cf6cdb517286c4bdf9f76518b",
+    "eval/datasets/capstone-v1/development/synthetic-batch-002.json": "62e778bc68c57b01c6c63d41310d7c600661dee997e4f9881846814b9f72066a",
+    "eval/datasets/capstone-v1/pilot-20261006/release.json": "6537d26c5cb6c43c030b42a39db7c6b38f01a0d1c10d0c641cf1f4dfd9dbef07",
+    "eval/datasets/capstone-v1/pilot-20261007/release.json": "565fd07f0e3c0be97c49151cad0448672acf76bb6dc908b4aa9d4843dc1af987",
+    "eval/datasets/catalogue-retrieval-v1/queries.json": "64213ff89c2e2895661ab150061c64356d190f17d769f0f3384f072812d77eaa",
+    "eval/evidence/cap03-comparison-20261007/classical.json": "92303b9aaa55d261e8164bac17acfa62ce5afcfb85e1a30ebf28f30e7274f3b8",
+    "eval/evidence/cap03-comparison-20261007/embeddings.json": "3ca8bae726234868192acfe7c4e5307e39aed688e32e1ad4bcf9a19330867343",
+    "eval/evidence/cap03-pilot-20261006/report.json": "f021a94b59c47d76ff954998730f5ec2d32d752764cf43be729537479887e009",
+    "eval/evidence/cap03-pilot-20261007/report.json": "996c4f6981c50f377d9ba64fa639d8e1a6e8641aefde8b012ad4f8f818cb98ad",
+    "eval/exploratory_live.py": "4329b4a06fca3ce7579544267c3bb80c85d0b5e04191a632c842d17a26dea6a3",
+    "eval/freeze_expanded_pilot.py": "0ded0a507d563452c258d0ea1d05de0ddd1699c6c78d0eece07eb694286c0e51",
+    "eval/freeze_pilot.py": "2049f4b8714e9790b9456d634b2b45781f31981361ac075d912cf89e9879c749",
+    "eval/gemini_cart.py": "063aa84f8eeff44a0a5c56b94a4fc4285ab305a703467f6602b27f543c579ac5",
+    "eval/group_allocation.py": "c4cb2df2060b746273438de781e0149fe37478c5697bdd0bbceb815b7a63f154",
+    "eval/intent-corpus.json": "1ef7ebefc6eb07a2fce8d4739c7a63f42827a4322c42598b9d442a0042aba2d8",
+    "eval/intent_benchmark.py": "ad3437d5536167dd7b2e9a3aee66dc3ca349f0470a502dacc4ba37146623ef3c",
+    "eval/measurement.py": "05f92a7410eea4ad1c024150873a504bb89fdf91bf0585463555b631d5543ecb",
+    "eval/milestone.py": "3d7554d6dee003fe191a031d729b0b06af183d349f28b67742e5aff50ca7542f",
+    "eval/milestone_cases.py": "da88fe54a9646941558f4632c4cc2c0da989298fa7c422f0c0cfa297ac24267c",
+    "eval/milestone_report.py": "1f20f7f94422edc0a6b6828c7b70477ff5b4b6050202902cd98a91a9f9ed3f44",
+    "eval/milestone_server.py": "989ac02739221b153ca80aedd0334fc68c9a5074bbf4e170a33748be752acd64",
+    "eval/openrouter_cart_browser.py": "13b3f561702c6575a73034a418993d29d1540bf236a6924ea36b7177f6b0424a",
+    "eval/owner_07e_browser.py": "036443de37b0e556caa708e7a01c4e017895af9423e695c8c4249b75ce12aa62",
+    "eval/owner_07e_intent_probe.py": "d10df4894d971b5c8aea3153dec2346ece31864bdfd36e454fb714b81bdc50cb",
+    "eval/pilot_data.py": "c24cea363d3896f61d7d7aee71a3bc764a0c0873a4ed3a3b296a2a49db42dd95",
+    "eval/plot_model_comparison.py": "bf28383f05d23565dda9ba40bfd26529c6eccc1e538a622baeec0b60df760906",
+    "eval/product_followup_browser.py": "294611e2cba02c077ce3fe697ced5516697d3a0f13df36535f716b4cd182e5f1",
+    "eval/product_followup_probe.py": "943edfe1e9dcc63a92d4e3b4cf14e80093feca30ae12778878dbd28d131f1a8e",
+    "eval/real_browser_smoke.py": "bccc48f39e7f84d825ce1b89d5a866919c4999d4b19bbb2a99b9be876cc7c218",
+    "eval/reconcile_usage.py": "b6723d7dbccd5bb43853b7bf86a7dfc3380707bc13c342bf05a84386afb633c1",
+    "eval/runner.py": "cf31e996fb795ffde44c31b1574c0d28c07a4cb163f853419cc67fb42caa8995",
+    "eval/semantic_boundary_live.py": "8cf5092c1af9805f0ae510a42b32667feb93161505f18ba827d8171e0d69f1a3",
+    "eval/semantic_followup_browser.py": "d92b6d112095f9bcb1d427ebc8589f812308674a63a5d4f126d0658a94afefd6",
+    "eval/semantic_repair_browser.py": "db87e009ac2f30482b639ecabf98cbea394b31f916f3b5818ff40f238ec792ef",
+    "eval/services.py": "eacd4d82545f5ecfb268fce0af4f2fbc25c2d9c3ac464d5a05d557df624ebf7e",
+    "eval/tests/test_baseline_pilot.py": "e8af8620666f27ae76ca1f99c7b3f4e1534a159c41ed1af916b47b1fe7157c8d",
+    "eval/tests/test_browser_flow.py": "752d6f74064ac0b87c28f70862b920a5e29fdc3156f4707ace1134b4166b4463",
+    "eval/tests/test_catalogue_retrieval.py": "6fd6149a8f6662e6953bb3eae23ed76c90598c1a2ed69826bff1a84fee3020c3",
+    "eval/tests/test_catalogue_retrieval_browser.py": "a6dfb1e257e5f82b4e3318b204af6cc65575f31cadd10cb5424d0eca1ba3455a",
+    "eval/tests/test_gemini_cart.py": "232b009cf2c9f0a54c23fd4f7c303d868b53def7c5ba37ff89983d03ec927dc1",
+    "eval/tests/test_group_allocation.py": "149eaf1eceb210794da9795f17efb02fa49ec445d789af5614779819293097a6",
+    "eval/tests/test_intent_benchmark.py": "bc8bb3d67b393086fddfd5a95ecdb077489cc63a4ce39a57cf6ad574f965a869",
+    "eval/tests/test_measurement.py": "a752fb1788618a409de92c49f15f9c515d9816191c42abd3a0493451539513d7",
+    "eval/tests/test_milestone_report.py": "65153492a9729e2ab1be78490ccc2dfd3327e339ccf19226c7aa566cb382cad7",
+    "eval/tests/test_model_comparison.py": "43977f40665d3375544cf5967be7d74e59c260c6daeee93ada5f559a8b21332f",
+    "eval/tests/test_panel_layout.py": "544580a4f7e6c70fbda0579a5f3816d14d20dfd0b34ebdc1e38f011937d16a39",
+    "eval/tests/test_runner.py": "528b1c1cf5c9e01aa17302f06609414e78b2d0b2272e1737f9f1b8900cd24776",
+    "eval/tests/test_services.py": "6e9638237ed1124bcc14e90fbfe0846bd5a3c3c6da6fd4404c6989dedc11c6d6",
+    "eval/tests/test_shopper_isolation.py": "8671b5a68f1e982f56be5e90d7f40524fa374e1f924f2207f5d976f314d26f1c",
+    "eval/tests/test_ticket08_cases.py": "5429691523cdfbe51968958192897f898d8f4eb798e1d6cfc2fbbb6772406ee1",
+    "eval/tests/test_ticket09_safety.py": "bcd1318aedcf775ff12434c01eae259818ae1ea1b9401d2b51ef1f6159cd2119",
+    "eval/tests/test_ticket10_guarded_browser.py": "6545d8ffc6fc7fc21fdbc5a88d39f4ccd828ab05624e98e20a224174c40af57f",
+    "eval/tests/test_ticket11_cart.py": "7b7985db0a1aca878a02d1b6dfc9a9c266bfe3107a89b3ca4d736d7dda7a520b",
+    "eval/tests/test_ticket13_mobile.py": "176d6dc87ffe4f0fc717176ae74e49725c51c41a0808628a902cb9254401cc9e",
+    "eval/tests/test_ticket14_spa.py": "dc32c7f13392931aa6c8fa54cb1fec24b177060463297b88bbe60bc1cba211d2",
+    "eval/tests/test_usage_reconciliation.py": "9e5e6b314ede1d6718063f592509316f9f635d1300ab84ac65ae890f6af533d3",
+    "work/manual-test/browser-provider-trace-compatible.json": "0984d8f0a7beb607aec1f6ce9374850f0309d74ac0986e7d4112aeb9f71b8e13",
+    "work/manual-test/browser-provider-trace-enums.json": "2242564e73d84173ee1dc73858bec816818b231349ad231b61608684754aabc3",
+    "work/manual-test/browser-provider-trace-envelope.json": "af9096e92e1e42ca951d366096e27f884473bd17b1b259631908b0bf7898a241",
+    "work/manual-test/browser-provider-trace.json": "cc4d658893a3ccf23df4c5a2766937d850872a7d75609b549c9176b50876c4fc",
+    "work/manual-test/browser_recommended_add.py": "0619c200291a81b601647fa8d554eb839f58ebc024fb7a8df2c227d2e0fb3186",
+    "work/manual-test/diagnose_black_followup.py": "59b1abf23d63140248c080e17d02b122d0f2456f56011d19d0a26c3701c6719e",
+    "work/manual-test/diagnose_black_followup_connected.py": "59b1abf23d63140248c080e17d02b122d0f2456f56011d19d0a26c3701c6719e",
+    "work/manual-test/diagnose_retrieval.py": "433a38c4380b82fecdecba3b7c65155ed2e813558daed11c132bc080024bc79e",
+    "work/manual-test/instrumented_agent.py": "0dc3d694aa4862f2c38cc11cbaa1fbeadb1fb884b47f217919ce2804fc3fc855",
+    "work/manual-test/live-conversation-v29-flow.json": "f4f0c928e380fe06b712326d7b7036fffb2e8a1c7e157d455cbcb439f70c34b4",
+    "work/manual-test/live-stable-rollback.json": "179fa7cecc9e3c632069d1afd8552a3f2df3628a1a9ff9b70ce057cd3d7ae85c",
+    "work/manual-test/probe_recommended_add.py": "e42758d5ff8a96fa11e92b1de521e0d20d14dcee9367370bbdc49dbdce6377fb",
+    "work/manual-test/recommended-add-browser-pooled-first.json": "dd9b2900aaed559bb337446f109616a447d6a740d06ec9a0f613c6b7d9d17dd0",
+    "work/manual-test/recommended-add-browser-timing.json": "5be05e6157a992dff7b8e06fbec7cbe605a3e4e35225b88d24e696013b383f5f",
+    "work/manual-test/recommended-add-browser-v31.json": "614a68917711b191d96bf3e57968c149295072976ae5042248cb085ddb8b21ec",
+    "work/manual-test/recommended-add-browser.json": "204791e8f7df74157a8552f7180b60208cfc0ce15191c60f233054cd00d85318",
+    "work/manual-test/recommended-add-flow-v30.json": "f487401e37086626f15d0b88bef732680584ade90e74dfca45569a6b7b366d96",
+    "work/manual-test/recommended-add-flow-v31.json": "fe77ce93eca1ed94978bff836e3cd32bd27f1cb082d30f25c1e41f00965f35e0",
+    "work/manual-test/restart_agent.py": "467da4477d16a7c05de0037c97e3437789a238a70767252ec8b5ce487a54beeb",
+    "work/manual-test/schema_diagnostic.py": "540f10aa1f86e77e00ae22e49b6dc509924fb6ef64115e9190b088397e644fae",
+    "work/manual-test/start_services.py": "2341651b4a17825e45e898f48b9f6c4dd9b1dc899e47925a12e540f40fcf4009",
+    "work/manual-test/verify_answer_semantics.py": "6dc36417c5681d121103780fe26ab2d98fe3e1e85e6e1fe7596c93356a1588d4",
+    "work/manual-test/verify_anyof.py": "03e98ed8806e4d42b735b261ae74e29ffe5f3b1be4d737a1e1143cd6beb22284",
+    "work/manual-test/verify_conversation_v29.py": "1a17d9a42b77e544e1f823524a0b6e6e036459f2f35a89282b1843aa7ff708ca",
+    "work/manual-test/verify_conversation_v29_flow.py": "7281c745184862fde093194814ac670f9e1090774f6bbff985ebfc50df2efc86",
+    "work/manual-test/verify_explicit_contract.py": "8cebf1f3ba6ae899d80a33d2ab55658c34a223db5b6a9c95d39d25c65f1c8617",
+    "work/manual-test/verify_explicit_root.py": "7b9e6acc29f73a8abe39511c66feeb65a87fc8f7ce199aa1587255a37a3495cc",
+    "work/manual-test/verify_final_v6.py": "36b30f66ff84e4223d5477b45d299de46c5e8a2fa63abbf0801bf9a936e58b00",
+    "work/manual-test/verify_flat_root.py": "857b202f1299f689b48e1e3a909cc9ee258a4bd6cb83b224b0e8a6d52bcbb62f",
+    "work/manual-test/verify_latency_open_v7.py": "1912698fb098aae9439f65fdf11ab08cb9fa7808b2d5b93bac9b541381513fb7",
+    "work/manual-test/verify_latency_v7.py": "c938643e7649e4d776d4f4313593926a9171b2e528e51b198eb4f7713c471a54",
+    "work/manual-test/verify_navigation_routed.py": "e2d9eb3cfff5c1484ca8229532de4b74c149e96801070e4c497cd5211d41171b",
+    "work/manual-test/verify_navigation_v4.py": "05b1c8047b34b382f088a3ec6483918f3b4d74bcd913a25ec63a97007972a7b7",
+    "work/manual-test/verify_navigation_v5.py": "96cc56bfe822af46361983d5d39bf2749035ee0d99f21801d6cd9f2c00201b36",
+    "work/manual-test/verify_navigation_v6.py": "401c5efed42d487758142a03bb0000ade65e0db47b86fb8528c2f92f86c1f458",
+    "work/manual-test/verify_navigation_version.py": "4746d716ce2999b8a13167385ed154df1bb2e3e9c1ff89eb30d6e19456966403",
+    "work/manual-test/verify_preferences_v3.py": "9a20e41ffd2e0d193c4dafacbae094a57cf5989545c24866743752017373da2a",
+    "work/manual-test/verify_recommend_advice_v4.py": "91d5265e357d182f7ff8f2b36058e71a8d97b2f375a777e26c585a0275d87650",
+    "work/manual-test/verify_recommend_v4.py": "3c53fa601e3120cf489342650ae61c898069aa023443fdfe91368da4a50dec5d",
+    "work/manual-test/verify_recommended_add_flow.py": "0b58476e51c3f2005ddf07b1a25ce3b22069d37d95677486564daaf96bbb1be1",
+    "work/manual-test/verify_retrieval.py": "8f500328afe85f6a1f2f797ea5d886b56f51315430895c4769f35ab0710aec95",
+    "work/manual-test/verify_retrieval_detailed.py": "9cedadaac886eb497116e7b97ada7a2648eb760577adc8c79e84962c6854cb72",
+    "work/manual-test/verify_retrieval_final.py": "3ef23efa720bd487e98244fa28e62ac93b61d6da1e484cd3325d89f6eb0ffbea",
+    "work/manual-test/verify_retrieval_remainder.py": "7035396c0f9f7ff53bd4345b8039ca69058fdb4e684a0fd72dacd9af9fce9eff",
+    "work/manual-test/verify_retrieval_v2.py": "ef5c6ba753b4f6cfc3ee9dd27b01b85183a6a069f3e4d0475804c33ab211fe72",
+    "work/manual-test/verify_stable_rollback.py": "a0201bc5da591a3e14fea8d99e1a03a8d4a8414be2d431a35c75d54674c6cf9b",
+    "work/manual-test/verify_stable_targets.py": "701781e0f05f83731502c297a43fd4dd093cd324e0c1ab9e16571f045478522d"
+  },
+  "cases": [
+    {
+      "case_id": "holdout-20261009-001",
+      "nearest_prior": [
+        {
+          "source": "eval/cases.py",
+          "index": 72,
+          "text_sha256": "b33c6ee94ad9ff3ef49f92ec888b5c24479b8f1436baa10a48a70be26094c6f3",
+          "score": 0.0994,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_advice.py",
+          "index": 154,
+          "text_sha256": "ea1ebcf9de61ba2c65787db5725a61c4bd592a7d5ce344cd8c66be36883bd1a0",
+          "score": 0.0906,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 95,
+          "text_sha256": "f5d06ade2e814d6815f08a5024ac530e8b2048efd9a66a5dce949bc0c942272e",
+          "score": 0.0708,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-002",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 64,
+          "text_sha256": "3ba8cfc0651d46845844a075cd5ea9c503a5747493bae60ce1d1195a5067546d",
+          "score": 0.1787,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 167,
+          "text_sha256": "3ba8cfc0651d46845844a075cd5ea9c503a5747493bae60ce1d1195a5067546d",
+          "score": 0.1787,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_advice.py",
+          "index": 123,
+          "text_sha256": "0c2532e6bc40b2a87c53ab5c46d9207a35d23801bfb1483e4733aeb296009236",
+          "score": 0.1685,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-003",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 103,
+          "text_sha256": "be64f21f566f1aceb600dd73758c311052511e2bf543e411846c795847d68020",
+          "score": 0.3455,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 0,
+          "text_sha256": "be64f21f566f1aceb600dd73758c311052511e2bf543e411846c795847d68020",
+          "score": 0.3455,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_advice.py",
+          "index": 152,
+          "text_sha256": "05d0c8fdeaf8fe7360b4f9ca9207ea90cf614a0755bdcd1032246217f7dfbbfc",
+          "score": 0.2625,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-004",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 108,
+          "text_sha256": "4c9e69c3e5888725749ea3f4d2f9220892ed5ca6ae2b43223964919fcf38396a",
+          "score": 0.1948,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 5,
+          "text_sha256": "4c9e69c3e5888725749ea3f4d2f9220892ed5ca6ae2b43223964919fcf38396a",
+          "score": 0.1948,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 220,
+          "text_sha256": "f8d9c2ee4d2ace721199c25004d068331da2a422e0b8c661044d93a611fcfbed",
+          "score": 0.1811,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-005",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 32,
+          "text_sha256": "427036b5e03bf7a48f38371a623a2c2cabc8aabdbf3fd949fee3396a7af5c8db",
+          "score": 0.1958,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 161,
+          "text_sha256": "2e4c73dc3de51730dbaccc597daf965c4068db49de1b025894f015c36db526e5",
+          "score": 0.191,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 2,
+          "text_sha256": "2e4c73dc3de51730dbaccc597daf965c4068db49de1b025894f015c36db526e5",
+          "score": 0.191,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-006",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 9,
+          "text_sha256": "01cfb53c5948050ede2869e788c148bfa3eff907cc550b87f149d5cc43a990f0",
+          "score": 0.185,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 112,
+          "text_sha256": "01cfb53c5948050ede2869e788c148bfa3eff907cc550b87f149d5cc43a990f0",
+          "score": 0.185,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 46,
+          "text_sha256": "c6f33467d32d0d9111646b340f9a35b68f2a09bd150e8a55abd3dbe04244341c",
+          "score": 0.1829,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-007",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 52,
+          "text_sha256": "0ac1f2756ab30d01b58c61fddedf4a1d0af60e0a1d558b4f330754b08e1de58a",
+          "score": 0.214,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 69,
+          "text_sha256": "0ac1f2756ab30d01b58c61fddedf4a1d0af60e0a1d558b4f330754b08e1de58a",
+          "score": 0.214,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 69,
+          "text_sha256": "0ac1f2756ab30d01b58c61fddedf4a1d0af60e0a1d558b4f330754b08e1de58a",
+          "score": 0.214,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-008",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 23,
+          "text_sha256": "981a83d2d5a0e3253011f6789061cd7d11a33be2e9c6be18fe8b9c129c802af7",
+          "score": 0.2701,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 249,
+          "text_sha256": "f581701f3af136c5aaf3e38aac815a78472d5ddab715fd9d223d72f5d967ce80",
+          "score": 0.209,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 146,
+          "text_sha256": "f581701f3af136c5aaf3e38aac815a78472d5ddab715fd9d223d72f5d967ce80",
+          "score": 0.209,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-009",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 105,
+          "text_sha256": "349645b7d4f6172b969fffca51f14bff447a74d2d1ea8000cf03f2cf34217748",
+          "score": 0.3007,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 2,
+          "text_sha256": "349645b7d4f6172b969fffca51f14bff447a74d2d1ea8000cf03f2cf34217748",
+          "score": 0.3007,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 0,
+          "text_sha256": "363eab63afa182ffe52a579c30e47900183e023f2e019ddf9855f3e21dc5a8c3",
+          "score": 0.2343,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-010",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 79,
+          "text_sha256": "7643eb7d8bf9b81d3d0eedf2ded10d0fbc154b60b94fd885391a557715d2fc4a",
+          "score": 0.2411,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 89,
+          "text_sha256": "7643eb7d8bf9b81d3d0eedf2ded10d0fbc154b60b94fd885391a557715d2fc4a",
+          "score": 0.2411,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 89,
+          "text_sha256": "7643eb7d8bf9b81d3d0eedf2ded10d0fbc154b60b94fd885391a557715d2fc4a",
+          "score": 0.2411,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-011",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 32,
+          "text_sha256": "427036b5e03bf7a48f38371a623a2c2cabc8aabdbf3fd949fee3396a7af5c8db",
+          "score": 0.1551,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 21,
+          "text_sha256": "56aa4520460127cb6590b790af153c7bb230d369b8a2574508d2702a621aff04",
+          "score": 0.1361,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/conversation_live.py",
+          "index": 65,
+          "text_sha256": "b9f9d0cabb34ccc0ac22973be19f01c1b3ca9869c8d85a869a63e234ed64288c",
+          "score": 0.1263,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-012",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 3,
+          "text_sha256": "33f4be7d6fdf20f7ac12ec181474e720f01c64d31befb0e41b23fe6b280a84a7",
+          "score": 0.3284,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 106,
+          "text_sha256": "33f4be7d6fdf20f7ac12ec181474e720f01c64d31befb0e41b23fe6b280a84a7",
+          "score": 0.3284,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 93,
+          "text_sha256": "f2bc73db84679e9d67a7e17cd9681863497cea9699afe048ad30aad156d669cd",
+          "score": 0.2337,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-013",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 3,
+          "text_sha256": "b7582dbcd29d3b9c2077ea3adcb8fc703f734780dee9255ae78c1e2b0634a4bf",
+          "score": 0.1974,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 127,
+          "text_sha256": "a672fbb7f188767bbf50a7c542ab29fc6b61877ccb2791b6b4dec665c93f7e80",
+          "score": 0.1387,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 24,
+          "text_sha256": "a672fbb7f188767bbf50a7c542ab29fc6b61877ccb2791b6b4dec665c93f7e80",
+          "score": 0.1387,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-014",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_recommended_add.py",
+          "index": 30,
+          "text_sha256": "7745b198b7df4be67f29fb73916b35fbaa18b118690cbcea2ed021fbc9c0eed6",
+          "score": 0.1438,
+          "normalized_exact": false
+        },
+        {
+          "source": "work/manual-test/probe_recommended_add.py",
+          "index": 25,
+          "text_sha256": "58e4f363eb8c9b3201fe2c0e237934e7d2991c34cb59037a3ae917a7fe65ec50",
+          "score": 0.1106,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 5,
+          "text_sha256": "56e5853e0346c622aee14808eb5037ebfff58695694f43ccc38cb527164fdb60",
+          "score": 0.1007,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-015",
+      "nearest_prior": [
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 5,
+          "text_sha256": "47cb5232862bc7e0e17001fc2181035727d7cf650b303a342e794f955248ba0e",
+          "score": 0.3354,
+          "normalized_exact": false
+        },
+        {
+          "source": "work/manual-test/recommended-add-flow-v31.json",
+          "index": 0,
+          "text_sha256": "b509cd74f829228ec5ce4f61f9e840131bc4870f2779223ac02417e6b45ede8d",
+          "score": 0.2559,
+          "normalized_exact": false
+        },
+        {
+          "source": "work/manual-test/recommended-add-flow-v30.json",
+          "index": 11,
+          "text_sha256": "b509cd74f829228ec5ce4f61f9e840131bc4870f2779223ac02417e6b45ede8d",
+          "score": 0.2559,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-016",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 9,
+          "text_sha256": "40912a159928f663f67750b84175fe5e91bd19ab46755e287721452fa53c4025",
+          "score": 0.1424,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 10,
+          "text_sha256": "40912a159928f663f67750b84175fe5e91bd19ab46755e287721452fa53c4025",
+          "score": 0.1424,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 9,
+          "text_sha256": "40912a159928f663f67750b84175fe5e91bd19ab46755e287721452fa53c4025",
+          "score": 0.1424,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-017",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 11,
+          "text_sha256": "814352aa48b9f586589bb19905fa40ecf42445b1019f03f3fb976d9e85663d68",
+          "score": 0.226,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 26,
+          "text_sha256": "39311562432008727d2ced5abb3e776f0a164c207580f45a0505acf3b5a9db32",
+          "score": 0.1535,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 26,
+          "text_sha256": "39311562432008727d2ced5abb3e776f0a164c207580f45a0505acf3b5a9db32",
+          "score": 0.1535,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-018",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 128,
+          "text_sha256": "c8169a4d08f0268fb932717ac3c9ae26931428f49a11e91bc078bc0a9e65fda3",
+          "score": 0.285,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 25,
+          "text_sha256": "c8169a4d08f0268fb932717ac3c9ae26931428f49a11e91bc078bc0a9e65fda3",
+          "score": 0.285,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 31,
+          "text_sha256": "d20f78937bcc8def94668cc810e0557dd1d03bd255a83b6df89450ec41ecd537",
+          "score": 0.2467,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-019",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 94,
+          "text_sha256": "18a6eae45a982664443d34e93c58dc6323ad54417ec5186da8460cc4d4856ec7",
+          "score": 0.2225,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 126,
+          "text_sha256": "27f8ce227f3f8a6462f1c4369548760b13f1d037000cbae20e56dcce1512ae28",
+          "score": 0.1848,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 23,
+          "text_sha256": "27f8ce227f3f8a6462f1c4369548760b13f1d037000cbae20e56dcce1512ae28",
+          "score": 0.1848,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-020",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 163,
+          "text_sha256": "d0fce5aa5dfba0c765f79f9024eeb594b824531c5c842e55d37dd22787a22df1",
+          "score": 0.1386,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 121,
+          "text_sha256": "c77645ba77017b9c1444548c6ee801e06edb4b932e6d846ec0c12f22682245f9",
+          "score": 0.1385,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 18,
+          "text_sha256": "c77645ba77017b9c1444548c6ee801e06edb4b932e6d846ec0c12f22682245f9",
+          "score": 0.1385,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-021",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_conversation_answers.py",
+          "index": 0,
+          "text_sha256": "ef916f94dfa7309b671bbca7df384f966671f92e8b0ee1141a92240d23c3c152",
+          "score": 0.3757,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 12,
+          "text_sha256": "dcf409f70a3ab90d6805a20faa08244f1881518b2165aa0d12d338d5116e5e86",
+          "score": 0.3057,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_intent.py",
+          "index": 69,
+          "text_sha256": "6a1b03a304b907f36416140d9e702e57fbd101223486dfa0c994052f2ffd38cd",
+          "score": 0.2642,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-022",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 24,
+          "text_sha256": "a672fbb7f188767bbf50a7c542ab29fc6b61877ccb2791b6b4dec665c93f7e80",
+          "score": 0.1512,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 127,
+          "text_sha256": "a672fbb7f188767bbf50a7c542ab29fc6b61877ccb2791b6b4dec665c93f7e80",
+          "score": 0.1512,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 70,
+          "text_sha256": "5fdb8325abb35efebbe248ad0e1aa1c19f071f24103c42ad53e6a90d68775909",
+          "score": 0.1305,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-023",
+      "nearest_prior": [
+        {
+          "source": "work/manual-test/verify_answer_semantics.py",
+          "index": 14,
+          "text_sha256": "4a5bc3914967d75141c0554a1a1bfa51311d4052690d80cc27d25594dfa9d39a",
+          "score": 0.2685,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_conversation_answers.py",
+          "index": 10,
+          "text_sha256": "8f83bdc02bb2a4879685fd3a60db592489b0421f4a4ac5aa09bf82d3d086b473",
+          "score": 0.2289,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/cases.py",
+          "index": 97,
+          "text_sha256": "03dfb5a61d60c6aa865c132d348fcf7acba29be578dcefef160ae06f96d08c54",
+          "score": 0.2004,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-024",
+      "nearest_prior": [
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 37,
+          "text_sha256": "ffb35005a4e66682d6e6843e435394380202fb27c235f506bebfe6f460294c00",
+          "score": 0.3198,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 154,
+          "text_sha256": "89ed19afce084e9c766bef51b1a3014fc80f46bd92f1b97ea399a5619d8e2652",
+          "score": 0.3034,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 612,
+          "text_sha256": "89ed19afce084e9c766bef51b1a3014fc80f46bd92f1b97ea399a5619d8e2652",
+          "score": 0.3034,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-025",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 139,
+          "text_sha256": "75967bc903c8783d652e1196aea82e19f8dcf04bd4dafd31087e985cd97b1f1e",
+          "score": 0.2097,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 36,
+          "text_sha256": "75967bc903c8783d652e1196aea82e19f8dcf04bd4dafd31087e985cd97b1f1e",
+          "score": 0.2097,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 72,
+          "text_sha256": "4fc8c13fc28bc5d38b4883a3a4a5c94663bf2d790d1e7ca6af92434618c56526",
+          "score": 0.1731,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-026",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 47,
+          "text_sha256": "198d3529a9c206a7757dd6b1e91b2dc6436438c9dd3a23101605d3fc100510c7",
+          "score": 0.188,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/conversation_live.py",
+          "index": 60,
+          "text_sha256": "198d3529a9c206a7757dd6b1e91b2dc6436438c9dd3a23101605d3fc100510c7",
+          "score": 0.188,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 135,
+          "text_sha256": "788642b478ce162d47131335b070b8839c1f27a2c03a4f8736b9d054d5ea73f5",
+          "score": 0.1835,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-027",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_ticket11_cart.py",
+          "index": 36,
+          "text_sha256": "170e10802f2c96249542f790a771eec6e0bfbc9ba34f32c6133983d9a90c31cd",
+          "score": 0.3554,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 50,
+          "text_sha256": "04fc904eac2483659547510ebf5734122fc2978e36fe6c5bf61eea2fef46a976",
+          "score": 0.1617,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/gemini_cart.py",
+          "index": 4,
+          "text_sha256": "a4539c234302b20215dc5d86f0d113d65463ff2580f7f6af4834e757eb7845c3",
+          "score": 0.1506,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-028",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 120,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.2062,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 17,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.2062,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-162.json",
+          "index": 0,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.2062,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-029",
+      "nearest_prior": [
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 24,
+          "text_sha256": "a39d8b121602e462472ded45b3c860e8df883a703a764a1c27fd5b6143d767b7",
+          "score": 0.2958,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_catalogue_retrieval_browser.py",
+          "index": 40,
+          "text_sha256": "1b03d087daa8efe32a35293572c4e18297e49bf82d6c92714b49d540451d8abf",
+          "score": 0.2335,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 136,
+          "text_sha256": "a78dda3e2c3d6da182533edff32d04c50b3f3afff9aee139a9333e233f2358fe",
+          "score": 0.1843,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-030",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-pilot-20261007/report.json",
+          "index": 10,
+          "text_sha256": "ac5ece6e1f59edb61a0c654637ff0bbd531cee1f02b91fca7d3f5debb78f4ed7",
+          "score": 0.1619,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 45,
+          "text_sha256": "ac5ece6e1f59edb61a0c654637ff0bbd531cee1f02b91fca7d3f5debb78f4ed7",
+          "score": 0.1619,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 63,
+          "text_sha256": "ac5ece6e1f59edb61a0c654637ff0bbd531cee1f02b91fca7d3f5debb78f4ed7",
+          "score": 0.1619,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-031",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 145,
+          "text_sha256": "9532c14cf452fa78726d83192f246edab916716e806b8e1f8b341642b20ee456",
+          "score": 0.2712,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 42,
+          "text_sha256": "9532c14cf452fa78726d83192f246edab916716e806b8e1f8b341642b20ee456",
+          "score": 0.2712,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 24,
+          "text_sha256": "cb4549f91c851baa6005ca860fccc98057fba277a6cc23fd9aec1897a4aeee23",
+          "score": 0.2355,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-032",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 944,
+          "text_sha256": "afe0c08b0453a73cd63ac0b22870e3e6ed3112319dad270ecf55efdab2c6dd0c",
+          "score": 0.3771,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 46,
+          "text_sha256": "342f9282768a4e7ad632eb8699f53673241d155665fa54b44f6aea67f25bb433",
+          "score": 0.3016,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 11,
+          "text_sha256": "342f9282768a4e7ad632eb8699f53673241d155665fa54b44f6aea67f25bb433",
+          "score": 0.3016,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-033",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_ticket13_mobile.py",
+          "index": 8,
+          "text_sha256": "37919e903c48193d2a70eaa569a63d0e374be42188e8593cfc067eca2e19ad80",
+          "score": 0.2321,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/runner.py",
+          "index": 41,
+          "text_sha256": "37919e903c48193d2a70eaa569a63d0e374be42188e8593cfc067eca2e19ad80",
+          "score": 0.2321,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/runner.py",
+          "index": 40,
+          "text_sha256": "37919e903c48193d2a70eaa569a63d0e374be42188e8593cfc067eca2e19ad80",
+          "score": 0.2321,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-034",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 146,
+          "text_sha256": "256bb853620038682b662e1d96f28674d12f1264bf2c47f4abe5e2ea72e70a83",
+          "score": 0.2172,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 43,
+          "text_sha256": "256bb853620038682b662e1d96f28674d12f1264bf2c47f4abe5e2ea72e70a83",
+          "score": 0.2172,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 39,
+          "text_sha256": "cd8a21be53aac79965add440e17151738869934b03bfaa3670f620fbba5b5f47",
+          "score": 0.158,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-035",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 194,
+          "text_sha256": "295f2bf7725a2544d73666e847e25a313f6aab62af317c921e8c1926e89b14be",
+          "score": 0.2156,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 91,
+          "text_sha256": "295f2bf7725a2544d73666e847e25a313f6aab62af317c921e8c1926e89b14be",
+          "score": 0.2156,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 49,
+          "text_sha256": "f3dd2e630b16e370a58d73987a1b9a3d770abd5f75ac3756d08aa70288503dae",
+          "score": 0.2088,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-036",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 142,
+          "text_sha256": "cd8a21be53aac79965add440e17151738869934b03bfaa3670f620fbba5b5f47",
+          "score": 0.3581,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 39,
+          "text_sha256": "cd8a21be53aac79965add440e17151738869934b03bfaa3670f620fbba5b5f47",
+          "score": 0.3581,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket14_spa.py",
+          "index": 77,
+          "text_sha256": "cd8f2cfab2d8f032634e18bc8b3624fb1d47d048a7564331ec559b6219680eb4",
+          "score": 0.2375,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-037",
+      "nearest_prior": [
+        {
+          "source": "eval/semantic_followup_browser.py",
+          "index": 17,
+          "text_sha256": "bc195aa3424af05d844cf504605800a6cbd79d9f77aaf5b6ea80ec04e4d6be5d",
+          "score": 0.4106,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 828,
+          "text_sha256": "a6c67e33702a5ef4ff0d1f512ed305766fb835e3d0877dfe9613802f190a62e5",
+          "score": 0.3868,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 10,
+          "text_sha256": "d98db165a53966dd5f1dca9ed98128279fefdd14023fc34155e0c3ff79633aa4",
+          "score": 0.3479,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-038",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 47,
+          "text_sha256": "198d3529a9c206a7757dd6b1e91b2dc6436438c9dd3a23101605d3fc100510c7",
+          "score": 0.1311,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/conversation_live.py",
+          "index": 60,
+          "text_sha256": "198d3529a9c206a7757dd6b1e91b2dc6436438c9dd3a23101605d3fc100510c7",
+          "score": 0.1311,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 163,
+          "text_sha256": "0d88f0e94d8585de35b38c4036b61e543f9bb71445137be4b6992f410355a4e3",
+          "score": 0.1304,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-039",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 60,
+          "text_sha256": "0d88f0e94d8585de35b38c4036b61e543f9bb71445137be4b6992f410355a4e3",
+          "score": 0.1841,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 163,
+          "text_sha256": "0d88f0e94d8585de35b38c4036b61e543f9bb71445137be4b6992f410355a4e3",
+          "score": 0.1841,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/conversation_live.py",
+          "index": 60,
+          "text_sha256": "198d3529a9c206a7757dd6b1e91b2dc6436438c9dd3a23101605d3fc100510c7",
+          "score": 0.1755,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-040",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 11,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2705,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 12,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2705,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261006/report.json",
+          "index": 3,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2705,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-041",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 59,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.3769,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 36,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.3769,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261006/report.json",
+          "index": 12,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.3769,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-042",
+      "nearest_prior": [
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 25,
+          "text_sha256": "b069694b71928a821ec54d30fdd4580ddc20964b8712fd53ba56a2dea06d7a3b",
+          "score": 0.214,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 390,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.1379,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 920,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.1379,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-043",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-pilot-20261007/report.json",
+          "index": 3,
+          "text_sha256": "604913decc047813115c74c791e330b67de129b7550fd27b42c7bcfbb947829f",
+          "score": 0.2221,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 3,
+          "text_sha256": "604913decc047813115c74c791e330b67de129b7550fd27b42c7bcfbb947829f",
+          "score": 0.2221,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 56,
+          "text_sha256": "604913decc047813115c74c791e330b67de129b7550fd27b42c7bcfbb947829f",
+          "score": 0.2221,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-044",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 28,
+          "text_sha256": "4df5cf49afa3030874aa6fad69e649d3123564f813d10db730ee0625b5de030d",
+          "score": 0.3949,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/cases.py",
+          "index": 60,
+          "text_sha256": "d76bde07805e3bb2210b7d02c7e9fdf87f4d2409d05c28511acccfeac93b47c9",
+          "score": 0.3786,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 393,
+          "text_sha256": "d76bde07805e3bb2210b7d02c7e9fdf87f4d2409d05c28511acccfeac93b47c9",
+          "score": 0.3786,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-045",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 50,
+          "text_sha256": "f524dcbb6551279342de2250acd3f4c10348995851aac66b0bd801e2582e0847",
+          "score": 0.3764,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 153,
+          "text_sha256": "f524dcbb6551279342de2250acd3f4c10348995851aac66b0bd801e2582e0847",
+          "score": 0.3764,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 901,
+          "text_sha256": "d026cb0bd020c21e16a7343671858f8a2d0f4b13b8e90582b72384bfe5912215",
+          "score": 0.2863,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-046",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 55,
+          "text_sha256": "de657be1333c6a53eee48d4e443ab243b8033c66174c6b7476595f8cde3855fc",
+          "score": 0.2994,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 158,
+          "text_sha256": "de657be1333c6a53eee48d4e443ab243b8033c66174c6b7476595f8cde3855fc",
+          "score": 0.2994,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 40,
+          "text_sha256": "cf23416f03463a15126cd5a6ba315948f028eb88eb91cf8f5e59a6e380a63f75",
+          "score": 0.2496,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-047",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_intent_pipeline.py",
+          "index": 226,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.3322,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 978,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.3322,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/cases.py",
+          "index": 52,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.3322,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-048",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 63,
+          "text_sha256": "1aaacf242cdde43f20f9d4b58fd1cfb0bb1a97c40e158cdb17a95c4931499ccc",
+          "score": 0.2954,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 166,
+          "text_sha256": "1aaacf242cdde43f20f9d4b58fd1cfb0bb1a97c40e158cdb17a95c4931499ccc",
+          "score": 0.2954,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 864,
+          "text_sha256": "38caf03d36ae46c0acd2602829d599600dbff66f16fbe2e8610c118072c19830",
+          "score": 0.2048,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-049",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 104,
+          "text_sha256": "18113102659bca3773aead58b3960d6b6e42244bb389dffc8b709dc3571cdc73",
+          "score": 0.2898,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 207,
+          "text_sha256": "18113102659bca3773aead58b3960d6b6e42244bb389dffc8b709dc3571cdc73",
+          "score": 0.2898,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 146,
+          "text_sha256": "256bb853620038682b662e1d96f28674d12f1264bf2c47f4abe5e2ea72e70a83",
+          "score": 0.2125,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-050",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_catalogue_latency.py",
+          "index": 68,
+          "text_sha256": "d0aed67ded65c798c4c61f90752630909e35cacdd51ecced4482d1ab61277794",
+          "score": 0.2506,
+          "normalized_exact": false
+        },
+        {
+          "source": "work/manual-test/verify_latency_open_v7.py",
+          "index": 5,
+          "text_sha256": "359e8b74890c1ffaf52457d54259244738ab7e1cdacfdb53b8ebbc14d0fe4d02",
+          "score": 0.2393,
+          "normalized_exact": false
+        },
+        {
+          "source": "work/manual-test/recommended-add-flow-v31.json",
+          "index": 5,
+          "text_sha256": "f7e544ff11cda17d12ee2bfba634b3f4beb7d6b69210cbb0d067d732746ebb2a",
+          "score": 0.2064,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-051",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 55,
+          "text_sha256": "bd9c1561f148ee144533478d95c525e6b440307429deedb2bc660642877ab546",
+          "score": 0.2306,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_cart_task.py",
+          "index": 102,
+          "text_sha256": "d7d414697a16a69468759f4047848d55a4f313033d65c135bc4e0066fd80d9f4",
+          "score": 0.2251,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket13_mobile.py",
+          "index": 71,
+          "text_sha256": "d7d414697a16a69468759f4047848d55a4f313033d65c135bc4e0066fd80d9f4",
+          "score": 0.2251,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-052",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 12,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2152,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261006/report.json",
+          "index": 3,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2152,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 11,
+          "text_sha256": "b28af94ae78df82824c3e4a49ea40344988e42167d9f7a4e673ff48bed6617e0",
+          "score": 0.2152,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-053",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 208,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.2338,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 105,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.2338,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 107,
+          "text_sha256": "521bc00ff9bb5f26c25663c2d9063ad4258aaabcc013c95db4f91caaf3aa1933",
+          "score": 0.2129,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-054",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 166,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.3269,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 178,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.3269,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 170,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.3269,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-055",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_intent_pipeline.py",
+          "index": 125,
+          "text_sha256": "15ea2b373531e8a01f16bc94e25452c966a89185cb9e8c1ff0ceb7b223d1bd20",
+          "score": 0.2265,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 84,
+          "text_sha256": "3197b9950d59c7c043d2f27cd68f15776ebb72821016b762711d32b10a978e9c",
+          "score": 0.2253,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 173,
+          "text_sha256": "5fdb8325abb35efebbe248ad0e1aa1c19f071f24103c42ad53e6a90d68775909",
+          "score": 0.2195,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-056",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 145,
+          "text_sha256": "9532c14cf452fa78726d83192f246edab916716e806b8e1f8b341642b20ee456",
+          "score": 0.2588,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 42,
+          "text_sha256": "9532c14cf452fa78726d83192f246edab916716e806b8e1f8b341642b20ee456",
+          "score": 0.2588,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 107,
+          "text_sha256": "521bc00ff9bb5f26c25663c2d9063ad4258aaabcc013c95db4f91caaf3aa1933",
+          "score": 0.2384,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-057",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-pilot-20261007/report.json",
+          "index": 19,
+          "text_sha256": "46c149fee33b94dd2aca0268ed7bb60bb496df32394c5e998b88cf025f7ebe40",
+          "score": 0.3153,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 19,
+          "text_sha256": "46c149fee33b94dd2aca0268ed7bb60bb496df32394c5e998b88cf025f7ebe40",
+          "score": 0.3153,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 72,
+          "text_sha256": "46c149fee33b94dd2aca0268ed7bb60bb496df32394c5e998b88cf025f7ebe40",
+          "score": 0.3153,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-058",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 169,
+          "text_sha256": "3dddb9b7836a863f4079bab81c76d77787da17637ad51c856b6dc0cb10e49696",
+          "score": 0.3832,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 66,
+          "text_sha256": "3dddb9b7836a863f4079bab81c76d77787da17637ad51c856b6dc0cb10e49696",
+          "score": 0.3832,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 65,
+          "text_sha256": "dfbc730561df9123c3820996dd4acb98cecc8b384d902e4de3477c1cba9787aa",
+          "score": 0.2273,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-059",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 178,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.2437,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 166,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.2437,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_product_context.py",
+          "index": 170,
+          "text_sha256": "165274b28079541737cdd9d45c31aec187473c3659388b95a7dd24c2884b7313",
+          "score": 0.2437,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-060",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 210,
+          "text_sha256": "521bc00ff9bb5f26c25663c2d9063ad4258aaabcc013c95db4f91caaf3aa1933",
+          "score": 0.2768,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 107,
+          "text_sha256": "521bc00ff9bb5f26c25663c2d9063ad4258aaabcc013c95db4f91caaf3aa1933",
+          "score": 0.2768,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 105,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.2081,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-061",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 100,
+          "text_sha256": "534c5e66207d875d2cec82e4da406b31522551021b5cb36ae940a0930b49eadb",
+          "score": 0.2701,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 187,
+          "text_sha256": "29c533a271de1871d445bd4d6ed7a9d076b0f113e17b44dcf17e6470942f0b3c",
+          "score": 0.2379,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 84,
+          "text_sha256": "29c533a271de1871d445bd4d6ed7a9d076b0f113e17b44dcf17e6470942f0b3c",
+          "score": 0.2379,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-062",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 106,
+          "text_sha256": "f1f3ce8b9327331028bd0c688892b181eecbd74d3af963f92fd00b28b6d87f28",
+          "score": 0.3663,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261007/report.json",
+          "index": 21,
+          "text_sha256": "8d2ba75d076df49f37706c5ccce7b88c444db98cf40ce8b471273ef41d919250",
+          "score": 0.1671,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 21,
+          "text_sha256": "8d2ba75d076df49f37706c5ccce7b88c444db98cf40ce8b471273ef41d919250",
+          "score": 0.1671,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-063",
+      "nearest_prior": [
+        {
+          "source": "eval/gemini_cart.py",
+          "index": 16,
+          "text_sha256": "32616248b848857e5ca3d7b8551b1bb8e6244cd4b91433b9c7eeef4517490783",
+          "score": 0.3037,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_egyptian_cart_boundary.py",
+          "index": 0,
+          "text_sha256": "32616248b848857e5ca3d7b8551b1bb8e6244cd4b91433b9c7eeef4517490783",
+          "score": 0.3037,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/openrouter_cart_browser.py",
+          "index": 38,
+          "text_sha256": "32616248b848857e5ca3d7b8551b1bb8e6244cd4b91433b9c7eeef4517490783",
+          "score": 0.3037,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-064",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 59,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2068,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261006/report.json",
+          "index": 12,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2068,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 59,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2068,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-065",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 208,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.1523,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 105,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.1523,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 58,
+          "text_sha256": "a01dc2d6355eea328a67380eafe28a5e0e6f9b3252dc830a2ef58a3fc2d5daa2",
+          "score": 0.1298,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-066",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 864,
+          "text_sha256": "38caf03d36ae46c0acd2602829d599600dbff66f16fbe2e8610c118072c19830",
+          "score": 0.172,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 860,
+          "text_sha256": "38caf03d36ae46c0acd2602829d599600dbff66f16fbe2e8610c118072c19830",
+          "score": 0.172,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 176,
+          "text_sha256": "23596526a3eabc9ab9417808ea4896c1e28eceaeda73b360b1ebe41ecb49117a",
+          "score": 0.1542,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-067",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_catalogue_retrieval_browser.py",
+          "index": 40,
+          "text_sha256": "1b03d087daa8efe32a35293572c4e18297e49bf82d6c92714b49d540451d8abf",
+          "score": 0.1957,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 193,
+          "text_sha256": "cbe8c8094756b907af42635d06d9676f8afec3aa81e05489c280bee00e08a907",
+          "score": 0.1608,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 90,
+          "text_sha256": "cbe8c8094756b907af42635d06d9676f8afec3aa81e05489c280bee00e08a907",
+          "score": 0.1608,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-068",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_ticket10_guarded_browser.py",
+          "index": 23,
+          "text_sha256": "317883056f865e2902949653ea1b5708407f36970f02ec8cd7b470259048087a",
+          "score": 0.4458,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_recovery.py",
+          "index": 158,
+          "text_sha256": "b2a3921f95ca7363804bf79733426ce6ec0276825660fe7a8acb5b4a8a8fbd37",
+          "score": 0.3169,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket10_guarded_browser.py",
+          "index": 21,
+          "text_sha256": "b2a3921f95ca7363804bf79733426ce6ec0276825660fe7a8acb5b4a8a8fbd37",
+          "score": 0.3169,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-069",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 103,
+          "text_sha256": "785d9cebb1548282c913c3f0d0e80895efc35ca1c9ac5901fe9924f1457bca04",
+          "score": 0.1906,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket14_spa.py",
+          "index": 65,
+          "text_sha256": "9c6725f46c7199ed68715b55e5ec82802b40f82d7fe1a4e0e90a0653e7013840",
+          "score": 0.18,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_guarded_task.py",
+          "index": 20,
+          "text_sha256": "9c6725f46c7199ed68715b55e5ec82802b40f82d7fe1a4e0e90a0653e7013840",
+          "score": 0.18,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-070",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 106,
+          "text_sha256": "f1f3ce8b9327331028bd0c688892b181eecbd74d3af963f92fd00b28b6d87f28",
+          "score": 0.3584,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_recovery.py",
+          "index": 56,
+          "text_sha256": "85368e0c6234abcfa58c59cca8a09ffc3cbbddfb363df695386dc678bf8f9355",
+          "score": 0.2136,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_recovery.py",
+          "index": 158,
+          "text_sha256": "b2a3921f95ca7363804bf79733426ce6ec0276825660fe7a8acb5b4a8a8fbd37",
+          "score": 0.2069,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-071",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 190,
+          "text_sha256": "048af6025630706ad2a8d784f6312d7819937d266dd6f56613a25b6401962084",
+          "score": 0.1931,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 87,
+          "text_sha256": "048af6025630706ad2a8d784f6312d7819937d266dd6f56613a25b6401962084",
+          "score": 0.1931,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_guarded_task.py",
+          "index": 38,
+          "text_sha256": "5c6e5749337465a83019341c6babce1062cd398c098e8ea322f453d946f1da0d",
+          "score": 0.1815,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-072",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 49,
+          "text_sha256": "f3dd2e630b16e370a58d73987a1b9a3d770abd5f75ac3756d08aa70288503dae",
+          "score": 0.1646,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 191,
+          "text_sha256": "dac5cffbb32613a07f61b55dfcb0903dcf2dbcd64da84e2e2ddf58b8f37371fd",
+          "score": 0.162,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 88,
+          "text_sha256": "dac5cffbb32613a07f61b55dfcb0903dcf2dbcd64da84e2e2ddf58b8f37371fd",
+          "score": 0.162,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-073",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 3,
+          "text_sha256": "84b2524a515c374a702db7be5467cbd5fdf48e3c22382d8e9e6d4e9768d7eb5f",
+          "score": 0.2114,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 3,
+          "text_sha256": "84b2524a515c374a702db7be5467cbd5fdf48e3c22382d8e9e6d4e9768d7eb5f",
+          "score": 0.2114,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/contexts/ar-cart-after.json",
+          "index": 0,
+          "text_sha256": "84b2524a515c374a702db7be5467cbd5fdf48e3c22382d8e9e6d4e9768d7eb5f",
+          "score": 0.2114,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-074",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone.py",
+          "index": 441,
+          "text_sha256": "13582d6f326bc04e433ba8a652f44f6f63d9587c46275ea163b11f09c13b375f",
+          "score": 0.2386,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket11_cart.py",
+          "index": 38,
+          "text_sha256": "13582d6f326bc04e433ba8a652f44f6f63d9587c46275ea163b11f09c13b375f",
+          "score": 0.2386,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket14_spa.py",
+          "index": 54,
+          "text_sha256": "13582d6f326bc04e433ba8a652f44f6f63d9587c46275ea163b11f09c13b375f",
+          "score": 0.2386,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-075",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 127,
+          "text_sha256": "64cbd072eaaf61d170adf49d4c6aa7cabd4f0a5dc6c0e88f09faa070060302fa",
+          "score": 0.2885,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 79,
+          "text_sha256": "64cbd072eaaf61d170adf49d4c6aa7cabd4f0a5dc6c0e88f09faa070060302fa",
+          "score": 0.2885,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/exploratory_live.py",
+          "index": 134,
+          "text_sha256": "32cb9d8a17c121d6981e5867a7f6f6c6af9813f0005f0d12841a0c14e1fc7a7b",
+          "score": 0.2495,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-076",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 176,
+          "text_sha256": "23596526a3eabc9ab9417808ea4896c1e28eceaeda73b360b1ebe41ecb49117a",
+          "score": 0.2988,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 73,
+          "text_sha256": "23596526a3eabc9ab9417808ea4896c1e28eceaeda73b360b1ebe41ecb49117a",
+          "score": 0.2988,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 28,
+          "text_sha256": "fb11ded5a20ad01006513407c89a860fff021cd70be78099e890a0d66985a737",
+          "score": 0.262,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-077",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 208,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.3688,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 105,
+          "text_sha256": "c746f65e36aa6e047430f9903a91dd4bd754e6b8ef9eec5a8e1a54cd5c9d322c",
+          "score": 0.3688,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 210,
+          "text_sha256": "521bc00ff9bb5f26c25663c2d9063ad4258aaabcc013c95db4f91caaf3aa1933",
+          "score": 0.2048,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-078",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 212,
+          "text_sha256": "764d4f6dfdc8d25760eece7304a428a3a77b88414a6295f122e9c98ec664414f",
+          "score": 0.3608,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 109,
+          "text_sha256": "764d4f6dfdc8d25760eece7304a428a3a77b88414a6295f122e9c98ec664414f",
+          "score": 0.3608,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 15,
+          "text_sha256": "b54f30fd0156a03437d68151035ab7b73bb5c95527528d695a1c5444e772902a",
+          "score": 0.1535,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-079",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 80,
+          "text_sha256": "0161c4436c24c720bf51ba92939b7dfbded37b35c325f40100e6be5635e308d4",
+          "score": 0.2586,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 201,
+          "text_sha256": "0161c4436c24c720bf51ba92939b7dfbded37b35c325f40100e6be5635e308d4",
+          "score": 0.2586,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-167.json",
+          "index": 0,
+          "text_sha256": "0161c4436c24c720bf51ba92939b7dfbded37b35c325f40100e6be5635e308d4",
+          "score": 0.2586,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-080",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 166,
+          "text_sha256": "7a84f36b29f0490f86003800f8c94cbe568e62a393724095be447c29dd236317",
+          "score": 0.2187,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 22,
+          "text_sha256": "eb3abd94cba5b9b13e7b9fb14261090d772c6e8e895ede4d255e82e9fcb90b9a",
+          "score": 0.2137,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_boundary.py",
+          "index": 77,
+          "text_sha256": "a0a940a7b3430bd1b79b543b5e912283db04462ea5b4cb27c4ca65434ca644fd",
+          "score": 0.2026,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-081",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 25,
+          "text_sha256": "755576bb4e1b26753390cd656a311c58cda7b1255ee78f185709e95e4d289525",
+          "score": 0.3827,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 22,
+          "text_sha256": "755576bb4e1b26753390cd656a311c58cda7b1255ee78f185709e95e4d289525",
+          "score": 0.3827,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 22,
+          "text_sha256": "755576bb4e1b26753390cd656a311c58cda7b1255ee78f185709e95e4d289525",
+          "score": 0.3827,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-082",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_ticket14_spa.py",
+          "index": 77,
+          "text_sha256": "cd8f2cfab2d8f032634e18bc8b3624fb1d47d048a7564331ec559b6219680eb4",
+          "score": 0.2535,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_recovery.py",
+          "index": 48,
+          "text_sha256": "bb4b45aa052289fec56ec6eeed5d445d092999d95f4d138818466f93e57c2b71",
+          "score": 0.2534,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_ticket11_cart.py",
+          "index": 33,
+          "text_sha256": "bb4b45aa052289fec56ec6eeed5d445d092999d95f4d138818466f93e57c2b71",
+          "score": 0.2534,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-083",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 111,
+          "text_sha256": "c1f2c5f78c7aa223bb03f4d2ad769b6d7e8bad253128198f0de4e56c76042b8f",
+          "score": 0.2868,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 214,
+          "text_sha256": "c1f2c5f78c7aa223bb03f4d2ad769b6d7e8bad253128198f0de4e56c76042b8f",
+          "score": 0.2868,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 96,
+          "text_sha256": "71f737bdf0ea50cc2d282a77379053a86c17f2121e892eb0f7f8b4765fc9f165",
+          "score": 0.1948,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-084",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 28,
+          "text_sha256": "6d5d9b322113aec6250e8763da56df05d3a16e19e777ea832b95b19d6c617338",
+          "score": 0.2139,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 187,
+          "text_sha256": "6d5d9b322113aec6250e8763da56df05d3a16e19e777ea832b95b19d6c617338",
+          "score": 0.2139,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 81,
+          "text_sha256": "6d5d9b322113aec6250e8763da56df05d3a16e19e777ea832b95b19d6c617338",
+          "score": 0.2139,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-085",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 226,
+          "text_sha256": "04bde1686798195cb53393ab64c311193409b193a2df6ec216aea9c1a69531ec",
+          "score": 0.1151,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 123,
+          "text_sha256": "04bde1686798195cb53393ab64c311193409b193a2df6ec216aea9c1a69531ec",
+          "score": 0.1151,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue_retrieval.py",
+          "index": 4,
+          "text_sha256": "297e89b9ac5f3388704111af0681991eb772bbbd33505eb6744d5603e405c9af",
+          "score": 0.1017,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-086",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_semantic_intent.py",
+          "index": 11,
+          "text_sha256": "9539ea83c8f4e874f4a57cd02442f008a8ff9750abe5437cd9de2a2ae8f5d2dd",
+          "score": 0.1132,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261007/report.json",
+          "index": 4,
+          "text_sha256": "9aba01e494860d56badb79b31bd4337232061c0e52c5abf2ee4877d179c05fbb",
+          "score": 0.0981,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 57,
+          "text_sha256": "9aba01e494860d56badb79b31bd4337232061c0e52c5abf2ee4877d179c05fbb",
+          "score": 0.0981,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-087",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 116,
+          "text_sha256": "3fd6b9460f8c509e77a13854034bffda7918a552e6a54ec683ed6b98e9047250",
+          "score": 0.2533,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 219,
+          "text_sha256": "3fd6b9460f8c509e77a13854034bffda7918a552e6a54ec683ed6b98e9047250",
+          "score": 0.2533,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 223,
+          "text_sha256": "2e1e3c8a83e395c6de4c92e3d0efa29a66a54900e01f9c86efe7df238ecbfef7",
+          "score": 0.2076,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-088",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 136,
+          "text_sha256": "3bdd1a9a9bebc5037e985a4b4abe0d3c8d93b2db7a086d2d0275fe0ed3cc43cb",
+          "score": 0.2416,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 228,
+          "text_sha256": "3bdd1a9a9bebc5037e985a4b4abe0d3c8d93b2db7a086d2d0275fe0ed3cc43cb",
+          "score": 0.2416,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 30,
+          "text_sha256": "3bdd1a9a9bebc5037e985a4b4abe0d3c8d93b2db7a086d2d0275fe0ed3cc43cb",
+          "score": 0.2416,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-089",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 224,
+          "text_sha256": "67b9610a3d792c87edf3ab533bd6cc065dfc891dc90752ed56ad4e3d371457d8",
+          "score": 0.2041,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 121,
+          "text_sha256": "67b9610a3d792c87edf3ab533bd6cc065dfc891dc90752ed56ad4e3d371457d8",
+          "score": 0.2041,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 129,
+          "text_sha256": "0ac00dc6084e218b2aa6552a04a5273a36089f02c61f2ae5509cff772128eedd",
+          "score": 0.1926,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-090",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 113,
+          "text_sha256": "2445c129c2c0343a86d4f58945fe2bed005c154d6674305d878f5b73e5072622",
+          "score": 0.1662,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 216,
+          "text_sha256": "2445c129c2c0343a86d4f58945fe2bed005c154d6674305d878f5b73e5072622",
+          "score": 0.1662,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 69,
+          "text_sha256": "e969ca0ee35235c7038a7a42f7a19ab0a602b61fa9aaaba635a676dfccee11d6",
+          "score": 0.1598,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-091",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 28,
+          "text_sha256": "4df5cf49afa3030874aa6fad69e649d3123564f813d10db730ee0625b5de030d",
+          "score": 0.1446,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 873,
+          "text_sha256": "2cfcd0e262b0060ec5d789ff8da071ee5805ca8f04aa837e02d5e01ac750acbe",
+          "score": 0.1373,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 891,
+          "text_sha256": "2cfcd0e262b0060ec5d789ff8da071ee5805ca8f04aa837e02d5e01ac750acbe",
+          "score": 0.1373,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-092",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 122,
+          "text_sha256": "1f306043ed84560bdbf0c362ab69b9df034dd76badf3dbac784fc2fcf583ef46",
+          "score": 0.2417,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 225,
+          "text_sha256": "1f306043ed84560bdbf0c362ab69b9df034dd76badf3dbac784fc2fcf583ef46",
+          "score": 0.2417,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_intent.py",
+          "index": 34,
+          "text_sha256": "9d2a4f98f6be4dd48822aefe6f2643450baaa3b8100500dc7ed21720fe41b896",
+          "score": 0.1527,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-093",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 85,
+          "text_sha256": "b95c17c33d405cc1ed292ff905f00485132dd8b787fecd814f395a418d2ca91f",
+          "score": 0.1762,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 85,
+          "text_sha256": "b95c17c33d405cc1ed292ff905f00485132dd8b787fecd814f395a418d2ca91f",
+          "score": 0.1762,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 73,
+          "text_sha256": "b95c17c33d405cc1ed292ff905f00485132dd8b787fecd814f395a418d2ca91f",
+          "score": 0.1762,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-094",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_cart_feedback.py",
+          "index": 0,
+          "text_sha256": "c736fbd702c821a39ab3a18e29170aaace7e95974425cb204481189fbd67b82f",
+          "score": 0.1255,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/comparison_models.py",
+          "index": 0,
+          "text_sha256": "3785840562c5ce22d1cc4ff2d5c09cbe26b070e8de0a87e04bc5adcd672b19be",
+          "score": 0.1248,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/milestone.py",
+          "index": 0,
+          "text_sha256": "3db2c4e9a7c1317dd9eaeb49e0610d7556c96dc41ad6bf95fa6e47241e85e7a5",
+          "score": 0.1149,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-095",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 123,
+          "text_sha256": "04bde1686798195cb53393ab64c311193409b193a2df6ec216aea9c1a69531ec",
+          "score": 0.1793,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 226,
+          "text_sha256": "04bde1686798195cb53393ab64c311193409b193a2df6ec216aea9c1a69531ec",
+          "score": 0.1793,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_catalogue_retrieval.py",
+          "index": 4,
+          "text_sha256": "297e89b9ac5f3388704111af0681991eb772bbbd33505eb6744d5603e405c9af",
+          "score": 0.1646,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-096",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 120,
+          "text_sha256": "2e1e3c8a83e395c6de4c92e3d0efa29a66a54900e01f9c86efe7df238ecbfef7",
+          "score": 0.2279,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 223,
+          "text_sha256": "2e1e3c8a83e395c6de4c92e3d0efa29a66a54900e01f9c86efe7df238ecbfef7",
+          "score": 0.2279,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_recovery.py",
+          "index": 162,
+          "text_sha256": "c767d8f2b5668595c25d144983643919641f30a33b0dfbb5463b79edd23457fa",
+          "score": 0.0832,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-097",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_intent_pipeline.py",
+          "index": 1,
+          "text_sha256": "548e404cb6e4d79e19f7b851ce24360c022a9723f0eba4f57ff38c075e034758",
+          "score": 0.1027,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 119,
+          "text_sha256": "50f8424d6ab334f3e0ff5c16b276e71abb9a2769fb82d3a05f178aeb323aae84",
+          "score": 0.0676,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 222,
+          "text_sha256": "50f8424d6ab334f3e0ff5c16b276e71abb9a2769fb82d3a05f178aeb323aae84",
+          "score": 0.0676,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-098",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 8,
+          "text_sha256": "45b433dc29ce39c3a5c2a2042cb4ceaea7483389ecff9b8a79abf101dbd84327",
+          "score": 0.166,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 8,
+          "text_sha256": "45b433dc29ce39c3a5c2a2042cb4ceaea7483389ecff9b8a79abf101dbd84327",
+          "score": 0.166,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 9,
+          "text_sha256": "45b433dc29ce39c3a5c2a2042cb4ceaea7483389ecff9b8a79abf101dbd84327",
+          "score": 0.166,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-099",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 94,
+          "text_sha256": "332aa462d8dedaf56bf9398da04e3a249b7b2e3bd2d5c33c7d4179e5b29e3429",
+          "score": 0.0953,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 8,
+          "text_sha256": "9104c5227cfdbf7f36e3a8c0cec5a85d28731153726f37367f5ed1a55132faf0",
+          "score": 0.0907,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 7,
+          "text_sha256": "9104c5227cfdbf7f36e3a8c0cec5a85d28731153726f37367f5ed1a55132faf0",
+          "score": 0.0907,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-100",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 224,
+          "text_sha256": "67b9610a3d792c87edf3ab533bd6cc065dfc891dc90752ed56ad4e3d371457d8",
+          "score": 0.1252,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 121,
+          "text_sha256": "67b9610a3d792c87edf3ab533bd6cc065dfc891dc90752ed56ad4e3d371457d8",
+          "score": 0.1252,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 42,
+          "text_sha256": "8c266a7a0b342454101a8d1082bd311e1c5a761842ede763e3b65244350e0317",
+          "score": 0.1188,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-101",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 79,
+          "text_sha256": "49d2bcd3822065c2cf7a7bcbf91dc6e94211d9b62cb7f4cec845653df125e1f7",
+          "score": 0.1547,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 200,
+          "text_sha256": "49d2bcd3822065c2cf7a7bcbf91dc6e94211d9b62cb7f4cec845653df125e1f7",
+          "score": 0.1547,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-166.json",
+          "index": 0,
+          "text_sha256": "49d2bcd3822065c2cf7a7bcbf91dc6e94211d9b62cb7f4cec845653df125e1f7",
+          "score": 0.1547,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-102",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 120,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.1602,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/contexts/batch-002/synthetic-002-162.json",
+          "index": 0,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.1602,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 17,
+          "text_sha256": "f6f5f1e4746c9dc6853329a2275f2143ddea6263749908c52a9f0b94c92ab660",
+          "score": 0.1602,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-103",
+      "nearest_prior": [
+        {
+          "source": "agent/tests/test_catalogue.py",
+          "index": 1,
+          "text_sha256": "b462d72902213b044c70f49b21c8cf18470f525d383a622a0b166f5a52ffaf34",
+          "score": 0.2089,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 920,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.1914,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 1021,
+          "text_sha256": "97933dac8a89435ff60d46914bef130f8204e386579fb5c577c83bb34423dc78",
+          "score": 0.1914,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-104",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 134,
+          "text_sha256": "44053c02703da9635c4f88aa26e5b123a0373c919dab9d0f9d8562908c5012f1",
+          "score": 0.1583,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 237,
+          "text_sha256": "44053c02703da9635c4f88aa26e5b123a0373c919dab9d0f9d8562908c5012f1",
+          "score": 0.1583,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 205,
+          "text_sha256": "bd1d2d2e83c8097b5000a2402616ae7f5aac837333dfecae2bfa964917d84642",
+          "score": 0.1539,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-105",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone.py",
+          "index": 35,
+          "text_sha256": "1ea4a1fc6cc4696825e518af745f3bd3613e7ddb0466e497819dea6e5f8a8c03",
+          "score": 0.1222,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_guarded_task.py",
+          "index": 4,
+          "text_sha256": "2987759b42ac13547a71c7a83a1fbda5347a45a2a7b004562c6cc738568ee9c0",
+          "score": 0.1119,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 94,
+          "text_sha256": "18a6eae45a982664443d34e93c58dc6323ad54417ec5186da8460cc4d4856ec7",
+          "score": 0.1047,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-106",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone_cases.py",
+          "index": 49,
+          "text_sha256": "f3dd2e630b16e370a58d73987a1b9a3d770abd5f75ac3756d08aa70288503dae",
+          "score": 0.1795,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/cases.py",
+          "index": 17,
+          "text_sha256": "e1b01783030600efe38d4bc735dd5d65d5c10605a3b1f82278cadf2de1a84ba4",
+          "score": 0.1457,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 198,
+          "text_sha256": "c2ac1eeb7019ec6ab7c5b8b30e752fef984cc72c9a2ed0f77e5ca729f70d3118",
+          "score": 0.0702,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-107",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 122,
+          "text_sha256": "1f306043ed84560bdbf0c362ab69b9df034dd76badf3dbac784fc2fcf583ef46",
+          "score": 0.1278,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 225,
+          "text_sha256": "1f306043ed84560bdbf0c362ab69b9df034dd76badf3dbac784fc2fcf583ef46",
+          "score": 0.1278,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 10,
+          "text_sha256": "f057cca5637cae79dfef4a3a396895a560f9f29957eeb4584e7b34ce64fffbf0",
+          "score": 0.1024,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-108",
+      "nearest_prior": [
+        {
+          "source": "eval/tests/test_panel_layout.py",
+          "index": 12,
+          "text_sha256": "3a406195f17493018ac132aee2c58e1af428c222325e7c1c64cd1985af6e0697",
+          "score": 0.1203,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_panel_layout.py",
+          "index": 5,
+          "text_sha256": "37b90fc5e94ff27d48019ff2617addc6dee7bd4195b2fe6cc5fa551a6ac80baf",
+          "score": 0.1106,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/tests/test_runner.py",
+          "index": 16,
+          "text_sha256": "fa1868327379db222063052ad0d79191b029cb4f5cf649cc624563eb2a0cefef",
+          "score": 0.078,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-109",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 104,
+          "text_sha256": "18113102659bca3773aead58b3960d6b6e42244bb389dffc8b709dc3571cdc73",
+          "score": 0.2789,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 207,
+          "text_sha256": "18113102659bca3773aead58b3960d6b6e42244bb389dffc8b709dc3571cdc73",
+          "score": 0.2789,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 40,
+          "text_sha256": "e46a00f5eb7f28a253c630045261899429c2784cd02f86cbb510dd65670b4a5a",
+          "score": 0.2262,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-110",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 144,
+          "text_sha256": "bfff78f89fb3a8370bc620f579fb27d60b80048279c931660b968529e41733ba",
+          "score": 0.1494,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 247,
+          "text_sha256": "bfff78f89fb3a8370bc620f579fb27d60b80048279c931660b968529e41733ba",
+          "score": 0.1494,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_boundary.py",
+          "index": 63,
+          "text_sha256": "b1245c82ee0539251786b96070f1904e8df0dc0e19911c1ba9acba7b27a85f3e",
+          "score": 0.1462,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-111",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-001.json",
+          "index": 2,
+          "text_sha256": "962a7cf25519f8a95830812a20a1fe0deafb0eb095bff3c73f688e1fa33aa6bf",
+          "score": 0.1771,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-pilot-20261006/report.json",
+          "index": 1,
+          "text_sha256": "962a7cf25519f8a95830812a20a1fe0deafb0eb095bff3c73f688e1fa33aa6bf",
+          "score": 0.1771,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 2,
+          "text_sha256": "962a7cf25519f8a95830812a20a1fe0deafb0eb095bff3c73f688e1fa33aa6bf",
+          "score": 0.1771,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-112",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 248,
+          "text_sha256": "02e2a25fdabc854b83e34ba72718bd3e60fbaf236c954eeed933c56f1a42a08e",
+          "score": 0.2067,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 145,
+          "text_sha256": "02e2a25fdabc854b83e34ba72718bd3e60fbaf236c954eeed933c56f1a42a08e",
+          "score": 0.2067,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 201,
+          "text_sha256": "9c4b39dd23755a836e65cebec3f9d0f928403908726e5fff66d603cbc91e5fbe",
+          "score": 0.1645,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-113",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 59,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2245,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 36,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2245,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 59,
+          "text_sha256": "19dee03cffd34a53dfe2408742c535706b382e06e568a2e6b9ca9c8f1de4a43c",
+          "score": 0.2245,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-114",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/development/gemini-batch-001.annotated.json",
+          "index": 46,
+          "text_sha256": "9f18f2c7e9c62fa559b787bad56809aaba858c5f8bb1fe353bf28fd8491c0e39",
+          "score": 0.1398,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261006/release.json",
+          "index": 66,
+          "text_sha256": "9f18f2c7e9c62fa559b787bad56809aaba858c5f8bb1fe353bf28fd8491c0e39",
+          "score": 0.1398,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 66,
+          "text_sha256": "9f18f2c7e9c62fa559b787bad56809aaba858c5f8bb1fe353bf28fd8491c0e39",
+          "score": 0.1398,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-115",
+      "nearest_prior": [
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 46,
+          "text_sha256": "c6f33467d32d0d9111646b340f9a35b68f2a09bd150e8a55abd3dbe04244341c",
+          "score": 0.2479,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/catalogue-retrieval-v1/queries.json",
+          "index": 24,
+          "text_sha256": "cb4549f91c851baa6005ca860fccc98057fba277a6cc23fd9aec1897a4aeee23",
+          "score": 0.2438,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 32,
+          "text_sha256": "d10b7ba4e462bc4cec5c6f98c8eda3de28b729893f9b607f97ea2493b9369fd8",
+          "score": 0.2376,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-116",
+      "nearest_prior": [
+        {
+          "source": "eval/cases.py",
+          "index": 60,
+          "text_sha256": "d76bde07805e3bb2210b7d02c7e9fdf87f4d2409d05c28511acccfeac93b47c9",
+          "score": 0.4593,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 393,
+          "text_sha256": "d76bde07805e3bb2210b7d02c7e9fdf87f4d2409d05c28511acccfeac93b47c9",
+          "score": 0.4593,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_real_task.py",
+          "index": 791,
+          "text_sha256": "d76bde07805e3bb2210b7d02c7e9fdf87f4d2409d05c28511acccfeac93b47c9",
+          "score": 0.4593,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-117",
+      "nearest_prior": [
+        {
+          "source": "eval/milestone.py",
+          "index": 70,
+          "text_sha256": "4e6e2cbf02aabcc8bb40000036408456b1f7cdbb9b529a6ea2d3cbf6bc6c6c3f",
+          "score": 0.1712,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 43,
+          "text_sha256": "a1af1b5f7a81310c566015aca089a3de2dd0a492c4ad55e3464e0af442f16ca5",
+          "score": 0.1685,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 255,
+          "text_sha256": "a1af1b5f7a81310c566015aca089a3de2dd0a492c4ad55e3464e0af442f16ca5",
+          "score": 0.1685,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-118",
+      "nearest_prior": [
+        {
+          "source": "eval/cases.py",
+          "index": 66,
+          "text_sha256": "c1f9b2fba51776b52719fe508f3f9643a15f4bdbc06e65dc40d8cceaf03ff902",
+          "score": 0.1678,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_intent.py",
+          "index": 94,
+          "text_sha256": "53dab13ba285b84781e106a9f13e9c797ad2ce7869d2c7b0977e128aaeb32835",
+          "score": 0.1613,
+          "normalized_exact": false
+        },
+        {
+          "source": "agent/tests/test_semantic_intent.py",
+          "index": 23,
+          "text_sha256": "c3eb41a3368b8cc063edb06d868da431ef4a8efc1bd59534529b4b671cf32d8d",
+          "score": 0.1263,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-119",
+      "nearest_prior": [
+        {
+          "source": "eval/datasets/capstone-v1/pilot-20261007/release.json",
+          "index": 142,
+          "text_sha256": "cd8a21be53aac79965add440e17151738869934b03bfaa3670f620fbba5b5f47",
+          "score": 0.2202,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/datasets/capstone-v1/development/synthetic-batch-002.json",
+          "index": 39,
+          "text_sha256": "cd8a21be53aac79965add440e17151738869934b03bfaa3670f620fbba5b5f47",
+          "score": 0.2202,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/intent-corpus.json",
+          "index": 10,
+          "text_sha256": "d98db165a53966dd5f1dca9ed98128279fefdd14023fc34155e0c3ff79633aa4",
+          "score": 0.2074,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    },
+    {
+      "case_id": "holdout-20261009-120",
+      "nearest_prior": [
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 97,
+          "text_sha256": "503e0da10dd9015a51c47ef406aec289e5ffd54a5fe535dfbfd3d9d918a3c75b",
+          "score": 0.1383,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/embeddings.json",
+          "index": 44,
+          "text_sha256": "503e0da10dd9015a51c47ef406aec289e5ffd54a5fe535dfbfd3d9d918a3c75b",
+          "score": 0.1383,
+          "normalized_exact": false
+        },
+        {
+          "source": "eval/evidence/cap03-comparison-20261007/classical.json",
+          "index": 203,
+          "text_sha256": "503e0da10dd9015a51c47ef406aec289e5ffd54a5fe535dfbfd3d9d918a3c75b",
+          "score": 0.1383,
+          "normalized_exact": false
+        }
+      ],
+      "related_holdout_candidates": []
+    }
+  ]
+}

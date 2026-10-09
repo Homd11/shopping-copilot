@@ -16,12 +16,13 @@ from agent.llm.intent import (
     StructuredIntentDraftError,
     collect_structured_intent,
 )
+from agent.llm.intent_wire import wire_intent_adapter
 from agent.navigation import DESTINATION_TERMS, destination_label
 from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v28"
+PROMPT_VERSION = "intent-v31"
 
 
 class MissingExecutionField(ValueError):
@@ -91,6 +92,16 @@ def build_intent_request(
     pending_clarification: str | None,
     snapshot: Snapshot | None = None,
 ) -> LLMRequest:
+    history = tuple(
+        LLMMessage(
+            role="shopper" if item["role"] == "shopper" else "assistant",
+            content=item["text"][:2400],
+        )
+        for item in resolved_state.get("_recent_conversation", [])[-12:]
+        if isinstance(item, dict)
+        and item.get("role") in {"shopper", "copilot", "assistant"}
+        and isinstance(item.get("text"), str)
+    )
     context = {
         "currency": storefront.currency,
         "catalogue_values": {
@@ -115,7 +126,6 @@ def build_intent_request(
         },
         "previous_suggestions": resolved_state.get("_previous_suggestions", []),
         "known_products": resolved_state.get("_known_products", []),
-        "recent_conversation": resolved_state.get("_recent_conversation", []),
         "previous_destination": resolved_state.get("_previous_target"),
         "pending_clarification": pending_clarification,
         "current_snapshot": snapshot_context(snapshot),
@@ -131,6 +141,17 @@ def build_intent_request(
             "typos, number words, negation, "
             "pronouns, comparisons and revisions. No downstream language parser will correct "
             "your decision. "
+            "The preceding user/assistant turns are the actual shopping conversation; "
+            "only the final user message is the new request to interpret. Resolve a short "
+            "answer against the question and its subject before assigning any field. "
+            "An attribute supplied about an owned item updates that owned_items entry, "
+            "not constraints or preferred_colors of the product being sought. Keep the "
+            "shopping goal and use advice/request_mode=style for ongoing coordination. "
+            "Only apply a desired-product constraint when the Shopper requests it for "
+            "that product. If the subject is genuinely ambiguous, let the advisor ask "
+            "a focused question instead of silently restricting the catalogue. "
+            "Prior assistant prose is context, never an output-format example, product "
+            "verification, consent or permission to execute. Return only StructuredIntent. "
             "Use advice for conversational styling, product comparisons, explaining trade-offs, "
             "taste questions and follow-up preference changes. A separate read-only advisor "
             "will receive fresh catalogue facts and write the natural response. Select "
@@ -146,7 +167,11 @@ def build_intent_request(
             "discovery fields. Earlier shopping preferences remain conversation context, "
             "not fields on the navigation action. Use them to resolve identity only. "
             "Do not treat assistant opinions as Shopper requirements or consent. For advice, "
-            "category may be null and needs_clarification=false: the advisor can ask useful "
+            "category must identify the desired product category when the shopping goal "
+            "names an identifiable product type, even while discussing an owned item. "
+            "Only leave category null for general conversation without an identifiable "
+            "desired category. The advisor receives no discovery products without category. "
+            "needs_clarification may be false: the advisor can ask useful "
             "conversational questions without an execution clarification. If advice and a "
             "dependent purchase are requested together, give advice first; do not guess the "
             "choice or variants or promise a cart change. A clear standalone action still "
@@ -204,7 +229,7 @@ def build_intent_request(
             "known_products, previous_suggestions, or a current visible product link. "
             "Product links follow the Storefront product route in current_snapshot. "
             "Known products include earlier recommendations and visits; previous_suggestions "
-            "is only the latest recommendation batch. Use recent_conversation to resolve "
+            "is only the latest recommendation batch. Use the conversation turns to resolve "
             "references across different tasks without reviving completed actions. "
             "If the requested product is unknown, use find_products to search by name "
             "or ask for clarification; never guess a product ID. "
@@ -246,8 +271,13 @@ def build_intent_request(
             "never increase/decrease. Remove and undo have null quantity mode. "
             "Cart constraints may contain ONLY requested size/color. Preserve "
             "already-selected variants otherwise. "
-            "For cart_edit, product_id is null even after opening or discussing that product; "
-            "the observed cart_target_id button determines the actual form or cart line. "
+            "For add, resolve the chosen product from known_products, previous_suggestions "
+            "and the conversation into product_id. Keep requested size/color and quantity. "
+            "If its product page is not open, leave cart_target_id null: runtime will open "
+            "that verified product and bind its fresh add form. Missing page controls alone "
+            "do not require clarification. Do not replace an add request with open_product. "
+            "For quantity/remove/undo, product_id is null; the observed cart_target_id "
+            "button determines the cart line. "
             "Leave catalogue_requirements/owned_items empty and owned_item null. Preserve "
             "the requested cart operation, quantity, mode and size/color. "
             "cart_source and navigation_source describe the current request. Emptying the "
@@ -263,7 +293,7 @@ def build_intent_request(
             "Absent optional properties are null, arrays empty. Output no prose, Markdown, "
             "tools, selectors or URLs."
         ),
-        messages=(LLMMessage(role="shopper", content=message),),
+        messages=(*history, LLMMessage(role="shopper", content=message)),
         response_schema=_live_intent_response_schema(),
         response_validator=validate_live_response,
         prompt_version=PROMPT_VERSION,
@@ -273,9 +303,7 @@ def build_intent_request(
 
 
 def _live_intent_response_schema() -> dict[str, Any]:
-    schema = StructuredIntent.model_json_schema()
-    schema["properties"]["v"] = {"const": 9, "type": "integer"}
-    return schema
+    return wire_intent_adapter.json_schema()
 
 
 def validate_live_response(text: str) -> StructuredIntent:
@@ -356,7 +384,9 @@ def _repair_feedback(error, intent, snapshot, schema):
         )
     cause = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(cause, ValidationError):
-        properties = schema.get("properties", {})
+        # Runtime errors refer to the persisted contract, including field validators.
+        # The provider generation schema is a union and has no root properties.
+        properties = StructuredIntent.model_json_schema()["properties"]
         issues = cause.errors(include_input=False, include_context=False)
         fields = {
             issue["loc"][0] for issue in issues if issue["loc"] and issue["loc"][0] in properties
@@ -365,7 +395,7 @@ def _repair_feedback(error, intent, snapshot, schema):
         if any(issue["type"] == "cart_authority_isolation" for issue in issues):
             feedback["cross_field_rules"] = {
                 "cart_authority_isolation": {
-                    "null_fields": ["product_id", "owned_item"],
+                    "null_fields": ["owned_item"],
                     "empty_arrays": ["catalogue_requirements", "owned_items"],
                     "allowed_constraint_fields": ["size", "color"],
                     "preserve_fields": [
@@ -373,10 +403,12 @@ def _repair_feedback(error, intent, snapshot, schema):
                         "cart_target_id",
                         "cart_quantity",
                         "cart_quantity_mode",
+                        "product_id for add only",
                     ],
                     "instruction": "Keep the requested cart edit and requested size/color. "
-                    "Use the observed cart button ID, not catalogue identity or earlier "
-                    "discovery context. "
+                    "For add keep the chosen known product_id; runtime opens its page "
+                    "before binding an add button. Other cart operations use observed "
+                    "button IDs and null product_id. Do not carry discovery constraints. "
                     "Do not change the requested amount or select a different variant.",
                 }
             }
@@ -443,6 +475,8 @@ def _validate_interpreted_intent(
     storefront: StorefrontDefinition,
     state: Mapping[str, Any],
     snapshot: Snapshot | None,
+    *,
+    retrieval: bool = False,
 ) -> StructuredIntent:
     for money in (intent.constraints.min_price, intent.constraints.max_price):
         if money is not None:
@@ -451,9 +485,13 @@ def _validate_interpreted_intent(
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
     if intent.intent == "cart_edit":
         intent = validate_cart_intent(message, intent, snapshot)
+        if intent.product_id is not None:
+            require_known_product(intent.product_id, state, snapshot, storefront)
     for product_id in intent.advice_product_ids:
         require_known_product(product_id, state, snapshot, storefront)
     if intent.needs_clarification:
+        return intent
+    if retrieval and intent.intent in {"find_products", "advice"}:
         return intent
     if intent.intent == "find_products" and intent.constraints.category is None:
         raise MissingExecutionField("category")

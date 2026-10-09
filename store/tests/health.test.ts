@@ -1,22 +1,30 @@
-import request from "supertest";
+import { browser } from "./browser.js";
 import { describe, expect, it } from "vitest";
 
-import { createApp } from "../src/app.js";
+import { createApp } from "./app.js";
 
 describe("Controlled Storefront", () => {
   it("opens a recommended product by stable ID without relying on search text", async () => {
-    const response = await request(createApp()).get("/p/shoe-09");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/p/shoe-09");
     expect(response.status).toBe(200);
     expect(response.text).toContain("ممشى النيل");
     expect(response.text).toContain('data-product-id="shoe-09"');
     expect(response.text).not.toContain("لا توجد منتجات مطابقة");
-    expect((await request(createApp()).get("/p/not-a-product")).status).toBe(
-      404,
-    );
+    expect(
+      (
+        await (
+          await browser(createApp({ evaluation: true }))
+        ).get("/p/not-a-product")
+      ).status,
+    ).toBe(404);
   });
 
   it("exposes an unavailable product as non-purchasable", async () => {
-    const response = await request(createApp()).get("/p/shoe-05");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/p/shoe-05");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("غير متاح");
@@ -24,11 +32,12 @@ describe("Controlled Storefront", () => {
   });
 
   it("refuses an unavailable cart addition at the authoritative Storefront boundary", async () => {
-    const app = createApp();
-    const unavailable = await request(app)
+    const app = createApp({ evaluation: true });
+    const client = await browser(app);
+    const unavailable = await client
       .post("/cart/items")
       .send({ product_id: "shoe-05" });
-    const available = await request(app)
+    const available = await client
       .post("/cart/items")
       .send({ product_id: "shoe-09" });
 
@@ -39,7 +48,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("publishes only versioned public catalogue facts for grounded discovery", async () => {
-    const response = await request(createApp()).get("/__catalogue/v1/products");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/__catalogue/v1/products");
 
     expect(response.status).toBe(200);
     expect(response.headers["cache-control"]).toBe("no-store");
@@ -59,7 +70,9 @@ describe("Controlled Storefront", () => {
     expect(response.body.products[0]).not.toHaveProperty("payment");
   });
   it("serves an Arabic home page with a shoes category link", async () => {
-    const response = await request(createApp()).get("/");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/");
 
     expect(response.status).toBe(200);
     expect(response.type).toMatch(/html/);
@@ -69,7 +82,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("provides a cart destination with a link to the fictional checkout page", async () => {
-    const response = await request(createApp()).get("/cart");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/cart");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("<h1>السلة</h1>");
@@ -80,7 +95,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("shows fictional payment fields and keeps order submission unavailable for an empty cart", async () => {
-    const response = await request(createApp()).get("/checkout");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/checkout");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("<h1>إتمام الشراء</h1>");
@@ -92,7 +109,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("links the account page to the configured order-history route", async () => {
-    const response = await request(createApp()).get("/account");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/account");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("<h1>الحساب</h1>");
@@ -100,14 +119,18 @@ describe("Controlled Storefront", () => {
   });
 
   it("redirects logged-out order-history visits to user-controlled login", async () => {
-    const response = await request(createApp()).get("/account/orders");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/account/orders");
 
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe("/login?next=%2Faccount%2Forders");
   });
 
   it("returns a safe validation page when login has no form body", async () => {
-    const response = await request(createApp()).post("/login");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).post("/login");
 
     expect(response.status).toBe(400);
     expect(response.text).toContain("تسجيل الدخول");
@@ -115,7 +138,7 @@ describe("Controlled Storefront", () => {
   });
 
   it("does not echo a supplied username when login fields are incomplete", async () => {
-    const response = await request(createApp())
+    const response = await (await browser(createApp({ evaluation: true })))
       .post("/login")
       .type("form")
       .send({ username: "private@example.test" });
@@ -125,8 +148,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("authenticates through fictional shopper-entered fields without echoing values", async () => {
-    const app = createApp();
-    const login = await request(app)
+    const app = createApp({ evaluation: true });
+    const client = await browser(app);
+    const login = await client
       .post("/login")
       .type("form")
       .send({ username: "shopper@example.test", password: "fictional-secret" });
@@ -135,12 +159,7 @@ describe("Controlled Storefront", () => {
     expect(login.headers.location).toBe("/account/orders");
     expect(login.text).not.toContain("shopper@example.test");
     expect(login.text).not.toContain("fictional-secret");
-    const cookie = login.headers["set-cookie"]?.[0]?.split(";")[0];
-    expect(cookie).toBeDefined();
-
-    const orders = await request(app)
-      .get("/account/orders")
-      .set("Cookie", cookie!);
+    const orders = await client.get("/account/orders");
 
     expect(orders.status).toBe(200);
     expect(orders.text).toContain('href="#order-1003">أحدث طلب</a>');
@@ -149,7 +168,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("serves a semantic shoes page with deterministic Arabic filters", async () => {
-    const response = await request(createApp()).get("/c/shoes");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/c/shoes");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain('<form aria-label="فلترة الأحذية"');
@@ -164,9 +185,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("filters running shoes by an inclusive maximum price in the URL", async () => {
-    const response = await request(createApp()).get(
-      "/c/shoes?type=running&max_price=2000",
-    );
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/c/shoes?type=running&max_price=2000");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("3 منتجات");
@@ -176,16 +197,18 @@ describe("Controlled Storefront", () => {
   });
 
   it("provides a deterministic reset endpoint for isolated Evaluation Cases", async () => {
-    const response = await request(createApp()).post("/__test/reset");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).post("/__test/reset");
 
     expect(response.status).toBe(204);
     expect(response.text).toBe("");
   });
 
   it("reports authoritative filtered Storefront state for Evaluation Cases", async () => {
-    const response = await request(createApp()).get(
-      "/__test/state?type=running&max_price=2000",
-    );
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/__test/state?type=running&max_price=2000");
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -200,9 +223,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("reports exact decimal Money in authoritative Storefront state", async () => {
-    const response = await request(createApp()).get(
-      "/__test/state?category=bags&max_price=1500.50",
-    );
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/__test/state?category=bags&max_price=1500.50");
 
     expect(response.status).toBe(200);
     expect(response.body.filters.max_price).toEqual({
@@ -212,7 +235,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("serves all four bilingual category links from the home page", async () => {
-    const response = await request(createApp()).get("/");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/");
 
     for (const href of [
       "/c/shoes",
@@ -227,7 +252,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("applies generic URL filters and sorting on every category", async () => {
-    const response = await request(createApp()).get(
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get(
       "/c/clothing?q=jacket&type=outerwear&min_price=1000&max_price=1800&size=L&color=black&availability=available&sort=cheapest",
     );
 
@@ -240,7 +267,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("reports canonical generic filter state for Evaluation Cases", async () => {
-    const response = await request(createApp()).get(
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get(
       "/__test/state?category=bags&q=Nile&size=M&availability=available&sort=newest",
     );
 
@@ -263,9 +292,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("renders an explicit empty state without broadening constraints", async () => {
-    const response = await request(createApp()).get(
-      "/c/shoes?size=99&color=purple&availability=available",
-    );
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/c/shoes?size=99&color=purple&availability=available");
 
     expect(response.status).toBe(200);
     expect(response.text).toContain("0 منتجات");
@@ -274,7 +303,9 @@ describe("Controlled Storefront", () => {
   });
 
   it("returns not found for an unknown category instead of guessing", async () => {
-    const response = await request(createApp()).get("/c/toys");
+    const response = await (
+      await browser(createApp({ evaluation: true }))
+    ).get("/c/toys");
 
     expect(response.status).toBe(404);
   });

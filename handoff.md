@@ -1,5 +1,185 @@
 # Shopping Copilot — project handoff
 
+## CAP-02 and CAP-03 closed — 2026-10-09
+
+Closed under the explicitly approved synthetic benchmark amendment. See
+[closeout](docs/cap02-cap03-closeout.md), [notebook](notebooks/cap03-synthetic-holdout.ipynb)
+and PROJECT_CHECKPOINT.md for current evidence. 120 fresh synthetic messages were
+scored once across seven frozen classifiers and Gemini; cost $0.0148178 within the
+unchanged $2 total cap. No independent human-data or whole-agent accuracy claim.
+CAP-04 is the next active gate. No runtime change or AWS deployment.
+
+## Recommended-product add and latency repair — 2026-10-09
+
+See [PROJECT_CHECKPOINT.md](PROJECT_CHECKPOINT.md) for the newest evidence. The
+model can select an observed product for cart add from recommendations; runtime
+opens its verified route, binds the fresh add form and executes validated variants.
+Operation-specific generation schemas reduce irrelevant discovery fields on cart
+requests. Provider string enums and local numeric/version validation avoid the
+captured malformed/empty-output failures. Private Storefront HTTP checks reuse
+connections while still checking shopper authorization on every request.
+
+The actual browser reproduction passed: recommendations 6.954 seconds, add 5.375
+seconds, no repair calls; another shopper remained isolated. These are exposed
+regression observations, not a guarantee. SQLite remains active, experimental
+retrieval remains disabled, and the $2 total key cap is unchanged. Normal local
+services have been restored. No push or AWS deployment.
+
+## Catalogue retrieval implemented locally; activation pending — 2026-10-08
+
+The approved SQLite repository, private bounded search/details service and opt-in
+model-directed retrieval/advice flow are implemented on `codex/shopper-isolation`.
+Shopper isolation and Action/Confirmation boundaries are preserved. The combined
+browser scenario passes through real database reads, advice, open/add/multi-line
+quantity changes and two independent shopper contexts. Verification covers 534
+distinct Python tests (531 in a clean full run plus three focused additions) and
+182 TypeScript tests across full/focused runs, with format/lint/build checks green.
+
+[Verification and qualification](docs/catalogue-retrieval-verification.md) records
+checks, review fixes and the exposed offline comparison. Lexical/hybrid overall
+target recall@10 is 67.5%/85%, but raw Egyptian Arabic remains 0%/40%. The new
+path stays opt-in (`CATALOGUE_RETRIEVAL_ENABLED=0` by default) pending separately
+budgeted actual-model evaluation and host measurements. SQLite is active; the
+legacy advice path reads the same database through its compatibility endpoint.
+No paid calls, budget increases, AWS resources, push or deployment occurred.
+Original dirty checkout and frozen CAP-02/03 datasets/results remain unchanged.
+The old catalogue source is archived by its existing hash for baseline loading.
+
+## Shopper isolation implemented locally — 2026-10-08
+
+The approved pre-deployment isolation slice is implemented in the separate
+`codex/shopper-isolation` worktree. Each browser profile owns its cart, revision,
+Undo, confirmations, fictional login/orders and Agent sessions; same-profile tabs
+share commerce and retain explicit task takeover. Private challenge-bound linking,
+cookie/CSRF authorization, bounded registries and per-event/model-admission checks
+prevent foreign-session access and stale ownership. Restart, expiry and identity
+changes require safe recovery without replaying uncertain Actions.
+
+[Verification and operational limits](docs/shopper-isolation-verification.md) record
+passing evidence for all **511 distinct Python tests** across full/focused runs and
+**169 TypeScript tests**, plus builds/typechecks, lint/format and credential/artifact
+checks. This is not an uninterrupted green full Python run: a login fixture and SSE
+reconnect/teardown issues were corrected and affected checks rerun. Both independent
+reviews have no outstanding actionable findings. Temporary SSE interruptions retain
+cursor-based reconnect; revoked/expired authority still closes delivery.
+
+Normal local startup now requires `python scripts/init_local_identity.py` once to
+create the ignored restricted service-identity file; scripted evaluation supplies
+its own ephemeral secret. The initializer was not run against the owner's local
+workspace. No provider calls, AWS resources, budget changes, push or deployment
+occurred. Original dirty checkout changes are preserved; implementation is not merged
+there. Public HTTPS/cookie topology, global inference allowances, abuse controls and
+Bedrock qualification remain CAP-04/05/06 gates. CAP-02/03 independent evaluation is
+unchanged and remains open.
+
+## CAP-04 credit-only planning — 2026-10-07
+
+The owner requires zero out-of-pocket spending, a domain-free public link for independent testers and approximately two months of hosting. They created a personal AWS account during planning; their screenshot shows Free account plan, $100 remaining and plan end 7 April 2027. This is screenshot evidence, not an account/service-access audit. The additional advertised $100 is conditional, not a current balance.
+
+[Current constraints](docs/cap04-credit-only-plan.md) supersede the older supervised/domain assumptions. [Official-source research](docs/cap04-pricing-research.md) gives a us-east-1 reference: $40.35 for 60 days of t3.small, 20 GB gp3 and one public IPv4; roughly $44.31–$50.24 including 10,000 assumed model calls plus 300 qualification calls for one candidate. Public HTTPS, transfer/logging and other costs remain excluded; no complete quote or spending authorization is claimed. Stay on Free plan; no upgrade or resource creation is authorized. Resolve shopper/cart isolation, domain-free HTTPS, abuse limits, model eligibility and full cost locally before provisioning. CAP-04 remains open.
+
+The CAP-01 execution register now links the prepared PDFs/infographic and seven-family exploratory results. Existing PDF/source hashes remain unchanged; owner/lecturer review and official submission are pending. Verification: estimate arithmetic, local links, seven PDF/source hashes and repository formatting passed. Separate Spec and Standards reviews found no outstanding issues after updating account status. Documentation only; runtime tests were not repeated. No AWS API access, provider calls, resources, secrets, budget changes or push occurred. Unrelated local changes are preserved.
+
+## Executed CAP-03 Jupyter notebook — 2026-10-07
+
+The owner requested a notebook presentation of the seven-family results. [The executed notebook](notebooks/cap03-model-comparison.ipynb) contains 18 cells, including nine successfully executed code cells: source/release integrity checks, independent metric recomputation, model and language tables, saved charts, selectable full error analysis, all 46 trials, timings, provenance and optional reproduction instructions. [Opening instructions](notebooks/README.md) cover VS Code/JupyterLab.
+
+Run All only reads local evidence. It does not retrain, download weights, load joblib artifacts, call providers or modify the Storefront. Saved outputs are included for notebook viewers. The same synthetic/exposed and reused-validation limits remain explicit. Notebook schema validation, clean-kernel execution, saved output checks, source integrity and repository formatting passed; application tests were not repeated for this presentation-only addition. Both reviews found no actionable findings. Original experiment reports, runtime source, provider settings and unrelated local edits remain unchanged. CAP-02/03 final evaluation remains open; no paid calls or push occurred.
+
+## Seven-family offline comparison completed — 2026-10-07
+
+The owner approved extending CAP-03’s exploratory comparison to five TF-IDF classifiers and two frozen-embedding heads, then authorized the local RTX 3060. The [pre-fit protocol](docs/cap03-model-comparison-protocol.md) fixed 46 candidates on the unchanged 210-training / 53-validation / zero-unseen release. All 46 converged. [Results](docs/cap03-model-comparison-results.md) retain all trials, errors, language metrics, predictions, matrices, timings, package/source hashes and local artifact bindings.
+
+Frozen multilingual embeddings + Logistic Regression led at **23/53 correct (43.40%), macro-F1 0.4304**; embedding MLP 22/53, 0.4189; Complement Naive Bayes 21/53, 0.3987; TF-IDF Logistic Regression 20/53, 0.3776; Linear SVM 18/53, 0.3294; Random Forest 17/53, 0.3071; XGBoost 13/53, 0.2615. Small selected-on-validation differences are exploratory, not independent quality evidence. Overall classification remains weak. The encoder used CUDA 13.0 on the RTX 3060; classifier heads used CPU. No encoder fine-tuning, new phrase rules, runtime integration or paid inference occurred.
+
+Verification: 14 focused experiment regressions passed. Full Python run: 485 passed and one browser page-creation infrastructure failure; the affected SPA test passed in isolation, giving passing evidence for all 486 distinct tests without claiming a clean uninterrupted run. All 155 TypeScript tests, builds/typechecks, ESLint, Ruff, formatting, both frozen-release checks and report/model/embedding hashes passed. Ordered cached feature IDs/shapes match the release. Spec review found a missing persisted embedding artifact; it was fixed before fitting and rechecked. Standards review found no actionable issue. Original data, both earlier pilots, application source and unrelated local changes are preserved.
+
+The CUDA installer initially stalled at the mirror; the official primary-host download was resumed and verified against PyTorch’s published SHA-256 before installation. Evaluation-only dependencies and large artifacts remain outside runtime packaging; cached weights, local models, features and installer files are ignored. CAP-02 independent evaluation and CAP-03 final same-input LLM comparison remain open. No cloud resources, provider cap change or push occurred. The next evidence step needs an explicit independent evaluation arrangement rather than further tuning this reused validation set; CAP-04 design can proceed separately.
+
+## Second synthetic pilot frozen and evaluated — 2026-10-07
+
+The [expanded protocol](docs/cap03-expanded-pilot-protocol.md) and [results](docs/cap03-expanded-pilot-results.md) record a second development-only pilot: 308 synthetic/exposed drafts, 263 eligible and 45 excluded, frozen into **210 training / 53 validation / zero unseen**. Bounded legacy/context overlap review added four conservative links; 37 whole components remain, largest 137 original rows. All ten intents meet declared row, language and group support. The pre-fit policy explicitly accepts two training/one validation components per intent instead of the earlier four-family authoring target. Independent human gold and exhaustive private-history deduplication remain unavailable.
+
+All twelve unchanged TF-IDF/Logistic Regression candidates converged. Selected character 3–5 grams, C=0.1, balanced weights: **20/53 correct (37.74%), ten-label macro-F1 0.3776**. Advice and guarded mutation each scored 0/4. This is validation-selected synthetic development evidence, not an unseen quality claim, controlled improvement over pilot 1 or LLM comparison. All trials, predictions and confusion matrices are published. The original pilot, runtime, prompts and phrase rules remain unchanged.
+
+Verification: deterministic allocation reconstructed identically; both releases and all report/source bindings validate. Separate Spec and Standards reviews found no remaining actionable issues after fixing atomic publication; failed formatting/validation leaves no partial release. All 472 distinct Python tests have passing evidence across the combined/focused runs, alongside 155 TypeScript tests, builds/typechecks, ESLint, Ruff and repository Prettier. The first combined Python invocation passed 432 but encountered 40 browser setup failures/errors because another evaluation run already owned the local ports; that evaluation run completed with 92 passed in 392.22s, and all seven new focused regressions passed (including the final additional export-failure case). No application fix was needed for the port collision. Document links and both confusion-matrix renderings were checked.
+
+CAP-02 final release and CAP-03 final evaluation remain open. Next: establish a feasible independent evaluation/label-review arrangement and separately authorize any same-input LLM comparison; CAP-04 cloud design decisions can proceed alongside those gates. No paid inference, spending-cap change, cloud provisioning or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
+## CAP-02 coverage expansion prepared; no new fit or freeze
+
+The owner approved the dataset-first next step. [The coverage plan](docs/cap02-expansion-plan.md) and [review](docs/cap02-expansion-review.md) accompany 168 new synthetic/exposed draft records: 160 intent candidates (four per intent/language cell) plus eight contextual fragments excluded from text-only classification. Combined with the original 140, the pool contains 308 records and 263 provisional primary candidates. This is not independent human data or an unseen set.
+
+Review merged equivalent clear-cart scenarios, retained 15 known cross-source links and replaced twelve name-substitution drafts with ordinal/cart-line/shortlist-price product resolution tasks before training. Prior authored wording is archived. The expanded graph preserves all old components and all related turns: 41 provisional components, largest 128. All ten intents now have multiple components, but `mutate` has three rather than the desired four. No new split is assigned. Full legacy/private-source overlap adjudication and this allocation limitation must be settled before a new frozen pilot. The existing freeze command still reconstructs pilot 1 only.
+
+Verification: v2 schema, 308 unique IDs/normalized texts, four-per-cell counts, all context hashes and antecedents, transitive membership, 212 catalogue identity/variant/line-key/price checks, repository formatting and seven offline experiment regressions passed. Spec review corrected three substantive annotation errors plus a stale scenario tag; Standards review corrected two grouping issues. Rechecks found no unresolved annotation findings. These are AI draft reviews, not independent human gold. The full runtime suite was not repeated for this data-only change.
+
+The first pilot's sources, frozen release, protocol and results remain unchanged. No runtime code, prompt, phrase rules, training, paid inference, cloud resources, spending limit or remote repository changed. CAP-02 final release and CAP-03 final evaluation remain open. Unrelated working-tree changes are preserved.
+
+## CAP-01 exports and synthetic CAP-03 pilot prepared — 2026-10-06
+
+The owner approved a synthetic development pilot while explicitly keeping final evaluation open. [The protocol](docs/cap03-pilot-protocol.md), [annotation review](docs/cap02-annotation-review.md) and [results](docs/cap03-pilot-results.md) record 140 synthetic messages, 103 eligible cases, 37 exclusions and a frozen 82-training / 21-validation / zero-unseen release. All 15 conversation/paraphrase components remain intact. AI-reviewed draft labels are not independent human gold; the final CAP-02 split placeholder remains unfrozen.
+
+Twelve offline TF-IDF/Logistic Regression configurations converged. Selected word 1–2 grams, C=0.1, balanced weights: 4/21 validation correct (19.05%), ten-label macro-F1 0.1024. Strong class imbalance and four absent validation classes limit interpretation. This is selected-on-validation development evidence, not an unbiased test result or an LLM comparison. All trials, per-case predictions, plots and source hashes are retained. The model is offline-only; no application runtime, prompt, phrase rules or provider configuration changed.
+
+The [three CAP-01 PDFs](docs/cap01-export-readme.md) and [editable one-slide infographic plus 2560×1440 PNG](output/infographic/README.md) are exported for AWS ML Engineering. The PDFs preserve the 2 October source dates and pending lecturer record; all 23 pages were inspected. The [CAP-04 AWS brief](docs/cap04-aws-design-draft.md) proposes a supervised single-host demo with cost, access, reset and safety decisions explicit. It is not an approved deployment.
+
+Verification: 465 Python tests (including seven new offline experiment checks) passed in 406.14s; 155 TypeScript tests, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. Independent Spec and Standards reviews found three experiment-integrity/reporting issues; all were fixed and rechecked, with zero unresolved findings on either axis. Frozen-release/source hashes, artifact hashes, document links and staged credential-pattern checks passed. PDF/PPTX files are marked binary in Git to preserve exported bytes.
+
+CAP-01 still needs owner/lecturer review and the Skills Dynamix organization-repository invitation; no official upload is claimed. CAP-02 final unseen release, CAP-03 same-input LLM comparison and CAP-04 account/Region/model/budget/access decisions remain open. Next: expand independent conversation families and review labels before a new experiment version; do not repair this frozen release after seeing scores. No paid inference, AWS account access, provisioning, budget increase or push occurred. Preserve unrelated working-tree edits and the existing MVP tag.
+
+## DEPI guidelines mapped; CAP-01 drafts aligned — 2026-10-02
+
+The owner supplied five DEPI PDFs and confirmed the official track name **AWS ML Engineering**. The [alignment register](docs/depi-guideline-alignment.md) maps their requirements and unchanged DEPI dates. Official submission is through a Skills Dynamix organization repository; its invitation/URL remains unprovided. The newer Literature Review heading retains older Lecturer Review bullets, so the research synthesis is preserved alongside a separate pending lecturer-feedback/approval record. No grading weights or approval were invented.
+
+Planning now includes proposed Gantt windows, actual resource constraints and KPI definitions; requirements include user stories and acceptance mapping. The [design supplement](docs/system-design-views.md) adds use-case, context/detail DFD, activity, class, local-deployment and schematic wireframe views. It reflects the session refactor and current in-memory/shared Storefront state; AWS decisions remain CAP-04 work. The [infographic brief](docs/project-infographic-brief.md) uses the confirmed track and verified content; a final slide/image has not been exported.
+
+Verification: all 13 Mermaid diagrams across planning and design parsed/rendered; document links and formatting checked. Standards review found no actionable issues; Spec review found an omitted final-attendance checklist item and a misleading read-only activity branch, both corrected. This is documentation-only; no fresh application test run, paid model call, remote change, upload or push is claimed. Existing unrelated working-tree edits are preserved.
+
+Next: owner reviews the aligned package; obtain lecturer evidence and organization-repository access/export conventions; produce final submission exports and infographic. Final discussion attendance is required, but its actual appointment remains unconfirmed. CAP-01 is not officially submitted, CAP-02 remains open with exposed synthetic drafts, and CAP-04 remains open for cloud decisions.
+
+## CAP-02 synthetic development collection prepared — 2026-10-02
+
+At the owner's request CAP-02 remains open and active. The [development batch](eval/datasets/capstone-v1/development/README.md) contains 40 assistant-generated draft records: ten Egyptian Arabic, ten Franco-Arabic, ten English and ten mixed. Record format 2 adds explicit cart/mutation operations, catalogue requirements and semantic notes without changing runtime schemas. Thirteen hashed synthetic context fixtures preserve referents and conversation states. A grouped 32-training/8-validation/0-unseen proposal is tentative; actual release assignments remain empty.
+
+The owner confirmed the supplied 100-message file was generated by Gemini. Its [intake record](eval/datasets/capstone-v1/development/intake/README.md) preserves the original bytes and labels separately, with provenance and annotation gaps. It is not merged or approved for training. Both batches are synthetic/exposed; 140 draft messages is not a count of reviewed, independent or unseen examples. No participant observations or unseen evidence were invented.
+
+Verification: 40-record shape assertions, runtime label/Constraint vocabulary, ten-per-language counts, unique IDs/text, context hashes/predecessors, grouping isolation and the draft 32/8/0 allocation passed. The Gemini original checksum matches. Independent AI Spec/Standards reviews of the 40-record draft found no actionable issues; they do not constitute independent human label approval or review of the separate Gemini intake. Formatting is checked separately. Application tests were not rerun for this data/documentation-only change; no paid model calls, training, runtime changes or push occurred.
+
+Next: map the Gemini labels with context and explicit constraints, review cross-source paraphrase groups and labels with the owner, then resolve release validation and honest held-out evaluation arrangements before CAP-03. CAP-02 is not closed or frozen.
+
+## Session modularity refactor completed; actual working arrangement — 2026-10-02
+
+The owner clarified that only the owner and coding assistant actively perform the work; nominal team members are not available contributors. Do not request their help, infer contributions from role titles or depend on independent human review that does not exist. The assistant took over the session refactor. CAP-02 is deferred and incomplete: its preparation/inventory is ready, but new collection, reviewed labels, release validation and frozen splits are absent. It was not closed under the owner's conditional request.
+
+The [refactor record](docs/session-modularity-refactor.md) describes the preserved interface and new modules. `agent/sessions.py` shrank from 1,822 to 203 lines; session registry/state, SSE delivery, interpretation, shopper commands, ActionResult handling and recovery now have distinct modules with explicit composition. Original public method signatures/domain imports remain; no mixins, dynamic dispatch, new shopper phrase rules, prompt edits or feature changes. The large ActionResult method remains a documented future extraction opportunity rather than being rewritten in this pass.
+
+Runtime commits: `b47ea0d` registry/state, `46a941d` SSE adapter, `7df44d9` task modules. Each stage passed the unchanged **458-test Python suite** (395.80s, 389.86s, 388.99s). **155 TypeScript tests**, workspace builds/typechecks, ESLint, Ruff and repository Prettier passed. AST comparisons and independent Spec/Standards reviews found no unintended logic/signature changes. No paid model calls or budget changes occurred; the MVP tag and unrelated work remain untouched. These changes are committed locally; no push occurred in this refactor turn.
+
+Next: review the refactor at its new module interfaces, then decide a feasible owner/assistant CAP-02 collection and evaluation protocol with honest independence limitations. Do not silently convert exposed/synthetic examples into unseen evidence. The earlier System Analysis & Design independent review remains separate and pending.
+
+## CAP-02 initiated; academic document leads confirmed — 2026-10-02
+
+CAP-02 is active with [collection/permission guidance](docs/cap02-collection-packet.md), a [current label guide and legacy coverage audit](docs/cap02-label-guide.md), and an explicit exposure inventory under eval/datasets/capstone-v1. All 104 legacy source-case references and 89 pinned development/test sources are exposed; these are not 104 independent utterances. No new human data, independently reviewed labels, training or frozen splits are claimed. Unseen custody, independent review, contributor capacity and permission arrangements remain unconfirmed; unseen content must stay outside the development checkout/chat. Release validation and freeze remain outstanding.
+
+The owner confirmed academic leads: Mohamed Hamdi for Planning & Management, Ahmed Yasser for Literature Review and Rana Ali for Requirements Gathering, due 16 October. The owner coordinates submission; template/location remain unprovided. Dataset custody and model-training ownership are separate and pending. The owner is handling the first session-management refactor slice; this work changed no runtime, prompt, original corpus or session file.
+
+Verification: all 89 pinned source hashes, 104 case identities/exposure markers, historical source hashes, documented label counts, empty unfrozen splits and non-evaluable template were checked. Changed Markdown/JSON formatting and relative links were checked. Independent CAP-02 Spec and Standards reviews reported no actionable findings. Application tests were not rerun for this documentation/data-inventory change; no paid calls or cloud operations occurred. The earlier System Analysis & Design independent review is still pending and is not covered by these CAP-02 reviews.
+
+## System Analysis & Design drafted ahead of 6 November — 2026-10-01
+
+The [design document](docs/system-analysis-design.md) now records the implemented local system: actors/use cases, component and trust boundaries, execution/Confirmation sequences, task states, logical data model, interfaces, failures and requirements/evidence mapping. It explicitly identifies the Storefront's shared in-memory cart and loss of server state on restart; separate Agent sessions do not imply isolated carts.
+
+The local-system content is prepared for review. Final graduation design still needs CAP-04's costed AWS service selection, region/model access, budget, audience/access policy, state isolation and restart/storage decisions. CAP-04 remains open; no runtime change, paid model call, cloud provisioning or deployment is claimed. Independent Spec and Standards reviewers were attempted but both hit the account usage limit; their review is incomplete. Documentation formatting and local-link checks are the validation for this change; application tests were not rerun.
+
+## CAP-01 drafts prepared; owner coordinates submission — 2026-10-01
+
+Three review drafts are prepared for the confirmed **16 October 2026** deadline: [planning and management](docs/cap01-project-planning.md), [literature review](docs/cap01-literature-review.md), and [requirements/traceability](docs/cap01-requirements.md). The literature review synthesizes seven primary sources with citations; external findings, project rationale and planned experiments are distinguished. No model training, dataset collection, paid inference or cloud provisioning occurred.
+
+The owner will coordinate the overall submission. Additional academic assignments, literature ownership, unseen-data custody and classical-training ownership remain pending at his explicit request. DEPI has not supplied an official document template or submission location; these remain unconfirmed. Existing technical roles and DEPI dates are preserved. CAP-01 remains in progress for team review and submission-readiness work; these documents are not submitted or instructor-approved. The [execution register](docs/cap01-execution.md) links the current drafts and supersedes stale preparation wording in older local documents.
+
+Verification is documentation-only: changed Markdown formatting, relative-link checks and independent Spec/Standards review. No fresh application test run is claimed because runtime behaviour did not change. Preserve the existing local MVP tag and provider cap; CAP-02/03 experiments have not started.
+
 ## CAP-01 active: team allocation and DEPI deadlines confirmed — 2026-10-01
 
 Local MVP tag `mvp-1` points to `39ac6d1`; Ticket 16 is closed under the two explicit owner-approved adjustments documented in RESULTS.md. CAP-01 is now active; [the execution register](docs/cap01-execution.md) is authoritative over older notes that called the schedule or team unconfirmed.

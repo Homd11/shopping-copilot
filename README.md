@@ -97,6 +97,10 @@ The Agent checks the result before advancing or reporting completion.
 
 ## Verification and evidence
 
+The [8 October shopper-isolation verification](docs/shopper-isolation-verification.md)
+records the newer automated coverage and pre-deployment ownership boundary. Earlier
+CI and live-model results below retain their original dates and scope.
+
 As of **26 September 2026**, the complete local automated suite passed **521 tests:
 144 TypeScript and 377 Python**, including desktop and mobile browser regressions. The
 [verified GitHub Actions run](https://github.com/Homd11/shopping-copilot/actions/runs/36162368824)
@@ -137,6 +141,8 @@ py -3.12 -m venv .venv
 python -m pip install -r requirements.lock
 pnpm install --frozen-lockfile
 Copy-Item .env.example .env
+python scripts/init_local_identity.py
+pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts
 python -m playwright install chromium
 ```
 
@@ -148,6 +154,8 @@ source .venv/bin/activate
 python -m pip install -r requirements.lock
 pnpm install --frozen-lockfile
 cp .env.example .env
+python scripts/init_local_identity.py
+pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts
 python -m playwright install chromium
 ```
 
@@ -175,6 +183,24 @@ pnpm run panel
 Open **http://localhost:4100/**. The Panel embeds the Storefront on port 4000 and
 connects to the Agent on port 8000. The Agent health endpoint is
 http://localhost:8000/health.
+
+Each browser profile has its own cart, Undo, fictional orders and Copilot sessions.
+Tabs in one profile share commerce state; taking over a task remains explicit.
+Use another browser profile or private context for an independent shopper.
+Commerce expires after 24 hours of inactivity, while tasks expire after 30 minutes.
+Agent restart preserves the Storefront cart; Storefront restart clears its in-memory
+commerce. A disconnected Panel asks for a reload and never replays an uncertain edit.
+
+The initializer writes a restricted service credential to ignored
+`work/local-identity.json` without printing it. Both services fail closed without
+it (or an explicit `COPILOT_SERVICE_SECRET` environment override). Keep this file
+private. Evaluation generates an ephemeral credential and enables its fixture routes
+explicitly; normal startup disables test seed/reset routes. Linking requires a secure
+browser with Web Locks (current Chromium on localhost is supported).
+
+This is anonymous browser isolation, not real account authentication or cloud
+readiness. Public deployment still requires a tested same-site HTTPS topology,
+private-route proxy exclusion, global spending/abuse limits and model qualification.
 
 ### Optional live-model mode
 
@@ -294,3 +320,17 @@ Some historical notes reflect older frontiers or formatting failures. The curren
 CI badge and this README's scope summary provide context for those dated records.
 Detailed local ticket/spec files remain in ignored `.scratch/` and are not included
 in a fresh clone; the roadmap above summarizes the remaining public scope.
+
+### SQLite catalogue and bounded retrieval
+
+The local Storefront now reads one SQLite catalogue for pages, cart validation
+and checkout. Initialize it explicitly with the seed-import command above;
+startup fails if the database is missing. Runtime state stays under ignored
+`work/`; do not commit databases, model weights or private identity files.
+
+An opt-in model-directed retrieval path lets the assistant search/refine product
+queries and select from broader evidence before giving advice. Enable locally
+with `CATALOGUE_RETRIEVAL_ENABLED=1`; `CATALOGUE_RANKING=lexical` needs no embedding
+model. Keep the default off until the actual-model qualification is completed.
+[Verification, comparison results and remaining gates](docs/catalogue-retrieval-verification.md)
+explain the limits, including weak raw Arabic retrieval and unmeasured host fit.

@@ -1,6 +1,7 @@
 import pytest
 from playwright.sync_api import expect, sync_playwright
 
+from eval.browser_http import browser_post
 from eval.services import local_services
 
 
@@ -14,7 +15,7 @@ def browser():
 
 def open_variant(browser, mode, route="/c/shoes"):
     page = browser.new_page()
-    page.request.post("http://localhost:4000/__test/reset")
+    browser_post(page, "http://localhost:4000/__test/reset")
     page.goto(f"http://localhost:4100/?spa={mode}")
     frame = page.frame_locator("#storefront-frame")
     expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
@@ -87,7 +88,7 @@ def test_spa_quantity_undo_and_refresh_keep_exact_cart_state(browser):
     page, frame = open_variant(browser, "component", "/cart")
     lines = [{"product_id": "shoe-09", "size": "43", "color": "blue", "quantity": 1}]
     try:
-        page.request.post("http://localhost:4000/__test/cart", data={"lines": lines})
+        browser_post(page, "http://localhost:4000/__test/cart", data={"lines": lines})
         frame.locator('header a[href="/account"]').click()
         expect(frame.locator("h1")).to_have_text("الحساب")
         frame.locator('header a[href="/cart"]').click()
@@ -114,7 +115,7 @@ def test_spa_bulk_clear_still_requires_fresh_confirmation(browser):
     page, frame = open_variant(browser, "url", "/cart")
     lines = [{"product_id": "shoe-09", "size": "43", "color": "blue", "quantity": 1}]
     try:
-        page.request.post("http://localhost:4000/__test/cart", data={"lines": lines})
+        browser_post(page, "http://localhost:4000/__test/cart", data={"lines": lines})
         frame.locator('header a[href="/cart"]').click()
         expect(frame.locator("[data-cart-line]")).to_have_count(1)
         page.locator("#shopper-message").fill("Empty my cart")
@@ -151,6 +152,7 @@ def test_sse_disconnect_and_duplicate_delivery_do_not_repeat_cart_edit(browser):
                 status=204,
                 headers={
                     "Access-Control-Allow-Origin": "http://localhost:4100",
+                    "Access-Control-Allow-Credentials": "true",
                     "Access-Control-Allow-Methods": "GET",
                     "Access-Control-Allow-Headers": "last-event-id",
                 },
@@ -170,7 +172,10 @@ def test_sse_disconnect_and_duplicate_delivery_do_not_repeat_cart_edit(browser):
             status=200,
             content_type="text/event-stream",
             body=body,
-            headers={"Access-Control-Allow-Origin": "http://localhost:4100"},
+            headers={
+                "Access-Control-Allow-Origin": "http://localhost:4100",
+                "Access-Control-Allow-Credentials": "true",
+            },
         )
 
     page.route(lambda url: ":8000/sessions/" in url and "/events?" in url, finite_stream)
@@ -181,8 +186,9 @@ def test_sse_disconnect_and_duplicate_delivery_do_not_repeat_cart_edit(browser):
         else None,
     )
     try:
-        page.request.post("http://localhost:4000/__test/reset")
-        page.request.post(
+        browser_post(page, "http://localhost:4000/__test/reset")
+        browser_post(
+            page,
             "http://localhost:4000/__test/cart",
             data={
                 "lines": [{"product_id": "shoe-09", "size": "43", "color": "blue", "quantity": 1}]
@@ -207,6 +213,7 @@ def test_sse_disconnect_and_duplicate_delivery_do_not_repeat_cart_edit(browser):
             page.request.get("http://localhost:4000/cart/state").json()["lines"][0]["quantity"] == 2
         )
     finally:
+        page.unroute_all(behavior="wait")
         page.close()
 
 

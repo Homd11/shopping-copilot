@@ -3,13 +3,13 @@ import json
 from contextlib import suppress
 
 import pytest
-from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 from agent.app import create_app
 from agent.catalogue import CatalogueSnapshot
 from agent.llm import LLMChunk, LLMSettings, ScriptedLLMClient
 from agent.sessions import SessionStore
+from agent.tests.http_client import TestClient, authorize_async
 from agent.tests.test_catalogue import catalogue
 from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
@@ -1552,6 +1552,7 @@ def test_stop_during_interpretation_discards_late_model_result() -> None:
             llm_client=delayed,
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
             session_id = (await client.post("/sessions")).json()["session_id"]
             pending = asyncio.create_task(
                 client.post(
@@ -1590,6 +1591,7 @@ def test_refresh_during_interpretation_requires_retry_before_any_action() -> Non
             llm_client=delayed,
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
             session_id = (await client.post("/sessions", json={"tab_id": "tab-1"})).json()[
                 "session_id"
             ]
@@ -1631,6 +1633,7 @@ def test_cancelled_model_request_pauses_task_without_action() -> None:
             llm_client=model,
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await authorize_async(client, app)
             session_id = (await client.post("/sessions")).json()["session_id"]
             pending = asyncio.create_task(
                 client.post(

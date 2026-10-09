@@ -1,4 +1,6 @@
 import { executeAction } from "./actions.js";
+import { installShopperLink } from "./shopper-link.js";
+import { matchesShopperContext, shopperContext } from "./shopper-context.js";
 import { recordEvaluationTiming } from "./evaluation-metrics.js";
 import { SnapshotBuilder, type SnapshotBuilderOptions } from "./snapshot.js";
 import { parseAction, type Action, type ActionResult } from "./types.js";
@@ -306,6 +308,10 @@ declare global {
 
 if (typeof window !== "undefined" && window.parent !== window) {
   const panelOrigin = "http://localhost:4100";
+  document.addEventListener("shopper:reset", () => {
+    window.parent.postMessage({ type: "shopper_reset" }, panelOrigin);
+  });
+  installShopperLink(window, panelOrigin);
   const runtime = new BridgeRuntime({
     document,
     panelOrigin,
@@ -323,10 +329,19 @@ if (typeof window !== "undefined" && window.parent !== window) {
         return navigation.navigate(url.href).finished.then(() => undefined);
       window.location.assign(url);
     },
-    post: (message) => window.parent.postMessage(message, panelOrigin),
+    post: (message) =>
+      window.parent.postMessage(
+        { ...(message as object), shopper_context: shopperContext(document) },
+        panelOrigin,
+      ),
   });
   window.addEventListener("message", (event) => {
     if (event.source !== window.parent) return;
+    if (
+      event.data?.type === "action" &&
+      !matchesShopperContext(document, event.data.shopper_context)
+    )
+      return;
     void runtime.receive(event.origin, event.data);
   });
   window.__copilot = {

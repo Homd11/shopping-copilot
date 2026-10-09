@@ -63,9 +63,21 @@ class _FakeResponse:
     headers = {"location": "/account/orders"}
 
 
+class _FakeBootstrapResponse:
+    status = 200
+
+    def json(self):
+        return {"csrf": "fixture-csrf"}
+
+
 class _FakeRequest:
     def __init__(self) -> None:
         self.calls: list[tuple[str, dict[str, object]]] = []
+        self.bootstrap_urls: list[str] = []
+
+    def get(self, url: str) -> _FakeBootstrapResponse:
+        self.bootstrap_urls.append(url)
+        return _FakeBootstrapResponse()
 
     def post(self, url: str, **kwargs: object) -> _FakeResponse:
         self.calls.append((url, kwargs))
@@ -83,11 +95,13 @@ def test_authenticated_case_setup_uses_only_test_login_and_does_not_return_value
     result = _prepare_case_setup(context, _case_by_id("ticket08-orders-authenticated"), 1234)
 
     assert result is None
+    assert context.request.bootstrap_urls == ["http://localhost:4000/__shopper"]
     assert len(context.request.calls) == 1
     url, kwargs = context.request.calls[0]
     assert url == "http://localhost:4000/login"
     assert kwargs["timeout"] == 1234
     assert kwargs["max_redirects"] == 0
+    assert kwargs["headers"] == {"origin": "http://localhost:4000", "x-csrf-token": "fixture-csrf"}
     assert kwargs["form"] == {
         "username": "ticket08-shopper@example.test",
         "password": "ticket08-fictional-password",

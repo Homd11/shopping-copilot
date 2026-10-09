@@ -1,10 +1,9 @@
 import asyncio
-import json
 import os
-from collections.abc import AsyncIterator, Callable
+from collections.abc import Callable
+from contextlib import asynccontextmanager
 from time import monotonic
 from typing import Literal
-from urllib.parse import urlsplit
 from uuid import uuid4
 
 import httpx
@@ -15,15 +14,18 @@ from starlette.responses import StreamingResponse
 
 from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
+from agent.catalogue_client import CatalogueReadError
+from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
 from agent.llm.openrouter import OpenRouterBudgetError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.schemas import ActionResult, Snapshot, to_wire
+from agent.session_stream import encode_sse as encode_sse
+from agent.session_stream import session_event_response
 from agent.sessions import (
     ActionResultMismatch,
-    EventType,
     InterpretationPauseReason,
     LeaseConflict,
     SessionExpired,
@@ -31,7 +33,10 @@ from agent.sessions import (
     SessionStore,
     TaskConflict,
 )
+from agent.shopper_access import ShopperBinding
+from agent.shopper_http import install_shopper_http
 from agent.speech import MAX_AUDIO_BYTES, OpenRouterSpeechTranscriber, SpeechTranscriber
+from agent.storefront_service import StorefrontService, identity_config
 
 
 class StepRequest(BaseModel):
@@ -71,10 +76,6 @@ class AdvanceTestTime(BaseModel):
     seconds: float
 
 
-def encode_sse(event_id: int, event: EventType, data: dict[str, object]) -> str:
-    return f"id: {event_id}\nevent: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
     if isinstance(error, OpenRouterBudgetError):
         return "budget"
@@ -91,55 +92,37 @@ def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
     return "unexpected"
 
 
-def register_storefront_confirmation(
-    snapshot_url: str,
-    token: str,
-    task_id: str,
-    kind: str,
-    cart_revision: int,
-) -> bool:
-    parsed = urlsplit(snapshot_url)
-    if (
-        parsed.scheme != "http"
-        or parsed.hostname not in {"localhost", "127.0.0.1"}
-        or parsed.port != 4000
-    ):
-        return False
-    try:
-        response = httpx.post(
-            f"{parsed.scheme}://{parsed.netloc}/__copilot/confirmations",
-            json={
-                "token": token,
-                "task_id": task_id,
-                "kind": kind,
-                "cart_revision": cart_revision,
-            },
-            timeout=2.0,
-        )
-    except httpx.HTTPError:
-        return False
-    return response.status_code == 201
-
-
 def create_app(
     session_store: SessionStore | None = None,
     llm_settings: LLMSettings | None = None,
     llm_client: LLMClient | None = None,
     catalogue_reader: CatalogueReader | None = None,
-    confirmation_registrar: Callable[[str, str, str, str, int], bool] | None = None,
+    catalogue_client=None,
+    catalogue_retrieval_enabled: bool | None = None,
+    confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool]
+    | None = None,
     speech_transcriber: SpeechTranscriber | None = None,
+    storefront_service: StorefrontService | None = None,
+    evaluation: bool = False,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
     llm_client = llm_client or build_llm_client(settings)
-    app = FastAPI(title="Shopping Copilot Agent")
+    identity_settings = identity_config()
+    service = storefront_service or StorefrontService(identity_settings)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        app.state.storefront_service.validate_configuration()
+        try:
+            yield
+        finally:
+            close = getattr(app.state.storefront_service, "aclose", None)
+            if close is not None:
+                await close()
+
+    app = FastAPI(title="Shopping Copilot Agent", lifespan=lifespan)
     app.state.llm_settings = settings
     app.state.llm_client = llm_client
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:4100"],
-        allow_methods=["GET", "POST"],
-        allow_headers=["*"],
-    )
     planner = ScriptedPlanner()
     test_clock_enabled = (
         settings.provider == "scripted" and os.environ.get("EVAL_TEST_CLOCK") == "1"
@@ -152,11 +135,34 @@ def create_app(
     sessions = session_store or SessionStore(
         planner,
         clock=session_clock,
-        confirmation_registrar=confirmation_registrar or register_storefront_confirmation,
+        confirmation_registrar=confirmation_registrar or service.register_confirmation,
+    )
+    install_shopper_http(
+        app,
+        sessions,
+        service,
+        panel_origin=identity_settings["panel_origin"],
+        evaluation=settings.provider == "scripted"
+        and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
+    retrieval_enabled = (
+        os.environ.get("CATALOGUE_RETRIEVAL_ENABLED") == "1"
+        if catalogue_retrieval_enabled is None
+        else catalogue_retrieval_enabled
+    )
+
     active_interpretations: set[tuple[str, str, str]] = set()
+
+    async def verify_owner(session_id: str) -> None:
+        owner = sessions.get(session_id).shopper
+        if (
+            owner is None
+            or not await app.state.storefront_service.validate(owner)
+            or not app.state.shopper_access.owns_session(session_id, owner)
+        ):
+            raise SessionNotFound(session_id)
 
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
@@ -170,6 +176,65 @@ def create_app(
         observed = observed.model_copy(deep=True) if observed is not None else None
         phase = "intent"
         try:
+            await verify_owner(session_id)
+            if retrieval_enabled:
+                phase = "catalogue"
+
+                async def ensure_active():
+                    current = sessions.get(session_id)
+                    if (
+                        current.active_task is not task
+                        or task.model_call_id != call_id
+                        or task.status != "interpreting"
+                        or current.requires_reconciliation
+                        or current.last_snapshot != observed
+                    ):
+                        raise CatalogueTurnInterrupted()
+                    await verify_owner(session_id)
+                    # Ownership validation awaits external I/O; recheck task identity afterwards.
+                    current = sessions.get(session_id)
+                    if (
+                        current.active_task is not task
+                        or task.model_call_id != call_id
+                        or task.status != "interpreting"
+                        or current.requires_reconciliation
+                        or current.last_snapshot != observed
+                    ):
+                        raise CatalogueTurnInterrupted()
+
+                await ensure_active()
+                reader = catalogue_client or await configured_client(identity_settings)
+                await ensure_active()
+                phase = "intent"
+                prepared = await prepare_turn(
+                    task, observed, planner.storefront, llm_client, reader, ensure_active
+                )
+                await ensure_active()
+                sessions.get(session_id).product_context.remember_catalogue(prepared.references)
+                # Remember verified identities only, never DOM targets or mutation authority.
+                task.resolved_state["_known_products"] = [
+                    *task.resolved_state.get("_known_products", []),
+                    *prepared.references,
+                ][-24:]
+                if prepared.evidence is not None:
+                    sessions.finish_catalogue_interpretation(
+                        session_id,
+                        task_id,
+                        call_id,
+                        prepared.intent,
+                        prepared.evidence.discovery,
+                        advice_text=prepared.summary,
+                    )
+                    session = sessions.get(session_id)
+                    session.advice_context["retrieval_requirements"] = list(
+                        prepared.evidence.requirements
+                    )
+                    session.advice_context["unverified_requirements"] = list(
+                        prepared.evidence.unverified_requirements
+                    )
+                else:
+                    sessions.finish_interpretation(session_id, task_id, call_id, prepared.intent)
+                return
             intent = await interpret_message(
                 llm_client,
                 task.message,
@@ -178,6 +243,7 @@ def create_app(
                 pending_clarification=task.pending_clarification,
                 snapshot=observed,
             )
+            await verify_owner(session_id)
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                 return
@@ -204,11 +270,13 @@ def create_app(
                     and intent.request_mode == "browse"
                     and not evidence.discovery.exact_count
                 ):
+                    await verify_owner(session_id)
                     sessions.finish_catalogue_interpretation(
                         session_id, task_id, call_id, intent, evidence.discovery
                     )
                     return
                 phase = "advice"
+                await verify_owner(session_id)
                 try:
                     summary = await compose_advice(
                         llm_client,
@@ -232,9 +300,11 @@ def create_app(
                         else "I couldn't prepare reliable advice right now. Any products shown use "
                         "verified catalogue data; your cart has not changed."
                     )
+                await verify_owner(session_id)
                 if sessions.get(session_id).last_snapshot != observed:
                     sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                     return
+                await verify_owner(session_id)
                 sessions.finish_catalogue_interpretation(
                     session_id, task_id, call_id, intent, evidence.discovery, advice_text=summary
                 )
@@ -243,18 +313,25 @@ def create_app(
                 phase = "catalogue"
                 catalogue = await catalogue_reader.read()
                 result = evaluate_catalogue(catalogue, intent)
+                await verify_owner(session_id)
                 sessions.finish_catalogue_interpretation(
                     session_id, task_id, call_id, intent, result
                 )
                 return
+            await verify_owner(session_id)
             sessions.finish_interpretation(session_id, task_id, call_id, intent)
+        except CatalogueTurnInterrupted:
+            sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+            return
+        except SessionNotFound:
+            return
         except asyncio.CancelledError:
             sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
             raise
         except Exception as error:
             reason = (
                 "catalogue_unavailable"
-                if phase == "catalogue"
+                if phase == "catalogue" or isinstance(error, CatalogueReadError)
                 else interpretation_pause_reason(error)
             )
             sessions.fail_interpretation(
@@ -332,8 +409,23 @@ def create_app(
         return to_wire(action)
 
     @app.post("/sessions", status_code=201)
-    async def create_session(request: SessionCreate | None = None) -> dict[str, str]:
-        session = sessions.create(request.tab_id if request is not None else None)
+    async def create_session(
+        http_request: Request, request: SessionCreate | None = None
+    ) -> dict[str, str]:
+        authority = http_request.state.browser_authority
+        for existing in list(authority.sessions):
+            try:
+                sessions.get(existing)
+            except SessionNotFound:
+                authority.sessions.discard(existing)
+        if len(authority.sessions) >= 8:
+            raise HTTPException(status_code=429, detail="Too many active sessions")
+        try:
+            session = sessions.create(request.tab_id if request is not None else None)
+        except OverflowError as error:
+            raise HTTPException(status_code=503, detail="Session capacity reached") from error
+        session.shopper = http_request.state.shopper
+        authority.sessions.add(session.session_id)
         return {"session_id": session.session_id}
 
     @app.post("/sessions/{session_id}/messages", status_code=202)
@@ -446,31 +538,7 @@ def create_app(
         once: bool = False,
         tab_id: str | None = None,
     ) -> StreamingResponse:
-        try:
-            sessions.get(session_id)
-        except SessionNotFound as error:
-            raise HTTPException(status_code=404, detail="Session not found") from error
-
-        last_event_id = request.headers.get("last-event-id")
-        if last_event_id is not None:
-            if not last_event_id.isascii() or not last_event_id.isdecimal():
-                raise HTTPException(status_code=400, detail="Invalid event cursor")
-            after = max(after, int(last_event_id))
-
-        async def event_stream() -> AsyncIterator[str]:
-            cursor = after
-            while True:
-                pending = sessions.events_after(session_id, cursor)
-                for event in pending:
-                    cursor = event.id
-                    if event.event == "action" and not sessions.owns_lease(session_id, tab_id):
-                        continue
-                    yield encode_sse(event.id, event.event, event.data)
-                if once or await request.is_disconnected():
-                    return
-                await asyncio.sleep(0.1)
-
-        return StreamingResponse(event_stream(), media_type="text/event-stream")
+        return await session_event_response(sessions, session_id, request, after, once, tab_id)
 
     @app.post("/sessions/{session_id}/action-results", status_code=202)
     async def accept_action_result(
@@ -534,6 +602,13 @@ def create_app(
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[identity_settings["panel_origin"]],
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["*"],
+    )
     return app
 
 

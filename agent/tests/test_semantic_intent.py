@@ -334,14 +334,17 @@ def test_live_intent_request_requires_schema_version_nine():
         pending_clarification=None,
     )
 
-    assert request.response_schema["properties"]["v"] == {"const": 9, "type": "integer"}
+    assert all(
+        request.response_schema["$defs"][branch["$ref"].split("/")[-1]]["properties"]["v"]["const"]
+        == 9
+        for branch in request.response_schema["anyOf"]
+    )
 
 
 def test_context_is_restored_before_api_routes_to_suggestions():
-    from fastapi.testclient import TestClient
-
     from agent.app import create_app
     from agent.llm import LLMSettings
+    from agent.tests.http_client import TestClient
     from agent.tests.test_catalogue import catalogue
     from agent.tests.test_sessions import parse_sse
     from agent.tests.test_step import home_snapshot
