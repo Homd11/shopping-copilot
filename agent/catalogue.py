@@ -97,7 +97,7 @@ class Suggestion:
 
 @dataclass(frozen=True)
 class DiscoveryResult:
-    exact_count: int
+    exact_count: int | None
     suggestions: tuple[Suggestion, ...]
 
     def to_wire(self) -> dict[str, object]:

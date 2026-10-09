@@ -1,5 +1,6 @@
 from playwright.sync_api import expect, sync_playwright
 
+from eval.browser_http import browser_post
 from eval.services import local_services
 
 
@@ -96,8 +97,8 @@ def test_unavailable_product_cannot_be_purchased_in_browser() -> None:
             frame.locator("body").evaluate("() => { location.href = '/p/shoe-05'; }")
             expect(frame.locator('[data-testid="add-to-cart"]')).to_be_disabled()
             expect(frame.locator('article[data-product-id="shoe-05"]')).to_contain_text("غير متاح")
-            denied = page.request.post(
-                "http://localhost:4000/cart/items", data={"product_id": "shoe-05"}
+            denied = browser_post(
+                page, "http://localhost:4000/cart/items", data={"product_id": "shoe-05"}
             )
             assert denied.status == 409
             assert denied.json() == {"error": "product_unavailable"}

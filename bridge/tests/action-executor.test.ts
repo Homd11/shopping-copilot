@@ -414,7 +414,9 @@ describe("executeAction", () => {
 
     expect(result.status).toBe("blocked");
     expect(
-      dom.window.document.querySelector('[autocomplete="username"]')?.value,
+      dom.window.document.querySelector<HTMLInputElement>(
+        '[autocomplete="username"]',
+      )?.value,
     ).toBe("");
   });
 

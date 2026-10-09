@@ -159,10 +159,9 @@ def test_exclusion_survives_interpretation_and_never_suggests_known_leather():
 
 
 def test_live_session_reinterprets_after_cart_navigation_and_edits_only_selected_line():
-    from fastapi.testclient import TestClient
-
     from agent.app import create_app
     from agent.llm import LLMSettings
+    from agent.tests.http_client import TestClient
     from agent.tests.test_real_task import snapshot_at
     from agent.tests.test_sessions import parse_sse
 
@@ -300,11 +299,10 @@ def test_live_service_does_not_expose_scripted_step_endpoint():
 
 
 def test_snapshot_change_during_model_call_discards_the_proposed_action():
-    from fastapi.testclient import TestClient
-
     from agent.app import create_app
     from agent.llm import LLMSettings
     from agent.sessions import SessionStore
+    from agent.tests.http_client import TestClient
     from agent.tests.test_sessions import parse_sse
 
     store = SessionStore()
@@ -325,6 +323,7 @@ def test_snapshot_change_during_model_call_discards_the_proposed_action():
             llm_client=Model(),
         )
     ) as client:
+        session = store.get(client.post("/sessions").json()["session_id"])
         response = client.post(
             f"/sessions/{session.session_id}/messages",
             json={"text": "add three more", "snapshot": cart_snapshot(3)},
@@ -360,10 +359,9 @@ def test_delta_mode_is_not_executable_as_another_cart_operation(operation):
 
 @pytest.mark.parametrize("quantity", [-2, 0, 1.5, 1000])
 def test_unexecutable_quantity_gets_a_useful_question_without_a_model_retry(quantity):
-    from fastapi.testclient import TestClient
-
     from agent.app import create_app
     from agent.llm import LLMSettings
+    from agent.tests.http_client import TestClient
     from agent.tests.test_sessions import parse_sse
 
     calls = []

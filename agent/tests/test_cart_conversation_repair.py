@@ -2,7 +2,6 @@ import asyncio
 import json
 
 import pytest
-from fastapi.testclient import TestClient
 
 from agent.app import create_app
 from agent.llm import (
@@ -14,6 +13,7 @@ from agent.llm import (
     interpret_message,
 )
 from agent.storefront import load_storefront_definition
+from agent.tests.http_client import TestClient
 from agent.tests.test_real_task import real_client, snapshot_at
 from agent.tests.test_sessions import parse_sse
 

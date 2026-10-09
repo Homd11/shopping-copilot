@@ -4,12 +4,12 @@ import json
 
 import httpx
 import pytest
-from fastapi.testclient import TestClient
 
 from agent.app import create_app
 from agent.llm import ScriptedLLMClient
 from agent.llm.config import load_llm_settings
 from agent.speech import OpenRouterSpeechTranscriber
+from agent.tests.http_client import TestClient
 
 
 def settings():
