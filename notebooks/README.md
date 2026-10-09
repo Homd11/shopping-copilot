@@ -1,5 +1,7 @@
 # Experiment notebooks
 
+[CAP-02/03 synthetic holdout](cap03-synthetic-holdout.ipynb) contains the completed 9 October comparison of seven frozen classifiers and Gemini on 120 new synthetic messages. Its Run All reads evidence only, recomputes metrics and verifies release hashes. See [closeout](../docs/cap02-cap03-closeout.md) for the approved scope and limits.
+
 [CAP-03 seven-model comparison](cap03-model-comparison.ipynb) presents the recorded 7 October 2026 experiment with executed tables, figures, all 46 trials, language slices, selectable model error analysis and reproduction instructions.
 
 ## Open and use

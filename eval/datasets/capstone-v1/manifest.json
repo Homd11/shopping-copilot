@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "dataset_version": "capstone-v1-draft",
   "created_on": "2026-09-29",
-  "status": "synthetic_pilot_frozen_final_release_open",
+  "status": "closed_under_owner_approved_synthetic_scope",
   "frozen": false,
   "unseen_case_count": 0,
   "preparation_artifacts": {
@@ -136,5 +136,15 @@
     "unseen": 0,
     "independent_human_review": false,
     "final_evaluation_open": true
+  },
+  "approved_closeout": {
+    "date": "2026-10-09",
+    "release": "eval/datasets/capstone-v1/holdout-20261009/release.json",
+    "training": 210,
+    "validation": 53,
+    "synthetic_test": 120,
+    "independent_human_test": 0,
+    "evidence": "docs/cap02-cap03-closeout.md",
+    "note": "Original inventory fields and empty independent-test placeholder are historical, not independent evidence."
   }
 }

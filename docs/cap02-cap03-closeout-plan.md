@@ -1,6 +1,6 @@
 # Proposed CAP-02 / CAP-03 closeout — 9 October 2026
 
-Status: scope amendment and maximum $0.20 experiment allowance approved by owner on 9 October 2026. Execution in progress; neither ticket is closed yet.
+Status: scope amendment and maximum $0.20 experiment allowance approved by owner on 9 October 2026. Completed under the approved amendment; see [closeout evidence](cap02-cap03-closeout.md).
 
 ## Current evidence
 
