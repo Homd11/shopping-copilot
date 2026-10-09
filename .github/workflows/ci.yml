@@ -30,6 +30,8 @@ jobs:
           LLM_PROVIDER: scripted
           LLM_MODEL: scripted-v1
         run: |
+          python scripts/init_local_identity.py
+          pnpm --filter @shopping-copilot/store exec tsx scripts/catalogue-import.ts
           pnpm --filter @shopping-copilot/store start &
           python -m uvicorn agent.app:app --host 127.0.0.1 --port 8000 &
           for attempt in {1..20}; do
