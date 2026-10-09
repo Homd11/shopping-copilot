@@ -1,5 +1,7 @@
 # CAP-02 label guide and legacy audit
 
+**9 October 2026 scope amendment:** the owner approved a 120-case synthetic holdout and fixed-model comparison for CAP-02/03 closure, with explicit disclosure that no independent human test set or human label review exists. The original independent-custody requirements below remain historical; [the approved closeout contract](cap02-cap03-closeout-plan.md) governs this release. Synthetic cases remain exposed to AI authors/reviewers and are held out from candidate fitting/tuning only. No ticket is closed until that contract is verified.
+
 Prepared: 2 October 2026. **Draft annotation policy for review, not frozen gold labels.**
 
 The runtime vocabulary comes from [Structured Intent](../agent/llm/intent.py) at local MVP `mvp-1` (`39ac6d1`), live schema 9. Label the intended capability separately from runtime execution success. Do not modify legacy expected outputs or production interpretation to fit this dataset.

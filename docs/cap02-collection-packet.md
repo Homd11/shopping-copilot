@@ -1,5 +1,7 @@
 # CAP-02 collection and annotation packet
 
+**9 October 2026 scope amendment:** the owner approved a 120-case synthetic holdout and fixed-model comparison for CAP-02/03 closure, with explicit disclosure that no independent human test set or human label review exists. The original independent-custody requirements below remain historical; [the approved closeout contract](cap02-cap03-closeout-plan.md) governs this release. Synthetic cases remain exposed to AI authors/reviewers and are held out from candidate fitting/tuning only. No ticket is closed until that contract is verified.
+
 Started: 2 October 2026. Status: **collection preparation active; no frozen release**.
 
 The owner subsequently prioritized the session refactor and assigned it to the coding assistant. CAP-02 collection is deferred, not complete. Dataset work does not edit runtime interpretation, prompts or execution rules.
