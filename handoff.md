@@ -1,5 +1,9 @@
 # Shopping Copilot — project handoff
 
+## CAP-04 design revision — 2026-10-11
+
+Use the [current design](docs/superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) and PROJECT_CHECKPOINT.md. One EC2 host plus SQLite remains the direction; public ingress, browser identity, account eligibility and all-in costing need proof. CAP-04 remains open. No cloud resources or runtime changes. PR #1 is merged into GitHub main (`0a7836d`); historical no-push statements below describe earlier turns.
+
 ## CAP-02 and CAP-03 closed — 2026-10-09
 
 Closed under the explicitly approved synthetic benchmark amendment. See

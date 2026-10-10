@@ -1,6 +1,8 @@
 # CAP-04: credit-only deployment constraints
 
-**Updated:** 8 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
+**Updated:** 11 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
+
+See the [current design revision](superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) for SQLite, shopper restart semantics, public-ingress options and remaining proof requirements. The pricing table below remains a historical scenario, not the selected network design.
 
 ## Owner decisions
 
@@ -55,4 +57,4 @@ Stay on the Free account plan; do not upgrade to unlock a service. If a required
 
 Budget notifications are delayed and cannot guarantee a card-spending ceiling on a Paid account. Application limits control inference, not infrastructure bills. Keep a resource inventory, teardown date and local evidence copies before Free-plan closure. [AWS Budgets limitations](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html).
 
-Next: settle domain-free HTTPS, shopper isolation, model access and the all-in credit envelope locally; recheck the Free plan, remaining balance, credit applicability and expiry before provisioning. The existing account needs no reversal or upgrade. CAP-02 independent evaluation and CAP-03 final same-input comparison remain open. No AWS account access, resource, inference, subscription or upgrade occurred for this document.
+Next: settle domain-free HTTPS, shopper isolation, model access and the all-in credit envelope locally; recheck the Free plan, remaining balance, credit applicability and expiry before provisioning. The existing account needs no reversal or upgrade. CAP-02/03 are closed under the approved synthetic benchmark scope; independent human evaluation remains a disclosed limitation. No AWS account access, resource, inference, subscription or upgrade occurred for this document.

@@ -1,6 +1,20 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-09
+**Last updated:** 2026-10-11
+
+## CAP-04 design revision — 2026-10-11
+
+The owner approved retaining one EC2 host and SQLite while resolving public HTTPS,
+persistence and spending controls before deployment. The [revised design](docs/superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) supersedes old single-shopper assumptions; it preserves the implemented asymmetric Agent/Storefront restart behavior.
+Two generated CloudFront HTTPS origins with a VPC origin remain a candidate, not a
+selected or provisioned topology. Cross-site iframe identity, Free-plan entitlement,
+complete egress and pricing remain unresolved. Catalogue storage is distinct from
+ephemeral carts/tasks and the proposed durable spending ledger. Next: review the
+written design and define the local browser identity rehearsal before implementation.
+CAP-04 remains open. No AWS account access, resources, paid calls or runtime changes.
+
+GitHub PR #1 merged as `0a7836d` after both CI runs passed. The preceding CI fixes
+added missing evaluation dependencies and clean-checkout health-check prerequisites.
 
 ## CAP-02 / CAP-03 closed under approved synthetic scope — 2026-10-09
 
