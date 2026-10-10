@@ -1,0 +1,100 @@
+# CAP-04 cloud readiness specification
+
+**Status:** Draft for test-boundary review before local-tracker publication.
+
+The owner approved the 11 October cloud-readiness design. This specification
+formalizes that scope; it does not select an unverified AWS topology or authorize
+deployment. The proposed ticket breakdown is a separate review artifact.
+
+## Problem Statement
+
+The owner wants to share the Controlled Storefront with independent Shoppers
+without running services on their own computer or incurring out-of-pocket AWS
+charges. The application works locally, but its localhost configuration, browser
+cookie assumptions, ephemeral shopping state and development spending controls do
+not yet demonstrate safe public operation. Older infrastructure notes describe a
+single supervised Shopper and do not reflect the current SQLite catalogue or
+implemented shopper isolation.
+
+## Solution
+
+Prepare a minimal, testable deployment design using one EC2 host and an encrypted
+disk for SQLite, while preserving the Shopping Copilot's current behavior. Prove
+browser identity across separate HTTPS origins, define bounded demo admission and
+durable inference allowances, and rehearse release and recovery locally. Complete
+the credit-only network and cost design using actual account evidence before any
+provisioning. Keep CAP-04 open when feasibility is unproven.
+
+## User Stories
+
+1. As the owner, I want a shareable HTTPS link so that testers can use the demo independently.
+2. As a Shopper, I want my cart and fictional orders isolated so that another browser cannot see or change them.
+3. As a Shopper, I want the embedded Storefront to recognize my session with third-party cookies blocked so that ordinary browser privacy settings do not break shopping.
+4. As a Shopper, I want unsupported browser conditions explained before a request so that a failed link cannot look like a working session.
+5. As a Shopper, I want tabs in one browser profile to retain the established cart and lease behavior so that concurrent tabs cannot silently take over a Shopping Task.
+6. As a Shopper, I want refresh to reconcile my existing Shopping Task so that uncertain Actions are not repeated.
+7. As a Shopper, I want reconnecting events to preserve progress without duplicate messages or mutations.
+8. As a Shopper, I want Guarded Mutations to retain bound Confirmation and Reversible Mutations to retain ownership-checked Undo.
+9. As a Shopper, I want an Agent restart to invalidate old task authority while preserving a surviving Storefront cart.
+10. As a Shopper, I want a Storefront restart to explain the commerce reset and require fresh linking.
+11. As the owner, I want catalogue persistence across deployments so that releases do not accidentally erase products.
+12. As the owner, I want verified catalogue backup and restore so that a failed release can be recovered safely.
+13. As the owner, I want expiring demo invitations so that sharing the public address does not grant unlimited inference.
+14. As a Shopper, I want clear busy, expired-access and budget-exhausted states so that I know when a request was not sent.
+15. As the owner, I want global request, queue and inference limits so that new cookies cannot bypass resource controls.
+16. As the owner, I want every interpretation, advice and repair call to reserve cost so that the allowance covers the whole Shopping Task.
+17. As the owner, I want unknown provider charges to remain reserved so that timeouts cannot replenish spending capacity.
+18. As the owner, I want allowance accounting to survive crashes and rollback so that restarting cannot reset the budget.
+19. As the owner, I want a persistent inference-disable switch so that I can stop new paid work promptly.
+20. As the owner, I want secrets and Sensitive Field values excluded from source, browser bundles and logs.
+21. As the owner, I want private service and test routes protected so that public access cannot bypass shopper authority.
+22. As the owner, I want an estimate including networking, storage, logs, inference and backups so that hidden services do not consume the credit reserve.
+23. As the owner, I want to retain the AWS Free account plan so that this project does not require a paid-plan upgrade.
+24. As the owner, I want measured concurrency and latency limits so that the demo's capacity claims are supported by evidence.
+25. As the owner, I want reproducible release, rollback and teardown instructions so that unused resources are identifiable and removable.
+26. As an evaluator, I want synthetic model results, local browser evidence and AWS qualification distinguished so that one is not presented as proof of another.
+
+## Implementation Decisions
+
+- Retain one Storefront process, one Agent worker and built Panel/Bridge assets behind a production reverse proxy. Avoid an unrelated module refactor.
+- Retain SQLite for the catalogue on persistent encrypted storage. The Agent uses authenticated private Storefront reads; it does not open the database directly. No managed database is needed merely because SQLite was introduced.
+- Configure exact public Panel and Storefront origins independently from private service addresses. Preserve origin, source-window, ownership, Sensitive Field, Confirmation and replay guards.
+- Keep the established model path and existing interpretation contracts. Do not enable experimental catalogue retrieval or change prompts as part of cloud readiness.
+- Treat two generated CloudFront HTTPS origins with a private EC2 origin as a candidate only. Resolve browser identity, account eligibility, protected ingress and all maintenance/model egress before selecting it. Exclude CloudFront flat-rate plans under the current Free-account constraint.
+- Investigate partitioned embedded Storefront authority with first-party Agent authority in a disposable browser probe. A successful probe justifies a reviewed production configuration; a failure requires revising topology, not weakening security or asking Shoppers to disable privacy protection.
+- Disable caching for personal HTML, identity, API and SSE responses; explicitly forward necessary credentials, CSRF, Origin and event-cursor information. Cache only separate versioned public assets.
+- Preserve existing asymmetric restart semantics: Agent restart invalidates Agent authority; Storefront restart invalidates commerce authority and resets its ephemeral state. Never replay an uncertain Action.
+- Expiring owner-issued invitations gate demo use but never replace shopper ownership. Define their lifetime, redemption count and revocation semantics explicitly before implementation. Keep secrets out of URLs and logs.
+- Apply configurable finite per-Shopper and global limits. Validate settings at startup; public mode must reject missing limits. Publish tested values only after the capacity rehearsal.
+- Use a provider-neutral durable allowance boundary with atomic reservations, idempotent settlement, retained uncertain costs and a persistent kill switch. Initial tests use a fake provider; Bedrock-specific pricing, credentials and qualification belong to CAP-05. Initial ledger creation is explicit; disappearance must not silently create a fresh allowance.
+- Keep the catalogue, restricted service configuration and allowance ledger outside disposable releases. Require schema compatibility on release and rollback. Restore the catalogue consistently; never restore an old allowance balance as a way to regain budget.
+- Use short bounded redacted logs, proposed seven-day retention, finite disk limits and health checks that do not expose secrets. Keep test/reset endpoints unavailable in public mode.
+- Use least-privilege temporary AWS credentials through an EC2 role. Separate runtime invocation privileges from any authorized model enablement or infrastructure setup.
+- Use the last $100 credit screenshot only as historical evidence. Confirm current balance, expiry and service applicability; calculate a complete two-month envelope with contingency. A proposed $80 envelope is not spending approval.
+
+## Testing Decisions
+
+- Primary seam: an actual browser through the HTTPS reverse proxy, operating the existing Panel, Bridge, Agent and Controlled Storefront together. Reuse current browser isolation, guarded-cart, SSE, tab-lease and restart scenarios.
+- First run a disposable cross-site HTTPS feasibility probe. Use unrelated sites, valid browser trust and explicit browser privacy settings; do not mistake different localhost ports for a cross-site simulation. Record browser versions and distinguish supported from untested browsers.
+- Assert visible results and authoritative state: two browsers never share carts, requests cannot target foreign sessions, stale Confirmation/Undo fails, off-origin Actions fail and a disconnect does not duplicate a Mutation.
+- At the Agent request boundary, use a fake provider with controlled costs, delays, failures and call counts. Check denial before a paid request, atomic reservations under concurrency, crash-before-settlement, duplicate settlement, all interpretation/advice/repair paths and durable shutdown.
+- Exercise service restart, read-only/full storage, incompatible catalogue release, ledger corruption/loss and rollback through process or service interfaces, not mocks of private implementation details.
+- Use account evidence and official pricing for infrastructure feasibility. Local tests cannot establish AWS entitlement, origin connectivity or cloud latency. Actual deployed acceptance belongs to CAP-07.
+- Run focused regressions during each slice and the relevant full formatting, lint, test and build checks before closure. No paid model calls, resources or broad new test matrix are necessary for the initial local slices.
+
+## Out of Scope
+
+AWS provisioning or account upgrades; new spending permission; Bedrock adapter and
+model qualification; actual cloud acceptance; RDS, Redis, Kubernetes, high
+availability or automatic scaling; persistent shopping histories; real payments,
+production customer accounts or arbitrary retailer support; prompt changes,
+phrase matching, experimental retrieval activation or retraining classifiers.
+
+## Further Notes
+
+This is cloud-readiness work associated with CAP-04, not a replacement for the
+CAP-05 through CAP-08 gates. CAP-04's parent remains unchanged and open. The final
+design must distinguish completed local preparation from deployment procedures
+and cloud tests still to be executed. Keep tracker copies local and ignored;
+retain sanitized documentation in the repository. Only the owner and assistant
+are available to do the work.

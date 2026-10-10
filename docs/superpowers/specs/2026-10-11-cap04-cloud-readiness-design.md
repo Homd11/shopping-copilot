@@ -1,6 +1,6 @@
 # CAP-04: credit-only cloud design revision
 
-Date: 11 October 2026. Status: design revision for review; CAP-04 remains open.
+Date: 11 October 2026. Status: design approved by the owner on 11 October; CAP-04 remains open.
 
 ## Approved intent and scope
 
@@ -125,15 +125,14 @@ remain CAP-05 work.
 The prior $40.35/60-day hosting subtotal included a public IPv4 and excluded the
 public front door. It is a historical reference, not a quote for the VPC-origin
 candidate. Recompute the bill of materials after selecting ingress and egress:
-compute + EBS + applicable addresses/endpoints + delivery/transfer + logging/backup
-
-- qualification/inference + contingency. Avoid double-counting retained storage.
-  Propose an $80 eligible-credit envelope with $20 reserve only if the confirmed
-  balance is still $100 and the final estimate fits; this is not spending approval.
-  Keep the Free account plan and recheck actual credit applicability/expiry. Billing
-  alerts supplement controls; they do not replace the application allowance.
-  [Existing cost assumptions](../../cap04-credit-only-plan.md),
-  [AWS account plans](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html).
+compute, EBS, applicable addresses/endpoints, delivery/transfer, logging/backup,
+qualification/inference and contingency. Avoid double-counting retained storage.
+Propose an $80 eligible-credit envelope with $20 reserve only if the confirmed
+balance is still $100 and the final estimate fits; this is not spending approval.
+Keep the Free account plan and recheck actual credit applicability/expiry. Billing
+alerts supplement controls; they do not replace the application allowance.
+[Existing cost assumptions](../../cap04-credit-only-plan.md),
+[AWS account plans](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html).
 
 ## Release, operations and acceptance
 

@@ -2,6 +2,15 @@
 
 **Last updated:** 2026-10-11
 
+## CAP-04 spec and ticket drafting — 2026-10-11
+
+The owner approved the written design and requested the to-spec/to-tickets workflow.
+The [spec draft](docs/cap04-spec-draft.md) and [eight-ticket breakdown](docs/cap04-ticket-breakdown-draft.md) are prepared for test-boundary/dependency review.
+They are not yet published to the ignored local tracker; the skills require this
+review before publication. Proposed independent frontier: browser feasibility,
+account/network costing, and durable inference allowance. Existing parent CAP-04
+is unchanged. No application code, AWS resources or spending changed.
+
 ## CAP-04 design revision — 2026-10-11
 
 The owner approved retaining one EC2 host and SQLite while resolving public HTTPS,
