@@ -2,14 +2,23 @@
 
 **Last updated:** 2026-10-11
 
-## CAP-04 spec and ticket drafting — 2026-10-11
+## CAP-04 specification and tickets published — 2026-10-11
 
-The owner approved the written design and requested the to-spec/to-tickets workflow.
-The [spec draft](docs/cap04-spec-draft.md) and [eight-ticket breakdown](docs/cap04-ticket-breakdown-draft.md) are prepared for test-boundary/dependency review.
-They are not yet published to the ignored local tracker; the skills require this
-review before publication. Proposed independent frontier: browser feasibility,
-account/network costing, and durable inference allowance. Existing parent CAP-04
-is unchanged. No application code, AWS resources or spending changed.
+The owner confirmed the design and availability decisions after review. The
+[specification](docs/cap04-spec.md) and [nine-ticket breakdown](docs/cap04-ticket-breakdown.md)
+are finalized. The ignored local tracker contains the ready-for-agent specification
+and nine individual tickets under `.scratch/cap04-cloud-readiness/` in this worktree.
+Initial frontier: 01 (cross-site HTTPS browser proof), 02 (account/network costing),
+and 05 (durable inference allowance); begin with 01.
+
+Approved: desktop Chrome/Edge and Android Chrome, five simultaneous Shoppers as a
+test target, one revocable invitation per tester/testing window, and shutdown after
+60 minutes of genuine inactivity. Lambda wake is conditional on eligibility and
+complete costing; wake requires an invitation and manual start remains the fallback.
+Tests must protect active work through drain/stop races and preserve invitation
+expiry, allowance accounting and uncertain Action outcomes across restart.
+CAP-04 remains open; its parent ticket is unchanged. This publication changes no
+runtime code and creates no AWS resources or additional spending authorization.
 
 ## CAP-04 design revision — 2026-10-11
 
@@ -19,7 +28,7 @@ Two generated CloudFront HTTPS origins with a VPC origin remain a candidate, not
 selected or provisioned topology. Cross-site iframe identity, Free-plan entitlement,
 complete egress and pricing remain unresolved. Catalogue storage is distinct from
 ephemeral carts/tasks and the proposed durable spending ledger. Next: review the
-written design and define the local browser identity rehearsal before implementation.
+published ticket 01 and run its disposable local browser identity rehearsal.
 CAP-04 remains open. No AWS account access, resources, paid calls or runtime changes.
 
 GitHub PR #1 merged as `0a7836d` after both CI runs passed. The preceding CI fixes

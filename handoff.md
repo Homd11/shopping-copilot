@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## CAP-04 specification and tickets published — 2026-10-11
+
+The [specification](docs/cap04-spec.md) and [nine-ticket breakdown](docs/cap04-ticket-breakdown.md)
+reflect the confirmed browser, invitation and on-demand availability decisions.
+Individual ready-for-agent tickets are in the ignored `.scratch/cap04-cloud-readiness/`
+tracker in the active worktree. Start with 01 (cross-site HTTPS identity proof).
+Lambda wake remains conditional on account eligibility and complete costing; manual
+startup is the fallback, with automatic stop after 60 minutes of genuine inactivity.
+CAP-04 is open, its parent unchanged, and deployment remains a later gate.
+
 ## CAP-04 design revision — 2026-10-11
 
 Use the [current design](docs/superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) and PROJECT_CHECKPOINT.md. One EC2 host plus SQLite remains the direction; public ingress, browser identity, account eligibility and all-in costing need proof. CAP-04 remains open. No cloud resources or runtime changes. PR #1 is merged into GitHub main (`0a7836d`); historical no-push statements below describe earlier turns.

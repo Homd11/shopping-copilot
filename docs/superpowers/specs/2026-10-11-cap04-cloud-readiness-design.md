@@ -15,6 +15,33 @@ The last supplied account evidence is a Free account plan with $100 credit and a
 7 April 2027 plan end date. It is not a current balance check. CAP-02/03 closed
 under the approved synthetic benchmark scope; their results do not qualify Bedrock.
 
+## Confirmed availability and browser decisions
+
+The owner confirmed desktop Chrome/Edge and Android Chrome for initial support;
+iPhone/Safari is excluded. Five simultaneous Shoppers is the initial measurement
+target, not verified host capacity. Issue one separately revocable invitation per
+tester with absolute validity bounds for the testing window. Browsing may be public
+while the Storefront runs; AI access and startup require admission.
+
+Use on-demand EC2 availability and stop after 60 minutes of genuine inactivity.
+Protect active interactions, accepted work and uncertain Action outcomes; health
+checks and SSE heartbeats alone must not prevent shutdown. Serialize admission,
+drain and shutdown, including new arrivals during stop. Storefront restart resets
+commerce with notice; Agent-only restart retains the surviving Storefront cart.
+
+Conditional Lambda startup uses an always-available waiting page and durable
+invitation/lifecycle state outside EC2. No wake on plain visits; validate access
+before startup and again on admission. Bound polling, retries and waiting time;
+functions return promptly instead of waiting for boot. Manual start/prewarming
+remains the fallback if Free-plan eligibility or the full cost estimate fails.
+Automatic wake adds overhead relative to manual start; savings come from idle
+compute shutdown. Storage and retained network resources still cost while stopped.
+
+The [final specification](../../cap04-spec.md) and
+[nine-ticket breakdown](../../cap04-ticket-breakdown.md) govern local preparation.
+The diagram below shows the application once running; the conditional wake/control
+path must work independently while EC2 is stopped. No resources are provisioned.
+
 ## Retained architecture
 
 One host runs a production reverse proxy, built Panel/Bridge assets, one Storefront
