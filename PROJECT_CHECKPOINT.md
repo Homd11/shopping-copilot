@@ -1,6 +1,32 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-11
+**Last updated:** 2026-10-13
+
+## CAP-04 browser feasibility: negative result — 2026-10-13
+
+Ticket 01's disposable HTTPS experiment found a blocker; see the
+[browser report](docs/research/2026-10-13-cap04-browser-proof.md) and
+[reproducible probe](eval/probes/README.md). Installed Chrome 154.0.8037.98 and
+Edge 155.0.4283.45 reject Strict and unpartitioned Storefront cookies under verified
+third-party blocking. Partitioned cookies restore cart HTTP access, but iframe
+`sessionStorage` throws SecurityError, stopping Bridge initialization. Earlier
+CDP-only Chromium journey success is preliminary and does not qualify this topology.
+
+Ticket 01 is needs-triage with an explicit negative outcome; ticket 03 remains
+blocked on a successful supported-browser proof. Next design work must preserve
+the Action journal and navigation recovery without assuming iframe sessionStorage,
+or revise the serving topology. Do not insert a memory-only fallback, adopt the
+proxy as production infrastructure, or ask Shoppers to disable privacy. Independent
+02 (account/network feasibility) and 05 (durable allowance) remain available.
+
+No production sources, AWS resources or paid model calls changed. Temporary
+name-constrained user-store CAs were explicitly approved, installed for each run,
+removed by exact thumbprint and checked absent; generated private keys were removed.
+Verification: 619 existing Python regressions passed in 512 seconds; the two new
+cleanup failure tests passed separately after their red/green fix. All 182
+TypeScript tests, workspace builds, repository formatting and lint passed. Both
+independent review findings are resolved. This verifies the unchanged local
+application and probe safeguards, not the failed cloud topology. Parent CAP-04 stays open.
 
 ## CAP-04 specification and tickets published — 2026-10-11
 

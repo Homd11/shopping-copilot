@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## CAP-04 cross-site probe — 2026-10-13
+
+Current frontier is in PROJECT_CHECKPOINT.md. The
+[browser experiment](docs/research/2026-10-13-cap04-browser-proof.md) found that
+partitioned cookies alone do not make the proposed unrelated-site topology work:
+Chrome/Edge privacy settings deny the iframe sessionStorage used by Bridge recovery.
+Ticket 01 records a negative result; 03 remains blocked. Resolve the recovery-storage
+or serving-topology design before adoption. Runtime code is unchanged; no AWS or
+paid inference was used. All temporary test certificates were removed.
+
 ## CAP-04 specification and tickets published — 2026-10-11
 
 The [specification](docs/cap04-spec.md) and [nine-ticket breakdown](docs/cap04-ticket-breakdown.md)
