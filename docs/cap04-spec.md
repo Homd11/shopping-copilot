@@ -1,10 +1,11 @@
 # CAP-04 cloud readiness specification
 
-**Status:** Draft for test-boundary review before local-tracker publication.
+**Status:** ready-for-agent
 
 The owner approved the 11 October cloud-readiness design. This specification
 formalizes that scope; it does not select an unverified AWS topology or authorize
-deployment. The proposed ticket breakdown is a separate review artifact.
+deployment. The owner confirmed the browser, invitation, availability and cost
+decisions after review. Individual implementation tickets are published locally.
 
 ## Problem Statement
 
@@ -54,6 +55,13 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 25. As the owner, I want reproducible release, rollback and teardown instructions so that unused resources are identifiable and removable.
 26. As an evaluator, I want synthetic model results, local browser evidence and AWS qualification distinguished so that one is not presented as proof of another.
 
+27. As an invited Shopper, I want the stopped demo to start on demand so that I can test without contacting the owner each time.
+28. As a Shopper, I want a clear startup waiting screen and a bounded failure state so that I know whether the demo is becoming available.
+29. As the owner, I want shutdown after 60 minutes without meaningful activity so that unused compute does not consume credits.
+30. As an active Shopper, I want my ongoing request protected from idle shutdown so that a cost-saving control does not interrupt accepted work.
+31. As the owner, I want each tester's invitation independently revocable and limited to an explicit testing window so that rebooting cannot renew access.
+32. As the owner, I want manual start and presentation prewarming available so that a failed or ineligible automatic startup path does not block the demo.
+
 ## Implementation Decisions
 
 - Retain one Storefront process, one Agent worker and built Panel/Bridge assets behind a production reverse proxy. Avoid an unrelated module refactor.
@@ -64,13 +72,22 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 - Investigate partitioned embedded Storefront authority with first-party Agent authority in a disposable browser probe. A successful probe justifies a reviewed production configuration; a failure requires revising topology, not weakening security or asking Shoppers to disable privacy protection.
 - Disable caching for personal HTML, identity, API and SSE responses; explicitly forward necessary credentials, CSRF, Origin and event-cursor information. Cache only separate versioned public assets.
 - Preserve existing asymmetric restart semantics: Agent restart invalidates Agent authority; Storefront restart invalidates commerce authority and resets its ephemeral state. Never replay an uncertain Action.
-- Expiring owner-issued invitations gate demo use but never replace shopper ownership. Define their lifetime, redemption count and revocation semantics explicitly before implementation. Keep secrets out of URLs and logs.
+- Use one owner-issued code per tester, valid for an explicit testing window with absolute start/end times and independent revocation. Bound redemption and admitted-session counts; admission never replaces Shopper ownership. Reboot or wake must not extend invitation validity. Keep invitation secrets out of URLs and logs. Browsing may remain public while the Storefront is running; AI use and wake require admission.
 - Apply configurable finite per-Shopper and global limits. Validate settings at startup; public mode must reject missing limits. Publish tested values only after the capacity rehearsal.
 - Use a provider-neutral durable allowance boundary with atomic reservations, idempotent settlement, retained uncertain costs and a persistent kill switch. Initial tests use a fake provider; Bedrock-specific pricing, credentials and qualification belong to CAP-05. Initial ledger creation is explicit; disappearance must not silently create a fresh allowance.
 - Keep the catalogue, restricted service configuration and allowance ledger outside disposable releases. Require schema compatibility on release and rollback. Restore the catalogue consistently; never restore an old allowance balance as a way to regain budget.
 - Use short bounded redacted logs, proposed seven-day retention, finite disk limits and health checks that do not expose secrets. Keep test/reset endpoints unavailable in public mode.
 - Use least-privilege temporary AWS credentials through an EC2 role. Separate runtime invocation privileges from any authorized model enablement or infrastructure setup.
 - Use the last $100 credit screenshot only as historical evidence. Confirm current balance, expiry and service applicability; calculate a complete two-month envelope with contingency. A proposed $80 envelope is not spending approval.
+
+- Initial support covers desktop Chrome/Edge and Android Chrome; iPhone/Safari is excluded from initial acceptance. Test a target of five simultaneous Shoppers before claiming that capacity on EC2.
+- Prefer on-demand EC2 availability with shutdown after 60 minutes of genuine inactivity. Explicitly show the accepted commerce reset after a Storefront restart; browser refresh alone does not clear the cart.
+- Conditionally use a small Lambda startup endpoint and an always-available waiting page if current account eligibility and the complete cost estimate permit it. Validate invitations using durable state outside EC2 before requesting startup. A minimal managed control store is allowed for invitations/lifecycle state; SQLite remains the catalogue. Do not add a standing server or a mandatory NAT gateway merely to support wake.
+- Serialize startup and shutdown decisions with a durable lifecycle generation/lease. Coalesce concurrent authorized wake requests; never wake on ordinary URL visits, health probes or unauthenticated status requests. Rate-limit both authorized and unauthorized traffic, restrict control permissions to the intended instance, and expose only non-sensitive readiness status.
+- Lambda requests finish promptly; do not sleep while EC2 boots. The browser polls at bounded intervals with a deadline and useful failure/retry instructions. Ready means application health and linking prerequisites succeed, not merely that EC2 reports running. Invitation expiry and revocation still apply at application admission.
+- Track meaningful authenticated shopping activity separately from SSE heartbeats and health checks. Idle shutdown requires no active admitted interaction, model request, queued accepted work or in-flight Action. Use finite renewable presence leases so abandoned tabs cannot hold the host indefinitely; showing a waiting page alone does not extend activity.
+- Drain and recheck before stop; serialize admission with that decision so new accepted work cannot be killed by a stale idle check. A request arriving after shutdown is committed waits for a fresh startup instead of being accepted by the draining host. Include startup grace, bounded retry/cooldown and crash/stale-lease recovery in the lifecycle policy; preserve uncertain Action outcomes without replay.
+- Retain manual owner start and presentation prewarming as fallback. Automatic wake is conditional, not a promise of lower overhead than manual start. Cost savings come from stopped compute; EBS and any retained addresses or other standing resources remain in the estimate.
 
 ## Testing Decisions
 
@@ -79,6 +96,7 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 - Assert visible results and authoritative state: two browsers never share carts, requests cannot target foreign sessions, stale Confirmation/Undo fails, off-origin Actions fail and a disconnect does not duplicate a Mutation.
 - At the Agent request boundary, use a fake provider with controlled costs, delays, failures and call counts. Check denial before a paid request, atomic reservations under concurrency, crash-before-settlement, duplicate settlement, all interpretation/advice/repair paths and durable shutdown.
 - Exercise service restart, read-only/full storage, incompatible catalogue release, ledger corruption/loss and rollback through process or service interfaces, not mocks of private implementation details.
+- At the browser/service lifecycle boundary, use a fake EC2 control service and real persistent coordination to verify admission, concurrent wake, bounded waiting, invitation expiry/revocation, idle expiry and stop/admission races. No cloud resources are needed for this rehearsal.
 - Use account evidence and official pricing for infrastructure feasibility. Local tests cannot establish AWS entitlement, origin connectivity or cloud latency. Actual deployed acceptance belongs to CAP-07.
 - Run focused regressions during each slice and the relevant full formatting, lint, test and build checks before closure. No paid model calls, resources or broad new test matrix are necessary for the initial local slices.
 
@@ -86,7 +104,7 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 
 AWS provisioning or account upgrades; new spending permission; Bedrock adapter and
 model qualification; actual cloud acceptance; RDS, Redis, Kubernetes, high
-availability or automatic scaling; persistent shopping histories; real payments,
+availability or automatic scaling; initial iPhone/Safari support; persistent shopping histories; real payments,
 production customer accounts or arbitrary retailer support; prompt changes,
 phrase matching, experimental retrieval activation or retraining classifiers.
 
