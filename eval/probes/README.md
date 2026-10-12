@@ -1,0 +1,39 @@
+# Disposable CAP-04 cross-site browser probe
+
+This is an experiment, **not a production proxy or deployment template**. See
+[the verdict](../../docs/research/2026-10-13-cap04-browser-proof.md).
+
+Run from the repository root on Windows with Node, pnpm, OpenSSL, certutil and the
+project Python/Playwright environment. Build assets first:
+
+```powershell
+pnpm --filter @shopping-copilot/bridge build
+pnpm --filter @shopping-copilot/panel build
+python eval/probes/cap04_cross_site.py --allow-temporary-user-ca --channel chrome
+```
+
+`--channel msedge` selects installed Edge; `chromium` selects Playwright Chromium.
+Obtain the machine owner's permission before using the explicit CA flag. It adds
+a short-lived, name-constrained root to **CurrentUser Root**, then removes that
+exact thumbprint. It never edits system-wide trust or DNS. Browser TLS validation
+is not disabled. Profiles are temporary; third-party blocking is checked with a
+negative control inside the actual iframe.
+
+Ports 4000, 8000 and 4443 must be free; the runner refuses to stop unrelated
+services. Only the scripted provider and a scratch catalogue are used. Logs,
+results, catalogue and TLS material stay in ignored `.scratch/cap04-cloud-readiness/probe/`.
+Do not publish raw logs, credentials or keys. The proxy forwards the actual guards
+and SSE, rewrites public origin literals in served assets, and experimentally
+changes only Storefront cookie attributes. Never expose this proxy publicly.
+
+A failing browser assertion exits nonzero and records a failure, even when the
+experiment successfully discovers an architectural blocker. The full journey is
+intentionally unreachable when the privacy/identity preconditions fail.
+
+Normal cleanup stops owned services, closes temporary profiles, removes the CA
+and deletes private keys. Cleanup steps are attempted independently, failures are
+recorded and the process exits nonzero. If cleanup fails or the runner is forcibly
+killed, inspect the ignored
+`trust-cleanup.json` and remove **only its exact thumbprint** with
+`certutil -user -delstore Root <thumbprint>`. Do not remove unrelated certificates.
+The recovery manifest is written before trust is installed.
