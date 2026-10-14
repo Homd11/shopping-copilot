@@ -2,11 +2,13 @@
 
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import secrets
 import shutil
 import socket
+import ssl
 import subprocess
 import sys
 import time
@@ -15,6 +17,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import parse_qs, urlsplit
 
+import httpx
 from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +27,8 @@ PANEL = "https://panel.copilot.test:4443"
 STORE = "https://store.merchant.test:4443"
 FLAGS = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 PROCESSES = []
+RUNTIME = False
+CONTROL_SECRET = ""
 RESULT = {"paid_calls": 0, "runtime_source_changes": False, "checks": []}
 
 
@@ -68,7 +73,7 @@ def certificates():
             "rsa:2048",
             "-noenc",
             "-keyout",
-            str(TLS / "leaf.key"),
+            (TLS / "leaf.key").as_posix(),
             "-out",
             str(TLS / "leaf.csr"),
             "-subj",
@@ -91,7 +96,7 @@ def certificates():
             str(TLS / "ca.key"),
             "-CAcreateserial",
             "-out",
-            str(TLS / "leaf.pem"),
+            (TLS / "leaf.pem").as_posix(),
             "-days",
             "2",
             "-extfile",
@@ -260,11 +265,12 @@ def test_same_site(browser):
         page = page_for(context)
         errors = []
         page.on("pageerror", lambda error: errors.append(str(error)[:160]))
-        response = page.goto(PANEL)
-        assert response is not None and page.evaluate("window.isSecureContext")
-        assert response.security_details()["protocol"] in {"TLS 1.2", "TLS 1.3"}
-        expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
-        page.evaluate("""() => {
+        if RUNTIME:
+            page.goto("https://panel.copilot.test:4444/__probe/control-page")
+        else:
+            page.goto(PANEL)
+        if not RUNTIME:
+            page.evaluate("""() => {
             const f = document.createElement('iframe'); f.id='cookie-control';
             f.src='https://store.merchant.test:4443/__probe/control-frame';
             document.body.appendChild(f);
@@ -277,7 +283,14 @@ def test_same_site(browser):
         )
         assert control == {"unpartitioned": False, "partitioned": True}
         record("same-site: independent cross-site cookie control", control)
-        page.locator("#cookie-control").evaluate("(element) => element.remove()")
+        if RUNTIME:
+            response = page.goto(PANEL)
+        else:
+            page.locator("#cookie-control").evaluate("(element) => element.remove()")
+            response = page.goto(PANEL)
+        assert response is not None and page.evaluate("window.isSecureContext")
+        assert response.security_details()["protocol"] in {"TLS 1.2", "TLS 1.3"}
+        expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
         accessible = in_store(
             page,
             """() => {
@@ -305,6 +318,18 @@ def test_same_site(browser):
         assert store_cookie["domain"] == "store.copilot.test"
         record("same-site: original Strict host-only Storefront cookie")
         journey(browser, context, page, same_site=True)
+
+
+def runtime_control(context, operation):
+    credential = next(c["value"] for c in context.cookies() if c["name"] == "copilot_agent")
+    response = httpx.post(
+        "http://127.0.0.1:8002" + operation,
+        headers={"x-service-secret": CONTROL_SECRET},
+        json={"cookie": "copilot_agent=" + credential},
+        timeout=3,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def journey(browser, context, a, *, same_site=False):
@@ -399,8 +424,12 @@ def journey(browser, context, a, *, same_site=False):
         cursor = b.evaluate("localStorage.getItem('shopping-copilot.event-cursor')")
         assert int(cursor) > 0
         assert prior_streams >= 1
-        disconnected = b.evaluate(
-            "async () => (await fetch('/__probe/disconnect-sse',{method:'POST'})).json()"
+        disconnected = (
+            runtime_control(b_context, "/disconnect")
+            if RUNTIME
+            else b.evaluate(
+                "async () => (await fetch('/__probe/disconnect-sse',{method:'POST'})).json()"
+            )
         )
         assert disconnected["disconnected"] == 1, disconnected
         deadline = time.monotonic() + 20
@@ -426,6 +455,94 @@ def journey(browser, context, a, *, same_site=False):
         )
         assert denied == 403
         record("missing CSRF remains rejected", denied)
+        if RUNTIME:
+            verify_public_runtime(a, b, b_context)
+
+
+def verify_public_runtime(a, b, context):
+    for base, path in [
+        (PANEL, "/step"),
+        (PANEL, "/__test/advance-time"),
+        (PANEL, "/__probe/disconnect-sse"),
+        (PANEL, "/docs"),
+        (STORE, "/__test/reset"),
+        (STORE, "/__internal/shopper/validate"),
+        (STORE, "/%5f%5finternal/shopper/validate"),
+    ]:
+        script = "async () => (await fetch(" + json.dumps(path) + ",{method:'POST'})).status"
+        status = in_store(b, script) if base == STORE else b.evaluate(script)
+        assert status == 404, (path, status)
+    trust = ssl.create_default_context(cafile=str(TLS / "ca.pem"))
+    with (
+        socket.create_connection(("127.0.0.1", 4443), timeout=3) as connection,
+        trust.wrap_socket(connection, server_hostname="panel.copilot.test") as secured,
+    ):
+        secured.sendall(
+            b"GET /health HTTP/1.1\r\nHost: foreign.example\r\nConnection: close\r\n\r\n"
+        )
+        hostile = http.client.HTTPResponse(secured)
+        hostile.begin()
+        assert hostile.status == 421
+    record("production proxy rejects private/test routes and foreign Host")
+
+    for page in (a, b):
+        for target in (PANEL + "/", STORE + "/cart"):
+            script = (
+                "async () => {const r=await fetch("
+                + json.dumps(urlsplit(target).path)
+                + "); return {status:r.status,cache:r.headers.get('cache-control'),"
+                + "age:r.headers.get('age')}}"
+            )
+            response = in_store(page, script) if target.startswith(STORE) else page.evaluate(script)
+            assert response == {"status": 200, "cache": "no-store", "age": None}
+    assert state(a)["body"]["lines"] == [] and state(b)["body"]["lines"] == []
+    record("personal HTML and carts remain uncached and isolated")
+
+    heartbeat = b.evaluate(r"""async () => {
+        const sid=localStorage.getItem('shopping-copilot.session-id');
+        const tab=sessionStorage.getItem('shopping-copilot.tab-id');
+        const cursor=localStorage.getItem('shopping-copilot.event-cursor');
+        const control=new AbortController();
+        const timer=setTimeout(()=>control.abort(),15000);
+        const started=performance.now(); let reader;
+        try {
+            const events=`/sessions/${sid}/events?after=${cursor}`;
+            const response=await fetch(`${events}&tab_id=${encodeURIComponent(tab)}`,
+                {signal:control.signal});
+            if(response.status!==200) throw Error('SSE read failed');
+            reader=response.body.getReader();
+            const decoder=new TextDecoder(); let buffer=''; const times=[];
+            while(times.length<2) {
+                const next=await reader.read();
+                if(next.done) throw Error('SSE ended before heartbeat');
+                buffer+=decoder.decode(next.value,{stream:true});
+                if(buffer.length>65536) throw Error('Unexpected SSE payload size');
+                const parts=buffer.split('\n\n'); buffer=parts.pop();
+                for(const part of parts)
+                    if(part===': keepalive') times.push(performance.now()-started);
+            }
+            return {status:response.status, first_ms:Math.round(times[0]),
+                gap_ms:Math.round(times[1]-times[0])};
+        } finally {clearTimeout(timer); if(reader) await reader.cancel(); control.abort()}
+    }""")
+    assert heartbeat["status"] == 200 and heartbeat["first_ms"] < 3000
+    assert 9000 <= heartbeat["gap_ms"] <= 14000
+    record("SSE initial and periodic keepalive received by browser through Caddy", heartbeat)
+
+    add(b, 1)
+    navigate(b, "/cart")
+    revision = state(b)["body"]["revision"]
+    b.locator("#shopper-message").fill("Empty my cart")
+    b.get_by_role("button", name="إرسال", exact=True).click()
+    expect(b.locator(".confirmation-card")).to_contain_text("Remove every item", timeout=15000)
+    b.locator("#stop-task").click()
+    expect(b.locator("#task-status")).to_have_attribute(
+        "data-task-state", "cancelled", timeout=15000
+    )
+    expect(b.locator("#shopper-message")).to_be_enabled()
+    assert state(b)["body"]["revision"] == revision
+    assert state(b)["body"]["lines"][0]["quantity"] == 1
+    record("Stop cancels pending Confirmation without changing cart")
 
 
 def cleanup(processes, thumb, tls, report, result):
@@ -481,12 +598,22 @@ def cleanup(processes, thumb, tls, report, result):
 
 
 def main():
-    global STORE
+    global STORE, RUNTIME, CONTROL_SECRET
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--allow-temporary-user-ca", action="store_true")
     parser.add_argument("--channel", choices=["chromium", "chrome", "msedge"], default="chromium")
     parser.add_argument("--layout", choices=["cross-site", "same-site"], default="cross-site")
+    parser.add_argument(
+        "--runtime",
+        action="store_true",
+        help="Use configured application builds and Caddy, no asset rewriting",
+    )
     args = parser.parse_args()
+    RUNTIME = args.runtime
+    if RUNTIME and args.layout != "same-site":
+        parser.error("Runtime rehearsal requires the approved same-site layout")
+    RESULT["runtime_source_changes"] = RUNTIME
+    RESULT["production_runtime"] = RUNTIME
     if args.layout == "same-site":
         STORE = "https://store.copilot.test:4443"
     RESULT["layout"] = args.layout
@@ -498,7 +625,8 @@ def main():
     RESULT["cookie_control"] = (
         "profile third-party blocking plus CDP/phaseout, verified with iframe negative control"
     )
-    for port in (4000, 8000, 4443):
+    ports = (4000, 8000, 4443, 8001, 8002, 4444) if RUNTIME else (4000, 8000, 4443)
+    for port in ports:
         with socket.socket() as s:
             assert s.connect_ex(("127.0.0.1", port)) != 0, (
                 f"Port {port} is occupied; leave existing service alone"
@@ -522,6 +650,28 @@ def main():
             COPILOT_CATALOGUE_DB=str(DIR / "catalogue.sqlite"),
             COPILOT_PROBE_LAYOUT=args.layout,
         )
+        CONTROL_SECRET = env["COPILOT_SERVICE_SECRET"]
+        if RUNTIME:
+            env.update(
+                COPILOT_ENV="production",
+                COPILOT_TLS_CERT=(TLS / "leaf.pem").as_posix(),
+                COPILOT_TLS_KEY=(TLS / "leaf.key").as_posix(),
+                COPILOT_PANEL_ROOT=(ROOT / "panel/dist").as_posix(),
+                COPILOT_AGENT_UPSTREAM="127.0.0.1:8001",
+                COPILOT_CADDY_STORAGE=(DIR / "caddy-storage").as_posix(),
+            )
+            # The build receives public origins through the actual Vite configuration.
+            pnpm = shutil.which("pnpm")
+            command(
+                [pnpm, "--filter", "@shopping-copilot/bridge", "build"],
+                env=env,
+                shell=os.name == "nt",
+            )
+            command(
+                [pnpm, "--filter", "@shopping-copilot/panel", "build"],
+                env=env,
+                shell=os.name == "nt",
+            )
         node = shutil.which("node")
         command(
             [
@@ -533,24 +683,54 @@ def main():
             ],
             env=env,
         )
-        start(
-            [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "agent.app:app",
-                "--host",
-                "127.0.0.1",
-                "--port",
-                "8000",
-            ],
-            env,
-            "agent",
-        )
+        agent_command = [
+            sys.executable,
+            "-m",
+            "uvicorn",
+            "agent.app:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "8000",
+        ]
+        if RUNTIME:
+            agent_command.append("--no-access-log")
+        start(agent_command, env, "agent")
         start([node, "store/node_modules/tsx/dist/cli.mjs", "store/src/server.ts"], env, "store")
         (DIR / "mode.txt").write_text("strict")
-        start([node, str(Path(__file__).with_name("cap04_https_proxy.mjs"))], env, "proxy")
-        for port in (4000, 8000, 4443):
+        if RUNTIME:
+            caddy = str(DIR.parent / "tools/caddy.exe")
+            command(
+                [
+                    caddy,
+                    "validate",
+                    "--config",
+                    str(ROOT / "deploy/Caddyfile"),
+                    "--adapter",
+                    "caddyfile",
+                ],
+                env=env,
+            )
+            start(
+                [node, str(Path(__file__).with_name("cap04_runtime_control.mjs"))],
+                env,
+                "runtime-control",
+            )
+            start(
+                [
+                    caddy,
+                    "run",
+                    "--config",
+                    str(ROOT / "deploy/Caddyfile"),
+                    "--adapter",
+                    "caddyfile",
+                ],
+                env,
+                "caddy",
+            )
+        else:
+            start([node, str(Path(__file__).with_name("cap04_https_proxy.mjs"))], env, "proxy")
+        for port in ports:
             wait_port(port)
         with sync_playwright() as pw:
             experiment = test_same_site if args.layout == "same-site" else test
@@ -558,10 +738,17 @@ def main():
         RESULT["outcome"] = "passed"
     except Exception as error:
         RESULT["outcome"] = "failed"
-        RESULT["error"] = str(error)[:1600]
+        # Browser exceptions can include full request headers on later lines.
+        RESULT["error"] = type(error).__name__ + ": " + str(error).split("\n", 1)[0][:300]
         raise
     finally:
-        cleanup(PROCESSES, thumb, TLS, DIR / f"result-{args.channel}-{args.layout}.json", RESULT)
+        cleanup(
+            PROCESSES,
+            thumb,
+            TLS,
+            DIR / f"result-{args.channel}-{args.layout}{'-runtime' if RUNTIME else ''}.json",
+            RESULT,
+        )
 
 
 if __name__ == "__main__":

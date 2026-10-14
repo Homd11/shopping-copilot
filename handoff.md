@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## CAP-04 production origins — 2026-10-14
+
+Use PROJECT_CHECKPOINT.md for current status. Local ticket 03 is resolved:
+[configured HTTPS evidence](docs/research/2026-10-14-cap04-production-origins.md)
+and [run instructions](deploy/README.md). Both installed Chrome/Edge runs, 627
+Python tests, 198 TypeScript tests, builds/typechecks and lint/format pass.
+The three Spec review findings were reproduced and fixed; no unresolved review
+finding remains. Existing journal placement and shopping semantics are retained.
+Current frontier is 02/04/05; prefer durable inference allowance (05) next.
+AWS and public DNS remain untouched, paid inference unchanged, Android/deployed
+acceptance pending. Work is committed locally, not pushed. Parent CAP-04 is open.
+
 ## CAP-04 domain amendment — 2026-10-14
 
 Use PROJECT_CHECKPOINT.md for the latest frontier. The owner supplied `scpilot.tech`

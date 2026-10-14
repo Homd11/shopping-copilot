@@ -2,6 +2,7 @@ import { executeAction } from "./actions.js";
 import { installShopperLink } from "./shopper-link.js";
 import { matchesShopperContext, shopperContext } from "./shopper-context.js";
 import { recordEvaluationTiming } from "./evaluation-metrics.js";
+import { validatePublicOrigin } from "./public-origins.js";
 import { SnapshotBuilder, type SnapshotBuilderOptions } from "./snapshot.js";
 import { parseAction, type Action, type ActionResult } from "./types.js";
 import {
@@ -307,7 +308,22 @@ declare global {
 }
 
 if (typeof window !== "undefined" && window.parent !== window) {
-  const panelOrigin = "http://localhost:4100";
+  const publicOrigin = document.querySelector<HTMLMetaElement>(
+    'meta[name="copilot-store-origin"]',
+  )?.content;
+  const panelValue = document.querySelector<HTMLMetaElement>(
+    'meta[name="copilot-panel-origin"]',
+  )?.content;
+  if (!publicOrigin || !panelValue || publicOrigin !== window.location.origin)
+    throw new Error(
+      "Storefront public origin configuration is missing or mismatched",
+    );
+  const panelOrigin = validatePublicOrigin(
+    panelValue,
+    publicOrigin.startsWith("https:"),
+  );
+  if (panelOrigin === publicOrigin)
+    throw new Error("Panel and Storefront origins must differ");
   document.addEventListener("shopper:reset", () => {
     window.parent.postMessage({ type: "shopper_reset" }, panelOrigin);
   });

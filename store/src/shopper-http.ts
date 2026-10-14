@@ -24,7 +24,12 @@ export function shopper(response: Response): ShopperState {
 }
 export function shopperHttp(
   registry: ShopperRegistry,
-  options: { origin: string; secure: boolean; evaluation: boolean },
+  options: {
+    origin: string;
+    panelOrigin: string;
+    secure: boolean;
+    evaluation: boolean;
+  },
 ): RequestHandler {
   return (request, response, next) => {
     if (
@@ -93,7 +98,11 @@ export function shopperHttp(
         body = body
           .replace(
             "</head>",
-            '<meta name="copilot-csrf" content="' +
+            '<meta name="copilot-panel-origin" content="' +
+              options.panelOrigin +
+              '" /><meta name="copilot-store-origin" content="' +
+              options.origin +
+              '" /><meta name="copilot-csrf" content="' +
               state.csrf +
               '" /><meta name="copilot-context" content="' +
               credentialDigest(

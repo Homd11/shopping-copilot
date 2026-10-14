@@ -142,7 +142,8 @@ def create_app(
         sessions,
         service,
         panel_origin=identity_settings["panel_origin"],
-        evaluation=settings.provider == "scripted"
+        evaluation=os.environ.get("COPILOT_ENV") != "production"
+        and settings.provider == "scripted"
         and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()

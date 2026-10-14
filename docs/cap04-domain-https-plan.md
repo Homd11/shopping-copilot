@@ -1,6 +1,10 @@
 # CAP-04: domain and HTTPS preparation
 
-Date: 14 October 2026. Status: owner-approved browser layout; infrastructure preparation only.
+Date: 14 October 2026. Status: owner-approved browser layout; local ticket 03 routing implemented.
+
+See [configured-runtime evidence](research/2026-10-14-cap04-production-origins.md) and
+[operating instructions](../deploy/README.md). The DNS/AWS steps below remain
+future work; no public endpoint has been created.
 
 ## Decision and evidence
 
@@ -84,8 +88,9 @@ Use `COPILOT_PANEL_ORIGIN=https://app.scpilot.tech`,
 `COPILOT_STORE_PRIVATE_URL=http://127.0.0.1:4000` for service configuration.
 `COPILOT_ENV=production` is required for the public deployment. Browser configuration
 contains public origins only; never bundle the service secret or provider key.
-Finalize the browser configuration contract during ticket 03; this document is
-not an executable deployment template.
+The browser build/metadata contract is implemented in ticket 03; use the linked
+operating instructions for exact commands. This document is not an executable
+deployment template.
 
 Ticket 03 acceptance uses the same trusted local sibling-hostname browser journey
 with no probe rewriting, plus malformed-host/origin checks, public-route exclusions,

@@ -2,6 +2,41 @@
 
 **Last updated:** 2026-10-14
 
+## CAP-04 production origin journey completed — 2026-10-14
+
+Ticket 03 is resolved for local production-style configuration. See the
+[implementation evidence](docs/research/2026-10-14-cap04-production-origins.md) and
+[operating instructions](deploy/README.md). Panel builds use validated public
+origins; Storefront HTML supplies validated origin metadata to Bridge. Caddy serves
+built assets and proxies fixed loopback services without asset rewriting. Public
+private/test routes are blocked; production requires explicit service secrets and
+disables evaluation endpoints. Existing Strict host-only cookies, journal,
+Confirmation, Undo and uncertain-action recovery remain in place. SSE now supplies
+idle keepalive comments without advancing cursors or touching activity.
+
+Installed Chrome 155.0.8059.40 and Edge 155.0.4283.45 passed the configured sibling
+HTTPS journey with independently verified third-party blocking. Browser reads
+confirm initial/periodic heartbeat delivery after Caddy; native cursor reconnect
+following a completed cart Mutation produces no duplicate cart POST/revision.
+Stop preserves the cart while cancelling pending Confirmation. Unknown Host and
+public private/test paths are rejected; personal HTML/cart responses are no-store.
+Temporary test CAs and keys were removed and independently checked.
+
+Verification: **627 Python tests passed in 474.65s**, **198 TypeScript tests passed**,
+builds/typechecks and repository lint/format passed. Both independent reviews were
+completed; the Spec review's three material findings were reproduced and fixed
+with focused regression/browser evidence. No unresolved findings are recorded.
+No prompts, paid calls, provider caps, public DNS or AWS resources changed.
+Work is committed locally on `codex/cap04-design`, not pushed.
+
+Current frontier: 02 account/network cost feasibility, 04 invited admission and
+05 durable inference allowance. Prefer 05 next for bounded independent local work;
+04 remains available. AWS ingress selection, current account/credit evidence,
+Android hardware, release/restart, lifecycle, capacity and deployed acceptance are
+still open. Parent CAP-04 remains open and unchanged. Do not deploy the evaluation
+fault-injection servers or treat the supplied-certificate Caddy rehearsal as
+public certificate issuance.
+
 ## CAP-04 domain decision and passing sibling-hostname proof — 2026-10-14
 
 The owner purchased `scpilot.tech` through .tech Domains and approved
