@@ -2,6 +2,10 @@
 
 Date: 13 October 2026. Scope: local ticket 01, not deployed AWS acceptance.
 
+> Follow-up: the owner selected sibling hostnames on 14 October after buying a
+> domain. See [the passing comparison](2026-10-14-cap04-sibling-hostnames.md).
+> The negative unrelated-site result below remains valid.
+
 ## Decision
 
 Do not adopt the proposed unrelated-site topology with only a cookie change.

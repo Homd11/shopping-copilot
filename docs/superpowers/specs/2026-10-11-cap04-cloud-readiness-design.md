@@ -2,6 +2,13 @@
 
 Date: 11 October 2026. Status: design approved by the owner on 11 October; CAP-04 remains open.
 
+> **14 October amendment:** the owner supplied `scpilot.tech` and selected sibling
+> HTTPS origins. The no-domain/generated-host investigation below is historical.
+> [Current specification](../../cap04-spec.md), [browser evidence](../../research/2026-10-14-cap04-sibling-hostnames.md)
+> and [HTTPS preparation](../../cap04-domain-https-plan.md) supersede those topology
+> assumptions. AWS ingress/egress eligibility and costs still require ticket 02;
+> no resources are provisioned.
+
 ## Approved intent and scope
 
 The owner approved retaining one small EC2 host and SQLite while resolving public

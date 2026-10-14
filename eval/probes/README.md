@@ -1,7 +1,8 @@
 # Disposable CAP-04 cross-site browser probe
 
 This is an experiment, **not a production proxy or deployment template**. See
-[the verdict](../../docs/research/2026-10-13-cap04-browser-proof.md).
+[the unrelated-site negative result](../../docs/research/2026-10-13-cap04-browser-proof.md)
+and [the sibling-hostname comparison](../../docs/research/2026-10-14-cap04-sibling-hostnames.md).
 
 Run from the repository root on Windows with Node, pnpm, OpenSSL, certutil and the
 project Python/Playwright environment. Build assets first:
@@ -11,6 +12,14 @@ pnpm --filter @shopping-copilot/bridge build
 pnpm --filter @shopping-copilot/panel build
 python eval/probes/cap04_cross_site.py --allow-temporary-user-ca --channel chrome
 ```
+
+Add `--layout same-site` for the approved sibling-hostname layout; the default
+`--layout cross-site` retains the unrelated-site experiment. Results are saved as
+`result-{channel}-{layout}.json`. In sibling mode the Storefront retains its
+original Strict cookie; a separate foreign iframe supplies the cookie negative
+control. The probe also checks DOM isolation and disconnects an actual completed
+Agent Mutation session to verify native SSE cursor reconnect without duplicate
+cart requests or revision changes. The disconnect endpoint is evaluation-only.
 
 `--channel msedge` selects installed Edge; `chromium` selects Playwright Chromium.
 Obtain the machine owner's permission before using the explicit CA flag. It adds

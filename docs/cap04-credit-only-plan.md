@@ -1,12 +1,12 @@
 # CAP-04: credit-only deployment constraints
 
-**Updated:** 11 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
+**Updated:** 14 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
 
 See the [current design revision](superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) for SQLite, shopper restart semantics, public-ingress options and remaining proof requirements. The pricing table below remains a historical scenario, not the selected network design.
 
 ## Owner decisions
 
-The owner created a personal AWS account during this planning session. Their console screenshot shows the **Free account plan, $100.00 credits remaining and 183 days remaining, ending 7 April 2027**. This is screenshot evidence, not an account audit. Their constraint is **$0 out-of-pocket spending**. They want a public link for independent testers for approximately two months and have no domain. These decisions replace the supervised, owner-domain assumptions in the [6 October draft](cap04-aws-design-draft.md).
+The owner created a personal AWS account during this planning session. Their console screenshot shows the **Free account plan, $100.00 credits remaining and 183 days remaining, ending 7 April 2027**. This is screenshot evidence, not an account audit. Their constraint is **$0 out-of-pocket spending**. They want a public link for independent testers for approximately two months. On 14 October the owner supplied the purchased `scpilot.tech` domain (.tech Domains), replacing the no-domain constraint. Registration is an owner-completed purchase outside this AWS estimate; no additional paid DNS, certificate, renewal or account upgrade is authorized. Use [the domain/HTTPS preparation](cap04-domain-https-plan.md) and the approved sibling-origin layout. These decisions replace the supervised, owner-domain assumptions in the [6 October draft](cap04-aws-design-draft.md).
 
 The advertised $200 is not the current balance or authorization to charge a payment method; only $100 is presently evidenced. Resource creation, subscriptions, account upgrades and inference remain separate future actions.
 
@@ -57,4 +57,4 @@ Stay on the Free account plan; do not upgrade to unlock a service. If a required
 
 Budget notifications are delayed and cannot guarantee a card-spending ceiling on a Paid account. Application limits control inference, not infrastructure bills. Keep a resource inventory, teardown date and local evidence copies before Free-plan closure. [AWS Budgets limitations](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html).
 
-Next: settle domain-free HTTPS, shopper isolation, model access and the all-in credit envelope locally; recheck the Free plan, remaining balance, credit applicability and expiry before provisioning. The existing account needs no reversal or upgrade. CAP-02/03 are closed under the approved synthetic benchmark scope; independent human evaluation remains a disclosed limitation. No AWS account access, resource, inference, subscription or upgrade occurred for this document.
+Next: implement the approved sibling-domain HTTPS configuration, verify model access and settle the all-in credit envelope locally; recheck the Free plan, remaining balance, credit applicability and expiry before provisioning. The existing account needs no reversal or upgrade. CAP-02/03 are closed under the approved synthetic benchmark scope; independent human evaluation remains a disclosed limitation. No AWS account access, resource, inference, subscription or upgrade occurred for this document.

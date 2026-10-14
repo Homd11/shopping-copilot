@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## CAP-04 domain amendment — 2026-10-14
+
+Use PROJECT_CHECKPOINT.md for the latest frontier. The owner supplied `scpilot.tech`
+and approved sibling `app`/`store` HTTPS origins. See [the passing desktop browser
+comparison](docs/research/2026-10-14-cap04-sibling-hostnames.md) and
+[DNS/HTTPS preparation](docs/cap04-domain-https-plan.md). Ticket 01 is resolved for
+local desktop feasibility; 03 can implement real origin configuration. 02 still
+needs current account/network/cost evidence and 05 remains independent. Do not
+implement the superseded no-domain journal migration. No runtime changes, DNS
+writes, AWS resources or paid calls occurred. Android and deployed acceptance
+remain open; the parent CAP-04 is not closed.
+
 ## CAP-04 cross-site probe — 2026-10-13
 
 Current frontier is in PROJECT_CHECKPOINT.md. The

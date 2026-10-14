@@ -2,22 +2,25 @@
 
 **Status:** ready-for-agent — approved scope, published to the local tracker.
 
-Source: approved 11 October cloud-readiness design and the accompanying specification and confirmed availability decisions.
+Source: approved 11 October design, accompanying specification and availability decisions, amended on 14 October for the owner-provided `scpilot.tech` domain.
+See [layout evidence](research/2026-10-14-cap04-sibling-hostnames.md) and [HTTPS preparation](cap04-domain-https-plan.md).
 The parent CAP-04 ticket remains unchanged. Numbers are local to this feature.
 Independent tickets may start at the frontier; this does not authorize parallel
 agents or any external actions. Account facts and provisioning permissions are
 separate from ticket-to-ticket blockers.
 
-## 01 — Prove cross-site Shopper identity through HTTPS
+## 01 — Prove separate-origin Shopper identity through HTTPS
 
-**What to build:** A disposable browser/proxy rehearsal that shows whether a Shopper can use the embedded Storefront across unrelated HTTPS sites while third-party cookies are blocked.
+**What to build:** A disposable browser/proxy rehearsal comparing unrelated sites with approved sibling HTTPS hostnames while third-party cookies are blocked.
+
+**Status:** resolved for desktop layout feasibility. Android hardware and deployed-domain acceptance remain in 08/CAP-07. The unrelated-site result remains negative; no cookie-only fix is claimed.
 
 **Blocked by:** None — can start immediately.
 
-- [ ] Reuse the current linked Shopper journey with a scripted provider, valid HTTPS and genuine cross-site hostnames; report browser versions and privacy settings.
-- [ ] Demonstrate two-browser cart isolation, linking, refresh, two tabs, opening a product, add, Confirmation/Undo and SSE reconnection without repeated Actions.
-- [ ] Investigate partitioned embedded authority without disabling privacy, CSRF, ownership or source-window validation; distinguish embedded and top-level storage behavior.
-- [ ] Record a supported configuration or an explicit negative result. Keep probe changes disposable; do not silently adopt an unsuccessful topology.
+- [x] Reuse the current linked Shopper journey with a scripted provider, valid HTTPS in both layouts and a genuine cross-site negative control; report browser versions and privacy settings.
+- [x] Demonstrate two-browser cart isolation, linking, refresh, two tabs, opening a product, add, Confirmation/Undo and SSE reconnection without repeated Actions.
+- [x] Investigate partitioned embedded authority without disabling privacy, CSRF, ownership or source-window validation; distinguish embedded and top-level storage behavior.
+- [x] Record a supported configuration or an explicit negative result. Keep probe changes disposable; do not silently adopt an unsuccessful topology.
 
 ## 02 — Establish account and complete network-cost feasibility
 
@@ -26,7 +29,7 @@ separate from ticket-to-ticket blockers.
 **Blocked by:** None — can investigate alongside 01.
 
 - [ ] Reconcile owner-provided current plan, credits, expiry, service/model access and regional evidence; never fabricate entitlement or use first inference as a read-only access test.
-- [ ] Compare the candidate private origin with the documented alternatives, including model access, deployment artifacts, administration and maintenance egress.
+- [ ] Compare custom-domain CloudFront private/public origins and direct EC2 HTTPS with the documented alternatives, including model access, deployment artifacts, administration and maintenance egress.
 - [ ] Produce the complete two-month bill of materials, traffic/token assumptions, qualification allocation and contingency; distinguish reference estimates from a quote. Compare manual startup with optional Lambda startup, counting the public waiting page, control storage, logging, abuse traffic, EBS and retained IPv4 costs; separate stopped hours from running hours.
 - [ ] Verify Free-plan eligibility for every wake/control service and avoid a standing server or mandatory NAT gateway solely for wake. Select manual startup if automatic wake is ineligible or breaks the credit-only envelope.
 - [ ] Explicitly exclude unavailable flat-rate plans and automatic paid upgrades. Mark unavailable account evidence as an external blocker, not a passing gate.
@@ -38,7 +41,7 @@ separate from ticket-to-ticket blockers.
 
 **Blocked by:** 01 — successful browser feasibility result.
 
-- [ ] Carry the successful browser configuration into the actual services; serve built assets without development reloaders and keep application ports on loopback.
+- [ ] Carry the successful sibling-hostname configuration (`app.scpilot.tech` / `store.scpilot.tech`) into the actual services; serve built assets without development reloaders and keep application ports on loopback.
 - [ ] Preserve exact public origin and iframe source checks, authenticated private reads, CSRF, cookies and current Action safety across browse, add and guarded confirmation.
 - [ ] Show isolation with two browser contexts; malformed origin/host configuration fails clearly and no browser input selects an arbitrary private destination.
 - [ ] Demonstrate SSE initial delivery, heartbeat, cursor reconnect and Stop through the proxy; personal responses and Set-Cookie never cross cache/user boundaries.
@@ -114,7 +117,7 @@ separate from ticket-to-ticket blockers.
 
 **Blocked by:** 02 — account/network feasibility; 08 — combined readiness (which includes 01 and 03–07).
 
-- [ ] Reconcile the chosen topology against browser evidence, account access, all-in costing and the no-domain/no-upgrade constraints; any unresolved feasibility prevents acceptance.
+- [ ] Reconcile the chosen topology against browser evidence, account access, all-in costing and the owner-provided-domain and credit-only/no-upgrade constraints; any unresolved feasibility prevents acceptance.
 - [ ] Deliver the final diagram, service inventory, trust boundaries, IAM/secret handling, state lifetime, allowance policy and retention decisions.
 - [ ] Include reproducible deployment, release/rollback/teardown and cloud acceptance checklists; separate local evidence from AWS and real-model checks still pending.
 - [ ] Record owner review and keep separate authorization for paid qualification and resource creation. No implicit increase to the OpenRouter allowance.
@@ -129,8 +132,8 @@ journey with fake EC2 control and durable coordination. Infrastructure eligibili
 uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
-are published in the ignored local tracker. Initial frontier: 01, 02 and 05;
-01 is recommended first because it can invalidate the proposed ingress.
+are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
+Current frontier: 02, 03 and 05; proceed with 03 to replace the probe's asset rewriting with actual runtime configuration.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.

@@ -7,6 +7,14 @@ formalizes that scope; it does not select an unverified AWS topology or authoriz
 deployment. The owner confirmed the browser, invitation, availability and cost
 decisions after review. Individual implementation tickets are published locally.
 
+**14 October amendment:** the owner purchased `scpilot.tech` through .tech
+Domains and approved `https://app.scpilot.tech` for the Panel/Agent and
+`https://store.scpilot.tech` for the Storefront. This replaces the no-domain
+constraint only; AWS remains credit-only with no account upgrade. Use the
+[sibling-hostname evidence](research/2026-10-14-cap04-sibling-hostnames.md) and
+[DNS/HTTPS preparation](cap04-domain-https-plan.md). The first-party journal
+proposal is not selected; existing recovery remains unchanged.
+
 ## Problem Statement
 
 The owner wants to share the Controlled Storefront with independent Shoppers
@@ -68,8 +76,8 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 - Retain SQLite for the catalogue on persistent encrypted storage. The Agent uses authenticated private Storefront reads; it does not open the database directly. No managed database is needed merely because SQLite was introduced.
 - Configure exact public Panel and Storefront origins independently from private service addresses. Preserve origin, source-window, ownership, Sensitive Field, Confirmation and replay guards.
 - Keep the established model path and existing interpretation contracts. Do not enable experimental catalogue retrieval or change prompts as part of cloud readiness.
-- Treat two generated CloudFront HTTPS origins with a private EC2 origin as a candidate only. Resolve browser identity, account eligibility, protected ingress and all maintenance/model egress before selecting it. Exclude CloudFront flat-rate plans under the current Free-account constraint.
-- Investigate partitioned embedded Storefront authority with first-party Agent authority in a disposable browser probe. A successful probe justifies a reviewed production configuration; a failure requires revising topology, not weakening security or asking Shoppers to disable privacy protection.
+- Use the approved sibling HTTPS origins under `scpilot.tech`. Keep host-only Secure/HttpOnly/SameSite=Strict cookies and separate DOM origins. Do not widen cookie Domain to the parent domain. Two CloudFront distributions with these custom aliases remain a candidate; compare private and protected public origin paths and direct HTTPS hosting in ticket 02. Resolve account eligibility, ingress and maintenance/model egress before selecting AWS topology. Exclude CloudFront flat-rate plans under the current Free-account constraint.
+- Retain the negative unrelated-site probe as evidence. The sibling-hostname probe passes installed desktop Chrome/Edge with third-party blocking independently verified. Adopt that layout through reviewed production configuration in ticket 03; do not migrate the journal, change privacy settings or expose the disposable proxy. Android hardware remains unverified.
 - Disable caching for personal HTML, identity, API and SSE responses; explicitly forward necessary credentials, CSRF, Origin and event-cursor information. Cache only separate versioned public assets.
 - Preserve existing asymmetric restart semantics: Agent restart invalidates Agent authority; Storefront restart invalidates commerce authority and resets its ephemeral state. Never replay an uncertain Action.
 - Use one owner-issued code per tester, valid for an explicit testing window with absolute start/end times and independent revocation. Bound redemption and admitted-session counts; admission never replaces Shopper ownership. Reboot or wake must not extend invitation validity. Keep invitation secrets out of URLs and logs. Browsing may remain public while the Storefront is running; AI use and wake require admission.
@@ -92,7 +100,7 @@ provisioning. Keep CAP-04 open when feasibility is unproven.
 ## Testing Decisions
 
 - Primary seam: an actual browser through the HTTPS reverse proxy, operating the existing Panel, Bridge, Agent and Controlled Storefront together. Reuse current browser isolation, guarded-cart, SSE, tab-lease and restart scenarios.
-- First run a disposable cross-site HTTPS feasibility probe. Use unrelated sites, valid browser trust and explicit browser privacy settings; do not mistake different localhost ports for a cross-site simulation. Record browser versions and distinguish supported from untested browsers.
+- Preserve both layouts in the disposable HTTPS probe: unrelated sites document the negative result, sibling hostnames qualify the selected browser layout. Use valid browser trust and explicit privacy settings; in sibling mode verify blocking with a separate unrelated iframe. Record versions, DOM isolation, host-only cookies, persistent storage and tested versus untested browsers. Public-domain acceptance is still required after deployment.
 - Assert visible results and authoritative state: two browsers never share carts, requests cannot target foreign sessions, stale Confirmation/Undo fails, off-origin Actions fail and a disconnect does not duplicate a Mutation.
 - At the Agent request boundary, use a fake provider with controlled costs, delays, failures and call counts. Check denial before a paid request, atomic reservations under concurrency, crash-before-settlement, duplicate settlement, all interpretation/advice/repair paths and durable shutdown.
 - Exercise service restart, read-only/full storage, incompatible catalogue release, ledger corruption/loss and rollback through process or service interfaces, not mocks of private implementation details.

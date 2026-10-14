@@ -1,6 +1,40 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
+
+## CAP-04 domain decision and passing sibling-hostname proof — 2026-10-14
+
+The owner purchased `scpilot.tech` through .tech Domains and approved
+`app.scpilot.tech` (Panel/Agent) and `store.scpilot.tech` (Storefront). This replaces
+the no-domain constraint only; AWS remains Free-plan/credit-only. The earlier
+first-party journal proposal is superseded before implementation. Existing
+production cookies, Bridge journal and recovery are unchanged.
+
+[Browser comparison](docs/research/2026-10-14-cap04-sibling-hostnames.md): installed
+Chrome 155.0.8059.40 and Edge 155.0.4283.45 pass the sibling HTTPS layout with
+verified third-party blocking using an independent unrelated iframe. Storefront
+sessionStorage is available, DOM origins remain isolated, and original host-only
+Strict/Secure/HttpOnly cookies work. The journey covers separate carts, product/add,
+refresh, second-tab ownership requirement, Confirmation, Undo and a real SSE
+reconnect after an Agent cart Mutation. The native Last-Event-ID is checked;
+cart POST count/revision remain unchanged. It does not qualify every in-flight
+recovery case or a completed tab takeover. Temporary CAs/private keys were removed.
+
+Ticket 01 resolves desktop layout feasibility under this approved amendment;
+03 is unblocked. Current frontier: 02 account/network costing, 03 production origin
+configuration, 05 durable inference allowance. Next implement 03: replace probe
+asset rewriting with actual configured origins and a production-style proxy.
+The [DNS/HTTPS plan](docs/cap04-domain-https-plan.md) specifies the chosen public
+names and conditional certificate/DNS sequence. Public NS delegation was read;
+no DNS edits, AWS APIs/resources, paid inference or push occurred. Android hardware,
+account entitlement, actual public TLS, all-in cost and deployed acceptance remain
+open. Parent CAP-04 remains open and unchanged.
+
+Verification: both installed-browser runs, 182 TypeScript tests, two cleanup
+regressions, builds/typechecks and repository format/lint passed. Both independent
+reviews have no remaining findings after synchronizing the frontier. The full
+Python application suite was not repeated for this probe/documentation-only change;
+its prior result remains historical evidence. Work is committed locally, not pushed.
 
 ## CAP-04 browser feasibility: negative result — 2026-10-13
 
