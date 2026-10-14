@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from time import monotonic
 
 from fastapi import HTTPException, Request
 from starlette.responses import StreamingResponse
@@ -36,6 +37,7 @@ async def session_event_response(
 
     async def event_stream() -> AsyncIterator[str]:
         cursor = after
+        next_heartbeat = 0.0
         while True:
             if not await request.state.shopper_authorized():
                 yield "event: shopper_reset\ndata: {}\n\n"
@@ -45,6 +47,10 @@ async def session_event_response(
             except SessionNotFound:
                 yield "event: shopper_reset\ndata: {}\n\n"
                 return
+            if not pending and not once and monotonic() >= next_heartbeat:
+                # SSE comments do not advance the cursor or touch shopper activity.
+                yield ": keepalive\n\n"
+                next_heartbeat = monotonic() + 10
             for event in pending:
                 if not await request.state.shopper_authorized():
                     yield "event: shopper_reset\ndata: {}\n\n"

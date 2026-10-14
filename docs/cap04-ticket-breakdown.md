@@ -39,13 +39,18 @@ separate from ticket-to-ticket blockers.
 
 **What to build:** The existing shopping journey works locally through the production-style HTTPS proxy with configurable public origins and private service routing.
 
-**Blocked by:** 01 — successful browser feasibility result.
+**Status:** resolved for local production-style routing on 14 October.
+See [implementation evidence](research/2026-10-14-cap04-production-origins.md) and
+[operating instructions](../deploy/README.md). Public AWS/domain and Android
+qualification remain separate gates.
 
-- [ ] Carry the successful sibling-hostname configuration (`app.scpilot.tech` / `store.scpilot.tech`) into the actual services; serve built assets without development reloaders and keep application ports on loopback.
-- [ ] Preserve exact public origin and iframe source checks, authenticated private reads, CSRF, cookies and current Action safety across browse, add and guarded confirmation.
-- [ ] Show isolation with two browser contexts; malformed origin/host configuration fails clearly and no browser input selects an arbitrary private destination.
-- [ ] Demonstrate SSE initial delivery, heartbeat, cursor reconnect and Stop through the proxy; personal responses and Set-Cookie never cross cache/user boundaries.
-- [ ] Public mode excludes test/reset endpoints. This local runtime configuration does not claim CloudFront or AWS deployment qualification.
+**Blocked by:** 01 — successful browser feasibility result (resolved).
+
+- [x] Carry the successful sibling-hostname configuration (`app.scpilot.tech` / `store.scpilot.tech`) into the actual services; serve built assets without development reloaders and keep application ports on loopback.
+- [x] Preserve exact public origin and iframe source checks, authenticated private reads, CSRF, cookies and current Action safety across browse, add and guarded confirmation.
+- [x] Show isolation with two browser contexts; malformed origin/host configuration fails clearly and no browser input selects an arbitrary private destination.
+- [x] Demonstrate SSE initial delivery, heartbeat, cursor reconnect and Stop through the proxy; personal responses and Set-Cookie never cross cache/user boundaries.
+- [x] Public mode excludes test/reset endpoints. This local runtime configuration does not claim CloudFront or AWS deployment qualification.
 
 ## 04 — Admit invited Shoppers with bounded public usage
 
@@ -133,7 +138,8 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02, 03 and 05; proceed with 03 to replace the probe's asset rewriting with actual runtime configuration.
+Current frontier: 02, 04 and 05. Ticket 03 resolved local production routing; 04 may
+implement invited admission, and 05 can enforce the durable inference allowance.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.

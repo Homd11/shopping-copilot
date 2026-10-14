@@ -46,3 +46,20 @@ killed, inspect the ignored
 `trust-cleanup.json` and remove **only its exact thumbprint** with
 `certutil -user -delstore Root <thumbprint>`. Do not remove unrelated certificates.
 The recovery manifest is written before trust is installed.
+
+## Configured runtime mode (ticket 03)
+
+Add `--runtime --layout same-site` to run the actual configured application through
+[deploy/Caddyfile](../../deploy/Caddyfile), with no asset origin rewriting. A verified
+Caddy 2.11.7 binary must exist at ignored
+`.scratch/cap04-cloud-readiness/tools/caddy.exe`; obtain the official platform archive
+and compare its SHA-512 with the release checksums before extraction. See
+[the deployment rehearsal instructions](../../deploy/README.md).
+
+Runtime mode sets `COPILOT_ENV=production`, builds with public sibling test origins,
+uses a separate cookie-control HTTPS listener and a loopback Agent fault-injection
+hop, and checks public private/test-route rejection, unknown Host, no-store headers,
+periodic heartbeat and Stop in addition to the shopping journey. Ports 8001, 8002 and
+4444 must also be free. These auxiliary listeners never belong in public deployment.
+Results use `result-{channel}-same-site-runtime.json`. Logs/errors stay local; browser
+exception request headers are excluded from the saved result summary.
