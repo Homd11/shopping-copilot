@@ -76,7 +76,7 @@ def certificates():
         ]
     )
     (TLS / "leaf.ext").write_text(
-        "basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=DNS:panel.copilot.test,DNS:store.merchant.test\n"
+        "basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\nsubjectAltName=DNS:panel.copilot.test,DNS:store.merchant.test,DNS:store.copilot.test\n"
     )
     command(
         [
@@ -200,7 +200,7 @@ class IsolatedBrowsers:
                 channel=None if self.channel == "chromium" else self.channel,
                 args=[
                     "--host-resolver-rules=MAP panel.copilot.test 127.0.0.1, "
-                    "MAP store.merchant.test 127.0.0.1",
+                    "MAP store.merchant.test 127.0.0.1, MAP store.copilot.test 127.0.0.1",
                     "--no-proxy-server",
                     "--test-third-party-cookie-phaseout",
                 ],
@@ -253,13 +253,72 @@ def test(browser):
                 journey(browser, context, page)
 
 
-def journey(browser, context, a):
+def test_same_site(browser):
+    """Sibling hosts: preserve distinct origins, remove third-party storage dependency."""
+    (DIR / "mode.txt").write_text("strict")
+    with browser.new_context() as context:
+        page = page_for(context)
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)[:160]))
+        response = page.goto(PANEL)
+        assert response is not None and page.evaluate("window.isSecureContext")
+        assert response.security_details()["protocol"] in {"TLS 1.2", "TLS 1.3"}
+        expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
+        page.evaluate("""() => {
+            const f = document.createElement('iframe'); f.id='cookie-control';
+            f.src='https://store.merchant.test:4443/__probe/control-frame';
+            document.body.appendChild(f);
+        }""")
+        control_frame = page.frame_locator("#cookie-control")
+        expect(control_frame.locator("body")).to_have_text("cookie control")
+        control = control_frame.locator("body").evaluate(
+            "async () => {await fetch('/__probe/cookie-control');"
+            "return (await fetch('/__probe/cookie-echo')).json()}"
+        )
+        assert control == {"unpartitioned": False, "partitioned": True}
+        record("same-site: independent cross-site cookie control", control)
+        page.locator("#cookie-control").evaluate("(element) => element.remove()")
+        accessible = in_store(
+            page,
+            """() => {
+            sessionStorage.setItem('layout-probe','saved');
+            const retained=sessionStorage.getItem('layout-probe') === 'saved';
+            sessionStorage.removeItem('layout-probe');
+            let parentReadable=false;
+            try {parentReadable=!!parent.document.body} catch(e) {
+                if(e.name !== 'SecurityError') throw e;
+            }
+            return {retained,parentReadable};
+        }""",
+        )
+        assert accessible == {"retained": True, "parentReadable": False}
+        assert page.evaluate("document.querySelector('#storefront-frame').contentDocument === null")
+        assert errors == [], errors
+        record("same-site: journal storage available, DOM boundary preserved", accessible)
+        cookies = context.cookies()
+        store_cookie = next(c for c in cookies if c["name"] == "copilot_store")
+        assert (
+            store_cookie["sameSite"] == "Strict"
+            and store_cookie["secure"]
+            and store_cookie["httpOnly"]
+        )
+        assert store_cookie["domain"] == "store.copilot.test"
+        record("same-site: original Strict host-only Storefront cookie")
+        journey(browser, context, page, same_site=True)
+
+
+def journey(browser, context, a, *, same_site=False):
     with browser.new_context() as b_context:
         b = page_for(b_context)
         streams = []
         b.on(
             "response",
-            lambda r: streams.append(parse_qs(urlsplit(r.url).query).get("after", ["0"])[0])
+            lambda r: streams.append(
+                {
+                    "query_cursor": parse_qs(urlsplit(r.url).query).get("after", ["0"])[0],
+                    "last_event_id": r.request.header_value("last-event-id"),
+                }
+            )
             if "/events?" in r.url and r.status == 200
             else None,
         )
@@ -278,10 +337,14 @@ def journey(browser, context, a):
         top = page_for(context)
         top.goto(STORE)
         top_state = top.evaluate("async () => (await fetch('/cart/state')).json()")
-        assert top_state["lines"] == []
+        assert top_state["lines"] == (state(a)["body"]["lines"] if same_site else [])
         assert state(a)["body"]["lines"][0]["quantity"] == 1
         top.close()
-        record("top-level Storefront has separate partition")
+        record(
+            "top-level Storefront shares cart"
+            if same_site
+            else "top-level Storefront has separate partition"
+        )
         tab = page_for(context)
         tab.goto(PANEL)
         expect(tab.locator("#task-status")).to_contain_text("another tab", timeout=15000)
@@ -310,21 +373,49 @@ def journey(browser, context, a):
         expect(frame_for(a).locator("#cart-feedback")).to_contain_text("التراجع")
         assert state(a)["body"]["lines"] == []
         record("Undo restores exact cart")
+        # Reconnect a session with an actual Agent Mutation to detect duplicate execution.
+        mutations = []
+        b.on(
+            "request",
+            lambda request: mutations.append(request.url)
+            if request.method == "POST" and request.url.startswith(STORE + "/cart/")
+            else None,
+        )
+        navigate(b, "/cart")
+        expect(frame_for(b).locator('[data-testid="empty-cart"]')).to_be_visible()
+        b.locator("#shopper-message").fill("Empty my cart")
+        b.get_by_role("button", name="إرسال", exact=True).click()
+        confirmation = b.locator(".confirmation-card")
+        expect(confirmation).to_contain_text("Remove every item", timeout=15000)
+        confirmation.get_by_role("button", name="Confirm", exact=True).click()
+        expect(b.locator("#task-status")).to_have_attribute(
+            "data-task-state", "completed", timeout=15000
+        )
+        assert state(b)["body"]["lines"] == []
+        mutation_count = len(mutations)
+        assert mutation_count > 0
         revision = state(b)["body"]["revision"]
         prior_streams = len(streams)
+        cursor = b.evaluate("localStorage.getItem('shopping-copilot.event-cursor')")
+        assert int(cursor) > 0
         assert prior_streams >= 1
-        b_context.set_offline(True)
-        b.wait_for_timeout(1200)
-        b_context.set_offline(False)
+        disconnected = b.evaluate(
+            "async () => (await fetch('/__probe/disconnect-sse',{method:'POST'})).json()"
+        )
+        assert disconnected["disconnected"] == 1, disconnected
         deadline = time.monotonic() + 20
         while len(streams) <= prior_streams and time.monotonic() < deadline:
             b.wait_for_timeout(100)
         assert len(streams) > prior_streams, "SSE did not actually reconnect"
+        assert streams[-1]["last_event_id"] == cursor, streams[-1]
+        # Observe more than two server event polling intervals after restoration.
+        b.wait_for_timeout(1500)
         expect(b.locator("#shopper-message")).to_be_enabled(timeout=15000)
         assert state(b)["body"]["revision"] == revision
+        assert len(mutations) == mutation_count
         record(
-            "SSE connection restoration (Action replay unverified)",
-            {"new_streams": len(streams) - prior_streams, "cursor": streams[-1]},
+            "SSE reconnect after Agent Mutation: no duplicate cart request or revision",
+            {"new_streams": len(streams) - prior_streams, **streams[-1]},
         )
         # Browser-side hostile Mutation must still fail without CSRF authority.
         denied = in_store(
@@ -390,10 +481,15 @@ def cleanup(processes, thumb, tls, report, result):
 
 
 def main():
+    global STORE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--allow-temporary-user-ca", action="store_true")
     parser.add_argument("--channel", choices=["chromium", "chrome", "msedge"], default="chromium")
+    parser.add_argument("--layout", choices=["cross-site", "same-site"], default="cross-site")
     args = parser.parse_args()
+    if args.layout == "same-site":
+        STORE = "https://store.copilot.test:4443"
+    RESULT["layout"] = args.layout
     if os.name != "nt" or not args.allow_temporary_user_ca:
         parser.error("Windows only; requires explicit --allow-temporary-user-ca approval")
     DIR.mkdir(parents=True, exist_ok=True)
@@ -424,6 +520,7 @@ def main():
             COPILOT_PANEL_ORIGIN=PANEL,
             COPILOT_STORE_PRIVATE_URL="http://127.0.0.1:4000",
             COPILOT_CATALOGUE_DB=str(DIR / "catalogue.sqlite"),
+            COPILOT_PROBE_LAYOUT=args.layout,
         )
         node = shutil.which("node")
         command(
@@ -456,14 +553,15 @@ def main():
         for port in (4000, 8000, 4443):
             wait_port(port)
         with sync_playwright() as pw:
-            test(IsolatedBrowsers(pw, args.channel))
+            experiment = test_same_site if args.layout == "same-site" else test
+            experiment(IsolatedBrowsers(pw, args.channel))
         RESULT["outcome"] = "passed"
     except Exception as error:
         RESULT["outcome"] = "failed"
         RESULT["error"] = str(error)[:1600]
         raise
     finally:
-        cleanup(PROCESSES, thumb, TLS, DIR / f"result-{args.channel}.json", RESULT)
+        cleanup(PROCESSES, thumb, TLS, DIR / f"result-{args.channel}-{args.layout}.json", RESULT)
 
 
 if __name__ == "__main__":

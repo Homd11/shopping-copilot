@@ -9,7 +9,10 @@ import { resolve, extname, sep } from "node:path";
 const root = process.cwd();
 const dir = resolve(root, ".scratch/cap04-cloud-readiness/probe");
 const panel = "https://panel.copilot.test:4443";
-const store = "https://store.merchant.test:4443";
+const sameSite = process.env.COPILOT_PROBE_LAYOUT === "same-site";
+const store = sameSite
+  ? "https://store.copilot.test:4443"
+  : "https://store.merchant.test:4443";
 const replaceOrigins = (value) =>
   value
     .replaceAll("http://localhost:8000", panel)
@@ -19,17 +22,53 @@ const tls = {
   key: readFileSync(resolve(dir, "tls/leaf.key")),
   cert: readFileSync(resolve(dir, "tls/leaf.pem")),
 };
+const streams = new Set();
 https
   .createServer(tls, (req, res) => {
     const host = req.headers.host;
-    const isStore = host === "store.merchant.test:4443";
-    if (!isStore && host !== "panel.copilot.test:4443") {
+    const isStore = host === new URL(store).host;
+    const isControl = sameSite && host === "store.merchant.test:4443";
+    if (!isStore && !isControl && host !== "panel.copilot.test:4443") {
       res.writeHead(421).end();
       return;
     }
     const path = new URL(req.url, panel).pathname;
+    if (!isStore && !isControl && path === "/__probe/disconnect-sse") {
+      if (
+        req.method !== "POST" ||
+        req.headers.origin !== panel ||
+        !req.headers.cookie
+      ) {
+        res.writeHead(403).end();
+        return;
+      }
+      let disconnected = 0;
+      for (const stream of [...streams]) {
+        if (stream.cookie === req.headers.cookie) {
+          stream.response.destroy();
+          disconnected++;
+        }
+      }
+      res
+        .writeHead(200, {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-store",
+        })
+        .end(JSON.stringify({ disconnected }));
+      return;
+    }
+
+    if (isControl && path === "/__probe/control-frame") {
+      res
+        .writeHead(200, {
+          "Content-Type": "text/html",
+          "Cache-Control": "no-store",
+        })
+        .end("<!doctype html><html><body>cookie control</body></html>");
+      return;
+    }
     // Independently prove browser third-party blocking inside the actual iframe.
-    if (isStore && path === "/__probe/cookie-control") {
+    if ((isStore || isControl) && path === "/__probe/cookie-control") {
       res
         .writeHead(200, {
           "Cache-Control": "no-store",
@@ -41,7 +80,7 @@ https
         .end("ok");
       return;
     }
-    if (isStore && path === "/__probe/cookie-echo") {
+    if ((isStore || isControl) && path === "/__probe/cookie-echo") {
       const names = new Set(
         (req.headers.cookie ?? "")
           .split(";")
@@ -58,6 +97,10 @@ https
             partitioned: names.has("probe_partitioned"),
           }),
         );
+      return;
+    }
+    if (isControl) {
+      res.writeHead(404).end();
       return;
     }
     if (!isStore && (path === "/" || path.startsWith("/assets/"))) {
@@ -102,6 +145,15 @@ https
           });
         }
         res.writeHead(response.statusCode, headers);
+        res.flushHeaders();
+        if (
+          !isStore &&
+          String(headers["content-type"]).includes("text/event-stream")
+        ) {
+          const stream = { cookie: req.headers.cookie, response: res };
+          streams.add(stream);
+          res.on("close", () => streams.delete(stream));
+        }
         if (/javascript/.test(String(headers["content-type"]))) {
           let body = "";
           response.setEncoding("utf8");
