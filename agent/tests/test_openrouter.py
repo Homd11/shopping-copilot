@@ -218,7 +218,8 @@ def test_stream_is_buffered_until_complete_validation_and_records_first_content(
         assert client.call_metadata[-1].usage["cost"] == 0.001
 
 
-def test_bounded_openrouter_request_validates_output_and_records_cost():
+@pytest.mark.parametrize("model", ["google/gemini-2.5-flash", "google/gemini-3.5-flash-lite"])
+def test_bounded_openrouter_request_validates_output_and_records_cost(model):
     def handler(request):
         assert request.headers["authorization"] == "Bearer test-secret"
         if request.url.path.endswith("/key"):
@@ -234,8 +235,12 @@ def test_bounded_openrouter_request_validates_output_and_records_cost():
                 },
             )
         payload = json.loads(request.content)
-        assert payload["model"] == "google/gemini-2.5-flash"
-        assert payload["reasoning"] == {"enabled": False}
+        assert payload["model"] == model
+        assert payload["reasoning"] == (
+            {"effort": "minimal", "exclude": True}
+            if model == "google/gemini-3.5-flash-lite"
+            else {"enabled": False}
+        )
         assert payload["provider"]["max_price"] == {"prompt": 0.3, "completion": 2.5}
         assert payload["provider"]["require_parameters"] is True
         assert payload["provider"]["sort"] == "latency"
@@ -248,9 +253,16 @@ def test_bounded_openrouter_request_validates_output_and_records_cost():
             },
         )
 
-    client = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))
+    client = OpenRouterClient(
+        replace(settings(), model=model), transport=httpx.MockTransport(handler)
+    )
     assert collect(client) == ['{"ok":true}']
     assert client.call_metadata[-1].usage["cost"] == 0.001
+
+
+def test_unevaluated_model_cannot_bypass_the_bounded_model_policy():
+    with pytest.raises(ValueError, match="model"):
+        OpenRouterClient(replace(settings(), model="google/gemini-flash-latest"))
 
 
 @pytest.mark.parametrize(

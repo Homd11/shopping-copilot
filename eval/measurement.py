@@ -9,8 +9,14 @@ from pathlib import Path
 from time import perf_counter
 from uuid import uuid4
 
+from agent.advice import AdviceResponse
 from agent.cart import CART_ROUTES
 from agent.llm.intent import StructuredIntent
+
+
+def pipeline_error_diagnostic(error):
+    """Keep categories only; exception messages can contain rejected model text."""
+    return {"category": type(error).__name__}
 
 
 class MeasuredClient:
@@ -57,6 +63,9 @@ class MeasuredClient:
                     target_id=intent.cart_target_id,
                     request_mode=intent.request_mode,
                     needs_clarification=intent.needs_clarification,
+                    query_present=intent.constraints.query is not None,
+                    catalogue_requirement_count=len(intent.catalogue_requirements),
+                    catalogue_discovery=intent.catalogue_discovery,
                 )
                 context_text = request.system.split("Shopping Copilot intent context: ", 1)[-1]
                 context, _ = json.JSONDecoder().raw_decode(context_text)
@@ -65,6 +74,9 @@ class MeasuredClient:
                     for e in (context.get("current_snapshot") or {}).get("elements", [])
                     if e.get("role") == "button" and e.get("form_action") in CART_ROUTES.values()
                 ]
+            elif isinstance(intent, AdviceResponse):
+                diagnostic["advice_product_ids"] = intent.product_ids
+                diagnostic["advice_length"] = len(intent.message)
             return intent
 
         try:

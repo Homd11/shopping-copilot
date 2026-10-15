@@ -12,8 +12,11 @@ from agent.shopper_access import ShopperBinding
 
 
 def identity_config() -> dict[str, str]:
+    production = os.environ.get("COPILOT_ENV") == "production"
+    if production and len(os.environ.get("COPILOT_SERVICE_SECRET", "")) < 32:
+        raise ValueError("Explicit production service secret is required")
     path = Path(__file__).resolve().parents[1] / "work" / "local-identity.json"
-    saved = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    saved = json.loads(path.read_text(encoding="utf-8")) if not production and path.exists() else {}
     return {
         "secret": os.environ.get("COPILOT_SERVICE_SECRET", saved.get("secret", "")),
         "panel_origin": os.environ.get("COPILOT_PANEL_ORIGIN", "http://localhost:4100"),
@@ -43,6 +46,12 @@ class StorefrontService:
             raise ValueError("Run scripts/init_local_identity.py before starting services")
         for name in ("panel_origin", "store_origin", "private_url"):
             value = urlsplit(self.config[name])
+            host = value.hostname or ""
+            host = f"[{host}]" if ":" in host else host
+            port = value.port
+            canonical = f"{value.scheme}://{host}"
+            if port is not None and port != {"http": 80, "https": 443}.get(value.scheme):
+                canonical += f":{port}"
             local = value.hostname in {"localhost", "127.0.0.1", "::1"}
             if (
                 value.scheme not in {"http", "https"}
@@ -52,6 +61,10 @@ class StorefrontService:
                 or value.query
                 or value.fragment
                 or value.path
+                or canonical != self.config[name]
+                or any(c.isspace() or c in '\\"<>' for c in self.config[name])
+                or not value.hostname.isascii()
+                or any(not (c.isalnum() or c in "._-:") for c in value.hostname)
                 or (value.scheme == "http" and not local)
                 or (
                     name != "private_url"
@@ -60,6 +73,8 @@ class StorefrontService:
                 )
             ):
                 raise ValueError("Invalid configured service origin")
+        if self.config["panel_origin"] == self.config["store_origin"]:
+            raise ValueError("Panel and Storefront origins must differ")
 
     def _url(self, path: str) -> str:
         self.validate_configuration()

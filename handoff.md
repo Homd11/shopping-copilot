@@ -1,5 +1,83 @@
 # Shopping Copilot — project handoff
 
+## Publication — 2026-10-15
+
+Owner manual smoke test passed and push/merge was explicitly authorized. Delivery
+is [PR #2](https://github.com/Homd11/shopping-copilot/pull/2) to main; read that PR
+for its current CI/merge state. The outgoing history was scanned for secrets.
+Services run from the qualified managed worktree. The original checkout's dirty
+documents, older local main and configuration are preserved. Use the newest
+PROJECT_CHECKPOINT.md publication note over older "not pushed" historical text.
+
+## Replacement and durable allowance — 2026-10-15
+
+Use PROJECT_CHECKPOINT.md for the latest frontier. Gemini 3.5 Flash-Lite is qualified
+and selected in this managed worktree's ignored configuration; original checkout
+code/configuration and its unrelated dirty documents are unchanged. See the
+[replacement record](docs/research/2026-10-15-gemini-replacement.md): 43/44 core,
+all 19 safety/all 9 filters/all 7 advice pass; one cart-increase clarification remains
+a disclosed failure. Final set cost $0.09501011 under $0.12; total key cap $2/Never
+unchanged. The approved qualification sets are finished; do not silently repeat them.
+
+Local CAP-04 ticket 05 resolves durable inference accounting; see
+[owner controls](docs/cap04-inference-allowance.md). Production requires the external
+ledger/configuration; never reset uncertain reservations or restore an older balance.
+Guarded server speech is disabled pending audio accounting. Full checks pass:
+665 Python/198 TypeScript, builds/typechecks and lint/format. Main changes have
+independent review clearance; the final small evaluation continuation delta has
+self-review/tests because reviewers exhausted their usage. Work is local, not pushed.
+Next frontier 02/04/06; prefer 04 invited admission. AWS/DNS remain untouched and
+CAP-04 stays open. Preserve the original checkout's uncommitted documents when
+eventually integrating the managed worktree.
+
+## CAP-04 production origins — 2026-10-14
+
+Use PROJECT_CHECKPOINT.md for current status. Local ticket 03 is resolved:
+[configured HTTPS evidence](docs/research/2026-10-14-cap04-production-origins.md)
+and [run instructions](deploy/README.md). Both installed Chrome/Edge runs, 627
+Python tests, 198 TypeScript tests, builds/typechecks and lint/format pass.
+The three Spec review findings were reproduced and fixed; no unresolved review
+finding remains. Existing journal placement and shopping semantics are retained.
+Current frontier is 02/04/05; prefer durable inference allowance (05) next.
+AWS and public DNS remain untouched, paid inference unchanged, Android/deployed
+acceptance pending. Work is committed locally, not pushed. Parent CAP-04 is open.
+
+## CAP-04 domain amendment — 2026-10-14
+
+Use PROJECT_CHECKPOINT.md for the latest frontier. The owner supplied `scpilot.tech`
+and approved sibling `app`/`store` HTTPS origins. See [the passing desktop browser
+comparison](docs/research/2026-10-14-cap04-sibling-hostnames.md) and
+[DNS/HTTPS preparation](docs/cap04-domain-https-plan.md). Ticket 01 is resolved for
+local desktop feasibility; 03 can implement real origin configuration. 02 still
+needs current account/network/cost evidence and 05 remains independent. Do not
+implement the superseded no-domain journal migration. No runtime changes, DNS
+writes, AWS resources or paid calls occurred. Android and deployed acceptance
+remain open; the parent CAP-04 is not closed.
+
+## CAP-04 cross-site probe — 2026-10-13
+
+Current frontier is in PROJECT_CHECKPOINT.md. The
+[browser experiment](docs/research/2026-10-13-cap04-browser-proof.md) found that
+partitioned cookies alone do not make the proposed unrelated-site topology work:
+Chrome/Edge privacy settings deny the iframe sessionStorage used by Bridge recovery.
+Ticket 01 records a negative result; 03 remains blocked. Resolve the recovery-storage
+or serving-topology design before adoption. Runtime code is unchanged; no AWS or
+paid inference was used. All temporary test certificates were removed.
+
+## CAP-04 specification and tickets published — 2026-10-11
+
+The [specification](docs/cap04-spec.md) and [nine-ticket breakdown](docs/cap04-ticket-breakdown.md)
+reflect the confirmed browser, invitation and on-demand availability decisions.
+Individual ready-for-agent tickets are in the ignored `.scratch/cap04-cloud-readiness/`
+tracker in the active worktree. Start with 01 (cross-site HTTPS identity proof).
+Lambda wake remains conditional on account eligibility and complete costing; manual
+startup is the fallback, with automatic stop after 60 minutes of genuine inactivity.
+CAP-04 is open, its parent unchanged, and deployment remains a later gate.
+
+## CAP-04 design revision — 2026-10-11
+
+Use the [current design](docs/superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) and PROJECT_CHECKPOINT.md. One EC2 host plus SQLite remains the direction; public ingress, browser identity, account eligibility and all-in costing need proof. CAP-04 remains open. No cloud resources or runtime changes. PR #1 is merged into GitHub main (`0a7836d`); historical no-push statements below describe earlier turns.
+
 ## CAP-02 and CAP-03 closed — 2026-10-09
 
 Closed under the explicitly approved synthetic benchmark amendment. See

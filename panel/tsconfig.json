@@ -8,5 +8,5 @@
     "noEmit": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src", "tests", "../bridge/src/types.ts"]
+  "include": ["src", "tests", "vite.config.ts", "../bridge/src/types.ts"]
 }

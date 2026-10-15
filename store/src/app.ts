@@ -12,6 +12,7 @@ import {
   type ShopperState,
 } from "./shopper-state.js";
 import { shopperHttp, shopper } from "./shopper-http.js";
+import { validatePublicOrigin } from "../../bridge/src/public-origins.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type CartLine } from "./guarded-cart.js";
@@ -148,7 +149,17 @@ export function createApp(options: {
     express.static(resolve(sourceDirectory, "../../bridge/dist")),
   );
 
-  const audience = options.panelOrigin ?? "http://localhost:4100";
+  const production = process.env.COPILOT_ENV === "production";
+  const audience = validatePublicOrigin(
+    options.panelOrigin ?? "http://localhost:4100",
+    production,
+  );
+  const origin = validatePublicOrigin(
+    options.origin ?? "http://localhost:4000",
+    production,
+  );
+  if (audience === origin)
+    throw new Error("Panel and Storefront origins must differ");
   const tickets = new LinkTickets(options.clock);
   app.use(
     "/__internal",
@@ -161,9 +172,10 @@ export function createApp(options: {
   );
   app.use(
     shopperHttp(registry, {
-      origin: options.origin ?? "http://localhost:4000",
-      secure: (options.origin ?? "").startsWith("https:"),
-      evaluation: options.evaluation === true,
+      origin,
+      panelOrigin: audience,
+      secure: origin.startsWith("https:"),
+      evaluation: !production && options.evaluation === true,
     }),
   );
   app.use("/__copilot", browserLinkRoutes(tickets, audience));

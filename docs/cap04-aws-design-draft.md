@@ -1,5 +1,7 @@
 # CAP-04: AWS design decision brief
 
+**11 October revision:** This document is historical. Use the [current cloud-readiness design](superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md), which supersedes the supervised single-shopper/shared-cart and coordinated-reset assumptions below. The public ingress topology remains a candidate pending browser, account and cost evidence.
+
 Prepared: **6 October 2026**. Status: **recommendation for review; CAP-04 remains open**.
 
 **7 October update:** the owner requires credit-only operation with zero out-of-pocket payment, has created a Free-plan account ($100 credit and a 7 April 2027 plan end date shown in their screenshot), has no domain and wants a public link for independent testers. Read the [current constraints and 60-day estimate](cap04-credit-only-plan.md) and [pricing research](cap04-pricing-research.md) first. The supervised admission/domain proposal below is retained as an earlier option, not the selected design; public isolation and domain-free HTTPS remain unresolved.

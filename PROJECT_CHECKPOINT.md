@@ -1,6 +1,188 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-09
+**Last updated:** 2026-10-15
+
+## Publication after owner smoke test — 2026-10-15
+
+The owner tested the running Gemini3.5 checkout, accepted the result and explicitly
+authorized push and merge. Delivery is tracked in
+[PR #2](https://github.com/Homd11/shopping-copilot/pull/2), from
+`codex/cap04-design` into `main`; consult that PR for current integration/CI state.
+The seven outgoing implementation commits through `39f03ef` passed a full-history
+scan for known credentials and credential-shaped data. Keys, reports and local
+ledgers remain ignored. Services continue from the managed worktree. The original
+`D:/agent depi` checkout has unrelated uncommitted documents and was preserved;
+its local main/configuration are not synchronized by the remote merge.
+The qualification results and next frontier02/04/06 below remain unchanged.
+
+## Qualified replacement and durable allowance completed — 2026-10-15
+
+OpenRouter `google/gemini-3.5-flash-lite` replaces the retiring 2.5 route in the
+ignored configuration of this managed worktree. The separate original checkout
+has older code and unrelated uncommitted documents; its configuration is unchanged.
+Run the qualified implementation from this worktree until integration preserves
+those documents. See [replacement evidence](docs/research/2026-10-15-gemini-replacement.md).
+The accepted `intent-v32` cohort passes 43/44 core scenarios, all 19 safety cases,
+all 9 filters and all 7 advice cases. Median model latency is 2.007s, p95 4.108s.
+One relative cart increase incorrectly chose add and asked for variant details;
+it remains a recorded task failure. Earlier failed cohorts are retained.
+
+The final additional set used 72 POSTs/$0.09501011 within its approved $0.12.
+The total key limit remains $2, reset Never; a final read reports usage 1.415450882
+and remaining 0.584549118. No more paid calls were made after that verification.
+Candidate reasoning uses minimal effort. General prompt/schema descriptions
+separate literal name search from canonical type filters; read-only advice no
+longer limits owned outfits/soft colours to store vocabulary. No runtime phrase
+rules, query rewriting or safety-authority changes were added.
+
+CAP-04 local ticket 05 is resolved: [owner instructions and acceptance](docs/cap04-inference-allowance.md).
+An explicitly initialized SQLite ledger atomically reserves before shared model
+entry, reconciles verified native costs once, retains uncertain charges, and never
+recreates missing initialized storage. Persistent disable, finite queue/concurrency,
+crash/reopen, duplicate, missing/corrupt/read-only/full storage and actual
+interpretation/advice/repair paths are covered. Production real providers require
+this configuration. Paid server speech is disabled when guarded until audio has
+equivalent accounting; typing/browser speech remain available. No deployment
+ledger, AWS resource or public DNS was created.
+
+Verification: **665 Python tests passed in 501.35s**, **198 TypeScript tests passed**,
+build/type checks, lint and full formatting passed. Independent Standards/Spec
+reviews cleared the main runtime and prompt changes after regressions fixed their
+findings. Reviewers hit their usage limit on the final small qualification
+claim/continuation delta; it was self-reviewed and regression-tested, not independently
+cleared. Qualification runtime source hashes match the accepted run.
+
+Current frontier: 02 account/network feasibility, 04 invited admission, 06 release and
+restart rehearsal. Prefer 04 next; 06 is now unblocked by 03/05. CAP-04 remains open;
+Bedrock pricing/access and cloud acceptance remain later gates. Changes are local,
+not pushed. Keep keys, local ledgers, raw reports and scratch tracker ignored.
+
+## CAP-04 production origin journey completed — 2026-10-14
+
+Ticket 03 is resolved for local production-style configuration. See the
+[implementation evidence](docs/research/2026-10-14-cap04-production-origins.md) and
+[operating instructions](deploy/README.md). Panel builds use validated public
+origins; Storefront HTML supplies validated origin metadata to Bridge. Caddy serves
+built assets and proxies fixed loopback services without asset rewriting. Public
+private/test routes are blocked; production requires explicit service secrets and
+disables evaluation endpoints. Existing Strict host-only cookies, journal,
+Confirmation, Undo and uncertain-action recovery remain in place. SSE now supplies
+idle keepalive comments without advancing cursors or touching activity.
+
+Installed Chrome 155.0.8059.40 and Edge 155.0.4283.45 passed the configured sibling
+HTTPS journey with independently verified third-party blocking. Browser reads
+confirm initial/periodic heartbeat delivery after Caddy; native cursor reconnect
+following a completed cart Mutation produces no duplicate cart POST/revision.
+Stop preserves the cart while cancelling pending Confirmation. Unknown Host and
+public private/test paths are rejected; personal HTML/cart responses are no-store.
+Temporary test CAs and keys were removed and independently checked.
+
+Verification: **627 Python tests passed in 474.65s**, **198 TypeScript tests passed**,
+builds/typechecks and repository lint/format passed. Both independent reviews were
+completed; the Spec review's three material findings were reproduced and fixed
+with focused regression/browser evidence. No unresolved findings are recorded.
+No prompts, paid calls, provider caps, public DNS or AWS resources changed.
+Work is committed locally on `codex/cap04-design`, not pushed.
+
+Current frontier: 02 account/network cost feasibility, 04 invited admission and
+05 durable inference allowance. Prefer 05 next for bounded independent local work;
+04 remains available. AWS ingress selection, current account/credit evidence,
+Android hardware, release/restart, lifecycle, capacity and deployed acceptance are
+still open. Parent CAP-04 remains open and unchanged. Do not deploy the evaluation
+fault-injection servers or treat the supplied-certificate Caddy rehearsal as
+public certificate issuance.
+
+## CAP-04 domain decision and passing sibling-hostname proof — 2026-10-14
+
+The owner purchased `scpilot.tech` through .tech Domains and approved
+`app.scpilot.tech` (Panel/Agent) and `store.scpilot.tech` (Storefront). This replaces
+the no-domain constraint only; AWS remains Free-plan/credit-only. The earlier
+first-party journal proposal is superseded before implementation. Existing
+production cookies, Bridge journal and recovery are unchanged.
+
+[Browser comparison](docs/research/2026-10-14-cap04-sibling-hostnames.md): installed
+Chrome 155.0.8059.40 and Edge 155.0.4283.45 pass the sibling HTTPS layout with
+verified third-party blocking using an independent unrelated iframe. Storefront
+sessionStorage is available, DOM origins remain isolated, and original host-only
+Strict/Secure/HttpOnly cookies work. The journey covers separate carts, product/add,
+refresh, second-tab ownership requirement, Confirmation, Undo and a real SSE
+reconnect after an Agent cart Mutation. The native Last-Event-ID is checked;
+cart POST count/revision remain unchanged. It does not qualify every in-flight
+recovery case or a completed tab takeover. Temporary CAs/private keys were removed.
+
+Ticket 01 resolves desktop layout feasibility under this approved amendment;
+03 is unblocked. Current frontier: 02 account/network costing, 03 production origin
+configuration, 05 durable inference allowance. Next implement 03: replace probe
+asset rewriting with actual configured origins and a production-style proxy.
+The [DNS/HTTPS plan](docs/cap04-domain-https-plan.md) specifies the chosen public
+names and conditional certificate/DNS sequence. Public NS delegation was read;
+no DNS edits, AWS APIs/resources, paid inference or push occurred. Android hardware,
+account entitlement, actual public TLS, all-in cost and deployed acceptance remain
+open. Parent CAP-04 remains open and unchanged.
+
+Verification: both installed-browser runs, 182 TypeScript tests, two cleanup
+regressions, builds/typechecks and repository format/lint passed. Both independent
+reviews have no remaining findings after synchronizing the frontier. The full
+Python application suite was not repeated for this probe/documentation-only change;
+its prior result remains historical evidence. Work is committed locally, not pushed.
+
+## CAP-04 browser feasibility: negative result — 2026-10-13
+
+Ticket 01's disposable HTTPS experiment found a blocker; see the
+[browser report](docs/research/2026-10-13-cap04-browser-proof.md) and
+[reproducible probe](eval/probes/README.md). Installed Chrome 154.0.8037.98 and
+Edge 155.0.4283.45 reject Strict and unpartitioned Storefront cookies under verified
+third-party blocking. Partitioned cookies restore cart HTTP access, but iframe
+`sessionStorage` throws SecurityError, stopping Bridge initialization. Earlier
+CDP-only Chromium journey success is preliminary and does not qualify this topology.
+
+Ticket 01 is needs-triage with an explicit negative outcome; ticket 03 remains
+blocked on a successful supported-browser proof. Next design work must preserve
+the Action journal and navigation recovery without assuming iframe sessionStorage,
+or revise the serving topology. Do not insert a memory-only fallback, adopt the
+proxy as production infrastructure, or ask Shoppers to disable privacy. Independent
+02 (account/network feasibility) and 05 (durable allowance) remain available.
+
+No production sources, AWS resources or paid model calls changed. Temporary
+name-constrained user-store CAs were explicitly approved, installed for each run,
+removed by exact thumbprint and checked absent; generated private keys were removed.
+Verification: 619 existing Python regressions passed in 512 seconds; the two new
+cleanup failure tests passed separately after their red/green fix. All 182
+TypeScript tests, workspace builds, repository formatting and lint passed. Both
+independent review findings are resolved. This verifies the unchanged local
+application and probe safeguards, not the failed cloud topology. Parent CAP-04 stays open.
+
+## CAP-04 specification and tickets published — 2026-10-11
+
+The owner confirmed the design and availability decisions after review. The
+[specification](docs/cap04-spec.md) and [nine-ticket breakdown](docs/cap04-ticket-breakdown.md)
+are finalized. The ignored local tracker contains the ready-for-agent specification
+and nine individual tickets under `.scratch/cap04-cloud-readiness/` in this worktree.
+Initial frontier: 01 (cross-site HTTPS browser proof), 02 (account/network costing),
+and 05 (durable inference allowance); begin with 01.
+
+Approved: desktop Chrome/Edge and Android Chrome, five simultaneous Shoppers as a
+test target, one revocable invitation per tester/testing window, and shutdown after
+60 minutes of genuine inactivity. Lambda wake is conditional on eligibility and
+complete costing; wake requires an invitation and manual start remains the fallback.
+Tests must protect active work through drain/stop races and preserve invitation
+expiry, allowance accounting and uncertain Action outcomes across restart.
+CAP-04 remains open; its parent ticket is unchanged. This publication changes no
+runtime code and creates no AWS resources or additional spending authorization.
+
+## CAP-04 design revision — 2026-10-11
+
+The owner approved retaining one EC2 host and SQLite while resolving public HTTPS,
+persistence and spending controls before deployment. The [revised design](docs/superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) supersedes old single-shopper assumptions; it preserves the implemented asymmetric Agent/Storefront restart behavior.
+Two generated CloudFront HTTPS origins with a VPC origin remain a candidate, not a
+selected or provisioned topology. Cross-site iframe identity, Free-plan entitlement,
+complete egress and pricing remain unresolved. Catalogue storage is distinct from
+ephemeral carts/tasks and the proposed durable spending ledger. Next: review the
+published ticket 01 and run its disposable local browser identity rehearsal.
+CAP-04 remains open. No AWS account access, resources, paid calls or runtime changes.
+
+GitHub PR #1 merged as `0a7836d` after both CI runs passed. The preceding CI fixes
+added missing evaluation dependencies and clean-checkout health-check prerequisites.
 
 ## CAP-02 / CAP-03 closed under approved synthetic scope — 2026-10-09
 
