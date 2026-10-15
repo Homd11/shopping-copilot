@@ -1,5 +1,14 @@
 # Shopping Copilot — project handoff
 
+## Publication — 2026-10-15
+
+Owner manual smoke test passed and push/merge was explicitly authorized. Delivery
+is [PR #2](https://github.com/Homd11/shopping-copilot/pull/2) to main; read that PR
+for its current CI/merge state. The outgoing history was scanned for secrets.
+Services run from the qualified managed worktree. The original checkout's dirty
+documents, older local main and configuration are preserved. Use the newest
+PROJECT_CHECKPOINT.md publication note over older "not pushed" historical text.
+
 ## Replacement and durable allowance — 2026-10-15
 
 Use PROJECT_CHECKPOINT.md for the latest frontier. Gemini 3.5 Flash-Lite is qualified

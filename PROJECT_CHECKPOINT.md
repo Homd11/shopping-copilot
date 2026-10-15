@@ -2,6 +2,19 @@
 
 **Last updated:** 2026-10-15
 
+## Publication after owner smoke test — 2026-10-15
+
+The owner tested the running Gemini3.5 checkout, accepted the result and explicitly
+authorized push and merge. Delivery is tracked in
+[PR #2](https://github.com/Homd11/shopping-copilot/pull/2), from
+`codex/cap04-design` into `main`; consult that PR for current integration/CI state.
+The seven outgoing implementation commits through `39f03ef` passed a full-history
+scan for known credentials and credential-shaped data. Keys, reports and local
+ledgers remain ignored. Services continue from the managed worktree. The original
+`D:/agent depi` checkout has unrelated uncommitted documents and was preserved;
+its local main/configuration are not synchronized by the remote merge.
+The qualification results and next frontier02/04/06 below remain unchanged.
+
 ## Qualified replacement and durable allowance completed — 2026-10-15
 
 OpenRouter `google/gemini-3.5-flash-lite` replaces the retiring 2.5 route in the
