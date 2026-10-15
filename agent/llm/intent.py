@@ -93,8 +93,21 @@ class IntentConstraints(IntentModel):
             "set needs_clarification=true and missing_fields=['category']."
         ),
     )
-    query: str | None = None
-    product_type: str | None = None
+    query: str | None = Field(
+        default=None,
+        description=(
+            "Literal product-name search or residual search terms not represented by "
+            "other constraints. Null for a category/type-only request. Do not duplicate "
+            "a product_type or translate its label into a product-name query."
+        ),
+    )
+    product_type: str | None = Field(
+        default=None,
+        description=(
+            "Canonical catalogue type for the desired product. A type alone does not "
+            "imply any additional feature or suitability requirement."
+        ),
+    )
     min_price: IntentMoney | None = None
     max_price: IntentMoney | None = None
     size: str | None = None
@@ -214,6 +227,20 @@ class StructuredIntent(IntentModel):
         if self.owned_item is not None and self.owned_item not in items:
             items.append(self.owned_item)
         return items
+
+    @property
+    def catalogue_discovery(self) -> bool:
+        return (
+            self.intent == "find_products"
+            and not self.needs_clarification
+            and bool(
+                self.catalogue_requirements
+                or self.price_preference is not None
+                or self.desired_wear_position is not None
+                or self.request_mode in {"recommend", "style"}
+                or self.context_items
+            )
+        )
 
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:

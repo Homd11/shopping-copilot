@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from agent.app import create_app
-from agent.llm import LLMSettings
+from agent.llm import LLMSettings, ScriptedLLMClient
 from agent.storefront_service import StorefrontService, identity_config
 
 
@@ -25,6 +25,19 @@ def test_production_requires_explicit_service_secret(monkeypatch):
     monkeypatch.delenv("COPILOT_SERVICE_SECRET", raising=False)
     with pytest.raises(ValueError, match="production"):
         identity_config()
+
+
+def test_production_real_provider_cannot_start_without_durable_allowance(monkeypatch):
+    monkeypatch.setenv("COPILOT_ENV", "production")
+    monkeypatch.setenv("COPILOT_SERVICE_SECRET", "test-only-production-service-secret")
+    for name in list(__import__("os").environ):
+        if name.startswith("INFERENCE_"):
+            monkeypatch.delenv(name)
+    with pytest.raises(ValueError, match="inference allowance"):
+        create_app(
+            llm_settings=LLMSettings(provider="nvidia", model="test-model"),
+            llm_client=ScriptedLLMClient(),
+        )
 
 
 @pytest.mark.parametrize(

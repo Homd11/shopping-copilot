@@ -1,6 +1,48 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-14
+**Last updated:** 2026-10-15
+
+## Qualified replacement and durable allowance completed — 2026-10-15
+
+OpenRouter `google/gemini-3.5-flash-lite` replaces the retiring 2.5 route in the
+ignored configuration of this managed worktree. The separate original checkout
+has older code and unrelated uncommitted documents; its configuration is unchanged.
+Run the qualified implementation from this worktree until integration preserves
+those documents. See [replacement evidence](docs/research/2026-10-15-gemini-replacement.md).
+The accepted `intent-v32` cohort passes 43/44 core scenarios, all 19 safety cases,
+all 9 filters and all 7 advice cases. Median model latency is 2.007s, p95 4.108s.
+One relative cart increase incorrectly chose add and asked for variant details;
+it remains a recorded task failure. Earlier failed cohorts are retained.
+
+The final additional set used 72 POSTs/$0.09501011 within its approved $0.12.
+The total key limit remains $2, reset Never; a final read reports usage 1.415450882
+and remaining 0.584549118. No more paid calls were made after that verification.
+Candidate reasoning uses minimal effort. General prompt/schema descriptions
+separate literal name search from canonical type filters; read-only advice no
+longer limits owned outfits/soft colours to store vocabulary. No runtime phrase
+rules, query rewriting or safety-authority changes were added.
+
+CAP-04 local ticket 05 is resolved: [owner instructions and acceptance](docs/cap04-inference-allowance.md).
+An explicitly initialized SQLite ledger atomically reserves before shared model
+entry, reconciles verified native costs once, retains uncertain charges, and never
+recreates missing initialized storage. Persistent disable, finite queue/concurrency,
+crash/reopen, duplicate, missing/corrupt/read-only/full storage and actual
+interpretation/advice/repair paths are covered. Production real providers require
+this configuration. Paid server speech is disabled when guarded until audio has
+equivalent accounting; typing/browser speech remain available. No deployment
+ledger, AWS resource or public DNS was created.
+
+Verification: **665 Python tests passed in 501.35s**, **198 TypeScript tests passed**,
+build/type checks, lint and full formatting passed. Independent Standards/Spec
+reviews cleared the main runtime and prompt changes after regressions fixed their
+findings. Reviewers hit their usage limit on the final small qualification
+claim/continuation delta; it was self-reviewed and regression-tested, not independently
+cleared. Qualification runtime source hashes match the accepted run.
+
+Current frontier: 02 account/network feasibility, 04 invited admission, 06 release and
+restart rehearsal. Prefer 04 next; 06 is now unblocked by 03/05. CAP-04 remains open;
+Bedrock pricing/access and cloud acceptance remain later gates. Changes are local,
+not pushed. Keep keys, local ledgers, raw reports and scratch tracker ignored.
 
 ## CAP-04 production origin journey completed — 2026-10-14
 

@@ -69,11 +69,15 @@ def generation_id(value):
 
 
 class OpenRouterClient:
+    price_ceiling = ("0.3", "2.5")
+
     def __init__(self, settings: LLMSettings, *, transport: httpx.AsyncBaseTransport | None = None):
         if settings.provider != "openrouter" or not settings.api_key:
             raise LLMConfigurationError("OpenRouter requires its own API key")
-        if settings.model != "google/gemini-2.5-flash":
-            raise LLMConfigurationError("The paid evaluation pins google/gemini-2.5-flash")
+        if settings.model not in {"google/gemini-2.5-flash", "google/gemini-3.5-flash-lite"}:
+            raise LLMConfigurationError(
+                "OpenRouter model is outside the bounded qualification policy"
+            )
         self._settings = settings
         self._transport = transport
         self._lock = asyncio.Lock()
@@ -101,11 +105,18 @@ class OpenRouterClient:
                 "temperature": request.temperature,
                 "max_tokens": request.max_tokens,
                 "stream": self._settings.stream,
-                "reasoning": {"enabled": False},
+                "reasoning": (
+                    {"effort": "minimal", "exclude": True}
+                    if self._settings.model == "google/gemini-3.5-flash-lite"
+                    else {"enabled": False}
+                ),
                 "provider": {
                     "sort": "latency",
                     "require_parameters": True,
-                    "max_price": {"prompt": 0.3, "completion": 2.5},
+                    "max_price": {
+                        "prompt": float(self.price_ceiling[0]),
+                        "completion": float(self.price_ceiling[1]),
+                    },
                 },
             }
             if request.tools:

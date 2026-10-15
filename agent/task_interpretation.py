@@ -500,6 +500,18 @@ def fail_interpretation(
     task.status = "paused"
     task.model_call_id = None
     messages = {
+        "inference_busy": (
+            "المساعد مشغول الآن. لم يُرسل طلبك للنموذج؛ جرّب بعد قليل.",
+            "The assistant is busy. Your request was not sent to the model; retry shortly.",
+        ),
+        "inference_disabled": (
+            "طلبات المساعد متوقفة مؤقتًا. لم يتم تنفيذ أي إجراء تسوّق.",
+            "Inference is temporarily disabled. No shopping action was taken.",
+        ),
+        "inference_unavailable": (
+            "تعذر التحقق من ميزانية المساعد بأمان، فتوقفت المهمة قبل أي إجراء.",
+            "The inference allowance could not be verified safely; no action was taken.",
+        ),
         "budget": (
             "توقفنا قبل إرسال الطلب للحفاظ على ميزانية التجربة. راجع حد الإنفاق المتاح.",
             "Stopped before sending the request to protect the trial budget. "

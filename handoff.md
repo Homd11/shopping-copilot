@@ -1,5 +1,26 @@
 # Shopping Copilot — project handoff
 
+## Replacement and durable allowance — 2026-10-15
+
+Use PROJECT_CHECKPOINT.md for the latest frontier. Gemini 3.5 Flash-Lite is qualified
+and selected in this managed worktree's ignored configuration; original checkout
+code/configuration and its unrelated dirty documents are unchanged. See the
+[replacement record](docs/research/2026-10-15-gemini-replacement.md): 43/44 core,
+all 19 safety/all 9 filters/all 7 advice pass; one cart-increase clarification remains
+a disclosed failure. Final set cost $0.09501011 under $0.12; total key cap $2/Never
+unchanged. The approved qualification sets are finished; do not silently repeat them.
+
+Local CAP-04 ticket 05 resolves durable inference accounting; see
+[owner controls](docs/cap04-inference-allowance.md). Production requires the external
+ledger/configuration; never reset uncertain reservations or restore an older balance.
+Guarded server speech is disabled pending audio accounting. Full checks pass:
+665 Python/198 TypeScript, builds/typechecks and lint/format. Main changes have
+independent review clearance; the final small evaluation continuation delta has
+self-review/tests because reviewers exhausted their usage. Work is local, not pushed.
+Next frontier 02/04/06; prefer 04 invited admission. AWS/DNS remain untouched and
+CAP-04 stays open. Preserve the original checkout's uncommitted documents when
+eventually integrating the managed worktree.
+
 ## CAP-04 production origins — 2026-10-14
 
 Use PROJECT_CHECKPOINT.md for current status. Local ticket 03 is resolved:

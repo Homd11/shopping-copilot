@@ -22,7 +22,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v31"
+PROMPT_VERSION = "intent-v32"
 
 
 class MissingExecutionField(ValueError):
@@ -155,6 +155,17 @@ def build_intent_request(
             "Use advice for conversational styling, product comparisons, explaining trade-offs, "
             "taste questions and follow-up preference changes. A separate read-only advisor "
             "will receive fresh catalogue facts and write the natural response. Select "
+            "find_products with request_mode=browse for opening a section or applying "
+            "Storefront filters. Represent a category/type/price/size/colour using its "
+            "dedicated constraint, not a duplicate query or catalogue_requirement. "
+            "A type name alone does not request an additional suitability or feature. "
+            "constraints.query is a literal product-name search: set it only for a "
+            "requested product name or residual search text not represented by other "
+            "constraints, and preserve the name's catalogue spelling when known. "
+            "Do not copy a translated product-type phrase into query. Keep separately "
+            "requested features, uses and exclusions in catalogue_requirements; never "
+            "drop them to make an ordinary filter executable. "
+            "Select "
             "advice_product_ids only from known_products/previous_suggestions/visible links "
             "when particular products are being compared; otherwise leave them empty. "
             "For advice or find_products ONLY, carry still-relevant constraints, owned items "
@@ -491,7 +502,14 @@ def _validate_interpreted_intent(
         require_known_product(product_id, state, snapshot, storefront)
     if intent.needs_clarification:
         return intent
-    if retrieval and intent.intent in {"find_products", "advice"}:
+    # Advice is read-only. Catalogue evaluation, not vocabulary membership, decides
+    # which requested facts are verified, unmet or unknown. Owned outfit context
+    # can describe items the Storefront does not sell.
+    if (
+        intent.intent == "advice"
+        or (intent.v >= 9 and intent.catalogue_discovery)
+        or (retrieval and intent.intent == "find_products")
+    ):
         return intent
     if intent.intent == "find_products" and intent.constraints.category is None:
         raise MissingExecutionField("category")
@@ -512,15 +530,6 @@ def _validate_interpreted_intent(
         )
         if requirement.value not in supported:
             raise ValueError("Unsupported catalogue property for this requirement kind")
-    for owned in intent.context_items:
-        if owned.category not in storefront.categories:
-            raise ValueError("Unsupported owned-item category")
-        if owned.product_type is not None and owned.product_type not in storefront.vocabulary.types:
-            raise ValueError("Unsupported owned-item type")
-        if owned.color is not None and owned.color not in storefront.vocabulary.colors:
-            raise ValueError("Unsupported owned-item color")
-    if any(color not in storefront.vocabulary.colors for color in intent.preferred_colors):
-        raise ValueError("Unsupported preferred color")
     if intent.intent == "mutate":
         validate_mutation_interpretation(message, intent)
     if (
