@@ -23,6 +23,11 @@ identity file. Do not put the value in this document, source, browser configurat
 or command history. Provider credentials and service secrets stay outside releases.
 The existing local development command paths retain their localhost defaults.
 
+Real-provider production startup also requires the explicitly initialized
+[durable inference allowance](../docs/cap04-inference-allowance.md). Keep that
+ledger outside releases and use one Agent worker; never restore an old balance
+when rolling back code. Scripted rehearsals make no paid calls.
+
 Build with the public environment in effect:
 
 ```powershell

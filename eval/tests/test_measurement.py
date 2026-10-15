@@ -9,7 +9,17 @@ from agent.llm.config import load_llm_settings
 from agent.llm.contract import LLMRequest
 from agent.llm.intent import StructuredIntent
 from agent.llm.openrouter import OpenRouterClient
-from eval.measurement import MeasuredClient
+from eval.measurement import MeasuredClient, pipeline_error_diagnostic
+
+
+def test_pipeline_error_diagnostic_never_contains_rejected_input():
+    with pytest.raises(ValueError) as caught:
+        StructuredIntent.model_validate({"v": "private-rejected-model-value"})
+    assert "private-rejected-model-value" in str(caught.value)
+    assert pipeline_error_diagnostic(caught.value) == {"category": "ValidationError"}
+    assert pipeline_error_diagnostic(ValueError("private-provider-detail")) == {
+        "category": "ValueError"
+    }
 
 
 def test_failed_attempt_is_durably_recorded_and_kept_separate_from_next_attempt(tmp_path):

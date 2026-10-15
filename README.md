@@ -97,6 +97,11 @@ The Agent checks the result before advancing or reporting completion.
 
 ## Verification and evidence
 
+The [15 October replacement qualification](docs/research/2026-10-15-gemini-replacement.md)
+records the move to Gemini 3.5 Flash-Lite through OpenRouter: 43/44 core scenarios,
+all 19 safety cases and all seven supplemental advice cases passed. Earlier failed
+cohorts and the remaining cart-increase clarification are disclosed in that record.
+
 The [8 October shopper-isolation verification](docs/shopper-isolation-verification.md)
 records the newer automated coverage and pre-deployment ownership boundary. Earlier
 CI and live-model results below retain their original dates and scope.
@@ -205,19 +210,24 @@ private-route proxy exclusion, global spending/abuse limits and model qualificat
 ### Optional live-model mode
 
 Adapters exist for OpenRouter, native Gemini, Groq, and NVIDIA NIM. Their presence
-does not imply equal evaluation coverage. The recorded cart evaluation used:
+does not imply equal evaluation coverage. The current qualified OpenRouter configuration is:
 
 ```dotenv
 LLM_PROVIDER=openrouter
-LLM_MODEL=google/gemini-2.5-flash
+LLM_MODEL=google/gemini-3.5-flash-lite
 OPENROUTER_API_KEY=your-local-key
 ```
 
 Set these only in your ignored `.env` and restart the Agent. The current OpenRouter
-adapter requires a **non-resetting key spending limit of at most $0.25** for bounded
-evaluation; it checks that allowance before paid calls and does not automatically
+adapter requires a **non-resetting key spending limit** no larger than the explicitly
+configured `OPENROUTER_TOTAL_CAP_DOLLARS` (default $0.25; supported maximum $2).
+Raising that value requires owner authorization. It checks the key allowance before
+paid calls and does not automatically
 retry or switch models. This is a project evaluation guard, not a production
-billing system. Never commit real keys or put them in browser code.
+billing system. Production also requires the
+[durable inference allowance](docs/cap04-inference-allowance.md).
+Never commit real keys or put them in browser code. Gemini 2.5 Flash results above
+remain historical; its OpenRouter route expires on 20 October 2026.
 
 ### Tests and quality checks
 

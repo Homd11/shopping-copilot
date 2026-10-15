@@ -68,13 +68,15 @@ qualification remain separate gates.
 
 **What to build:** The Agent admits a model request only when a durable global allowance covers it and keeps that protection through crashes, retries and restarts.
 
+**Status:** resolved locally, 15 October 2026. See [owner controls and verification](cap04-inference-allowance.md). Cloud/Bedrock verification remains separate.
+
 **Blocked by:** None — existing Agent request/provider seams support independent local work.
 
-- [ ] Reserve a conservative cost atomically before interpretation, advice and repair requests; use a deterministic fake provider and explicit test prices.
-- [ ] Reconcile known costs once, retain uncertain reservations and refuse further requests when allowance cannot cover them. Concurrent callers cannot over-reserve.
-- [ ] Interrupted requests, duplicate settlement and process restart never replenish allowance; corrupt/missing initialized storage disables inference rather than resetting it.
-- [ ] A persistent kill switch and finite queue/concurrency bounds prevent new model calls and expose a clear application state; no automatic provider fallback.
-- [ ] Read-only/full storage produces safe refusal. Keep runtime policy provider-neutral and leave Bedrock-specific adapter/price verification to CAP-05; preserve existing provider caps.
+- [x] Reserve a conservative cost atomically before interpretation, advice and repair requests; use a deterministic fake provider and explicit test prices.
+- [x] Reconcile known costs once, retain uncertain reservations and refuse further requests when allowance cannot cover them. Concurrent callers cannot over-reserve.
+- [x] Interrupted requests, duplicate settlement and process restart never replenish allowance; corrupt/missing initialized storage disables inference rather than resetting it.
+- [x] A persistent kill switch and finite queue/concurrency bounds prevent new model calls and expose a clear application state; no automatic provider fallback.
+- [x] Read-only/full storage produces safe refusal. Keep runtime policy provider-neutral and leave Bedrock-specific adapter/price verification to CAP-05; preserve existing provider caps.
 
 ## 06 — Rehearse release, catalogue restore and safe restart
 
@@ -138,8 +140,8 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02, 04 and 05. Ticket 03 resolved local production routing; 04 may
-implement invited admission, and 05 can enforce the durable inference allowance.
+Current frontier: 02, 04 and 06. Tickets 03/05 resolve local production routing and
+durable allowance; 04 may implement invited admission and 06 release/restart rehearsal.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.

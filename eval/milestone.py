@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 from playwright.sync_api import expect, sync_playwright
 
 from agent.llm import load_llm_settings
+from eval.browser_http import browser_post
 from eval.milestone_cases import CASES
 from eval.milestone_report import percentiles, summarize_run
 from eval.services import local_services
@@ -25,9 +26,19 @@ BASE = [
     {"product_id": "clothing-05", "size": "L", "color": "white", "quantity": 2},
     {"product_id": "shoe-02", "size": "42", "color": "white", "quantity": 1},
 ]
-INIT = """(() => {
+INIT = r"""(() => {
   window.__copilotEvaluation = true;
   window.gateResults = [];
+  window.gateSubmissions = [];
+  const originalFetch = window.fetch;
+  window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    if (response.status === 202 && /\/(messages|answers)$/.test(response.url)) {
+      const body = await response.clone().json();
+      window.gateSubmissions.push({url: response.url, task_id: body.task_id});
+    }
+    return response;
+  };
   addEventListener('message', e => {
     if (e.origin === 'http://localhost:4000') {
       if (e.data.type === 'evaluation_timing') window.__recordGate(e.data);
@@ -77,12 +88,14 @@ class Flow:
         self.result_bodies = []
         self.mutations = []
         self.started = time.perf_counter()
+        linked = browser_post(self.context, "http://localhost:8000/__eval/release")
+        assert linked.status == 200
         self.metrics_before = len(self.metrics())
         self.page.on("request", self.observe_request)
-        self.api.post("http://localhost:4000/__test/reset")
-        self.api.post("http://localhost:4000/__test/cart", data={"lines": BASE})
+        self.fixture_post("http://localhost:4000/__test/reset")
+        self.fixture_post("http://localhost:4000/__test/cart", data={"lines": BASE})
         if case.kind == "orders":
-            self.api.post(
+            self.fixture_post(
                 "http://localhost:4000/login",
                 form={"username": "gate@example.test", "password": "fictional-gate-password"},
             )
@@ -128,11 +141,14 @@ class Flow:
         else:
             self.timings.append(data)
 
+    def fixture_post(self, url, **kwargs):
+        return browser_post(self.context, url, **kwargs)
+
     def metrics(self):
-        return self.api.get("http://localhost:8000/__eval/metrics").json()["calls"]
+        return self.api.get("http://localhost:8000/__eval/metrics", max_retries=2).json()["calls"]
 
     def cart(self):
-        return self.api.get("http://localhost:4000/__test/cart-state").json()
+        return self.api.get("http://localhost:4000/__test/cart-state", max_retries=2).json()
 
     def assert_cart(self, expected):
         assert self.cart()["lines"] == expected, (
@@ -141,6 +157,7 @@ class Flow:
 
     def send(self, message, *, answer=False, stop_immediately=False):
         turn_started = time.perf_counter() * 1000
+        submission_index = self.page.evaluate("window.gateSubmissions.length")
         assert len(self.turns) < 5, "Per-case turn limit reached"
         selector = "#question-answer-input" if answer else "#shopper-message"
         free_answer = not answer or self.page.locator(selector).count() > 0
@@ -167,13 +184,23 @@ class Flow:
                     lambda r: r.request.method == "POST" and r.url.endswith("/stop")
                 ):
                     self.page.locator("#stop-task").click()
-                self.api.post("http://localhost:8000/__eval/release")
+                self.fixture_post("http://localhost:8000/__eval/release")
         response = pending.value
         assert response.status == 202, f"Message rejected: HTTP {response.status}"
         if not answer:
             self.session = response.url.removesuffix(suffix)
         self.tab = response.request.headers.get("x-tab-id", "")
-        task = response.json()["task_id"]
+        # Observe the browser-consumed response without CDP getResponseBody, which
+        # hung during the scripted regression with this browser build.
+        self.page.wait_for_function(
+            "([url, index]) => window.gateSubmissions.slice(index).some(s => s.url === url)",
+            arg=[response.url, submission_index],
+        )
+        task = self.page.evaluate(
+            "([url, index]) => window.gateSubmissions.slice(index)"
+            ".find(s => s.url === url).task_id",
+            [response.url, submission_index],
+        )
         turn = {"message": message, "task_id": task, "events": [], "started_ms": turn_started}
         self.turns.append(turn)
         deadline = time.monotonic() + 65
@@ -183,6 +210,7 @@ class Flow:
                     self.api.get(
                         self.session + "/events",
                         params={"once": "true", "tab_id": self.tab, "after": self.cursor},
+                        max_retries=2,
                     ).text()
                 )
             )
@@ -233,11 +261,11 @@ class Flow:
             )
             assert "0000 0000 0000 0000" not in snapshot
         if k == "stop":
-            self.api.post("http://localhost:8000/__eval/hold")
+            self.fixture_post("http://localhost:8000/__eval/hold")
             try:
                 turn = self.send(c.message, stop_immediately=True)
             finally:
-                self.api.post("http://localhost:8000/__eval/release")
+                self.fixture_post("http://localhost:8000/__eval/release")
             assert turn["outcome"] == "cancelled"
             deadline = time.monotonic() + 40
             while len(self.metrics()) == self.metrics_before and time.monotonic() < deadline:
@@ -377,7 +405,7 @@ class Flow:
                 self.assert_cart(expected)
             elif k == "duplicate":
                 count = len(self.mutations)
-                response = self.api.post(
+                response = self.fixture_post(
                     self.session + "/action-results",
                     data=self.result_bodies[-1],
                     headers={"X-Tab-ID": self.tab},
@@ -409,12 +437,16 @@ class Flow:
                 status=200,
                 content_type="text/event-stream",
                 body=body,
-                headers={"Access-Control-Allow-Origin": "http://localhost:4100"},
+                headers={
+                    "Access-Control-Allow-Origin": "http://localhost:4100",
+                    "Access-Control-Allow-Credentials": "true",
+                },
             )
 
         self.page.route(lambda url: ":8000/sessions/" in url and "/events?" in url, respond)
         self.page.reload()
         expect(self.frame.locator("h1")).to_be_visible()
+        expect(self.page.locator("#shopper-message")).to_be_enabled()
         self.frame.locator("body").evaluate("() => {location.href='/cart'}")
         expect(self.frame.locator("[data-cart-line]")).to_have_count(4)
 
@@ -448,6 +480,11 @@ class Flow:
         assert self.page.frame(url=re.compile("localhost:4000")) is not None
 
     def finish(self, failure):
+        self.budget_summary = (
+            self.api.get("http://localhost:8000/__eval/metrics", max_retries=2)
+            .json()
+            .get("qualification_budget")
+        )
         actions = self.actions
         timings = self.timings
         physical = {
