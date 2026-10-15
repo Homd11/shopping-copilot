@@ -16,6 +16,9 @@ from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
+from agent.inference.client import GuardedClient
+from agent.inference.config import configured_guard
+from agent.inference.ledger import InferenceRefused
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
@@ -77,6 +80,12 @@ class AdvanceTestTime(BaseModel):
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
+    if isinstance(error, InferenceRefused):
+        return {
+            "budget": "budget",
+            "busy": "inference_busy",
+            "disabled": "inference_disabled",
+        }.get(error.reason, "inference_unavailable")
     if isinstance(error, OpenRouterBudgetError):
         return "budget"
     if isinstance(error, GroqRateLimitError | GeminiRateLimitError):
@@ -106,7 +115,7 @@ def create_app(
     evaluation: bool = False,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
-    llm_client = llm_client or build_llm_client(settings)
+    llm_client = configured_guard(llm_client or build_llm_client(settings), settings)
     identity_settings = identity_config()
     service = storefront_service or StorefrontService(identity_settings)
 
@@ -142,7 +151,8 @@ def create_app(
         sessions,
         service,
         panel_origin=identity_settings["panel_origin"],
-        evaluation=settings.provider == "scripted"
+        evaluation=os.environ.get("COPILOT_ENV") != "production"
+        and settings.provider == "scripted"
         and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
@@ -247,17 +257,7 @@ def create_app(
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                 return
-            catalogue_discovery = (
-                intent.intent == "find_products"
-                and not intent.needs_clarification
-                and (
-                    intent.catalogue_requirements
-                    or intent.price_preference is not None
-                    or intent.desired_wear_position is not None
-                    or intent.request_mode in {"recommend", "style"}
-                    or intent.context_items
-                )
-            )
+            catalogue_discovery = intent.catalogue_discovery
             if intent.v >= 9 and (intent.intent == "advice" or catalogue_discovery):
                 phase = "catalogue"
                 catalogue = await catalogue_reader.read()
@@ -350,6 +350,8 @@ def create_app(
 
     @app.get("/speech/availability")
     async def speech_availability() -> dict[str, bool]:
+        if isinstance(llm_client, GuardedClient):
+            return {"available": False}
         if settings.provider != "openrouter" and speech_transcriber is None:
             return {"available": False}
         transcriber = speech_transcriber or OpenRouterSpeechTranscriber(settings)
@@ -360,6 +362,11 @@ def create_app(
 
     @app.post("/speech/transcribe")
     async def transcribe_speech(request: Request, language: Literal["ar", "en"]) -> dict[str, str]:
+        if isinstance(llm_client, GuardedClient):
+            raise HTTPException(
+                status_code=503,
+                detail="Server transcription is unavailable; use typing or browser speech",
+            )
         if request.headers.get("content-type", "").split(";", 1)[0] != "audio/webm":
             raise HTTPException(status_code=415, detail="WebM audio is required")
         content_length = request.headers.get("content-length", "0")

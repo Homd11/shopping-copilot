@@ -24,6 +24,9 @@ TaskStatus = Literal[
 
 InterpretationPauseReason = Literal[
     "budget",
+    "inference_busy",
+    "inference_disabled",
+    "inference_unavailable",
     "throttled",
     "timeout",
     "network",

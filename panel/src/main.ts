@@ -13,8 +13,15 @@ import "./styles.css";
 import { linkShopper } from "./shopper-link.js";
 import { subscribeAgentStream } from "./event-stream.js";
 
-const AGENT_ORIGIN = "http://localhost:8000";
-const STOREFRONT_ORIGIN = "http://localhost:4000";
+declare const __COPILOT_PUBLIC_ORIGINS__: {
+  panel: string;
+  store: string;
+  agent: string;
+};
+const AGENT_ORIGIN = __COPILOT_PUBLIC_ORIGINS__.agent;
+const STOREFRONT_ORIGIN = __COPILOT_PUBLIC_ORIGINS__.store;
+if (window.location.origin !== __COPILOT_PUBLIC_ORIGINS__.panel)
+  throw new Error("Panel was served on an unexpected origin");
 
 let browserCsrf = "";
 let shopperContext = "";

@@ -95,6 +95,40 @@ def send(client, session, text, snapshot=None, tab_id=None):
     return [event for event in events if event["data"].get("task_id") == task_id]
 
 
+@pytest.mark.parametrize("intent", ["advice", "find_products"])
+def test_owned_outfit_and_soft_colors_are_not_limited_to_store_inventory(intent):
+    model = RecordingModel(
+        decision(
+            intent=intent,
+            request_mode="style",
+            owned_items=[
+                {
+                    "category": "clothing",
+                    "product_type": "skirt",
+                    "color": "burgundy",
+                    "source": "my burgundy skirt",
+                }
+            ],
+            preferred_colors=["burgundy"],
+        ),
+        advice(
+            "In my opinion, the verified white shirt could complement your outfit.", ["white-shirt"]
+        ),
+    )
+    with client_for(model) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        observed = send(
+            client,
+            sid,
+            "I own my burgundy skirt; suggest a shirt to coordinate, maybe burgundy tones.",
+        )
+        assert any(e["event"] == "done" for e in observed)
+        assert not any(e["event"] == "action" for e in observed)
+        assert model.requests[-1].prompt_version == "advice-v4"
+        context = json.loads(model.requests[-1].messages[0].content)
+        assert context["intent"]["owned_items"][0]["product_type"] == "skirt"
+
+
 def test_advice_is_natural_read_only_and_followup_retains_shopper_correction():
     first = "القميص الأبيض خفيف حسب بيانات المتجر. تحبي تنسيق هادي ولا ملفت؟"
     second = "تمام، نخليها هادية. الأبيض ممكن يناسب الأسود في رأيي."
