@@ -111,11 +111,13 @@ class GuardedClient:
             except TimeoutError as error:
                 raise InferenceRefused("busy") from error
             acquired = True
+            await request.authorize()
             attempt = request.attempt_id or str(uuid4())
             bound = self.prices.reservation(request)
             await asyncio.to_thread(self.ledger.reserve, attempt, bound)
             chunks = []
             try:
+                await request.authorize()
                 async with aclosing(
                     self.client.complete(
                         replace(request, attempt_id=attempt, provider_attempt_limit=1)

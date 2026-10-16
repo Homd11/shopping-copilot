@@ -51,16 +51,20 @@ class SessionStore:
         planner: ScriptedPlanner | None = None,
         *,
         clock: Any = monotonic,
+        capacity: int = 800,
         confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool]
         | None = None,
     ) -> None:
-        self._registry = SessionRegistry(clock=clock)
+        self._registry = SessionRegistry(clock=clock, capacity=capacity)
         self._runtime = TaskRuntime(
             self._registry, planner or ScriptedPlanner(), clock, confirmation_registrar
         )
 
     def create(self, tab_id: str | None = None) -> Session:
         return self._registry.create(tab_id)
+
+    def has_capacity(self) -> bool:
+        return self._registry.has_capacity()
 
     def get(self, session_id: str) -> Session:
         return self._registry.get(session_id)

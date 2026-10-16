@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## Invited admission — 2026-10-16
+
+Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 04 is
+resolved on `codex/cap04-admission` from merged main `83fc92a`. Final full checks
+pass: 686 Python/browser tests, 199 TypeScript tests, builds/type checks, lint and
+formatting. See [owner controls](docs/cap04-invited-access.md).
+Independent Spec/Standards findings and the two-tab startup regression are fixed
+and reviewed. Local development remains opt-in; production requires explicit
+admission configuration. No real codes, participants, paid calls or cloud changes.
+This branch is not pushed. Next local work is 06 release/restart; 02 and parent
+CAP-04 remain open. Preserve the original checkout's dirty documents.
+
 ## Publication — 2026-10-15
 
 Owner manual smoke test passed and push/merge was explicitly authorized. Delivery

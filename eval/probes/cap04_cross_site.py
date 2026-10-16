@@ -29,6 +29,7 @@ FLAGS = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 PROCESSES = []
 RUNTIME = False
 CONTROL_SECRET = ""
+ADMISSION_CODE = ""
 RESULT = {"paid_calls": 0, "runtime_source_changes": False, "checks": []}
 
 
@@ -146,6 +147,13 @@ def page_for(context):
         },
     )
     return page
+
+
+def activate_runtime(page):
+    if RUNTIME:
+        expect(page.locator("#admission-code")).to_be_visible(timeout=15000)
+        page.locator("#admission-code").fill(ADMISSION_CODE)
+        page.locator(".admission-entry button").click()
 
 
 def frame_for(page):
@@ -290,6 +298,7 @@ def test_same_site(browser):
             response = page.goto(PANEL)
         assert response is not None and page.evaluate("window.isSecureContext")
         assert response.security_details()["protocol"] in {"TLS 1.2", "TLS 1.3"}
+        activate_runtime(page)
         expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
         accessible = in_store(
             page,
@@ -348,6 +357,7 @@ def journey(browser, context, a, *, same_site=False):
             else None,
         )
         b.goto(PANEL)
+        activate_runtime(b)
         expect(b.locator("#shopper-message")).to_be_enabled(timeout=15000)
         add(a, 1)
         add(b, 3)
@@ -598,7 +608,7 @@ def cleanup(processes, thumb, tls, report, result):
 
 
 def main():
-    global STORE, RUNTIME, CONTROL_SECRET
+    global STORE, RUNTIME, CONTROL_SECRET, ADMISSION_CODE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--allow-temporary-user-ca", action="store_true")
     parser.add_argument("--channel", choices=["chromium", "chrome", "msedge"], default="chromium")
@@ -652,6 +662,28 @@ def main():
         )
         CONTROL_SECRET = env["COPILOT_SERVICE_SECRET"]
         if RUNTIME:
+            # Keep the documented direct-file CLI independent of editable installs.
+            sys.path.insert(0, str(ROOT))
+            from agent.admission.runtime import FIELDS
+            from agent.admission.store import InvitationStore
+
+            admission_path = DIR / ("admission-" + secrets.token_hex(8) + ".sqlite")
+            admission_identity = InvitationStore.initialize(admission_path)
+            admission = InvitationStore(admission_path, admission_identity)
+            _, ADMISSION_CODE = admission.issue(
+                time.time() - 1, time.time() + 1800, redemptions=4, sessions=40
+            )
+            env.update(ADMISSION_DB_PATH=str(admission_path), ADMISSION_DB_ID=admission_identity)
+            limits = dict(
+                maximum_bytes=2621440,
+                global_rate=1000,
+                browser_rate=120,
+                maximum_requests=16,
+                maximum_streams=16,
+                maximum_sessions=20,
+                browser_sessions=2,
+            )
+            env.update({"ADMISSION_" + name: str(limits[key]) for key, name in FIELDS.items()})
             env.update(
                 COPILOT_ENV="production",
                 COPILOT_TLS_CERT=(TLS / "leaf.pem").as_posix(),

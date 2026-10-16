@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.responses import StreamingResponse
 
+from agent.admission.runtime import AdmissionClient, AdmissionPolicy, configured_admission
+from agent.admission.store import AdmissionDenied
 from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
@@ -113,9 +115,11 @@ def create_app(
     speech_transcriber: SpeechTranscriber | None = None,
     storefront_service: StorefrontService | None = None,
     evaluation: bool = False,
+    admission: AdmissionPolicy | None = None,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
     llm_client = configured_guard(llm_client or build_llm_client(settings), settings)
+    admission = admission or configured_admission()
     identity_settings = identity_config()
     service = storefront_service or StorefrontService(identity_settings)
 
@@ -132,6 +136,7 @@ def create_app(
     app = FastAPI(title="Shopping Copilot Agent", lifespan=lifespan)
     app.state.llm_settings = settings
     app.state.llm_client = llm_client
+    app.state.admission = admission
     planner = ScriptedPlanner()
     test_clock_enabled = (
         settings.provider == "scripted" and os.environ.get("EVAL_TEST_CLOCK") == "1"
@@ -144,12 +149,14 @@ def create_app(
     sessions = session_store or SessionStore(
         planner,
         clock=session_clock,
+        capacity=admission.maximum_sessions if admission else 800,
         confirmation_registrar=confirmation_registrar or service.register_confirmation,
     )
     install_shopper_http(
         app,
         sessions,
         service,
+        admission=admission,
         panel_origin=identity_settings["panel_origin"],
         evaluation=os.environ.get("COPILOT_ENV") != "production"
         and settings.provider == "scripted"
@@ -170,7 +177,9 @@ def create_app(
         if (
             owner is None
             or not await app.state.storefront_service.validate(owner)
-            or not app.state.shopper_access.owns_session(session_id, owner)
+            or not app.state.shopper_access.owns_session(
+                session_id, owner, admission.allowed if admission else None
+            )
         ):
             raise SessionNotFound(session_id)
 
@@ -182,6 +191,11 @@ def create_app(
         if identity in active_interpretations:
             return
         active_interpretations.add(identity)
+        model = (
+            AdmissionClient(llm_client, lambda: verify_owner(session_id))
+            if admission
+            else llm_client
+        )
         observed = sessions.get(session_id).last_snapshot
         observed = observed.model_copy(deep=True) if observed is not None else None
         phase = "intent"
@@ -217,7 +231,7 @@ def create_app(
                 await ensure_active()
                 phase = "intent"
                 prepared = await prepare_turn(
-                    task, observed, planner.storefront, llm_client, reader, ensure_active
+                    task, observed, planner.storefront, model, reader, ensure_active
                 )
                 await ensure_active()
                 sessions.get(session_id).product_context.remember_catalogue(prepared.references)
@@ -246,7 +260,7 @@ def create_app(
                     sessions.finish_interpretation(session_id, task_id, call_id, prepared.intent)
                 return
             intent = await interpret_message(
-                llm_client,
+                model,
                 task.message,
                 storefront=planner.storefront,
                 resolved_state=task.resolved_state,
@@ -279,7 +293,7 @@ def create_app(
                 await verify_owner(session_id)
                 try:
                     summary = await compose_advice(
-                        llm_client,
+                        model,
                         build_advice_request(
                             task.message, intent, evidence, task.resolved_state, observed
                         ),
@@ -350,7 +364,7 @@ def create_app(
 
     @app.get("/speech/availability")
     async def speech_availability() -> dict[str, bool]:
-        if isinstance(llm_client, GuardedClient):
+        if isinstance(llm_client, GuardedClient) or admission is not None:
             return {"available": False}
         if settings.provider != "openrouter" and speech_transcriber is None:
             return {"available": False}
@@ -362,7 +376,7 @@ def create_app(
 
     @app.post("/speech/transcribe")
     async def transcribe_speech(request: Request, language: Literal["ar", "en"]) -> dict[str, str]:
-        if isinstance(llm_client, GuardedClient):
+        if isinstance(llm_client, GuardedClient) or admission is not None:
             raise HTTPException(
                 status_code=503,
                 detail="Server transcription is unavailable; use typing or browser speech",
@@ -425,8 +439,17 @@ def create_app(
                 sessions.get(existing)
             except SessionNotFound:
                 authority.sessions.discard(existing)
-        if len(authority.sessions) >= 8:
+        if len(authority.sessions) >= (admission.browser_sessions if admission else 8):
             raise HTTPException(status_code=429, detail="Too many active sessions")
+        if admission is not None:
+            if not sessions.has_capacity():
+                raise HTTPException(status_code=503, detail="Session capacity reached")
+            try:
+                admission.store.allocate_session(admission.subject(authority))
+            except AdmissionDenied as error:
+                raise HTTPException(
+                    status_code=429, detail="Demo session allowance exhausted"
+                ) from error
         try:
             session = sessions.create(request.tab_id if request is not None else None)
         except OverflowError as error:

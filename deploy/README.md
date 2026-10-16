@@ -119,3 +119,7 @@ or failed cleanup stop the run. Results/TLS/logs/catalogue remain ignored.
 The selected domain is still not pointed at these services. Local evidence does
 not establish AWS service access, CloudFront caching/forwarding, Android hardware,
 public certificate issuance, latency or deployment acceptance.
+
+Invited AI access now requires the explicit production settings and owner commands
+in [the admission guide](../docs/cap04-invited-access.md). Create tester codes when
+needed; implementation tests use disposable codes without contacting participants.

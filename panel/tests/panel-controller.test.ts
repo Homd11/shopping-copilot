@@ -38,6 +38,7 @@ function setup(options?: {
   savedSessionId?: string;
   restoredState?: SessionView;
   restoreError?: Error;
+  restoreGate?: Promise<void>;
   answerStatus?: "resumed" | "awaiting_login";
   answerGate?: Promise<void>;
   reconcileGate?: Promise<void>;
@@ -87,6 +88,7 @@ function setup(options?: {
   const agent: AgentTransport = {
     createSession: async () => "session-1",
     restoreSession: async () => {
+      await options?.restoreGate;
       if (options?.restoreError !== undefined) throw options.restoreError;
       return (
         options?.restoredState ?? {
@@ -832,6 +834,39 @@ describe("PanelController", () => {
       { sessionId: "session-restored", snapshot },
       { sessionId: "session-restored", snapshot: latest },
     ]);
+  });
+
+  it("ignores early snapshots until restored tab ownership permits reconciliation", async () => {
+    let release!: () => void;
+    const restoreGate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const context = setup({
+      savedSessionId: "session-other",
+      restoreGate,
+      restoredState: {
+        session_id: "session-other",
+        lease: "takeover_required",
+        event_cursor: 0,
+        conversation: [],
+        requires_reconciliation: true,
+        task: null,
+      },
+    });
+    const starting = context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(context.reconciliations).toEqual([]);
+    release();
+    await starting;
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    expect(context.reconciliations).toEqual([]);
+    expect(
+      context.root.querySelector<HTMLInputElement>("#shopper-message")!
+        .disabled,
+    ).toBe(true);
+    expect(context.root.querySelector("#task-status")!.textContent).toContain(
+      "another tab",
+    );
   });
 
   it("requires explicit takeover before another tab can reconnect", async () => {

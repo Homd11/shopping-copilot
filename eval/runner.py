@@ -111,9 +111,16 @@ def _prepare_case_setup(context: BrowserContext, case: EvaluationCase, timeout_m
 def _prepare_storefront_controls(page, case: EvaluationCase, timeout_ms: int) -> None:
     if case.setup not in {"selected_swatch", "disabled_product", "loaded_catalogue"}:
         return
+    # Panel startup chooses the initial iframe URL asynchronously. Wait before
+    # manually preparing a case so startup cannot overwrite this navigation.
+    expect(page.locator("#shopper-message")).to_be_enabled(timeout=timeout_ms)
     frame = page.frame_locator("#storefront-frame")
     destination = "/c/shoes" if case.setup == "loaded_catalogue" else "/p/shoe-09"
-    frame.locator("body").evaluate("(body, path) => { location.href = path; }", destination)
+    _frame_for_storefront(page).goto(
+        "http://localhost:4000" + destination,
+        wait_until="domcontentloaded",
+        timeout=timeout_ms,
+    )
     if case.setup == "loaded_catalogue":
         expect(frame.locator("#results-heading")).to_have_text("15 منتجات", timeout=timeout_ms)
         load_more = frame.locator("#load-more-products")

@@ -5,6 +5,8 @@ import secrets
 from fastapi import FastAPI, Request
 from starlette.responses import JSONResponse
 
+from agent.admission.limits import AdmissionLimits, denied, is_owner_stop
+from agent.admission.store import AdmissionDenied
 from agent.session_state import SessionExpired, SessionNotFound
 from agent.sessions import SessionStore
 from agent.shopper_access import ShopperAccess
@@ -18,6 +20,7 @@ def install_shopper_http(
     *,
     panel_origin: str,
     evaluation: bool,
+    admission=None,
 ) -> None:
     access = ShopperAccess()
     app.state.shopper_access = access
@@ -45,6 +48,11 @@ def install_shopper_http(
         ]
         credential = cookie_values[0] if len(cookie_values) == 1 else ""
         record = access.resolve(credential)
+        if admission is not None and record is not None:
+            try:
+                admission.browser_request(record, stop=is_owner_stop(request.method, path))
+            except AdmissionDenied:
+                return denied("access_busy", 429)
         new_cookie = None
         if path == "/shopper/bootstrap" and request.method == "POST":
             if request.headers.get("origin") != panel_origin:
@@ -111,6 +119,30 @@ def install_shopper_http(
             return JSONResponse(
                 {"detail": "Storefront identity expired or unavailable"}, status_code=401
             )
+        if path == "/shopper/admission":
+            if request.method == "POST" and admission is not None:
+                try:
+                    payload = await request.json()
+                    if not isinstance(payload, dict):
+                        raise AdmissionDenied()
+                    admission.store.redeem(payload.get("code"), admission.subject(record))
+                except (ValueError, AdmissionDenied):
+                    return denied("access_required")
+            elif request.method != "GET":
+                return JSONResponse({"detail": "Method not allowed"}, status_code=405)
+            return JSONResponse(
+                {
+                    "required": admission is not None,
+                    "admitted": admission is None or admission.allowed(record),
+                },
+                headers={"Cache-Control": "no-store"},
+            )
+        if (
+            admission is not None
+            and not is_owner_stop(request.method, path)
+            and not admission.allowed(record)
+        ):
+            return denied("access_required")
         parts = path.strip("/").split("/")
         if len(parts) >= 2 and parts[0] == "sessions":
             if parts[1] not in record.sessions:
@@ -131,10 +163,20 @@ def install_shopper_http(
         async def still_authorized():
             if access.resolve(credential) is not record or record.shopper != bound_shopper:
                 return False
+            if admission is not None and not admission.allowed(record):
+                return False
             valid = await alive(record)
-            return valid and record.shopper == bound_shopper
+            return (
+                valid
+                and access.resolve(credential) is record
+                and record.shopper == bound_shopper
+                and (admission is None or admission.allowed(record))
+            )
 
         request.state.shopper_authorized = still_authorized
         response = await call_next(request)
         response.headers["Cache-Control"] = "no-store"
         return response
+
+    if admission is not None:
+        app.add_middleware(AdmissionLimits, policy=admission)

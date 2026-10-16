@@ -238,6 +238,7 @@ export class PanelController {
   readonly #tabId: string;
   #sessionId: string | undefined;
   #shopperInvalid = false;
+  #snapshotAuthorityReady = false;
   #snapshot: Snapshot | undefined;
   #unsubscribe: (() => void) | undefined;
   #activeTaskId: string | undefined;
@@ -267,6 +268,7 @@ export class PanelController {
   }
 
   async start(): Promise<void> {
+    this.#snapshotAuthorityReady = false;
     const savedSessionId = this.#persistence?.loadSessionId();
     if (savedSessionId !== undefined) {
       this.#sessionId = savedSessionId;
@@ -296,6 +298,7 @@ export class PanelController {
         this.#setStatus("This task is active in another tab");
         return;
       }
+      this.#snapshotAuthorityReady = true;
       this.#storefront.requestSnapshot();
       return;
     }
@@ -306,6 +309,7 @@ export class PanelController {
     this.#sessionId = await this.#agent.createSession(this.#tabId);
     this.#persistence?.saveSessionId(this.#sessionId);
     this.#subscribe(this.#persistence?.loadEventCursor() ?? 0);
+    this.#snapshotAuthorityReady = true;
     this.#storefront.requestSnapshot();
     this.#setStatus("بانتظار اتصال المتجر…");
   }
@@ -334,6 +338,7 @@ export class PanelController {
     if (this.#shopperInvalid) return;
     if (message.type === "snapshot") {
       this.#snapshot = message.snapshot;
+      if (!this.#snapshotAuthorityReady) return;
       if (
         this.#waitingForLoginUrl !== undefined &&
         message.snapshot.url !== this.#waitingForLoginUrl
@@ -476,6 +481,7 @@ export class PanelController {
     button.addEventListener("click", () => {
       if (this.#sessionId === undefined) return;
       void this.#agent.takeover(this.#sessionId, this.#tabId).then(() => {
+        this.#snapshotAuthorityReady = true;
         container.replaceChildren();
         this.#setStatus("Reconnecting…");
         this.#storefront.requestSnapshot();

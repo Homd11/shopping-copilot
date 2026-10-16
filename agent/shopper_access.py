@@ -51,10 +51,12 @@ class ShopperAccess:
         self.records[hashlib.sha256(credential.encode()).hexdigest()] = record
         return credential, record
 
-    def owns_session(self, session_id: str, binding: ShopperBinding) -> bool:
+    def owns_session(self, session_id: str, binding: ShopperBinding, admitted=None) -> bool:
         self.resolve("")
         return any(
-            record.shopper == binding and session_id in record.sessions
+            record.shopper == binding
+            and session_id in record.sessions
+            and (admitted is None or admitted(record))
             for record in self.records.values()
         )
 

@@ -56,13 +56,15 @@ qualification remain separate gates.
 
 **What to build:** An invited Shopper can enter and use the demo while expired, revoked or excess access receives a clear response before model work.
 
-**Blocked by:** 03 — production origin journey.
+**Status:** resolved locally, 16 October 2026. See [owner controls and acceptance](cap04-invited-access.md). No real participants or codes were issued; production configuration and deployed acceptance remain separate.
 
-- [ ] Issue a separate code for each tester with explicit absolute testing-window bounds, independent revocation and finite redemption/session limits; exchange secrets without URLs/logging and preserve existing Shopper ownership after admission. Restart never renews validity. Browsing may be public while running; AI use requires admission.
-- [ ] Enforce admission for session creation, follow-ups, events and action-result routes; an invitation never grants access to another Shopper's session.
-- [ ] Enforce finite configurable request size/rate, active-session and queue limits, including global limits that new cookies cannot bypass.
-- [ ] Show understandable expired-access and busy states without submitting duplicate requests or evicting another active Shopper.
-- [ ] Verify abuse and isolation at the browser/HTTP boundary using the scripted provider; do not rely on client-only controls or IP addresses as identity.
+**Blocked by:** 03 — production origin journey (resolved).
+
+- [x] Issue a separate code for each tester with explicit absolute testing-window bounds, independent revocation and finite redemption/session limits; exchange secrets without URLs/logging and preserve existing Shopper ownership after admission. Restart never renews validity. Browsing may be public while running; AI use requires admission.
+- [x] Enforce admission for session creation, follow-ups, events and action-result routes; an invitation never grants access to another Shopper's session.
+- [x] Enforce finite configurable request size/rate, active-session and queue limits, including global limits that new cookies cannot bypass.
+- [x] Show understandable expired-access and busy states without submitting duplicate requests or evicting another active Shopper.
+- [x] Verify abuse and isolation at the browser/HTTP boundary using the scripted provider; do not rely on client-only controls or IP addresses as identity.
 
 ## 05 — Enforce a durable inference allowance across failures
 
@@ -140,8 +142,9 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02, 04 and 06. Tickets 03/05 resolve local production routing and
-durable allowance; 04 may implement invited admission and 06 release/restart rehearsal.
+Current frontier: 02 and 06. Tickets 03/04/05 resolve local production routing,
+invited admission and durable allowance. Prefer 06 release/restart rehearsal next;
+07 remains blocked by 06.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.

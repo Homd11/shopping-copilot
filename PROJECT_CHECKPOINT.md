@@ -1,6 +1,44 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-16
+
+## Invited admission implementation — 2026-10-16
+
+CAP-04 local ticket 04 is resolved locally on `codex/cap04-admission`, based on
+merged main `83fc92a`. Final serial verification: **686 Python/browser tests passed
+in 549.35s**, **199 TypeScript tests passed**; builds/type checks, lint and formatting
+pass. See the
+[owner operating guide](docs/cap04-invited-access.md) and
+[implementation plan](docs/superpowers/plans/2026-10-16-cap04-invited-admission.md).
+Production requires initialized admission storage and explicit finite bounds;
+unconfigured local development remains opt-in. Codes are hashed in durable storage,
+grants retain existing Shopper ownership, and absolute windows/redemption/session
+quotas survive reopen. Codes never enter URLs, browser persistence or model input.
+
+Admission covers HTTP, event delivery and each model entry after asynchronous
+queue/key checks. Stop has a reserved bounded lane while retaining CSRF and task
+ownership. Panel code entry, denied/expired/busy feedback and explicit stream
+recovery are implemented for desktop/mobile. No uncertain Action is automatically
+replayed. No prompts, phrase matching or shopping interpretation changed.
+
+Independent Spec/Standards reviews found and cleared post-await revocation and
+SSE429 recovery defects. Full regression exposed a simultaneous-tab early-Snapshot
+race, fixed with a deterministic ownership regression and cleared by both reviews.
+A later run passed 684 tests but hit a five-second initial code-form wait with an
+empty UI shell; only that startup assertion now uses the existing 15-second
+browser allowance. The final serial full result above supersedes earlier failures.
+
+The serial run subsequently passed 665 tests before an older mobile evaluation
+helper raced initial iframe navigation. The helper now awaits Panel readiness
+and fixed-destination Frame navigation. A real-Panel delayed-start regression
+fails against the old helper and passes with the fix; both reviewers cleared it.
+The final full run includes that new regression and passes all 686 tests.
+
+No real participants/codes, paid calls, trust-store, public DNS or AWS changes.
+Ignored provider configuration/cap remains unchanged. Work is local, not pushed;
+the original checkout's unrelated dirty documents are preserved. Next prefer 06
+release/restart rehearsal; 02 account/network feasibility remains open, 07 depends
+on 06, and parent CAP-04 remains open.
 
 ## Publication after owner smoke test — 2026-10-15
 
