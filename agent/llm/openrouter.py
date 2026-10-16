@@ -163,6 +163,7 @@ class OpenRouterClient:
                         "OpenRouter evaluation budget requires a non-resetting key limit "
                         "within the configured total cap and sufficient remaining credit"
                     )
+                await request.authorize()
                 if self._settings.stream:
                     async with client.stream(
                         "POST", "https://openrouter.ai/api/v1/chat/completions", json=payload

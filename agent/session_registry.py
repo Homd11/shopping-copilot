@@ -40,6 +40,10 @@ class SessionRegistry:
         self._sessions[session.session_id] = session
         return session
 
+    def has_capacity(self) -> bool:
+        self._expire()
+        return len(self._sessions) < self._capacity
+
     def get(self, session_id: str) -> Session:
         self._expire()
         if session_id in self._expired_ids:

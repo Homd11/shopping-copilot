@@ -101,6 +101,7 @@ class NvidiaNIMClient:
                 transport=self._transport,
                 timeout=self._settings.timeout_seconds,
             ) as client:
+                await request.authorize()
                 response = await client.post(endpoint, headers=headers, json=payload)
                 response.raise_for_status()
             try:
@@ -112,6 +113,7 @@ class NvidiaNIMClient:
             return chunks, usage
 
         saw_done = False
+        await request.authorize()
         async with (
             httpx.AsyncClient(
                 transport=self._transport,

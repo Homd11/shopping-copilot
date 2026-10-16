@@ -1,7 +1,7 @@
 from playwright.sync_api import expect, sync_playwright
 
 from eval.cases import TICKET_13_CASES
-from eval.runner import run_evaluation
+from eval.runner import _prepare_storefront_controls, run_evaluation
 from eval.services import local_services
 
 
@@ -10,6 +10,40 @@ def test_mobile_agent_evaluation_cases() -> None:
         outcomes = run_evaluation(playwright.chromium, TICKET_13_CASES)
     assert all(outcome.passed for outcome in outcomes), [outcome.failure for outcome in outcomes]
     assert [outcome.step_count for outcome in outcomes] == [1, 1, 1, 0, 1]
+
+
+def test_case_setup_waits_for_initial_storefront_navigation():
+    with local_services(), sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(viewport={"width": 390, "height": 844})
+
+            # Delay only the real Panel's startup trigger. All linking, Snapshot
+            # and iframe behavior remains real; setup must await its readiness.
+            def delay_start(route):
+                if route.request.frame != page.main_frame:
+                    route.continue_()
+                    return
+                response = route.fetch()
+                source = response.text()
+                assert source.count("void startLinked();") == 1
+                route.fulfill(
+                    response=response,
+                    body=source.replace(
+                        "void startLinked();", "setTimeout(() => { void startLinked(); }, 300);"
+                    ),
+                )
+
+            page.route("**/src/main.ts", delay_start)
+            page.goto("http://localhost:4100/", wait_until="domcontentloaded")
+            _prepare_storefront_controls(page, TICKET_13_CASES[3], 5000)
+            frame = page.frame_locator("#storefront-frame")
+            expect(frame.locator("#product-size")).to_have_value("43")
+            expect(frame.locator("form[data-cart-edit='add']")).to_have_attribute(
+                "aria-disabled", "true"
+            )
+        finally:
+            browser.close()
 
 
 def test_mobile_controls_delayed_products_and_semantic_targets() -> None:
