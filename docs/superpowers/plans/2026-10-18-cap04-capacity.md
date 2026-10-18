@@ -68,3 +68,19 @@ physical Android and candidate EC2 capacity cannot be inferred from them.
 - Owner has a connected CMF Phone 1 and enabled USB debugging. Chrome discovery
   awaits phone authentication. Physical Android remains pending; keep Ticket08
   open. No trust store, DNS, AWS or paid inference changes. No push authorized.
+- Superseding hardware result: owner accepted Google's SDK licence; Google-signed
+  portable ADB reached authorized CMF Phone1 and Chrome155.0.8059.41. Actual phone
+  plus four desktop contexts pass five isolated mutations, foreign404 both ways,
+  refresh/no duplicate POST. Additional phone request refused with unchanged cart
+  during held overload; eight desktop requests complete5/refuse3. Total fixture
+  calls10, paid0. Evidence under outputs/cap04-capacity-android-001/.
+- Owner handled disposable leaf warnings for USB-only sibling localhost HTTPS;
+  no phone CA, public DNS or production source changes. One-off scripts remain
+  ignored local experiment records; runbook includes repeat protocol and limits.
+  Owned processes, test tab, forwarding, ADB server and key cleaned up/verified;
+  owner instructed to turn USB debugging off. Local08 may close;02/09/parent and
+  actual public-domain/EC2 acceptance remain separate gates. No additional full
+  code-suite rerun is needed for evidence-only changes after the716/TS199 pass.
+
+- Final independent Spec and Standards reviews inspected the hardware scripts and
+  aggregate evidence; both clear documentation and bounded local08 closure.

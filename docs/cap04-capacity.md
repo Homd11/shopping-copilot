@@ -1,8 +1,8 @@
 # Combined concurrency rehearsal
 
-Local Ticket 08 evidence, recorded 2026-10-18. The automated slice is implemented;
-physical Android Chrome and candidate EC2 capacity remain unverified. This is not
-cloud acceptance or a production throughput claim. No paid inference is used.
+Local Ticket 08 is resolved, recorded 2026-10-18. Desktop and physical Android
+Chrome acceptance pass locally; candidate EC2 capacity remains unverified. This
+is not cloud acceptance or a production throughput claim. No paid inference is used.
 
 ## Reproduce locally
 
@@ -93,7 +93,7 @@ intentional hold plus a nominal 400 ms delay: the overload gate keeps slots full
 until three refusals are visible, then releases them. It is not a measurement or
 prediction of remote model latency. No live model accuracy is evaluated here.
 
-Final ignored aggregate evidence:
+Final ignored desktop aggregate evidence:
 
 - `outputs/cap04-capacity-chrome-002/result.json`
 - `outputs/cap04-capacity-edge-002/result.json`
@@ -105,6 +105,77 @@ and installed-browser runs remain diagnostic history. Failed development runs
 001–005 exposed an offline pnpm environment omission, an incomplete model fixture,
 an invalid equality check on an expiring Undo timer, and the wrong feedback
 selector. Those were harness failures, not successful acceptance evidence.
+
+## Physical Android acceptance
+
+The owner supplied a CMF Phone 1 (A015), enabled USB debugging and accepted the
+Android SDK licence for official Platform-Tools. Portable ADB 37.0.1-15733141 was
+downloaded from Google's official distribution; its Windows executable signature
+validated as Google LLC. An initial Windows USB Code 10 cleared after reconnecting
+to a different port. ADB subsequently reported authorized device state. After
+disabling Chrome's separate USB discovery, the forwarded Chrome metadata endpoint
+responded. This sequence does not establish a Chrome or phone firmware root cause.
+
+Actual phone Chrome **155.0.8059.41** ran through USB reverse forwarding on port 4443. The local HTTPS origins were `panel.copilot.localhost:4443` and
+`store.copilot.localhost:4443`, without public DNS, Wi-Fi proxy, firewall or phone
+CA changes. The owner manually accepted the disposable leaf certificate warnings.
+This qualifies the local browser journey with those explicit exceptions; ordinary
+trusted public-domain certificates remain a deployment acceptance requirement.
+Only the newly created test tab was controlled; existing personal tabs were left
+alone. Third-party-cookie restriction was explicitly exercised on the test target.
+
+One physical phone plus four independent desktop contexts completed five cart
+mutations with quantities 1 through 5, no cross-Shopper cart leakage, and at most
+two concurrent model entries. Foreign-session reads returned 404 in both
+directions. Refresh on the phone preserved cart lines/revision without another
+cart POST. Combined submission-to-verification elapsed time was **2.328 seconds**,
+not a per-request latency percentile. Maximum queue wait in this cohort was
+781 ms. Agent peak RSS was 75.6 MiB and CPU 23.0% of one core; the same sampling
+limitations as the desktop measurements apply.
+
+A subsequent eight-desktop burst filled the two active/three waiting slots and
+paused three excess requests. A further request from the physical phone paused
+without changing its existing cart. Observing refusal and verifying unchanged
+cart state took **1.187 seconds** including the verification reads. Releasing the
+held fixture completed exactly five desktop mutations; the three refused carts
+stayed empty. Total fixture calls across both physical-device experiments were
+10, with four queue-full outcomes and **zero paid calls**. The earlier desktop
+cohorts separately prove shared allowance exhaustion and disable behavior.
+
+Ignored evidence is under `outputs/cap04-capacity-android-001/`:
+`physical-result.json`, `provider.json`, `phone-test-page.png` and
+`phone-overload-page.png`. The owner-assisted scripts are retained locally under
+ignored `work/cap04-android/`; they are experiment records, not a portable Android
+runner shipped by this commit. Their first pre-admission check incorrectly
+expected 404; actual admission correctly returned 403. That harness assertion was
+corrected before the successful cohort. No runtime behavior was changed.
+
+To repeat the hardware protocol, use a new disposable release/state directory,
+explicit fake provider, fresh finite invitations and the same limits above. Build
+the Panel/Storefront for the two sibling loopback HTTPS origins and create their
+disposable leaf certificate. With the owner's authorized USB device, use official
+ADB forwarding as follows (the browser port is allocated, not assumed free):
+
+```text
+adb devices -l
+adb -t <verified USB transport> forward tcp:0 localabstract:chrome_devtools_remote
+adb -t <verified USB transport> reverse tcp:4443 tcp:4443
+```
+
+Inspect only the newly created test tab. The owner must handle certificate
+warnings. Repeat invitation denial/admission, selected variant and quantity,
+the five-Shopper cohort, foreign-session denials, refresh/cart-POST counting and
+the held-queue phone refusal described above. Record actual versions and bounded
+aggregates. Do not use a live provider or read other phone tabs/data. A fresh
+checkout must reconstruct the owner-assisted setup; the desktop runner does not
+claim Android support. Public trusted-domain hardware acceptance is repeated
+after deployment as part of CAP-07.
+
+After the recorded test, the owned services stopped, the exact test tab closed,
+USB reverse/browser forwarding was removed, and the newly started ADB server was
+stopped. All owned listener ports and deletion of the disposable private key were
+verified. The owner was instructed to disable USB debugging and unplug the phone;
+that final phone setting is owner-controlled and not independently verified.
 
 ## Safety and lifecycle evidence
 
@@ -173,7 +244,6 @@ This procedure is a future cloud gate, not authorization to create resources.
    provider latency/cost; never infer it from the 400 ms fixture. Do not alter
    bounds or acceptance thresholds silently after a failure.
 
-Physical Android remains pending despite the owner having a connected CMF Phone 1.
-Ordinary device DNS/TLS trust must be established without presenting desktop
-emulation or browser test pins as that proof. Local Ticket 08 stays open until its
-hardware acceptance is recorded or the owner explicitly adjusts that scope.
+Physical Android local acceptance is recorded above. Ordinary public-domain
+DNS/TLS trust and candidate EC2 capacity remain cloud gates; neither emulation,
+test pins nor owner-accepted local certificate exceptions establish those claims.

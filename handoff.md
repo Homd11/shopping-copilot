@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Physical Android closes local Ticket 08 — 2026-10-18
+
+Newest frontier: local02 account/network feasibility; 09 is blocked by02 and parent
+CAP-04 stays open. Actual CMF Phone1 Chrome155.0.8059.41 plus4desktop contexts
+passed five isolated cart changes, foreign404 both ways and phone refresh without
+another POST. Further phone request refused safely during held overload;10total
+fixture calls,0paid. See docs/cap04-capacity.md and ignored
+outputs/cap04-capacity-android-001/. Owner manually accepted disposable local
+leaf warnings; no phone CA or public DNS changes. Owned processes/test tab/USB
+forwarding/new ADB server/key cleaned up. Ask owner to turn USB debugging off if
+not yet done; this phone setting is not independently verified. No production
+source changes after b5bccfc's full716/TS199/build/lint verification; only evidence
+docs/tracker changed. No cloud or push; original checkout untouched.
+
 ## Combined concurrency: physical Android pending — 2026-10-18
 
 Use PROJECT_CHECKPOINT.md for current evidence. Ticket 08 automated slice on

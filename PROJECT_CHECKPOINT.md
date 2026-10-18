@@ -2,6 +2,34 @@
 
 **Last updated:** 2026-10-18
 
+## Physical Android passed; local Ticket 08 resolved — 2026-10-18
+
+The remaining local hardware gate passed on the owner's CMF Phone 1 (A015),
+Chrome155.0.8059.41. One physical phone plus four independent desktop contexts
+completed five cart mutations, with foreign-session 404 denials both ways and
+phone refresh without another cart POST. A held eight-desktop burst plus an
+additional phone request demonstrated four safe queue refusals, unchanged phone
+cart and exactly five further fixture calls. Total physical-experiment calls10,
+paid calls0. Evidence and exact limits: [capacity runbook](docs/cap04-capacity.md),
+ignored outputs/cap04-capacity-android-001/. No production source changed after
+the verified automated slice b5bccfc: full716 Python/browser tests, TS199,
+builds/types/lint/format remain the code verification basis.
+
+The owner accepted Google's SDK licence. Official Google-signed portable ADB
+connected after the Windows driver recovered and Chrome USB discovery was disabled;
+the sequence does not prove a firmware/browser defect. The USB-only HTTPS sibling
+localhost test required owner-accepted disposable leaf certificate warnings, not
+phone CA installation or public DNS. The actual trusted public-domain path and
+EC2 capacity still need deployment acceptance. Test services, owned phone test tab,
+USB/browser forwarding, newly started ADB server and certificate key were cleaned
+up and verified. Owner instructed to disable USB debugging; that setting remains
+owner-controlled. No personal phone tabs/data, paid inference or AWS changes.
+
+Local08 is now resolved. Local02 account/network feasibility and parent CAP-04
+remain open; 09 final architecture handoff still depends on02. Continue with
+account/network evidence rather than provisioning or claiming cloud readiness.
+Changes remain local, with no push; original checkout is preserved.
+
 ## Combined concurrency: automated slice verified — 2026-10-18
 
 Local Ticket 08 remains **open for physical Android Chrome**. Automated changes

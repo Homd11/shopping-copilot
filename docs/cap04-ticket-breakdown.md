@@ -115,14 +115,17 @@ qualification remain separate gates.
 
 **What to build:** Several independent invited Shoppers can use the complete local proxy setup within measured limits, including predictable overload and budget-exhaustion behavior.
 
-**Status:** automated slice verified locally, 18 October 2026; physical Android
-Chrome pending. See [measured limits and candidate-host procedure](cap04-capacity.md).
-716 Python/browser and 199 TypeScript tests pass; desktop Chrome/Edge and mobile
-emulation pass 1/5/8 cohorts. Do not close this ticket or claim EC2 capacity yet.
+**Status:** resolved locally, 18 October 2026. See
+[measured limits, physical Android proof and candidate-host procedure](cap04-capacity.md).
+716 Python/browser and 199 TypeScript tests pass; desktop Chrome/Edge/mobile
+emulation pass 1/5/8 cohorts. Physical Android plus four independent desktop
+Shoppers pass cart isolation, refresh/no duplicate POST and phone overload refusal.
+Owner-accepted local certificate exceptions do not qualify public-domain trust
+or EC2 capacity; those remain cloud acceptance requirements.
 
 **Blocked by:** 07 — invitation-gated startup and idle shutdown (which includes 04 and 06).
 
-- [ ] Exercise five simultaneous Shoppers as the initial target, plus bounded overload, with controlled provider latency, new identities, cart changes, SSE and queued requests. Cover supported desktop Chrome/Edge and Android Chrome; exclude iPhone/Safari from initial claims.
+- [x] Exercise five simultaneous Shoppers as the initial target, plus bounded overload, with controlled provider latency, new identities, cart changes, SSE and queued requests. Cover supported desktop Chrome/Edge and Android Chrome; exclude iPhone/Safari from initial claims.
 - [x] Exercise idle shutdown, simultaneous wake and new activity during draining; invitation validity, allowance and uncertain-Action protection survive stop/start.
 - [x] Measure CPU/RAM, queue time and application latency at several bounded load levels; distinguish workstation measurements from future EC2 capacity qualification.
 - [x] Publish concrete safe local configuration values and a candidate-host test procedure; do not infer throughput from registry capacity or fake-provider latency.
@@ -151,9 +154,9 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02 and 08. Tickets 03/04/05/06/07 resolve local routing, admission,
-allowance, release/restart and invitation-gated lifecycle rehearsal. Prefer 08
-combined concurrent readiness next; account/network feasibility in 02 remains open.
+Current frontier: 02. Tickets 03/04/05/06/07/08 resolve local routing, admission,
+allowance, release/restart, invitation-gated lifecycle and combined concurrent
+readiness. Account/network feasibility in 02 remains open; 09 depends on it.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.
