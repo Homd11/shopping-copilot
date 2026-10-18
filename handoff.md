@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Combined concurrency: physical Android pending — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for current evidence. Ticket 08 automated slice on
+`codex/cap04-capacity` from `da59a56` passes 716 Python/browser tests in 733.52s
+and 199 TypeScript tests/build/types/lint/format. Independent Spec and Standards
+reviews are clear. See docs/cap04-capacity.md for actual 1/5/8 Chrome/Edge/mobile
+emulation results, finite limits, isolated fake-provider setup and future candidate
+host procedure. Full output: outputs/cap04-capacity-verification/. Phone/EC2 results
+remain unverified; Ticket 08, 02 and parent CAP-04 stay open. Owner connected CMF
+Phone 1, enabled USB debugging and reached Chrome discovery pending device
+authentication. Browser UI tooling is disabled in Work settings, so this setup is
+owner guided. No OS/phone trust-store or public network changes, AWS or paid calls;
+original checkout and existing inference cap/configuration are untouched.
+
 ## Invitation-gated lifecycle rehearsal — 2026-10-18
 
 Use PROJECT_CHECKPOINT.md for the current frontier. Ticket 07 changes are on

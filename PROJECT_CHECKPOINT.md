@@ -2,6 +2,38 @@
 
 **Last updated:** 2026-10-18
 
+## Combined concurrency: automated slice verified — 2026-10-18
+
+Local Ticket 08 remains **open for physical Android Chrome**. Automated changes
+are on `codex/cap04-capacity`, based on `da59a56`. See
+[capacity runbook](docs/cap04-capacity.md) and
+[execution ledger](docs/superpowers/plans/2026-10-18-cap04-capacity.md).
+Actual Caddy/built Storefront/Panel plus a single Agent worker pass independent
+installed Chrome/Edge and mobile-emulated cohorts at 1/5/8 Shoppers. Five complete;
+an eight-request held burst completes five and safely pauses three, with at most
+two provider entries and three waiting. Cart isolation, foreign-session denial,
+refresh without duplicate POST, fresh-cookie exhaustion and disabled inference
+pass. Native service-tree CPU/RSS and exact queue timing are recorded separately
+from preparation, intentional provider delay and browser completion. These are
+Windows fixture/workstation measurements, not EC2 or live-model latency evidence.
+
+Focused checks: 28 passed in 12.49s. Final serial full verification: **716
+Python/browser tests passed in 733.52s**, exit 0, with two upstream WebSocket
+deprecation warnings. **199 TypeScript tests**, builds/type checks, ESLint and
+Ruff check/format pass. Durable ignored full log and exit-code JSON are under
+`outputs/cap04-capacity-verification/`. Both independent reviews clear the
+implementation and follow-up runbook/diagnostic corrections. Reports omit raw
+conversations, codes and headers; test provider calls and sampling are bounded.
+
+A combined real-Agent HTTP/lifecycle test covers five accepted model requests,
+queued work, pending Actions, drain/activity arbitration and retained external
+authority. It uses fake host/Storefront services; actual process restart/no-replay
+browser evidence remains in the release/lifecycle regressions. Physical Android
+is not inferred from emulation: the owner connected a CMF Phone 1 and enabled USB
+debugging; Chrome discovery currently awaits device authentication. No phone
+trust-store, public DNS or cloud changes have been made. Parent CAP-04 and Ticket
+02 remain open; no paid inference or push. Original checkout remains untouched.
+
 ## Invitation-gated lifecycle rehearsal — 2026-10-18
 
 Local Ticket 07 is resolved on `codex/cap04-lifecycle` from `476cb30`.
