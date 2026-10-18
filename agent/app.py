@@ -118,9 +118,12 @@ def create_app(
     evaluation: bool = False,
     admission: AdmissionPolicy | None = None,
     lifecycle=None,
+    inference_queue_observer=None,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
-    llm_client = configured_guard(llm_client or build_llm_client(settings), settings)
+    llm_client = configured_guard(
+        llm_client or build_llm_client(settings), settings, queue_observer=inference_queue_observer
+    )
     admission = admission or configured_admission()
     lifecycle = lifecycle or configured_lifecycle(os.environ, admission)
     identity_settings = identity_config()

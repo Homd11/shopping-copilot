@@ -2,10 +2,11 @@
 
 import asyncio
 import json
-from contextlib import aclosing
+from contextlib import aclosing, suppress
 from dataclasses import dataclass, replace
 from decimal import Decimal
 from math import isfinite
+from time import monotonic
 from uuid import uuid4
 
 from agent.inference.ledger import InferenceRefused, units
@@ -79,6 +80,7 @@ class GuardedClient:
         maximum_active: int,
         maximum_waiting: int,
         wait_seconds: float,
+        queue_observer=None,
     ):
         if (
             isinstance(maximum_active, bool)
@@ -98,10 +100,19 @@ class GuardedClient:
         self._admitted = 0
         self._capacity = maximum_active + maximum_waiting
         self._wait_seconds = wait_seconds
+        self._queue_observer = queue_observer
+
+    def _observe_queue(self, outcome, started):
+        if self._queue_observer is not None:
+            # Trusted local telemetry must never change execution or authority.
+            with suppress(Exception):
+                self._queue_observer(outcome, (monotonic() - started) * 1000)
 
     async def complete(self, request):
+        started = monotonic()
         async with self._admission_lock:
             if self._admitted >= self._capacity:
+                self._observe_queue("full", started)
                 raise InferenceRefused("busy")
             self._admitted += 1
         acquired = False
@@ -109,8 +120,10 @@ class GuardedClient:
             try:
                 await asyncio.wait_for(self._semaphore.acquire(), timeout=self._wait_seconds)
             except TimeoutError as error:
+                self._observe_queue("timeout", started)
                 raise InferenceRefused("busy") from error
             acquired = True
+            self._observe_queue("acquired", started)
             await request.authorize()
             attempt = request.attempt_id or str(uuid4())
             bound = self.prices.reservation(request)

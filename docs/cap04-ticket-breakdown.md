@@ -115,14 +115,19 @@ qualification remain separate gates.
 
 **What to build:** Several independent invited Shoppers can use the complete local proxy setup within measured limits, including predictable overload and budget-exhaustion behavior.
 
+**Status:** automated slice verified locally, 18 October 2026; physical Android
+Chrome pending. See [measured limits and candidate-host procedure](cap04-capacity.md).
+716 Python/browser and 199 TypeScript tests pass; desktop Chrome/Edge and mobile
+emulation pass 1/5/8 cohorts. Do not close this ticket or claim EC2 capacity yet.
+
 **Blocked by:** 07 — invitation-gated startup and idle shutdown (which includes 04 and 06).
 
 - [ ] Exercise five simultaneous Shoppers as the initial target, plus bounded overload, with controlled provider latency, new identities, cart changes, SSE and queued requests. Cover supported desktop Chrome/Edge and Android Chrome; exclude iPhone/Safari from initial claims.
-- [ ] Exercise idle shutdown, simultaneous wake and new activity during draining; invitation validity, allowance and uncertain-Action protection survive stop/start.
-- [ ] Measure CPU/RAM, queue time and application latency at several bounded load levels; distinguish workstation measurements from future EC2 capacity qualification.
-- [ ] Publish concrete safe local configuration values and a candidate-host test procedure; do not infer throughput from registry capacity or fake-provider latency.
-- [ ] Verify no cross-Shopper leakage, duplicate mutations, unbounded queue/log growth or allowance bypass during overload, exhaustion and restart.
-- [ ] Run the relevant complete regression/format/lint/build checks and preserve failure evidence and limitations without paid inference.
+- [x] Exercise idle shutdown, simultaneous wake and new activity during draining; invitation validity, allowance and uncertain-Action protection survive stop/start.
+- [x] Measure CPU/RAM, queue time and application latency at several bounded load levels; distinguish workstation measurements from future EC2 capacity qualification.
+- [x] Publish concrete safe local configuration values and a candidate-host test procedure; do not infer throughput from registry capacity or fake-provider latency.
+- [x] Verify no cross-Shopper leakage, duplicate mutations, unbounded queue/log growth or allowance bypass during overload, exhaustion and restart.
+- [x] Run the relevant complete regression/format/lint/build checks and preserve failure evidence and limitations without paid inference.
 
 ## 09 — Finalize the costed CAP-04 handoff
 
