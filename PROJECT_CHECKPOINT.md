@@ -1,6 +1,41 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-16
+**Last updated:** 2026-10-18
+
+## Built release and recovery — 2026-10-18
+
+CAP-04 local ticket 06 is resolved locally on `codex/cap04-release`, based on
+`b9248bb`. Final serial verification passes **696 Python/browser tests in 691.70s**,
+**199 TypeScript tests**, builds/type checks, lint and formatting. The ignored
+full-suite log and exit-code record are under `outputs/cap04-release-verification/`.
+See [owner runbook](docs/cap04-release-recovery.md) and
+[execution ledger](docs/superpowers/plans/2026-10-18-cap04-release-recovery.md).
+Allowlisted builds emit Storefront JavaScript and include pinned offline Node
+production dependencies, built Panel/Bridge and Agent/runtime tools. Exclusive
+install and manifests refuse modified artifacts, executable caches and unsafe
+links. Configuration, catalogue, allowance, admission and logs remain external.
+Preflight verifies schema/integrity/identities, built origins and disk/write
+headroom without provider calls. Online catalogue backup/restore preserves WAL
+revision/content and refuses existing targets or inference/admission history.
+
+Nine focused release checks pass in 149.60s. The built-browser journey loses a
+Mutation result after application, restarts Agent without duplication, rejects
+old results/Confirmation answers, and restarts Storefront to reject old Undo and
+actually registered Confirmation authority. Rollback selection retains charged
+uncertain reservations and exhausted invitation quotas. Production process
+rehearsal excludes test routes. TypeScript 199 tests/builds/types/lint pass.
+Independent Spec review has no material gaps; Standards found an ignored-bytecode
+bypass, reproduced RED then fixed GREEN and cleared. Final regression includes
+that additional test. Caddy adapts bounded external logs. Native disposable WSL
+permission proof passes for a non-root service identity; no system user/service
+was installed. Linux service-manager/EC2 and abrupt external Windows launcher
+termination are not qualified by this workstation evidence.
+
+No real codes, paid calls, AWS, DNS or trust-store changes. Local unpushed work;
+original checkout remains untouched. Next is 07
+invitation-gated startup/idle shutdown; 02 account/network feasibility and parent
+CAP-04 remain open. Domain linkage occurs at separately authorized provisioning,
+after the remaining readiness, cost and AWS-model gates.
 
 ## Invited admission implementation — 2026-10-16
 

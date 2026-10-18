@@ -2,9 +2,10 @@
 
 CAP-04 ticket 03 uses Caddy with built Panel/Bridge assets and the existing
 Storefront/Agent on loopback. This configuration is a tested local routing
-boundary. AWS ingress/origin protection, certificate issuance, invitations,
-durable allowance and deployment remain later gates. Do not expose this demo
-publicly before those gates pass.
+boundary. Invitations and durable allowance have separate local implementations;
+the release guide below covers built packaging and recovery. AWS ingress/origin
+protection, public certificate issuance and deployment remain later gates. Do not
+expose this demo publicly before those gates pass.
 
 ## Public configuration and build
 
@@ -96,8 +97,9 @@ SSE is flushed immediately with no response collection, uses a 30-minute stream
 lifetime and native reconnect, and receives authorized keepalive comments initially
 and every ten seconds. Comments neither advance event IDs nor touch activity.
 Proxy diagnostic logs remove request headers and URLs; access logging is disabled
-on the Agent command above. Logs are still local operational data; bounded retention
-and disk policy remain ticket 06. [Caddy filtered logging](https://caddyserver.com/docs/caddyfile/directives/log#filter).
+on the Agent command above. External rotating diagnostics and the disk/recovery
+policy are documented in [the release guide](../docs/cap04-release-recovery.md).
+[Caddy filtered logging](https://caddyserver.com/docs/caddyfile/directives/log#filter).
 
 ## Local browser acceptance
 
@@ -123,3 +125,8 @@ public certificate issuance, latency or deployment acceptance.
 Invited AI access now requires the explicit production settings and owner commands
 in [the admission guide](../docs/cap04-invited-access.md). Create tester codes when
 needed; implementation tests use disposable codes without contacting participants.
+
+Build, install, preflight, backup/restore and safe restart commands are in
+[the release and recovery guide](../docs/cap04-release-recovery.md). Storefront
+production releases run emitted JavaScript with pinned production dependencies;
+the earlier direct `tsx` command above remains a source-checkout rehearsal only.

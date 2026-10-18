@@ -1,5 +1,20 @@
 # Shopping Copilot — project handoff
 
+## Built release and recovery — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 06 is
+resolved on `codex/cap04-release` from `b9248bb`. Final serial checks pass:
+696 Python/browser tests in 691.70s, 199 TypeScript tests, builds/type checks,
+lint and formatting. Durable ignored output is under `outputs/cap04-release-verification/`.
+The prior session result was unavailable on chat resumption and is not counted as
+acceptance. See [the release runbook](docs/cap04-release-recovery.md). Focused
+release checks, 199 TypeScript tests/build/types/lint, native WSL permissions and
+Caddy configuration adaptation pass. Both independent reviews are clear after
+fixing a reproduced bytecode-verification bypass. No deployed service manager,
+EC2 capacity, DNS/TLS trust changes or paid inference is claimed. Work is committed
+locally without push; next prefer local 07. Parent
+CAP-04 and account/network ticket 02 remain open. Original checkout is untouched.
+
 ## Invited admission — 2026-10-16
 
 Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 04 is
