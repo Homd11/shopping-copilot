@@ -26,6 +26,23 @@ if (window.location.origin !== __COPILOT_PUBLIC_ORIGINS__.panel)
 
 let browserCsrf = "";
 let shopperContext = "";
+let interactionReady = false;
+let lastInteraction = -Infinity;
+function reportInteraction() {
+  if (
+    !shopperContext ||
+    !interactionReady ||
+    authorityLost ||
+    document.visibilityState !== "visible"
+  )
+    return;
+  const now = performance.now();
+  if (now - lastInteraction < 30_000) return;
+  lastInteraction = now;
+  void agentFetch(`${AGENT_ORIGIN}/shopper/activity`, { method: "POST" }).catch(
+    () => {},
+  );
+}
 async function agentFetch(
   url: string,
   options: RequestInit = {},
@@ -301,6 +318,14 @@ window.addEventListener("message", (event) => {
   )
     return;
   const message = event.data as StorefrontMessage;
+  if (
+    event.data?.type === "shopper_activity" &&
+    shopperContext &&
+    event.data.shopper_context === shopperContext
+  ) {
+    reportInteraction();
+    return;
+  }
   if (event.data?.type === "shopper_reset") {
     controller.invalidateShopper();
     return;
@@ -318,6 +343,7 @@ let authorityLost = false;
 async function handleAuthorityLoss() {
   if (authorityLost) return;
   authorityLost = true;
+  interactionReady = false;
   controller.invalidateShopper();
   try {
     await requireAdmission(root!, AGENT_ORIGIN, browserCsrf, true);
@@ -358,6 +384,7 @@ async function startLinked() {
     await navigator.locks.request("copilot-shopper-link", () =>
       controller.start(),
     );
+    interactionReady = true;
   } catch {
     const status = document.createElement("p");
     status.setAttribute("role", "alert");
@@ -367,3 +394,8 @@ async function startLinked() {
   }
 }
 void startLinked();
+for (const kind of ["pointerdown", "keydown"]) {
+  document.addEventListener(kind, (event) => {
+    if (event.isTrusted) reportInteraction();
+  });
+}

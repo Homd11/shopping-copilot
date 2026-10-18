@@ -1,7 +1,7 @@
 import asyncio
 import os
 from collections.abc import Callable
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from time import monotonic
 from typing import Literal
 from uuid import uuid4
@@ -10,7 +10,7 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from starlette.responses import StreamingResponse
+from starlette.responses import Response, StreamingResponse
 
 from agent.admission.runtime import AdmissionClient, AdmissionPolicy, configured_admission
 from agent.admission.store import AdmissionDenied
@@ -21,6 +21,7 @@ from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, pr
 from agent.inference.client import GuardedClient
 from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
+from agent.lifecycle.work import LifecycleWork, configured_lifecycle
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
@@ -116,19 +117,29 @@ def create_app(
     storefront_service: StorefrontService | None = None,
     evaluation: bool = False,
     admission: AdmissionPolicy | None = None,
+    lifecycle=None,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
     llm_client = configured_guard(llm_client or build_llm_client(settings), settings)
     admission = admission or configured_admission()
+    lifecycle = lifecycle or configured_lifecycle(os.environ, admission)
     identity_settings = identity_config()
     service = storefront_service or StorefrontService(identity_settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.storefront_service.validate_configuration()
+        maintenance = (
+            asyncio.create_task(app.state.lifecycle_work.maintain()) if lifecycle else None
+        )
         try:
             yield
         finally:
+            if maintenance is not None:
+                maintenance.cancel()
+                with suppress(asyncio.CancelledError):
+                    await maintenance
+                app.state.lifecycle_work.close()
             close = getattr(app.state.storefront_service, "aclose", None)
             if close is not None:
                 await close()
@@ -161,6 +172,7 @@ def create_app(
         evaluation=os.environ.get("COPILOT_ENV") != "production"
         and settings.provider == "scripted"
         and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
+        lifecycle_work=LifecycleWork(lifecycle, sessions) if lifecycle else None,
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
@@ -173,6 +185,8 @@ def create_app(
     active_interpretations: set[tuple[str, str, str]] = set()
 
     async def verify_owner(session_id: str) -> None:
+        if lifecycle:
+            app.state.lifecycle_work.check()
         owner = sessions.get(session_id).shopper
         if (
             owner is None
@@ -182,6 +196,8 @@ def create_app(
             )
         ):
             raise SessionNotFound(session_id)
+        if lifecycle:
+            app.state.lifecycle_work.check()
 
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
@@ -428,6 +444,10 @@ def create_app(
         except UnsupportedShoppingTask as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
         return to_wire(action)
+
+    @app.post("/shopper/activity", status_code=204)
+    async def shopper_activity():
+        return Response(status_code=204)
 
     @app.post("/sessions", status_code=201)
     async def create_session(

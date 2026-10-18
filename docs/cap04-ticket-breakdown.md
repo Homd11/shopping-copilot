@@ -98,16 +98,18 @@ qualification remain separate gates.
 
 **What to build:** An invited Shopper can reach a waiting page, start a stopped demo and enter when ready; the demo stops safely after 60 minutes without genuine work, with manual owner startup as fallback.
 
+**Status:** resolved locally, 18 October 2026. See [lifecycle rehearsal and operating limits](cap04-lifecycle.md). Cloud lifecycle/storage/IAM remain separate acceptance checks.
+
 **Blocked by:** 04 — admission; 06 — release/recovery.
 
-- [ ] Rehearse the full waiting-page-to-shopping journey using a fake EC2 control service and durable coordination outside the simulated host. This does not provision AWS or prove service eligibility.
-- [ ] Validate each invitation's absolute testing window and revocation outside EC2 before wake. Plain page visits and invalid/expired/revoked invitations never start the host; restarting cannot renew access. Application admission revalidates access when startup finishes.
-- [ ] Coalesce concurrent wake requests and enforce bounded requests/polling, retries and cooldown. Return promptly from startup requests; no long-running function waits for boot. Declare readiness only after application prerequisites pass and give a clear deadline/failure response.
-- [ ] Shut down after 60 minutes of genuine inactivity with finite authenticated presence leases and a startup grace period. Ignore heartbeats, health probes and abandoned browser connections; accepted queued work, model requests and in-flight Actions prevent idle stop.
-- [ ] Serialize admission, drain and stop through durable lifecycle authority. Recheck for new activity before committing shutdown; after commitment, route arrivals through startup instead of accepting work on the draining host. Verify race, crash and stale-lease recovery without replaying uncertain Actions.
-- [ ] Keep invitation secrets out of URLs/logs, bound anonymous endpoint abuse and restrict eventual control permissions to the designated host. Failure of control storage denies automatic wake safely.
-- [ ] Demonstrate manual start/prewarming and explain commerce reset after Storefront restart. Record which controls the manual fallback still requires, including automatic idle stop.
-- [ ] Keep Lambda adoption conditional on 02 and the final cost review. Record actual AWS lifecycle and IAM verification for later cloud acceptance; local evidence cannot establish it.
+- [x] Rehearse the full waiting-page-to-shopping journey using a fake EC2 control service and durable coordination outside the simulated host. This does not provision AWS or prove service eligibility.
+- [x] Validate each invitation's absolute testing window and revocation outside EC2 before wake. Plain page visits and invalid/expired/revoked invitations never start the host; restarting cannot renew access. Application admission revalidates access when startup finishes.
+- [x] Coalesce concurrent wake requests and enforce bounded requests/polling, retries and cooldown. Return promptly from startup requests; no long-running function waits for boot. Declare readiness only after application prerequisites pass and give a clear deadline/failure response.
+- [x] Shut down after 60 minutes of genuine inactivity with finite authenticated presence leases and a startup grace period. Ignore heartbeats, health probes and abandoned browser connections; accepted queued work, model requests and in-flight Actions prevent idle stop.
+- [x] Serialize admission, drain and stop through durable lifecycle authority. Recheck for new activity before committing shutdown; after commitment, route arrivals through startup instead of accepting work on the draining host. Verify race, crash and stale-lease recovery without replaying uncertain Actions.
+- [x] Keep invitation secrets out of URLs/logs, bound anonymous endpoint abuse and restrict eventual control permissions to the designated host. Failure of control storage denies automatic wake safely.
+- [x] Demonstrate manual start/prewarming and explain commerce reset after Storefront restart. Record which controls the manual fallback still requires, including automatic idle stop.
+- [x] Keep Lambda adoption conditional on 02 and the final cost review. Record actual AWS lifecycle and IAM verification for later cloud acceptance; local evidence cannot establish it.
 
 ## 08 — Verify combined public readiness under concurrent use
 
@@ -144,9 +146,9 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02 and 07. Tickets 03/04/05/06 resolve local routing, admission,
-allowance and release/restart rehearsal. Prefer 07 invitation-gated startup and
-idle shutdown next; account/network feasibility in 02 remains open.
+Current frontier: 02 and 08. Tickets 03/04/05/06/07 resolve local routing, admission,
+allowance, release/restart and invitation-gated lifecycle rehearsal. Prefer 08
+combined concurrent readiness next; account/network feasibility in 02 remains open.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.
