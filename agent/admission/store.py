@@ -120,6 +120,31 @@ class InvitationStore:
                 raise AdmissionDenied()
             db.execute("INSERT OR REPLACE INTO grants VALUES(?,?)", (digest(subject), row[0]))
 
+    def wake_invitation(self, code: str) -> str:
+        """Validate wake access without redeeming browser/application authority."""
+        if not isinstance(code, str) or not 16 <= len(code) <= 128:
+            raise AdmissionDenied()
+        with self._transaction() as db:
+            now = self.clock()
+            row = db.execute(
+                "SELECT id FROM invitations WHERE hash=? AND revoked=0 AND starts<=? AND ends>?",
+                (digest(code), now, now),
+            ).fetchone()
+            if row is None:
+                raise AdmissionDenied()
+            return row[0]
+
+    def valid_invitation(self, invitation: str) -> bool:
+        with self._transaction() as db:
+            now = self.clock()
+            return (
+                db.execute(
+                    "SELECT 1 FROM invitations WHERE id=? AND revoked=0 AND starts<=? AND ends>?",
+                    (invitation, now, now),
+                ).fetchone()
+                is not None
+            )
+
     def _valid_grant(self, db, subject):
         now = self.clock()
         return db.execute(

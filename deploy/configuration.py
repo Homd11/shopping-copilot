@@ -56,7 +56,12 @@ def preflight(release, config, *, local=False, minimum_free_bytes=64 * 1024 * 10
         }
     ).validate_configuration()
     paths = [config]
-    for key in ("COPILOT_CATALOGUE_DB", "ADMISSION_DB_PATH", "INFERENCE_LEDGER_PATH"):
+    state_keys = ["COPILOT_CATALOGUE_DB", "ADMISSION_DB_PATH", "INFERENCE_LEDGER_PATH"]
+    if any(key.startswith("LIFECYCLE_") for key in values):
+        if not local or not values.get("LIFECYCLE_DB_ID"):
+            raise ValueError("Lifecycle transport is local rehearsal only")
+        state_keys.append("LIFECYCLE_DB_PATH")
+    for key in state_keys:
         raw = Path(values[key])
         if not raw.is_absolute():
             raise ValueError("State paths must be absolute")
@@ -74,8 +79,13 @@ def preflight(release, config, *, local=False, minimum_free_bytes=64 * 1024 * 10
             probe.flush()
             os.fsync(probe.fileno())
     catalogue_status(paths[1])
-    if configured_admission(values) is None:
+    admission = configured_admission(values)
+    if admission is None:
         raise ValueError("Admission is mandatory for release rehearsal")
+    if "LIFECYCLE_DB_PATH" in values:
+        from agent.lifecycle.work import configured_lifecycle
+
+        configured_lifecycle(values, admission)
     # Configuration and ledger checks only: no provider is constructed or called.
     if not values.get("INFERENCE_LEDGER_PATH"):
         raise ValueError("Durable allowance is mandatory")

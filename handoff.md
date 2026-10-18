@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Invitation-gated lifecycle rehearsal — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for the current frontier. Ticket 07 changes are on
+`codex/cap04-lifecycle` from `476cb30`, resolved locally. Focused 17 lifecycle/browser
+checks and 199 TypeScript tests/build/types/lint/format pass; both independent
+reviews cleared the reproduced race/failure fixes. Final serial verification:
+713 Python/browser tests passed in 728.29s; durable output and exit-code 0 JSON
+are under `outputs/cap04-lifecycle-verification/`. Runbook: docs/cap04-lifecycle.md;
+ledger: docs/superpowers/plans/2026-10-18-cap04-lifecycle.md. Real built processes
+prove waiting-to-shopping and stop/start commerce reset; the shared-filesystem
+control adapter is local-only, not deployed AWS/IAM evidence. Next is local 08;
+02 feasibility and parent CAP-04 remain open. No cloud, paid calls, DNS/trust
+changes or push; original checkout untouched.
+
 ## Built release and recovery — 2026-10-18
 
 Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 06 is

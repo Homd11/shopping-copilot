@@ -160,6 +160,7 @@ def build(source, output, *, local=False):
             "pnpm-lock.yaml",
             "deploy/Caddyfile",
             "deploy/shopping-copilot.service",
+            "agent/lifecycle/waiting.html",
         ):
             shutil.copyfile(source / name, release / name)
         (release / "package.json").write_text('{"type":"module"}\n', encoding="utf-8")

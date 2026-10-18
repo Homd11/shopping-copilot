@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from agent.admission.limits import AdmissionLimits, denied, is_owner_stop
 from agent.admission.store import AdmissionDenied
+from agent.lifecycle.store import LifecycleUnavailable
 from agent.session_state import SessionExpired, SessionNotFound
 from agent.sessions import SessionStore
 from agent.shopper_access import ShopperAccess
@@ -21,10 +22,12 @@ def install_shopper_http(
     panel_origin: str,
     evaluation: bool,
     admission=None,
+    lifecycle_work=None,
 ) -> None:
     access = ShopperAccess()
     app.state.shopper_access = access
     app.state.storefront_service = service
+    app.state.lifecycle_work = lifecycle_work
 
     async def alive(record) -> bool:
         if record.shopper is None:
@@ -160,7 +163,17 @@ def install_shopper_http(
         request.state.browser_authority = record
         bound_shopper = record.shopper
 
+        def lifecycle_authorized():
+            if lifecycle_work is not None:
+                try:
+                    lifecycle_work.check()
+                except LifecycleUnavailable:
+                    return False
+            return True
+
         async def still_authorized():
+            if not lifecycle_authorized():
+                return False
             if access.resolve(credential) is not record or record.shopper != bound_shopper:
                 return False
             if admission is not None and not admission.allowed(record):
@@ -171,10 +184,35 @@ def install_shopper_http(
                 and access.resolve(credential) is record
                 and record.shopper == bound_shopper
                 and (admission is None or admission.allowed(record))
+                and lifecycle_authorized()
             )
 
         request.state.shopper_authorized = still_authorized
-        response = await call_next(request)
+        token = None
+        meaningful = False
+        try:
+            if lifecycle_work is not None and not is_owner_stop(request.method, path):
+                lifecycle_work.check()
+                if request.method == "POST":
+                    token = lifecycle_work.begin()
+            response = await call_next(request)
+            meaningful = (
+                request.method == "POST"
+                and response.status_code < 300
+                and (
+                    path == "/shopper/activity"
+                    or path == "/sessions"
+                    or path.endswith(("/messages", "/answers", "/retry"))
+                )
+            )
+        except LifecycleUnavailable:
+            response = denied("demo_waiting", 503)
+        finally:
+            if token is not None:
+                try:
+                    lifecycle_work.finish(token, meaningful=meaningful)
+                except LifecycleUnavailable:
+                    response = denied("demo_waiting", 503)
         response.headers["Cache-Control"] = "no-store"
         return response
 

@@ -66,6 +66,9 @@ class SessionStore:
     def has_capacity(self) -> bool:
         return self._registry.has_capacity()
 
+    def has_pending_work(self) -> bool:
+        return self._registry.has_pending_work()
+
     def get(self, session_id: str) -> Session:
         return self._registry.get(session_id)
 

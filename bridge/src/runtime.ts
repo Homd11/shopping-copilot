@@ -327,6 +327,19 @@ if (typeof window !== "undefined" && window.parent !== window) {
   document.addEventListener("shopper:reset", () => {
     window.parent.postMessage({ type: "shopper_reset" }, panelOrigin);
   });
+  let lastInteraction = -Infinity;
+  for (const kind of ["pointerdown", "keydown"]) {
+    document.addEventListener(kind, (event) => {
+      if (!event.isTrusted || document.visibilityState !== "visible") return;
+      const now = performance.now();
+      if (now - lastInteraction < 30_000) return;
+      lastInteraction = now;
+      window.parent.postMessage(
+        { type: "shopper_activity", shopper_context: shopperContext(document) },
+        panelOrigin,
+      );
+    });
+  }
   installShopperLink(window, panelOrigin);
   const runtime = new BridgeRuntime({
     document,

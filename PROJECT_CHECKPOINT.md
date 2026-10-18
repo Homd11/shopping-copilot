@@ -2,6 +2,27 @@
 
 **Last updated:** 2026-10-18
 
+## Invitation-gated lifecycle rehearsal — 2026-10-18
+
+Local Ticket 07 is resolved on `codex/cap04-lifecycle` from `476cb30`.
+See [lifecycle runbook](docs/cap04-lifecycle.md) and
+[execution ledger](docs/superpowers/plans/2026-10-18-cap04-lifecycle.md).
+Focused lifecycle/browser checks: **17 passed in 56.29s**. Standards and Spec
+reviews are clear after reproduced race/failure fixes. TypeScript **199** tests,
+builds/type checks, ESLint, Ruff check/format and Prettier pass. Final serial
+verification: **713 Python/browser tests passed in 728.29s**, exit code 0.
+Durable ignored evidence is under `outputs/cap04-lifecycle-verification/`.
+The bounded waiting service, generation/drain arbitration, accepted-work leases
+and manual prewarming are locally rehearsed with real built shopping processes
+and external persistent coordination. New starts require invitation validation;
+background traffic does not reset inactivity, failed shutdown is never reported
+stopped, and expired worker authority cannot silently resume uncertain Actions.
+The shared-filesystem lifecycle transport is explicitly local-only; real remote
+control storage, Lambda, IAM and instance lifecycle still need cloud qualification.
+No paid inference, AWS, DNS or trust-store changes. Original checkout untouched;
+work is local, not pushed. Next is 08 combined concurrent readiness; Ticket 02
+account/network feasibility and parent CAP-04 remain open.
+
 ## Built release and recovery — 2026-10-18
 
 CAP-04 local ticket 06 is resolved locally on `codex/cap04-release`, based on
