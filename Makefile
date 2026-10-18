@@ -23,15 +23,15 @@ install:
 
 format:
 	pnpm format:ts
-	$(PYTHON) -m ruff format agent eval
+	$(PYTHON) -m ruff format agent eval deploy
 
 format-check:
 	pnpm format:check:ts
-	$(PYTHON) -m ruff format --check agent eval
+	$(PYTHON) -m ruff format --check agent eval deploy
 
 lint:
 	pnpm lint:ts
-	$(PYTHON) -m ruff check agent eval
+	$(PYTHON) -m ruff check agent eval deploy
 
 test:
 	pnpm --recursive test

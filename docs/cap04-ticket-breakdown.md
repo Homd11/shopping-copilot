@@ -84,13 +84,15 @@ qualification remain separate gates.
 
 **What to build:** A local release can be installed, restarted and rolled back while preserving the catalogue and spending history and applying the documented Shopper reset behavior.
 
-**Blocked by:** 03 — production origin journey; 05 — durable allowance.
+**Status:** resolved locally, 18 October 2026. See [release/recovery commands and evidence](cap04-release-recovery.md). Linux service-manager and EC2 acceptance remain separate deployment checks.
 
-- [ ] Exercise built releases with external persistent catalogue/configuration/ledger storage and restricted service permissions; schema incompatibility prevents serving.
-- [ ] Prove Agent-only restart retains the surviving Storefront cart while invalidating Agent authority; Storefront-only restart resets commerce and requires fresh linking.
-- [ ] In both restart directions, old ActionResult/Confirmation/Undo authority cannot apply to a new state and no uncertain Action is replayed.
-- [ ] Restore a consistent catalogue backup into a disposable copy and check revision/content. Rollback never restores an older allowance balance.
-- [ ] Demonstrate bounded redacted logs, failed health checks and disk failure. Record release/rollback/teardown procedures without executing cloud teardown or modifying shared resources.
+**Blocked by:** 03 — production origin journey; 05 — durable allowance (resolved).
+
+- [x] Exercise built releases with external persistent catalogue/configuration/ledger storage and restricted service permissions; schema incompatibility prevents serving.
+- [x] Prove Agent-only restart retains the surviving Storefront cart while invalidating Agent authority; Storefront-only restart resets commerce and requires fresh linking.
+- [x] In both restart directions, old ActionResult/Confirmation/Undo authority cannot apply to a new state and no uncertain Action is replayed.
+- [x] Restore a consistent catalogue backup into a disposable copy and check revision/content. Rollback never restores an older allowance balance.
+- [x] Demonstrate bounded redacted logs, failed health checks and disk failure. Record release/rollback/teardown procedures without executing cloud teardown or modifying shared resources.
 
 ## 07 — Wake invited Shoppers and stop safely when idle
 
@@ -142,9 +144,9 @@ uses owner evidence and official sources, not fabricated test fixtures.
 
 The owner confirmed the scope and decisions after review. Nine individual tickets
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
-Current frontier: 02 and 06. Tickets 03/04/05 resolve local production routing,
-invited admission and durable allowance. Prefer 06 release/restart rehearsal next;
-07 remains blocked by 06.
+Current frontier: 02 and 07. Tickets 03/04/05/06 resolve local routing, admission,
+allowance and release/restart rehearsal. Prefer 07 invitation-gated startup and
+idle shutdown next; account/network feasibility in 02 remains open.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.
