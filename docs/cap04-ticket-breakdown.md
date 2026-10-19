@@ -24,6 +24,15 @@ separate from ticket-to-ticket blockers.
 
 ## 02 — Establish account and complete network-cost feasibility
 
+**Status:** in progress, 19 October 2026. Current Free-plan/USD100 screenshots,
+Stockholm console Region and new-project experience are recorded in the
+[account evidence ledger](cap04-account-feasibility.md). Bedrock catalogue/model
+details and CloudFront dashboard access work; feature/invocation entitlement and
+credit details remain separate checks. The
+[current cost refresh](research/2026-10-19-cap04-network-cost-refresh.md) compares
+running/stopped and manual/automatic-wake candidates. No topology acceptance,
+resources, model calls, subscription, account upgrade or DNS changes.
+
 **What to build:** A reviewable choice of eligible ingress, egress and hosting that can provide the public demo within available credits without upgrading the AWS account.
 
 **Blocked by:** None — can investigate alongside 01.
