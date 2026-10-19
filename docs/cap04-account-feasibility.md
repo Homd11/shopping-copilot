@@ -7,19 +7,19 @@ subscription acceptance, DNS changes or inference.
 
 ## Evidence ledger
 
-| Input                         | Evidence currently available                                                                               | Status                                                                                         |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Account plan                  | Owner Billing screenshot 19 October explicitly Current plan Free                                           | Confirmed screenshot evidence; no upgrade performed                                            |
-| Remaining credit              | USD100.00 remaining; USD0.00 due in Billing; USD0.00 current-month dashboard                               | Confirmed screenshot balance; not a live API audit or USD200 allowance                         |
-| Plan end                      | Current screenshot: 171 days remaining, 7 April 2027                                                       | Plan end evidenced; separate from individual credit expiry                                     |
-| Credit eligibility and expiry | No credit-detail evidence yet                                                                              | Pending                                                                                        |
-| AWS Region                    | Owner console URL selects eu-north-1 (Europe/Stockholm)                                                    | Current selected Region evidenced; verify project home Region before resource planning         |
-| Account experience            | Owner screenshots show project switcher, Projects/Team and new Billing page                                | New project-based signup experience evidenced; its restrictions apply                          |
-| Service access                | No authenticated account inspection                                                                        | EC2/EBS, CloudFront pay-as-you-go, ACM, S3, Lambda, DynamoDB and administration access pending |
-| Bedrock model access          | Owner confirms catalogue and gpt-oss-20b details open; screenshots corroborate                             | Pending; catalogue visibility alone does not prove invocation authority                        |
-| DNS                           | scpilot.tech owner purchase; prior authoritative NS lookup                                                 | Existing DNS editing access and included record management need owner confirmation             |
-| Local readiness               | Real proxy, release, allowance, lifecycle and capacity checks; physical Android local exception documented | Passed locally; not cloud qualification                                                        |
-| Programmatic access           | No AWS CLI executable or local config/credentials found during this check                                  | No AWS API/account actions performed                                                           |
+| Input                         | Evidence currently available                                                                               | Status                                                                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Account plan                  | Owner Billing screenshot 19 October explicitly Current plan Free                                           | Confirmed screenshot evidence; no upgrade performed                                                                                  |
+| Remaining credit              | USD100.00 remaining; USD0.00 due in Billing; USD0.00 current-month dashboard                               | Confirmed screenshot balance; not a live API audit or USD200 allowance                                                               |
+| Plan end                      | Current screenshot: 171 days remaining, 7 April 2027                                                       | Plan end evidenced; separate from individual credit expiry                                                                           |
+| Credit eligibility and expiry | No credit-detail evidence yet                                                                              | Pending                                                                                                                              |
+| AWS Region                    | Owner console URL selects eu-north-1 (Europe/Stockholm)                                                    | Current selected Region evidenced; verify project home Region before resource planning                                               |
+| Account experience            | Owner screenshots show project switcher, Projects/Team and new Billing page                                | New project-based signup experience evidenced; its restrictions apply                                                                |
+| Service access                | Owner screenshots show Lambda, DynamoDB and ACM landing pages; CloudFront dashboard confirmed separately   | Console visibility evidenced; exact page Regions and action/feature permissions not inferred; EC2/EBS/S3/admin checks remain pending |
+| Bedrock model access          | Owner confirms catalogue and gpt-oss-20b details open; screenshots corroborate                             | Pending; catalogue visibility alone does not prove invocation authority                                                              |
+| DNS                           | scpilot.tech owner purchase; prior authoritative NS lookup                                                 | Existing DNS editing access and included record management need owner confirmation                                                   |
+| Local readiness               | Real proxy, release, allowance, lifecycle and capacity checks; physical Android local exception documented | Passed locally; not cloud qualification                                                                                              |
+| Programmatic access           | No AWS CLI executable or local config/credentials found during this check                                  | No AWS API/account actions performed                                                                                                 |
 
 Keep account IDs, billing address, payment details and credentials out of committed
 evidence. Record only plan, dates, dollar balances, Region, observed access status
@@ -68,6 +68,14 @@ Screenshots are owner-supplied observations. USD0 current-month cost and unavail
    without changing them. No transfer or Route53 hosted zone is assumed necessary.
 
 The owner supplied current plan/balance/plan-end screenshots and a console URL selecting Stockholm. The Bedrock model catalogue opens normally (owner reply and screenshot). This proves catalogue access only. The owner also opened gpt-oss-20b details without a visible upgrade block and confirms the CloudFront dashboard opens. These prove read-only console visibility, not model invocation or distribution/certificate/control-feature creation eligibility. No model invocation or subscription is requested. The catalogue Anthropic use-case notice is provider-specific and is not a requirement to submit information for the present non-Anthropic shortlist. Individual credit details remain unknown if this Settings view does not expose them.
+
+## ACM navigation observation
+
+A subsequent owner screenshot shows the actual ACM Certificates list loading successfully with zero entries and no visible access error. The cropped screenshot does not show its Region. The owner then supplied the working tab URL, whose Region is eu-north-1: Stockholm certificate-list access is confirmed. us-east-1 list access remains unverified. The separate browser’s generic sign-in redirect is not proof of the authenticated list Region. The account/session-qualified URL itself is not retained. No certificate was requested.
+
+Owner screenshots on 19 October confirm Lambda, DynamoDB and ACM landing pages open without a visible upgrade denial. Their cropped headers do not establish each page’s Region. The generic us-east-1 ACM deep link instead reaches a blank AWS sign-in session-selector page. That symptom is not an AccessDenied response and does not prove a paid-plan or Region restriction; the cause has not been established. No credentials, account-specific redirect URL or browser challenge parameters are retained.
+
+Next try the existing working ACM tab in the same signed-in browser, replacing only the regional hostname segment eu-north-1 with us-east-1 and preserving its account/session prefix and ACM path. This is a navigation diagnostic, not an asserted fix or Region-creation authorization. Record the resulting Region or visible error. Retain the project session; do not request a certificate, change browser security settings, activate advanced features or infer Virginia access from the generic ACM landing page.
 
 ## Project Region constraint
 
