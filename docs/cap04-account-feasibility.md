@@ -1,9 +1,19 @@
 # CAP-04 account and network feasibility
 
-**19 October 2026 — in progress; local Ticket 02 remains open.** Local combined
+**20 October 2026 — in progress; local Ticket 02 remains open.** Local combined
 readiness Ticket 08 is resolved. This document records account evidence and the
 remaining decision gates; it does not authorize provisioning, a Paid-plan upgrade,
 subscription acceptance, DNS changes or inference.
+
+## Owner continuation — 20 October
+
+The owner could not reach Billing Support and instructed continuation with the
+available evidence. Record public IPv4 credit coverage as unresolved and do not
+repeat the Support request as a gate to further preparation. The [conditional
+handoff](cap04-deployment-handoff.md) carries that uncertainty into offline
+CAP-05/06 preparation. This does not turn an unknown into verified coverage,
+authorize cash charges or an upgrade, close local 02, or permit paid inference,
+resource creation or DNS writes. Those execution steps retain separate gates.
 
 ## Evidence ledger
 

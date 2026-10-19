@@ -4,6 +4,15 @@
 certificate requests, DNS writes, model calls or account changes are authorized
 by this document. It amends the network candidate, not the shopping contract.
 
+## Owner continuation — 20 October
+
+The owner could not reach Support and approved continuing with available evidence.
+Prepare the [conditional handoff](../../cap04-deployment-handoff.md) without another
+Support response. Public IPv4 credit applicability remains unknown. This permits
+preparation while local02 is open, not final09/parent closure, paid calls, cash
+charges, account upgrade, resource creation or DNS writes. All existing shopping
+and lifecycle safety requirements remain unchanged.
+
 ## Evidence requiring this change
 
 The owner reached the ACM certificate list in eu-north-1. After changing the
@@ -123,7 +132,8 @@ of trusted certificate acquisition/renewal, remote control authority and generat
 startup routing belongs to the subsequent deployment work, with isolated local
 configuration checks before exposure. Actual public-domain Android/desktop HTTPS,
 capacity, cold start and stop/restart acceptance remain CAP-07. Local 09 can
-finalize the handoff only after local 02 is resolved; the owner design choice is already approved.
+prepare the conditional package under the 20 October exception, while final
+acceptance still requires local 02 resolution; the owner design choice is already approved.
 
 Sources: [Caddy automatic HTTPS](https://caddyserver.com/docs/automatic-https),
 [Caddy public-domain quick start](https://caddyserver.com/docs/quick-starts/https),
