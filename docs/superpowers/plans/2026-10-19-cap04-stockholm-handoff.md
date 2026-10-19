@@ -79,4 +79,6 @@ URLs. Documentation-only changes do not require repeating the already passing
 716 Python/browser and 199 TypeScript tests. Commit explicit files locally; no push
 or merge is authorized by this continuation.
 
-Review ledger: independent Spec review clear; Standards found one historical Virginia diagnostic still worded as a next action. It is now explicitly historical. Owner DNS Records controls confirm record-management access; the credit Applicable services dialog confirms Bedrock only so far. Remaining service searches and individual expiry are pending. No resources or DNS records changed.
+Review ledger: independent Spec review clear; Standards found one historical Virginia diagnostic still worded as a next action. It is now explicitly historical. Owner DNS Records controls confirm record-management access; credit screenshots list Bedrock, Elastic Compute Cloud, Lambda, DynamoDB, S3, CloudFront and CloudWatch. Individual credit expires 7 October 2027, 15:41 UTC, distinct from Free-plan end 7 April 2027. Both Virtual Private Cloud and VPC searches found no match, so public IPv4 credit applicability remains unresolved. No resources or DNS records changed.
+
+Official-source follow-up: public IPv4 uses Amazon VPC billing codes. VPC service support does not settle this credit applicability. The precise owner Billing Support question is in docs/research/2026-10-19-cap04-ipv4-credit-coverage.md; no billable access probe is authorized.

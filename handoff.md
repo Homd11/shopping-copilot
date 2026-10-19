@@ -10,7 +10,7 @@ Stockholm Lambda/DynamoDB/S3; manual prewarming remains fallback. Cold shopping
 bookmarks cannot wake the host. Same shopping origins/cookies/Action safety and
 code reentry preserved. Builder check clear. Prices approximately USD26.99 low-duty
 or USD55.50 continuous 60-day candidate, not a cap or spending approval. Local 02/09
-and parent CAP-04 stay open. DNS record-management controls now confirmed (no writes/purchase prompt). Actual credit Applicable services dialog visibly includes Bedrock. Other selected-service searches and individual credit expiry requested; do not infer all coverage from page1. Independent Spec clear; historical Virginia diagnostic label corrected after Standards review.
+and parent CAP-04 stay open. DNS record-management controls now confirmed (no writes/purchase prompt). Credit screenshots list Bedrock, Elastic Compute Cloud, Lambda, DynamoDB, S3, CloudFront and CloudWatch. Stockholm VPC dashboard/list open: one Available VPC, three subnets, zero NAT gateways and zero Elastic IPs; default status not inferred. Both Virtual Private Cloud and VPC searches return no match; public IPv4 coverage unresolved. Individual credit expires 7 October 2027 at 15:41 UTC (start 7 October 2026), distinct from Free-plan end 7 April 2027; no extension of plan access or resource authority inferred. Independent Spec clear; historical Virginia diagnostic label corrected after Standards review.
 No runtime/resource/certificate/DNS/model/upgrade changes. Existing test Caddyfile
 has automatic HTTPS disabled; qualification/deployment config is still future work.
 
