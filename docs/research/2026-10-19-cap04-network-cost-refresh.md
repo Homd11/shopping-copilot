@@ -54,6 +54,10 @@ only a documented alternative pending account access, network cost and latency.
 [gpt-oss-20b](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-oss-20b.html),
 [gpt-oss-120b](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-oss-120b.html).
 
+## Subsequent account evidence and selected candidate
+
+The owner subsequently reached a Virginia ACM restriction modal: the project is assigned to Stockholm and access to other commercial Regions requires upgrading the plan then activating advanced features. The generic policy exception described above did not establish actual console access. Do not try a certificate-creation API as a workaround. The owner explicitly selected the [Stockholm amendment](../superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md): direct Caddy public ACME HTTPS for app/store, generated CloudFront hostname only for startup/control, regional S3/Lambda/DynamoDB. This avoids Virginia ACM/custom aliases. The relevant direct-plus-wake scenarios are approximately USD26.99 at 120 running hours / USD55.50 continuous; no main-shopping CloudFront transfer/request increment is added. The two-distribution candidate and its USD57.20 figure below remain comparisons, not the selected route. Account feature/credit/DNS checks still apply; no resources were created.
+
 ## Conditional topology recommendation
 
 | Candidate                                                               | Ingress and egress                                                                                                                                                                                                                                                                                              | Decision implication                                                                                                                                                                                                                                                                                                                                   |

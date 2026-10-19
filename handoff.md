@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Virginia blocked; automatic generated-host startup selected — 2026-10-19
+
+Newest account evidence: AWS explicitly denies Virginia ACM and confirms Stockholm
+project assignment, requiring paid upgrade for other Regions. Do not try API
+issuance to work around it. Owner selected docs/superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md:
+Caddy public ACME on app/store, generated CloudFront waiting/control link plus
+Stockholm Lambda/DynamoDB/S3; manual prewarming remains fallback. Cold shopping
+bookmarks cannot wake the host. Same shopping origins/cookies/Action safety and
+code reentry preserved. Builder check clear. Prices approximately USD26.99 low-duty
+or USD55.50 continuous 60-day candidate, not a cap or spending approval. Local 02/09
+and parent CAP-04 stay open. DNS record-management controls now confirmed (no writes/purchase prompt). Actual credit Applicable services dialog visibly includes Bedrock. Other selected-service searches and individual credit expiry requested; do not infer all coverage from page1. Independent Spec clear; historical Virginia diagnostic label corrected after Standards review.
+No runtime/resource/certificate/DNS/model/upgrade changes. Existing test Caddyfile
+has automatic HTTPS disabled; qualification/deployment config is still future work.
+
 ## Account evidence refresh — 2026-10-19
 
 Local 02 remains active after 08 closure. New owner screenshots confirm USD100.00,

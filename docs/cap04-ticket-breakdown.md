@@ -30,8 +30,7 @@ Stockholm console Region and new-project experience are recorded in the
 details and CloudFront dashboard access work; feature/invocation entitlement and
 credit details remain separate checks. The
 [current cost refresh](research/2026-10-19-cap04-network-cost-refresh.md) compares
-running/stopped and manual/automatic-wake candidates. No topology acceptance,
-resources, model calls, subscription, account upgrade or DNS changes.
+running/stopped and manual/automatic-wake candidates. The owner subsequently selected generated-host automatic wake plus direct Caddy HTTPS for app/store after explicit Virginia ACM restriction. See the [approved amendment](superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md). Account/credit/DNS evidence still prevents closure; no resources, model calls, subscription, account upgrade or DNS changes.
 
 **What to build:** A reviewable choice of eligible ingress, egress and hosting that can provide the public demo within available credits without upgrading the AWS account.
 

@@ -2,6 +2,30 @@
 
 **Last updated:** 2026-10-19
 
+## Virginia restriction; generated-host wake selected — 2026-10-19
+
+Owner screenshot explicitly confirms ACM Virginia is unavailable, the project is
+assigned to Stockholm, and other commercial Regions require upgrade then advanced
+features. This supersedes inference from generic managed-policy exceptions. No
+API issuance workaround or account upgrade is authorized. Lambda, DynamoDB and
+Stockholm ACM landing/list visibility are recorded; action authority remains a
+separate check.
+
+The owner chose automatic wake through a generated CloudFront HTTPS hostname,
+with direct Caddy public ACME HTTPS for app.scpilot.tech/store.scpilot.tech. See
+the [approved amendment](docs/superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md).
+Only waiting/control uses CloudFront; cold entry requires that generated link.
+A direct shopping bookmark does not wake a stopped host. No shopping cookies or
+Action authority move across sites; code reentry remains required. The two custom
+shopping origins, safety invariants and restart semantics are unchanged.
+
+The verified-rate direct-plus-wake reference is approximately USD26.99 at 120
+running hours / USD55.50 continuous over 60 days including USD11 model/qualification
+allocation; no new spending permission. Builder review found no important unanswered
+owner design questions. Local 02 remains open for account/credit/feature and DNS
+editing evidence; 09 and parent CAP-04 remain open. Owner DNS Records screenshot now confirms Add new record and A/CNAME controls with no purchase prompt visible; no records saved. The actual credit Applicable services dialog visibly includes Amazon Bedrock. Remaining service searches (EC2/VPC/Lambda/DynamoDB/S3/CloudFront/CloudWatch) and individual credit expiry are requested. Independent Spec review cleared the amendment; Standards historical-next-step wording corrected.
+No production code, resources, certificates, DNS writes, model calls or paid upgrades.
+
 ## Account feasibility refresh — 2026-10-19
 
 Latest owner screenshots: Lambda, DynamoDB and ACM landing pages open. Generic Virginia ACM deep link reaches a blank sign-in/session-selector redirect, not an access-denied response. The subsequent ACM certificate list loads with zero entries; its cropped screenshot does not expose Region. Owner then supplied the working URL confirming eu-north-1 Stockholm. Virginia list access remains unverified; next navigation diagnostic preserves the working account/session prefix and path while changing only the hostname Region. No request/creation or account/browser-security changes.
