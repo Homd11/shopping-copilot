@@ -1,5 +1,16 @@
 # Shopping Copilot — project handoff
 
+## Account evidence refresh — 2026-10-19
+
+Local 02 remains active after 08 closure. New owner screenshots confirm USD100.00,
+USD0.00 current-month cost, free-plan dashboard and end 7 April 2027; extra activities
+0 of 5 / USD0 of 100 earned. Owner then supplied explicit Free-plan Billing/project menus and a URL selecting eu-north-1 Stockholm. Bedrock catalogue/gpt-oss-20b details and CloudFront dashboard now open normally (owner evidence). Individual credit terms and model invocation/feature creation authority remain unverified. Read-only Lambda/DynamoDB/ACM page checks requested; no invocation.
+See docs/cap04-account-feasibility.md. No local AWS CLI/profile found, so do not
+claim a programmatic account/authorization audit. No resources/paid calls/DNS or
+account upgrades. Local 09 blocked by 02; parent CAP-04 remains open. Keep the fresh
+pricing refresh separate from confirmed account entitlement. Original checkout
+preserved; no push authorized.
+
 ## Physical Android closes local Ticket 08 — 2026-10-18
 
 Newest frontier: local02 account/network feasibility; 09 is blocked by02 and parent

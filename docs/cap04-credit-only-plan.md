@@ -1,8 +1,10 @@
 # CAP-04: credit-only deployment constraints
 
-**Updated:** 14 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
+**Updated:** 19 October 2026. **Status:** owner constraints recorded; design and deployment remain open.
 
 See the [current design revision](superpowers/specs/2026-10-11-cap04-cloud-readiness-design.md) for SQLite, shopper restart semantics, public-ingress options and remaining proof requirements. The pricing table below remains a historical scenario, not the selected network design.
+
+Fresh owner screenshots on 19 October confirm USD100.00 remaining, USD0.00 current-month cost,171 days remaining and plan end 7 April 2027. Additional activity credits are USD0 of 100 earned (0 of 5 activities). The selected console Region is eu-north-1 (Stockholm), and new project-based Billing explicitly confirms Free plan and USD0 due. Bedrock catalogue access works; exact-model invocation authority and credit-specific eligibility/expiry remain unverified. See [current evidence ledger](cap04-account-feasibility.md). The earlier price scenarios below are historical; use the [19 October Stockholm-aware network-cost refresh](research/2026-10-19-cap04-network-cost-refresh.md) for current reference inputs. The two-month continuous candidate is approximately USD57.20 including CloudFront main traffic and optional wake under its stated workload, before the proposed contingency. Feature eligibility still prevents topology acceptance.
 
 ## Owner decisions
 

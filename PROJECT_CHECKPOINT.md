@@ -1,6 +1,18 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-19
+
+## Account feasibility refresh — 2026-10-19
+
+Continuing local Ticket 02 after local 08 closure. Fresh owner screenshots show
+Free-plan cost/usage wording, USD100.00 remaining, USD0.00 current-month cost,
+171 days remaining and plan end 7 April 2027. Additional activity credits show
+USD0 of 100 earned, 0 of 5 completed. Do not count advertised USD200 or create an
+unneeded RDS/playground workload to collect rewards. The owner subsequently supplied explicit Free-plan Billing evidence, USD0 due, project-based menus and a console URL selecting eu-north-1 (Stockholm). Project home-Region confirmation, individual credit expiry/applicability, service/model entitlement and DNS-editing access remain pending. See [account evidence ledger](docs/cap04-account-feasibility.md).
+No AWS CLI/config/credentials found locally; no authenticated AWS API audit,
+resources, model calls or account changes occurred. Account-specific evidence is
+requested from the owner. Bedrock catalogue and gpt-oss-20b details plus the CloudFront dashboard now open normally (owner evidence), not proof of Invoke/Create authority. Official-source Stockholm cost scenarios and independent Decimal recomputation are recorded in docs/research/2026-10-19-cap04-network-cost-refresh.md. The continuous CloudFront/main-delivery/wake scenario rounds to USD57.20 under its explicit workload; no fresh AWS inference spending permission is implied. Local 02/09 and parent CAP-04 stay open; original checkout
+and the existing OpenRouter cap/configuration remain untouched. Independent Spec/Standards reviews corrected a circular deployed-acceptance prerequisite and a stale handoff sentence. Decimal arithmetic, Markdown formatting, source-only path/credential checks and diff checks pass; no application changes require a new full regression run.
 
 ## Physical Android passed; local Ticket 08 resolved — 2026-10-18
 
@@ -25,7 +37,7 @@ USB/browser forwarding, newly started ADB server and certificate key were cleane
 up and verified. Owner instructed to disable USB debugging; that setting remains
 owner-controlled. No personal phone tabs/data, paid inference or AWS changes.
 
-Local08 is now resolved. Local02 account/network feasibility and parent CAP-04
+Local08 is now resolved. Local 02 account/network feasibility and parent CAP-04
 remain open; 09 final architecture handoff still depends on02. Continue with
 account/network evidence rather than provisioning or claiming cloud readiness.
 Changes remain local, with no push; original checkout is preserved.
