@@ -4,6 +4,8 @@
 
 ## Account feasibility refresh — 2026-10-19
 
+Latest owner screenshots: Lambda, DynamoDB and ACM landing pages open. Generic Virginia ACM deep link reaches a blank sign-in/session-selector redirect, not an access-denied response. The subsequent ACM certificate list loads with zero entries; its cropped screenshot does not expose Region. Owner then supplied the working URL confirming eu-north-1 Stockholm. Virginia list access remains unverified; next navigation diagnostic preserves the working account/session prefix and path while changing only the hostname Region. No request/creation or account/browser-security changes.
+
 Continuing local Ticket 02 after local 08 closure. Fresh owner screenshots show
 Free-plan cost/usage wording, USD100.00 remaining, USD0.00 current-month cost,
 171 days remaining and plan end 7 April 2027. Additional activity credits show
