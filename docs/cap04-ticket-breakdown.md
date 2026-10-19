@@ -24,13 +24,14 @@ separate from ticket-to-ticket blockers.
 
 ## 02 — Establish account and complete network-cost feasibility
 
-**Status:** in progress, 19 October 2026. Current Free-plan/USD100 screenshots,
-Stockholm console Region and new-project experience are recorded in the
-[account evidence ledger](cap04-account-feasibility.md). Bedrock catalogue/model
-details and CloudFront dashboard access work; feature/invocation entitlement and
-credit details remain separate checks. The
-[current cost refresh](research/2026-10-19-cap04-network-cost-refresh.md) compares
-running/stopped and manual/automatic-wake candidates. The owner subsequently selected generated-host automatic wake plus direct Caddy HTTPS for app/store after explicit Virginia ACM restriction. See the [approved amendment](superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md). Account/credit/DNS evidence still prevents closure; no resources, model calls, subscription, account upgrade or DNS changes.
+**Status:** in progress, updated 20 October 2026. Account dates, selected-service
+credit listings, Stockholm VPC visibility and the chosen network are recorded in
+[the account ledger](cap04-account-feasibility.md). Public IPv4 credit coverage
+and scoped service/model authority remain unresolved. The owner could not reach
+Support and authorized continuing preparation with available evidence; no repeat
+Support response is required for that preparation. The [conditional handoff](cap04-deployment-handoff.md)
+consolidates the selected design and execution checks. No upgrade, cash charges,
+paid calls, resources or DNS writes are authorized by this continuation.
 
 **What to build:** A reviewable choice of eligible ingress, egress and hosting that can provide the public demo within available credits without upgrading the AWS account.
 
@@ -142,15 +143,19 @@ or EC2 capacity; those remain cloud acceptance requirements.
 
 ## 09 — Finalize the costed CAP-04 handoff
 
+**Status:** preparation in progress under the owner's 20 October continuation.
+The [conditional package](cap04-deployment-handoff.md) is assembled; final acceptance
+remains pending the unresolved feasibility checks and package review.
+
 **What to build:** The owner receives one consistent architecture and acceptance package with tested local preparation, an eligible network design and an explicit path to CAP-05/06/07.
 
 **Blocked by:** 02 — account/network feasibility; 08 — combined readiness (which includes 01 and 03–07).
 
 - [ ] Reconcile the chosen topology against browser evidence, account access, all-in costing and the owner-provided-domain and credit-only/no-upgrade constraints; any unresolved feasibility prevents acceptance.
-- [ ] Deliver the final diagram, service inventory, trust boundaries, IAM/secret handling, state lifetime, allowance policy and retention decisions.
-- [ ] Include reproducible deployment, release/rollback/teardown and cloud acceptance checklists; separate local evidence from AWS and real-model checks still pending.
+- [x] Deliver the final diagram, service inventory, trust boundaries, IAM/secret handling, state lifetime, allowance policy and retention decisions.
+- [x] Include reproducible deployment, release/rollback/teardown and cloud acceptance checklists; separate local evidence from AWS and real-model checks still pending.
 - [ ] Record owner review and keep separate authorization for paid qualification and resource creation. No implicit increase to the OpenRouter allowance.
-- [ ] Leave the parent issue unchanged; report whether its acceptance evidence is ready for an explicit closure decision. CAP-05 model qualification and CAP-06 deployment remain separate work.
+- [x] Leave the parent issue unchanged; report whether its acceptance evidence is ready for an explicit closure decision. CAP-05 model qualification and CAP-06 deployment remain separate work.
 
 ## Test boundaries and execution frontier
 
@@ -164,7 +169,9 @@ The owner confirmed the scope and decisions after review. Nine individual ticket
 are published in the ignored local tracker. Ticket 01 resolves desktop browser layout feasibility under the domain amendment.
 Current frontier: 02. Tickets 03/04/05/06/07/08 resolve local routing, admission,
 allowance, release/restart, invitation-gated lifecycle and combined concurrent
-readiness. Account/network feasibility in 02 remains open; 09 depends on it.
+readiness. Account/network feasibility in 02 remains open; final09 acceptance depends on it.
+Owner continuation on 20 October permits conditional09 preparation without waiting
+for a Support reply; it does not pass account checks or close the parent.
 Missing account evidence may pause 02 while independent local work proceeds.
 The parent CAP-04 remains open and unchanged. Publication authorizes specified local
 preparation, not account changes, provisioning or additional inference spending.

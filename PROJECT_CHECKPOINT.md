@@ -1,6 +1,22 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-19
+**Last updated:** 2026-10-20
+
+## Continue without Support response; conditional handoff — 2026-10-20
+
+The owner could not reach Billing Support and explicitly instructed continuation
+with the available evidence. Do not keep asking for the same Support response.
+Public IPv4 credit coverage remains unknown; no service permission or cash-charge
+acceptance is inferred. Free plan/USD0 cash, existing provider cap, separate paid
+qualification and resource/DNS authorization remain in force.
+
+The consolidated package is docs/cap04-deployment-handoff.md: selected topology,
+service/state inventory, trust/IAM/secrets, retained certificate and allowance
+state, dated all-in costing, release/rollback/teardown and CAP-05/06/07 checks.
+Local02 remains open; local09 preparation may proceed under this owner exception,
+but final09/parentCAP-04 acceptance is not claimed. Offline Bedrock adapter and
+infrastructure preparation are the next actionable work; live qualification and
+provisioning remain separate. No runtime, account, resource, DNS or model changes.
 
 ## Virginia restriction; generated-host wake selected — 2026-10-19
 

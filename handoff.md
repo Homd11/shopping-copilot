@@ -1,5 +1,16 @@
 # Shopping Copilot — project handoff
 
+## Continue with available evidence — 2026-10-20
+
+Owner could not reach Billing Support and directed continuation. Stop treating a
+Support reply as a prerequisite for further preparation. Public IPv4 coverage is
+still unresolved, not a passed check or permission for cash charges/upgrades.
+Use docs/cap04-deployment-handoff.md for the consolidated conditional package and
+CAP-05/06/07 sequence. Local02/final09/parentCAP-04 remain open; local09 preparation
+proceeds under this explicit owner exception. Next actionable work is offline
+Bedrock adapter/infrastructure preparation. Live qualification, resource creation
+and DNS writes retain separate authorization. No runtime or external changes.
+
 ## Virginia blocked; automatic generated-host startup selected — 2026-10-19
 
 Newest account evidence: AWS explicitly denies Virginia ACM and confirms Stockholm
