@@ -1,8 +1,12 @@
 # CAP-05 first Bedrock diagnostic
 
-**20 October 2026 — prepared; inference authorization pending.** The owner said
-to continue with account/model verification and qualification preparation. This
-document proposes one diagnostic only, not an approved paid run or a full set.
+**20 October 2026 — the owner approved the single USD0.02-credit diagnostic; its
+one attempt failed.** The original proposal below is retained for review. See the
+[preserved result](../eval/evidence/cap05-diagnostic-20261020/README.md). No retry
+or full set is authorized. USD0.015 remains reserved and uncertain; the ledger is
+now disabled and the claim remains consumed. Actual cost and failure cause remain
+unknown. The later offline service-code telemetry improvement does not authorize
+another request.
 
 ## Verified access
 
@@ -103,3 +107,31 @@ OpenRouter approval or USD11 architecture allocation authorizes this run.
 Public IPv4 coverage and remaining infrastructure permissions stay unresolved;
 this model access proof does not close local02/final09/parentCAP04. CAP-05 remains
 open until its actual acceptance requirements hold.
+
+## Proposed second diagnostic — not yet authorized
+
+The first call's exact service error code was not preserved. Read-only model
+metadata confirms ACTIVE/ON_DEMAND, but neither that nor surrounding CloudTrail
+history establishes the cause. At approximately307seconds, a narrow unfiltered
+history lookup showed surrounding GetFoundationModel/OAuth events but no matching
+inference event. No logging was enabled or paid request repeated.
+
+Prepare exactly one further Converse call with the same request hash
+803872abb1dcb5dd69eefb5a885d6674f3287c8942014d9940ed226067c86cb1,
+model/Region/limits and zero retries, using the independently reviewed service-code
+metadata improvement. Its purpose is to capture the allowlisted service code and
+HTTP status, not to attempt a full evaluation or silently change parameters.
+
+Proposed additional authorization: USD0.02 AWS credit, one call, with USD0.015
+reserved and held. Total credit authorization across the two diagnostics would
+then be at mostUSD0.04. The first consumed claim, disabled ledger and held USD0.015
+remain intact. Do not enable/reset the first ledger or treat its remainingUSD0.005
+as a retry allowance. The second plan lives in a different fixed owned directory,
+outputs/cap05-bedrock-diagnostic-002/, with a hash binding to the preserved first
+result. It has no claim or ledger until a new explicit approval is received.
+
+The existing default CLI remains bound to diagnostic001 and refuses ordinary
+rerun. A separately authorized002 execution must explicitly select that prepared
+directory through the reviewed run_once seam and validate its frozen plan and
+prior-result binding before entry. Stop after that single call regardless of
+outcome; no third call is included. No authorization has yet been received for002.

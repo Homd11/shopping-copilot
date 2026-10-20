@@ -45,8 +45,8 @@ runner; the old Gemini/OpenRouter run approvals cannot authorize it.
       retain the earlier754/1timeout plus three successful reruns transparently.
 - [x] Record sanitized access proof, prepared plan and local tooling provenance;
       keep login tokens/cache/log URLs out of committed evidence. Commit locally.
-- [ ] Request USD0.02 authorization only after the exact diagnostic is reviewable.
-- [ ] If approved, run at most one attempt; otherwise leave execution pending.
+- [x] Request USD0.02 authorization only after the exact diagnostic is reviewable.
+- [x] If approved, run at most one attempt; otherwise leave execution pending.
 
 Base:8ac2304. This small evaluation utility is an implementation choice within the
 existing qualification workflow; it does not change product behavior or relax
@@ -64,3 +64,22 @@ The current-owner installed/sign-in evidence supersedes research-only earlier
 CRTabsence/local-authunknown text. Additional requirement file pins the SDK CRT
 extra; base lock unchanged. No credentials or auth URLs enter committed evidence.
 Source preparation and budget approval follow; only the one request is proposed.
+
+Live closeout: owner approved exactly one attempt withinUSD0.02credit. Attempt
+failed provider_http in1313ms, no usage/output; fullUSD0.015held, oneuncertainentry.
+Root cause/billedcost unknown. Ledgerdisabled aftercloseout, remainingUSD0.005not
+reusableauthorization, claimconsumed. No retries/subscriptions/resources/upgrades.
+ReadonlymodeldetailsACTIVE/ON_DEMAND and initialemptyCloudTrailresult are not
+successful inference/causeproof. Preserve original plan/source hashes and failure.
+
+Follow-up telemetry: allowlisted serviceerrorcodes and strict HTTPstatus metadata;
+unknowncodesOther, no bodies/secrets. Two regressiontestsREDmissingfields thenGREEN.
+41adapter and77combined checks pass; independent reviewclear. No live replay or
+claim that metadatafix repairsoriginalfailure. Actual fullsuitewas not repeated
+for this metadata-only change; prior754pass/1timeout/reruns remain explicit.
+
+Read-only final trace around307seconds saw surrounding management events but no
+matching inference request; leave cause unknown. Prepared diagnostic002 with
+identical request hash, separate owned folder and prior-result hash binding.
+Additional onecall/USD0.02 approval is pending (would totalUSD0.04 across both);
+first claim/disabled ledger/reservation untouched. No third call/fullset proposed.

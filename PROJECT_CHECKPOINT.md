@@ -2,6 +2,35 @@
 
 **Last updated:** 2026-10-20
 
+## First Bedrock diagnostic failed; no retry — 2026-10-20
+
+Owner explicitly approved one diagnostic with USD0.02 maximum AWS credit use.
+Exactly one Converse attempt ran from the frozen ar-01 request. Provider HTTP
+failure after1313ms; no output/usage or exact service code captured by that revision.
+Actual billed cost is unknown. Full USD0.015 reservation retained; one uncertain
+attempt, USD0.005remaining; the owner-controlled ledger is now disabled and the
+exclusive claim remains consumed. Do not reset/retry, silently use remaining
+allowance, or infer zero billing. No full qualification set is authorized.
+
+Read-only GetFoundationModel reports ACTIVE and ON_DEMAND. CloudTrail history
+initial checks found no matching Converse event; no cause established. No logging
+configuration enabled, agreement change, deployment or upgrade. Positive model
+availability remains evidence of eligibility only. Sanitized preserved failure:
+eval/evidence/cap05-diagnostic-20261020/; private claim/ledger/result and correlation
+remain under outputs/cap05-bedrock-diagnostic-001/.
+
+Offline follow-up retains allowlisted AWS service codes and strict HTTP status in
+future metadata, never raw error bodies. Two tests observedRED thenGREEN;41adapter
+and77combined focused checks pass. Independent review clear. This telemetry fix
+does not explain/fix the failed request or authorize replay. Earlier full-suite
+754pass/1timeout plus three successful serial reruns remains the full evidence.
+Final read-only trace around307seconds saw surrounding events but no matching
+inference request. Diagnostic002 is prepared in its separate owned directory,
+identical request hash and binding to the first result. It proposes one additional
+call/USD0.02credit (USD0.04total across both), pending explicit approval. First
+claim/disabled ledger/held reservation stay untouched; no fullset/third call. All parent
+CAP04/local02/final09/liveCAP05 acceptance gates remain open.
+
 ## CAP-05 account/model eligibility verified — 2026-10-20
 
 Owner CloudShell GET and an independently executed local Boto3 GET both report

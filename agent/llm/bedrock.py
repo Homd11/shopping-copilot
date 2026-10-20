@@ -33,6 +33,40 @@ class BedrockCallMetadata:
     usage: dict[str, int] | None
     failure_category: str | None
     cost_usd: None = None
+    provider_error_code: str | None = None
+    http_status: int | None = None
+
+
+def _service_code(body):
+    error = body.get("Error") if isinstance(body, dict) else None
+    if not isinstance(error, dict):
+        return None
+    code = error.get("Code")
+    supported = {
+        "AccessDeniedException",
+        "ValidationException",
+        "ResourceNotFoundException",
+        "ModelErrorException",
+        "ModelNotReadyException",
+        "ModelTimeoutException",
+        "InternalServerException",
+        "ThrottlingException",
+        "ServiceUnavailableException",
+        "ServiceQuotaExceededException",
+        "UnrecognizedClientException",
+        "ExpiredTokenException",
+        "InvalidSignatureException",
+        "IncompleteSignature",
+        "MissingAuthenticationTokenException",
+        "SerializationException",
+    }
+    return code if isinstance(code, str) and code in supported else "Other"
+
+
+def _http_status(body):
+    meta = body.get("ResponseMetadata") if isinstance(body, dict) else None
+    value = meta.get("HTTPStatusCode") if isinstance(meta, dict) else None
+    return value if type(value) is int and 100 <= value <= 599 else None
 
 
 def _request_id(body):
@@ -248,5 +282,7 @@ class BedrockClient:
                     _request_id(body),
                     _usage(body),
                     failure,
+                    provider_error_code=_service_code(body),
+                    http_status=_http_status(body),
                 )
             )

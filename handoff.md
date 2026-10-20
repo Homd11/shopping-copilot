@@ -1,5 +1,22 @@
 # Shopping Copilot — project handoff
 
+## Bedrock diagnostic failed; claim consumed — 2026-10-20
+
+Owner approved one USD0.02credit diagnostic. One attempt failed provider_http after
+1313ms without usage/output; costunknown. USD0.015held, USD0.005unused, ledgernow
+DISABLED, oneuncertainattempt and exclusiveclaimconsumed. No retries/fullset allowed.
+See eval/evidence/cap05-diagnostic-20261020/ and ignored original report/ledger.
+Readonlymodeldetails ACTIVE/ON_DEMAND; initialCloudTrailnoevent is inconclusive.
+No upgrade/agreement/deployment or activeprovider change.
+
+Offline metadata follow-up stores only allowlisted servicecode/HTTPstatus, not
+provider bodies.41adapter/77combined checks and independentreview pass. No claim
+that it fixes the live failure. Diagnostic002prepared with identical requesthash,
+separate folder/prior-resultbinding; oneadditionalcall/USD0.02credit approval
+pending (USD0.04cumulativemaximum), preserve oldfailure/disabledledger/reservation.
+Finalreadonlytrace at307seconds still lacks matching event; causeunknown. Accounteligibilitypositive but livequality/billing
+unverified; local02/final09/parentCAP04/liveCAP05 remainopen.
+
 ## CAP-05 access confirmed; single diagnostic awaits budget — 2026-10-20
 
 All four availability statuses positive in owner CloudShell and local SDK GET.
