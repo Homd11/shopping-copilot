@@ -23,6 +23,7 @@ from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
 from agent.lifecycle.work import LifecycleWork, configured_lifecycle
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
+from agent.llm.bedrock import BedrockProviderError
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
 from agent.llm.openrouter import OpenRouterBudgetError
@@ -83,6 +84,10 @@ class AdvanceTestTime(BaseModel):
 
 
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
+    if isinstance(error, BedrockProviderError):
+        return {"throttled": "throttled", "timeout": "timeout", "network": "network"}.get(
+            error.category, "provider_http"
+        )
     if isinstance(error, InferenceRefused):
         return {
             "budget": "budget",
