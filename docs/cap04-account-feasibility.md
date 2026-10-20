@@ -5,6 +5,17 @@ readiness Ticket 08 is resolved. This document records account evidence and the
 remaining decision gates; it does not authorize provisioning, a Paid-plan upgrade,
 subscription acceptance, DNS changes or inference.
 
+## Model access update — 20 October
+
+The owner successfully opened ordinary CloudShell. Their model availability GET
+and the agent's subsequent local SDK GET independently confirm AUTHORIZED plus
+AVAILABLE agreement, entitlement and Region for openai.gpt-oss-20b-1:0 in Stockholm.
+The current-user CLI and optional CRT dependency are installed; browser login
+uses a separate cap05-stockholm profile, with no access-key sharing. This resolves
+the named candidate's read-only eligibility uncertainty, not its actual inference,
+quality, quota or billed cost. See the [diagnostic proposal](cap05-diagnostic-protocol.md).
+No paid model call, application deployment, DNS write or upgrade occurred.
+
 ## Owner continuation — 20 October
 
 The owner could not reach Billing Support and instructed continuation with the
@@ -17,20 +28,20 @@ resource creation or DNS writes. Those execution steps retain separate gates.
 
 ## Evidence ledger
 
-| Input                | Evidence currently available                                                                                               | Status                                                                                                                                                    |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Account plan         | Owner Billing screenshot 19 October explicitly Current plan Free                                                           | Confirmed screenshot evidence; no upgrade performed                                                                                                       |
-| Remaining credit     | USD100.00 remaining; USD0.00 due in Billing; USD0.00 current-month dashboard                                               | Confirmed screenshot balance; not a live API audit or USD200 allowance                                                                                    |
-| Plan end             | Current screenshot: 171 days remaining, 7 April 2027                                                                       | Plan end evidenced; separate from individual credit expiry                                                                                                |
-| Credit eligibility   | Owner screenshots list Bedrock, Elastic Compute Cloud, Lambda, DynamoDB, Simple Storage Service, CloudFront and CloudWatch | Listed applicability evidenced; VPC/public IPv4 coverage unresolved; not resource/model authority                                                         |
-| Credit dates         | Owner screenshot: start 7 October 2026; expiration 7 October 2027, 15:41 (UTC+00:00)                                       | Individual credit expiry confirmed, distinct from Free-plan end 7 April 2027                                                                              |
-| AWS Region           | Owner console URL selects eu-north-1 (Europe/Stockholm)                                                                    | Stockholm project assignment explicitly confirmed by the subsequent AWS restriction modal                                                                 |
-| Account experience   | Owner screenshots show project switcher, Projects/Team and new Billing page                                                | New project-based signup experience evidenced; its restrictions apply                                                                                     |
-| Service access       | Owner screenshots show Lambda, DynamoDB, ACM and CloudFront pages; VPC dashboard explicitly reports Stockholm              | Visibility evidenced; VPC list shows one Available VPC; action permissions and EC2/EBS/S3/admin checks remain pending                                     |
-| Bedrock model access | Owner confirms catalogue and gpt-oss-20b details open; screenshots corroborate                                             | Pending; catalogue visibility alone does not prove invocation authority                                                                                   |
-| DNS                  | Owner DNS Records screenshot shows Add new record and A/CNAME categories for scpilot.tech                                  | Record-management access evidenced with no purchase prompt visible; no write or propagation verified; actual A/CNAME entries remain collapsed/uninspected |
-| Local readiness      | Real proxy, release, allowance, lifecycle and capacity checks; physical Android local exception documented                 | Passed locally; not cloud qualification                                                                                                                   |
-| Programmatic access  | No AWS CLI executable or local config/credentials found during this check                                                  | No AWS API/account actions performed                                                                                                                      |
+| Input                | Evidence currently available                                                                                                                                 | Status                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Account plan         | Owner Billing screenshot 19 October explicitly Current plan Free                                                                                             | Confirmed screenshot evidence; no upgrade performed                                                                                                       |
+| Remaining credit     | USD100.00 remaining; USD0.00 due in Billing; USD0.00 current-month dashboard                                                                                 | Confirmed screenshot balance; not a live API audit or USD200 allowance                                                                                    |
+| Plan end             | Current screenshot: 171 days remaining, 7 April 2027                                                                                                         | Plan end evidenced; separate from individual credit expiry                                                                                                |
+| Credit eligibility   | Owner screenshots list Bedrock, Elastic Compute Cloud, Lambda, DynamoDB, Simple Storage Service, CloudFront and CloudWatch                                   | Listed applicability evidenced; VPC/public IPv4 coverage unresolved; not resource/model authority                                                         |
+| Credit dates         | Owner screenshot: start 7 October 2026; expiration 7 October 2027, 15:41 (UTC+00:00)                                                                         | Individual credit expiry confirmed, distinct from Free-plan end 7 April 2027                                                                              |
+| AWS Region           | Owner console URL selects eu-north-1 (Europe/Stockholm)                                                                                                      | Stockholm project assignment explicitly confirmed by the subsequent AWS restriction modal                                                                 |
+| Account experience   | Owner screenshots show project switcher, Projects/Team and new Billing page                                                                                  | New project-based signup experience evidenced; its restrictions apply                                                                                     |
+| Service access       | Owner screenshots show Lambda, DynamoDB, ACM and CloudFront pages; VPC dashboard explicitly reports Stockholm                                                | Visibility evidenced; VPC list shows one Available VPC; action permissions and EC2/EBS/S3/admin checks remain pending                                     |
+| Bedrock model access | Owner CloudShell and local SDK availability API both return AUTHORIZED and AVAILABLE agreement/entitlement/Region for gpt-oss-20b in Stockholm on 20 October | Read-only model eligibility confirmed; actual invocation, quota, qualification and billing remain unverified                                              |
+| DNS                  | Owner DNS Records screenshot shows Add new record and A/CNAME categories for scpilot.tech                                                                    | Record-management access evidenced with no purchase prompt visible; no write or propagation verified; actual A/CNAME entries remain collapsed/uninspected |
+| Local readiness      | Real proxy, release, allowance, lifecycle and capacity checks; physical Android local exception documented                                                   | Passed locally; not cloud qualification                                                                                                                   |
+| Programmatic access  | Current-user AWS CLI2.38.2 and browser-approved cap05-stockholm profile; local Boto3 read-only model availability succeeds 20 October                        | Authenticated GET only; no inference, resource writes or account upgrade                                                                                  |
 
 Keep account IDs, billing address, payment details and credentials out of committed
 evidence. Record only plan, dates, dollar balances, Region, observed access status

@@ -1,5 +1,21 @@
 # Shopping Copilot — project handoff
 
+## CAP-05 access confirmed; single diagnostic awaits budget — 2026-10-20
+
+All four availability statuses positive in owner CloudShell and local SDK GET.
+CLI2.38.2 current-user installation signature verified; owner browser-login profile
+cap05-stockholm; optional CRT0.36.0 installed and pinned separately. No keys shared,
+model calls, application deployment, upgrade or provider switch. CloudShell's
+ordinary managed environment/home exists. Model quality/price/quota not inferred.
+
+Use docs/cap05-diagnostic-protocol.md. One frozen ar-01 request, USD0.02 proposed
+credit ceiling, USD0.015 held reservation, exclusive claim/no replay, actual
+request-hash recheck after SDK setup; eightdiagnostic/75focused checks pass and
+both reviews clear after the binding fix. No runtime change or fullbrowserrepeat;
+prior754pass/1timeout plus three serial passes remains the honest full-suite record.
+Await explicit diagnostic budget approval before run; no larger set is authorized.
+Local02/final09/parentCAP04 and liveCAP05 remain open. No push.
+
 ## CAP-05 offline adapter implemented — 2026-10-20
 
 See docs/cap05-bedrock.md and dated design/plan. Bedrock Converse candidate is

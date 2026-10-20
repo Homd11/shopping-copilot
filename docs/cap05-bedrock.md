@@ -4,6 +4,15 @@
 account-access proof or paid-call authorization. CAP-04's remaining feasibility
 checks and CAP-05's qualification gate stay open.
 
+## Current access frontier
+
+On20October the owner opened CloudShell and supplied all-positive model-availability
+statuses. After a browser-approved cap05-stockholm login using the verified
+current-user AWS CLI2.38.2 and optional CRT dependency, the local SDK independently
+confirmed the same statuses. No model call was made. The [one-call diagnostic
+proposal](cap05-diagnostic-protocol.md) is prepared for a separate USD0.02 approval;
+live execution and full strict qualification remain pending.
+
 ## Boundary and configuration
 
 `BedrockClient` implements the existing `LLMClient.complete(LLMRequest)` interface.

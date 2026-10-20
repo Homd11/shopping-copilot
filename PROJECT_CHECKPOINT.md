@@ -2,6 +2,32 @@
 
 **Last updated:** 2026-10-20
 
+## CAP-05 account/model eligibility verified — 2026-10-20
+
+Owner CloudShell GET and an independently executed local Boto3 GET both report
+AUTHORIZED plus AVAILABLE agreement, entitlement and Region for the Stockholm
+openai.gpt-oss-20b-1:0 candidate. This is actual read-only availability evidence,
+not invocation/quality/quota/billing proof. Current-user AWS CLI2.38.2 was installed
+from the official MSI after valid AWS/DigiCert signature verification; owner
+approved the browser login for cap05-stockholm. Optional boto3[crt] support adds
+awscrt0.36.0, pinned in eval/requirements-bedrock.txt. No access keys were shared.
+CloudShell has ordinary AWS-managed environment/home state; no application
+infrastructure, upgrade, DNS change or model call occurred.
+
+Single-call preparation: eval/bedrock_diagnostic.py defaults to a frozen dry plan,
+fixed exposed ar-01 case/current prompt/schema, one Converse attempt/no SDK retries,
+exclusive nonresetting claim and USD0.015 retained reservation inside a proposed
+USD0.02 credit allowance. It checks the actual request hash after credential
+initialization and before provider entry; independent review caught this race,
+RED/GREEN regression and recheck clear. Eight diagnostic /75combined focused tests
+pass. No runtime application changes; retain the earlier full754pass/1timeout and
+three unchanged successful reruns rather than claiming a new full-green suite.
+
+See docs/cap05-diagnostic-protocol.md and dated execution plan. Paid diagnostic
+approval is pending; do not infer permission from go, old OpenRouter approvals
+or the architecture allocation. Local02/final09/parentCAP04 and liveCAP05 stay open.
+Public IPv4 coverage and other resource permissions remain unresolved.
+
 ## CAP-05 offline adapter slice implemented — 2026-10-20
 
 Owner authorized the offline Bedrock slice after the conditional handoff. Candidate
