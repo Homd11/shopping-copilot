@@ -203,6 +203,64 @@ remain separate account facts.
 [AWS 20B limits](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-oss-20b.html),
 [Stockholm token rates](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonBedrock/current/eu-north-1/index.json).
 
+## Failed single diagnostic: read-only trace path — 20 October
+
+The separately authorized **one USD0.02-credit diagnostic** subsequently made one
+attempt and returned `BedrockProviderError`, category `provider_http`, in 1313ms,
+with no retained usage/output. Provider request ID:
+`<failed-request-id retained privately>`. USD0.015 remains reserved; USD0.005 is
+unreserved. **No retry is authorized.** This supersedes the earlier illustrative
+USD0.35 planning envelope as an execution permission: that example granted none.
+The category/request ID alone does not establish an HTTP status, AWS error code,
+root cause, zero billing, or inference completion.
+
+Current AWS documentation explicitly logs `Converse`, `ConverseStream`,
+`InvokeModel` and `InvokeModelWithResponseStream` as **management events**. Do not
+assume ordinary Converse needs paid data-event logging. CloudTrail Event history
+provides the past 90 days of regional management events with no CloudTrail charge
+for viewing. Therefore the smallest trace action is an existing-history lookup
+in **eu-north-1**, without creating a trail, data store, CloudWatch log group,
+invocation-logging configuration or any other resource.
+[Bedrock CloudTrail classifications](https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html),
+[free regional Event history](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/view-cloudtrail-events.html).
+
+Use `LookupEvents` with the single lookup attribute **EventName=Converse** and a
+narrow UTC window around the attempt. Parse each returned `CloudTrailEvent` JSON
+string locally and match its exact **`requestID`** to the provider request ID
+above; check `eventType=AwsApiCall`. `EventId` identifies the CloudTrail event and
+is not the Bedrock request ID. Lookup supports one attribute plus a time range,
+up to 50 records/page and `NextToken` pagination, with a two-requests/second
+account/Region limit. No match is inconclusive; it does not justify replaying the
+invocation or asserting that it never reached AWS.
+[LookupEvents API](https://docs.aws.amazon.com/awscloudtrail/latest/APIReference/API_LookupEvents.html),
+[Bedrock requestID example](https://docs.aws.amazon.com/bedrock/latest/userguide/logging-using-cloudtrail.html).
+
+From only the exact matching event, inspect `eventTime`, `eventSource`,
+`eventName`, `awsRegion`, `requestID`, `errorCode`, `errorMessage`, and the requested
+`modelId`. Keep identity/access-key fields, IP addresses and raw events out of
+shared output. AWS documents error code/message as optional; some services place
+error information in `responseElements`. An absent error or missing event does
+not establish success or cost. If lookup is denied, record the denial without
+changing IAM, enabling logging or invoking again. Event history can alternatively
+be read in the existing Stockholm console, filtering Event name `Converse` and
+comparing the event record's request ID.
+[CloudTrail error-field contract](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-record-contents.html).
+
+The current AWS model card still documents the direct
+`openai.gpt-oss-20b-1:0` ID with a `bedrock-runtime` Converse example and **In-Region
+Stockholm** support. Its regional table marks Geo/Global cross-Region options
+unsupported for Stockholm. These sources do not establish a requirement to
+replace this call with an inference profile. AWS's OpenAI parameter guide
+explicitly maps `temperature` to Converse `inferenceConfig.temperature` and
+`max_completion_tokens` to `maxTokens`; the existing parameter names alone are
+not evidence of an unsupported-temperature error. No cause should be selected
+from an online error example in place of the exact failed request's evidence.
+[20B direct-ID and regional contract](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-oss-20b.html),
+[OpenAI parameter mapping](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-openai.html).
+
+This follow-up performed public-source research and local source inspection
+only; no CloudTrail/API lookup, logging change or repeated model call was made.
+
 ## Completed account access after the research
 
 The owner opened ordinary CloudShell and supplied the filtered response:
@@ -221,3 +279,17 @@ absence of CRT/local login and unexecuted installation; the earlier source check
 were unauthenticated. No access keys were requested or shared, model invocation
 performed, agreement accepted, application infrastructure deployed or plan upgraded.
 See docs/cap05-diagnostic-protocol.md for the pending separately approved first call.
+
+### Actual read-only trace outcome
+
+GetFoundationModel returned ACTIVE, ON_DEMAND, text input/output and streaming
+support after the failed diagnostic. A first local formatting attempt could not
+serialize its lifecycle datetime; a corrected read-only request produced the
+sanitized model-details record. This was not another inference call.
+
+The existing Event history returned no Converse record in initial filtered checks.
+At about307seconds, a narrow unfiltered lookup saw surrounding GetFoundationModel
+and OAuth event names, with no matching inference requestID and no pagination.
+This is inconclusive: cause and exact service error remain unknown. No logging
+configuration or retry was performed. Future adapter metadata now includes only
+allowlisted error codes and strict HTTP status, never raw provider messages.

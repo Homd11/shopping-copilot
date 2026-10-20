@@ -460,3 +460,49 @@ def test_real_rolling_conversation_keeps_leading_assistant_context():
     assert messages[1]["role"] == "assistant"
     assert messages[1]["content"][0]["text"] == value.messages[0].content
     assert messages[-1] == {"role": "user", "content": [{"text": "what next?"}]}
+
+
+def test_safe_service_code_is_retained_without_raw_error_body():
+    from botocore.exceptions import ClientError
+
+    from agent.llm.bedrock import BedrockProviderError
+
+    sdk = SDK(
+        error=ClientError(
+            {
+                "Error": {"Code": "ValidationException", "Message": "private diagnostic details"},
+                "ResponseMetadata": {"HTTPStatusCode": 400, "RequestId": "safe-correlation"},
+            },
+            "Converse",
+        )
+    )
+    adapter = client(sdk)
+    with pytest.raises(BedrockProviderError):
+        asyncio.run(collect(adapter))
+    record = adapter.call_metadata[-1]
+    assert record.provider_error_code == "ValidationException"
+    assert record.http_status == 400
+    assert "private diagnostic details" not in repr(record)
+
+
+def test_unknown_service_code_is_not_a_secret_metadata_channel():
+    from botocore.exceptions import ClientError
+
+    from agent.llm.bedrock import BedrockProviderError
+
+    sdk = SDK(
+        error=ClientError(
+            {
+                "Error": {"Code": "privateCredentialValue", "Message": "private body"},
+                "ResponseMetadata": {"HTTPStatusCode": True},
+            },
+            "Converse",
+        )
+    )
+    adapter = client(sdk)
+    with pytest.raises(BedrockProviderError):
+        asyncio.run(collect(adapter))
+    record = adapter.call_metadata[-1]
+    assert record.provider_error_code == "Other"
+    assert record.http_status is None
+    assert "private" not in repr(record)

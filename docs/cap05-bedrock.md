@@ -6,12 +6,21 @@ checks and CAP-05's qualification gate stay open.
 
 ## Current access frontier
 
+The first separately approved USD0.02 diagnostic has now executed exactly once
+and failed provider_http after1313ms with no usage/output. Full USD0.015 remains
+held, the diagnostic ledger is disabled and its claim consumed. No root cause or
+billed cost is established; no paid retry/fullset is authorized. See the
+[preserved failure](../eval/evidence/cap05-diagnostic-20261020/README.md). Later
+metadata includes allowlisted service codes and bounded HTTP status, without
+provider bodies, verified by two additional regressions (41adapter/77focused pass).
+This does not repair the original failure or qualify the model.
+
 On20October the owner opened CloudShell and supplied all-positive model-availability
 statuses. After a browser-approved cap05-stockholm login using the verified
 current-user AWS CLI2.38.2 and optional CRT dependency, the local SDK independently
 confirmed the same statuses. No model call was made. The [one-call diagnostic
-proposal](cap05-diagnostic-protocol.md) is prepared for a separate USD0.02 approval;
-live execution and full strict qualification remain pending.
+proposal](cap05-diagnostic-protocol.md) was approved for one USD0.02-credit attempt;
+that failed attempt is preserved and full strict qualification remains pending.
 
 ## Boundary and configuration
 
