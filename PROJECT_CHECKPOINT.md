@@ -2,6 +2,33 @@
 
 **Last updated:** 2026-10-20
 
+## CAP-05 offline adapter slice implemented — 2026-10-20
+
+Owner authorized the offline Bedrock slice after the conditional handoff. Candidate
+Stockholm openai.gpt-oss-20b-1:0 uses Converse behind the existing LLMClient; active
+provider/configuration and OpenRouter cap are unchanged. See docs/cap05-bedrock.md
+and dated design/plan. SDK construction is lazy, zero retries; cancellation drains
+provider work before releasing the guarded slot. Metadata is bounded/redacted;
+unknown costs retain reservations and configured prices must meet the dated floor.
+Shared canonical schema expansion fixes reference-sibling under-reservation;
+leading assistant history is preserved through a fixed context marker. Independent
+review found these two edge cases; both have RED/GREEN regressions and clear
+recheck. Standards review clear.
+
+39 Bedrock tests and 79 combined focused checks pass. TS199/build/Panel types/
+ESLint/Prettier/Ruff check/format and pip check pass. Full Python/browser result:
+754 passed, 1 failed in 761.94 seconds, two upstream WebSocket warnings. One
+Franco-Arabic discovery case exceeded its unchanged 10-second deadline; the same
+seven-case test passed three serial reruns without code changes. Root cause is
+unestablished; do not claim the original full run was green or a product bug was
+fixed. Durable ignored logs/results: outputs/cap05-bedrock-verification/.
+
+No AWS account credentials, model calls, resources, DNS or provider switch.
+Local02/final09/parentCAP04 and liveCAP05 remain open. Next: reconcile account/model
+eligibility, qualify cost/token/schema semantics and obtain a concrete bounded
+live-call authorization before strict CAP05 and separate unseen-set evaluation.
+Offline token metadata is not a verified USD receipt or model-quality evidence.
+
 ## Continue without Support response; conditional handoff — 2026-10-20
 
 The owner could not reach Billing Support and explicitly instructed continuation

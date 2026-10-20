@@ -7,6 +7,7 @@ from pathlib import Path
 
 from agent.inference.client import GuardedClient, InferencePrices
 from agent.inference.ledger import AllowanceLedger
+from agent.llm.bedrock import BedrockClient
 from agent.llm.openrouter import OpenRouterClient
 
 REQUIRED = (
@@ -61,6 +62,11 @@ def configured_guard(client, settings, environment=None, *, queue_observer=None)
             or prices.output_per_million < Decimal(OpenRouterClient.price_ceiling[1])
         ):
             raise ValueError("Inference prices cannot under-reserve the route's price ceiling")
+        if settings.provider == "bedrock" and (
+            prices.input_per_million < Decimal(BedrockClient.price_floor[0])
+            or prices.output_per_million < Decimal(BedrockClient.price_floor[1])
+        ):
+            raise ValueError("Inference prices cannot under-reserve the Bedrock candidate")
         ledger = AllowanceLedger(
             Path(values["INFERENCE_LEDGER_PATH"]),
             values["INFERENCE_LEDGER_ID"],

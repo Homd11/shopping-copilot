@@ -1,3 +1,4 @@
+from agent.llm.bedrock import BedrockClient
 from agent.llm.config import LLMConfigurationError, LLMSettings, load_llm_settings
 from agent.llm.contract import (
     LLMChunk,
@@ -27,6 +28,7 @@ from agent.llm.intent_pipeline import (
 from agent.llm.nvidia import NvidiaNIMClient
 
 __all__ = [
+    "BedrockClient",
     "LLMChunk",
     "LLMClient",
     "LLMConfigurationError",

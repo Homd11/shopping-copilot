@@ -22,6 +22,7 @@ class LLMSettings:
     stream: bool = False
     reasoning_effort: str | None = None
     openrouter_total_limit: float = 0.25
+    region: str | None = None
 
 
 def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettings:
@@ -51,6 +52,18 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
     stream = False
     reasoning_effort = None
     openrouter_total_limit = 0.25
+    region = None
+    if provider == "bedrock":
+        api_key_text = ""
+        region = values.get("AWS_REGION", "").strip()
+        if region != "eu-north-1" or model != "openai.gpt-oss-20b-1:0":
+            raise LLMConfigurationError("Bedrock requires the explicit Stockholm candidate")
+        try:
+            timeout_seconds = float(values.get("LLM_TIMEOUT_SECONDS", "20"))
+        except ValueError as error:
+            raise LLMConfigurationError("LLM_TIMEOUT_SECONDS must be a number") from error
+        if not isfinite(timeout_seconds) or not 0 < timeout_seconds <= 60:
+            raise LLMConfigurationError("Bedrock timeout must be finite and at most 60 seconds")
     if provider == "openrouter":
         if not api_key_text:
             raise LLMConfigurationError("OPENROUTER_API_KEY is required")
@@ -108,4 +121,5 @@ def load_llm_settings(environment: Mapping[str, str] | None = None) -> LLMSettin
         stream=stream,
         reasoning_effort=reasoning_effort,
         openrouter_total_limit=openrouter_total_limit,
+        region=region,
     )

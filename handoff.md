@@ -1,5 +1,22 @@
 # Shopping Copilot — project handoff
 
+## CAP-05 offline adapter implemented — 2026-10-20
+
+See docs/cap05-bedrock.md and dated design/plan. Bedrock Converse candidate is
+Stockholm openai.gpt-oss-20b-1:0, lazy SDK, one attempt, local validator, safe errors,
+bounded metadata, late authority check and cancellation drain. Existing guard
+retains unknown costs; no token-based settlement. Canonical schema expansion now
+protects reference siblings and rolling assistant-leading history is preserved.
+Both independent review findings fixed with regressions; Standards clear.
+
+39 Bedrock/79 combined focused and TS199/build/types/lint/format/pip checks pass.
+Full Python/browser:754 passed,1 failure in761.94s; Franco-Arabic case hit its
+10-second deadline. Three unchanged serial reruns pass; no root cause or product
+fix claimed and no false full-green claim. Logs outputs/cap05-bedrock-verification/.
+No active provider/key/cap switch or AWS calls/resources. Local02/final09/parentCAP04
+and liveCAP05 stay open; next model/access and cost semantics, then separately
+budgeted live qualification. Original checkout/tracker preserved; no push.
+
 ## Continue with available evidence — 2026-10-20
 
 Owner could not reach Billing Support and directed continuation. Stop treating a
