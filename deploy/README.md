@@ -1,5 +1,64 @@
 # Local production-style HTTPS routing
 
+## CAP-06 public HTTPS profile: prepared locally
+
+`deploy/Caddyfile.public` is the separate public-ACME candidate for the approved
+Stockholm ingress. It serves exactly `app.scpilot.tech` and `store.scpilot.tech`,
+with fixed loopback Agent/Storefront upstreams. It enables normal automatic HTTPS
+and redirects, uses Let's Encrypt as its explicit ACME issuer, and restricts the
+HTTP server to HTTP/1.1 and HTTP/2. It retains the existing route allowlists,
+private-route refusal, CSP, secret-header stripping, no-store and SSE settings.
+
+The existing `deploy/Caddyfile` below remains the static-certificate rehearsal
+profile. Both files are hashed into immutable releases; changing either file
+after packaging fails release verification. Packaging the public profile does
+not start it: neither the release runtime nor its current service launches Caddy.
+This is preparation, not deployed HTTPS or permission for public exposure.
+
+The public profile consumes only these trusted service configuration values:
+
+| Variable                | Requirement                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `COPILOT_PANEL_ROOT`    | Absolute path to the verified release's built `panel/dist`, matching the two fixed public origins     |
+| `COPILOT_CADDY_STORAGE` | Dedicated absolute directory outside releases, on retained encrypted storage, restricted to its owner |
+
+Host, bind, Agent upstream and static-certificate overrides used by the rehearsal
+are deliberately ignored. Do not select this profile for arbitrary build origins.
+Retain the storage directory, including certificate keys and ACME account state,
+across stop/start and compatible code rollback. Never copy it into an artifact or
+restore an old inference/invitation allowance alongside it. The eventual host
+installation must enforce these path, ownership and release-origin requirements;
+this template does not validate its environment or install a service.
+
+At this preparation stage, the supported public-profile check is **adaptation
+only**, with the two variables set in the invoking process to disposable absolute
+paths:
+
+```text
+caddy adapt --config deploy/Caddyfile.public --adapter caddyfile
+```
+
+Do not add `--validate`, or run `caddy validate`, `run`, `start` or `reload` against
+the public profile during offline preparation. Adaptation parses configuration;
+validation additionally provisions modules. The real-Caddy tests use only `adapt`,
+without loading certificates, creating certificate storage or starting listeners.
+Missing Caddy makes those tests explicitly skip; the recorded local evidence uses
+the pinned Caddy 2.11.7 executable with no skipped checks.
+[Caddy command semantics](https://caddyserver.com/docs/command-line#caddy-adapt).
+
+Later cloud use still requires the separately approved resource/DNS changes,
+authoritative A records to the designated retained address, permitted TCP80/443
+ingress and outbound issuer access, and a qualified Caddy service installation.
+Certificate acquisition/renewal, exact SNI/Host behavior, HTTP redirects and public
+browser trust must be measured on the host. No renewal occurs while EC2 is stopped;
+prewarm and verify both trusted shopping origins before reporting ready. Adaptation
+does not establish any of those outcomes. Bedrock qualification, remote invitation/
+lifecycle authority and deployment acceptance remain open.
+[Approved ingress](../docs/superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md),
+[automatic HTTPS requirements](https://caddyserver.com/docs/automatic-https).
+
+## Existing rehearsal routing
+
 CAP-04 ticket 03 uses Caddy with built Panel/Bridge assets and the existing
 Storefront/Agent on loopback. This configuration is a tested local routing
 boundary. Invitations and durable allowance have separate local implementations;

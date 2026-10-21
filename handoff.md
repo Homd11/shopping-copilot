@@ -1,5 +1,36 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 public HTTPS configuration prepared — 2026-10-21
+
+Owner said continue with local deployment preparation while Bedrock is blocked.
+Added deploy/Caddyfile.public for exactly app.scpilot.tech/store.scpilot.tech:
+explicit Let's Encrypt ACME, fixed loopback upstreams, external persistent Caddy
+state, strict SNI/Host and HTTP/1.1+HTTP/2. Existing deploy/Caddyfile is unchanged.
+Public profile routes/log redaction match the existing parsed rehearsal contract;
+legacy host/bind/upstream/static-certificate overrides cannot change its identity.
+
+Both profiles now ship in the hashed release. A modified installed public profile
+fails verification. Neither the existing runtime nor service launches/selects the
+public profile. The template does not validate external state paths/ownership or
+build-origin correspondence; those require the eventual host preflight/service.
+
+TDD: four missing-profile failures before implementation. Final real-Caddy and
+release run:14passed,0failed,0skipped in148.60s; actual artifact builds and scripted
+restart/browser checks preserve uncertain Action, invitation and allowance state.
+Fresh-context review clear, independently3adapt tests passed with no skips.
+Repository ESLint/Prettier and Ruff check/format pass; Caddy canonical bytes,
+unchanged rehearsal config and whitespace checks pass. Evidence:
+eval/evidence/cap06-public-https-20261021.json; plan:
+docs/superpowers/plans/2026-10-21-cap06-public-https-preparation.md.
+
+No AWS/model calls, certificate requests, DNS writes, public listeners, provider
+switch, account upgrade or push in this slice. Adaptation parses only; no module
+provisioning, public TLS/renewal/redirect or cloud-browser qualification is claimed.
+CAP-05, remaining CAP-04 feasibility and CAP-06/07 acceptance stay open. Next local
+work is the remote invitation/lifecycle authority contract and host preflight;
+resource/IAM apply, DNS, trusted host readiness and live qualification retain their
+gates. Preserve both consumed diagnostic claims and disabled allowances.
+
 ## Second diagnostic executed; zero applied quotas — 2026-10-20
 
 The owner separately approved one additional call with at most USD0.02 AWS credit
