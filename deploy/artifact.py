@@ -159,6 +159,7 @@ def build(source, output, *, local=False):
             "requirements.lock",
             "pnpm-lock.yaml",
             "deploy/Caddyfile",
+            "deploy/Caddyfile.public",
             "deploy/shopping-copilot.service",
             "agent/lifecycle/waiting.html",
         ):

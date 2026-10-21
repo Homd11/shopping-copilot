@@ -79,6 +79,20 @@ def test_executable_cache_cannot_bypass_artifact_verification(built_release):
         shutil.rmtree(cache)
 
 
+def test_public_https_profiles_are_packaged_and_modification_is_refused(built_release, tmp_path):
+    manifest = json.loads((built_release / "release.json").read_text())
+    for name in ("deploy/Caddyfile", "deploy/Caddyfile.public"):
+        assert (built_release / name).read_bytes() == (ROOT / name).read_bytes()
+        assert name in manifest["files"]
+    assert not list(built_release.rglob("*.pem"))
+    assert not list(built_release.rglob("*.key"))
+    installed = tmp_path / "modified-public-profile"
+    assert command("install", "--release", built_release, "--output", installed).returncode == 0
+    profile = installed / "deploy/Caddyfile.public"
+    profile.write_text(profile.read_text() + "\n# changed after packaging\n")
+    assert command("verify", "--release", installed).returncode != 0
+
+
 def seed_catalogue(path):
     result = subprocess.run(
         [
