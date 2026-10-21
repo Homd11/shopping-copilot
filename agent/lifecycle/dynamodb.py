@@ -393,6 +393,26 @@ class DynamoLifecycle:
             if key != "status"
         }
 
+    def check_command(self, receipt):
+        row, now = self._load()
+        command = row["command"]
+        if (
+            type(receipt) is not dict
+            or command is None
+            or command["status"] != "claimed"
+            or type(receipt.get("generation")) is not int
+            or receipt != {key: value for key, value in command.items() if key != "status"}
+        ):
+            raise LifecycleUnavailable()
+        if command["operation"] == "start" and (
+            row["state"] != "starting"
+            or now >= row["deadline"]
+            or row["invitation"]
+            and not self.invitations.valid_invitation(row["invitation"])
+            or self._now() >= row["deadline"]
+        ):
+            raise LifecycleUnavailable()
+
     def complete_command(self, receipt, *, certain):
         before, row, now = self._snapshot()
         command = row["command"]
