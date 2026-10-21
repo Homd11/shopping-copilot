@@ -1,6 +1,8 @@
 """Real durable claims with entirely stubbed EC2; no credential lookup or network."""
 
 from concurrent.futures import ThreadPoolExecutor
+from itertools import count
+from threading import Barrier, Lock
 
 import boto3
 import pytest
@@ -162,11 +164,24 @@ def test_executor_lost_settlement_does_not_replay(world, ec2, monkeypatch):
     assert EC2CommandExecutor(life, client, INSTANCE).execute_once() is None
 
 
-def test_executor_competing_workers_dispatch_at_most_once(world, ec2):
-    _, _, _, code, life, _ = world
+def test_executor_competing_workers_dispatch_at_most_once(world, ec2, monkeypatch):
+    _, _, _, code, life, dynamodb = world
     client, stub = ec2
     life.wake(code)
     stub.add_response("start_instances", reply(), {"InstanceIds": [INSTANCE]})
+    original = dynamodb.transact_write_items
+    barrier, guard, sequence = Barrier(2), Lock(), count()
+
+    def atomic_mock_transaction(**request):
+        with guard:
+            index = next(sequence)
+        if index < 2:
+            # Both controllers submit claims from the same revision.
+            barrier.wait(timeout=10)
+        # The shared Moto fixture serializes only mock server operations.
+        return original(**request)
+
+    monkeypatch.setattr(dynamodb, "transact_write_items", atomic_mock_transaction)
 
     def run(_):
         try:

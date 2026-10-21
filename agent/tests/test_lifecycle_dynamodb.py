@@ -2,7 +2,7 @@
 
 import copy
 from concurrent.futures import ThreadPoolExecutor
-from threading import Barrier
+from threading import Barrier, Lock
 
 import boto3
 import pytest
@@ -32,6 +32,20 @@ def world():
                 ignore_configured_endpoint_urls=True,
             ),
         )
+        # Moto rolls back an entire table backup without thread isolation. Give
+        # its server operations atomicity, while controller read/CAS workflows
+        # still race normally (and barriers still force shared revisions).
+        server = Lock()
+
+        def atomic(function):
+            def call(**request):
+                with server:
+                    return function(**request)
+
+            return call
+
+        for method in ("get_item", "query", "transact_write_items"):
+            setattr(client, method, atomic(getattr(client, method)))
         client.create_table(
             TableName="lifecycle-test",
             BillingMode="PAY_PER_REQUEST",
