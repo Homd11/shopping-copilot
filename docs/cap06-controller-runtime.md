@@ -54,12 +54,13 @@ boolean. Ordinary liveness, old replies, altered readiness, reflected request MA
 wrong release/generation, duplicate JSON keys, oversized/invalid body or errors
 are unhealthy. No key/proof/nonce/response is logged.
 
-The inactive `readiness_reply` helper authenticates the request and compares it
-with trusted host-local generation/release before signing a response. It is not
-yet attached to Agent /health. The future host integration must aggregate actual
-service/catalogue/admission/allowance and qualified-provider readiness; the helper
-must not be fed ready=true merely because the process is running. The MAC protects
-transport authenticity, not correctness of a misconfigured host aggregate.
+The `readiness_reply` helper authenticates the request and compares it with trusted
+host-local generation/release before signing a response. An explicit injected
+[host aggregate](cap06-host-boundaries.md) now connects it to Agent /health;
+the default application remains ordinary liveness. Deployment must supply actual
+service/catalogue/admission/allowance and qualified-provider checks. No default
+ready=true is supplied. The MAC protects transport authenticity, not correctness
+of a misconfigured host aggregate.
 
 Provision a private32–64byte random key separately into restricted controller and
 host configuration, outside releases/browser builds/logs. No production key is
@@ -69,7 +70,8 @@ be coordinated; mismatched values refuse readiness rather than falling back.
 ## Activation still requires
 
 - Actual Lambda bootstrap, Linux dependency package and restricted settings loading.
-- Host readiness/async work-lease integration and durable service configuration.
+- Actual host readiness checks/bootstrap and durable service configuration; the
+  injectable async work and signed-health interfaces are prepared locally.
 - Costed approved observation delivery when browsers close or hosts are impaired.
   Browser polling and future host heartbeats do not establish reliable outage/idle
   scheduling. No EventBridge/SQS, Lambda sleep or self-invocation loop was added.

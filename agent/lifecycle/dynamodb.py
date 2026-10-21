@@ -279,6 +279,16 @@ class DynamoLifecycle:
         row, _ = self._load()
         return {"generation": int(row["generation"]), "revision": int(row["revision"])}
 
+    def check_work(self, *, generation):
+        row, _ = self._load()
+        if (
+            type(generation) is not int
+            or generation != row["generation"]
+            or row["state"] not in {"ready", "draining"}
+            or not row["healthy"]
+        ):
+            raise LifecycleUnavailable()
+
     def wake(self, code):
         try:
             self.invitations._metadata()

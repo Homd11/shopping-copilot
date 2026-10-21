@@ -62,6 +62,12 @@ class AdmissionPolicy:
     def allowed(self, record):
         return record.shopper is not None and self.store.allowed(self.subject(record))
 
+    def redeem(self, record, code):
+        return self.store.redeem(code, self.subject(record))
+
+    def allocate_session(self, record):
+        return self.store.allocate_session(self.subject(record))
+
     def browser_request(self, record, *, stop=False):
         now = monotonic()
         self._browsers = {k: v for k, v in self._browsers.items() if now - v[0] < 60}

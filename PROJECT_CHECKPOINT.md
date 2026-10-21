@@ -2,6 +2,42 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 async host authority and signed health integrated — 2026-10-22
+
+Explicit Agent factories now support async remote admission/work and signed host
+health. Remote datastore I/O runs in retained bounded workers; owner/session
+bindings are revalidated after waits. Work pins one generation, transfers accepted
+protection to pending Tasks through degraded health, fences failed renewal or
+generation changes and never resurrects expired authority or replays Actions.
+Unknown writes retain counters/finite orphan protection; close drains known work.
+Only successful explicit interactions advance activity. Default backend unchanged.
+
+Signed health requires five explicit trusted async checks and valid HMAC before
+I/O. No default ready=true or actual provider qualification. One aggregate slot
+retains slow cancellation cleanup after a1.5second false response. Final remote
+state and synchronous local failed/closed/generation fences protect signing.
+Lifespan drains health, work, admission and service, including startup failure.
+
+Fresh review found slow cancellation exceeding the response deadline and a local
+failure race across aggregate completion; both reproduced RED and fixed GREEN.
+Review clear:21host/original-repro checks8.06s plus5mock concurrency checks6.29s.
+Broad verification exposed Moto whole-table rollback erasing competing winners;
+deterministically reproduced and fixed only in the test fixture's atomic datastore
+operations. Workflow races/shared-revision barriers and production CAS stay intact.
+Final all-Agent/access/browser/fresh release build865passed/no skips119.85s;
+focused remote authority/executor/host96passed36.94s. Lint/format/pip/whitespace
+pass. Evidence: eval/evidence/cap06-host-boundaries-20261022.json; guide:
+docs/cap06-host-boundaries.md. No AWS/model call, resources, keys, DNS/TLS writes,
+environment backend activation, upgrade, spend authorization increase or push.
+
+Next: actual trusted host checks/bootstrap and restricted configuration/key
+loading, Linux Lambda dependencies and approved reliable external observation
+delivery. Injected callbacks alone do not establish deployed readiness. Browser
+polling/future host heartbeats alone do not guarantee idle/outage scheduling; no
+new scheduler/sleep/self-invocation adopted. Effective IAM/OAC/event eligibility,
+resource/cost/rollback approval and deployed acceptance remain open. Bedrock zero
+quotas, Free plan/Stockholm/zero cash and all existing gates persist.
+
 ## CAP-06 runtime factories and trusted readiness prepared — 2026-10-22
 
 Added explicit injected startup/controller factories, role-bound settings, bounded

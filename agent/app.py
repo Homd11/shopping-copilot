@@ -15,6 +15,7 @@ from starlette.responses import Response, StreamingResponse
 from agent.admission.runtime import AdmissionClient, AdmissionPolicy, configured_admission
 from agent.admission.store import AdmissionDenied
 from agent.advice import build_advice_request, compose_advice, prepare_advice
+from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
@@ -124,6 +125,8 @@ def create_app(
     admission: AdmissionPolicy | None = None,
     lifecycle=None,
     inference_queue_observer=None,
+    lifecycle_work_factory=None,
+    readiness_factory=None,
 ) -> FastAPI:
     settings = llm_settings or load_llm_settings()
     llm_client = configured_guard(
@@ -131,26 +134,44 @@ def create_app(
     )
     admission = admission or configured_admission()
     lifecycle = lifecycle or configured_lifecycle(os.environ, admission)
+    if lifecycle is None and (lifecycle_work_factory is not None or readiness_factory is not None):
+        raise ValueError("Host factories require explicit lifecycle authority")
     identity_settings = identity_config()
     service = storefront_service or StorefrontService(identity_settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        app.state.storefront_service.validate_configuration()
-        maintenance = (
-            asyncio.create_task(app.state.lifecycle_work.maintain()) if lifecycle else None
-        )
+        work = app.state.lifecycle_work
+        maintenance = None
         try:
+            app.state.storefront_service.validate_configuration()
+            if work is not None:
+                if hasattr(work, "initialize"):
+                    await invoke(work, "initialize")
+                maintenance = asyncio.create_task(work.maintain())
             yield
         finally:
-            if maintenance is not None:
-                maintenance.cancel()
-                with suppress(asyncio.CancelledError):
-                    await maintenance
-                app.state.lifecycle_work.close()
-            close = getattr(app.state.storefront_service, "aclose", None)
-            if close is not None:
-                await close()
+            try:
+                if maintenance is not None:
+                    maintenance.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await maintenance
+            finally:
+                try:
+                    try:
+                        if app.state.host_readiness is not None:
+                            await invoke(app.state.host_readiness, "close")
+                    finally:
+                        if work is not None:
+                            await invoke(work, "close")
+                finally:
+                    try:
+                        if admission is not None and hasattr(admission, "close"):
+                            await invoke(admission, "close")
+                    finally:
+                        close = getattr(app.state.storefront_service, "aclose", None)
+                        if close is not None:
+                            await close()
 
     app = FastAPI(title="Shopping Copilot Agent", lifespan=lifespan)
     app.state.llm_settings = settings
@@ -180,7 +201,12 @@ def create_app(
         evaluation=os.environ.get("COPILOT_ENV") != "production"
         and settings.provider == "scripted"
         and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
-        lifecycle_work=LifecycleWork(lifecycle, sessions) if lifecycle else None,
+        lifecycle_work=(lifecycle_work_factory or LifecycleWork)(lifecycle, sessions)
+        if lifecycle
+        else None,
+    )
+    app.state.host_readiness = (
+        readiness_factory(app, app.state.lifecycle_work) if readiness_factory is not None else None
     )
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
@@ -194,18 +220,24 @@ def create_app(
 
     async def verify_owner(session_id: str) -> None:
         if lifecycle:
-            app.state.lifecycle_work.check()
+            await invoke(app.state.lifecycle_work, "check")
         owner = sessions.get(session_id).shopper
         if (
             owner is None
             or not await app.state.storefront_service.validate(owner)
-            or not app.state.shopper_access.owns_session(
-                session_id, owner, admission.allowed if admission else None
+            or not await app.state.shopper_access.owns_session_async(
+                session_id,
+                owner,
+                (lambda record: invoke(admission, "allowed", record)) if admission else None,
             )
         ):
             raise SessionNotFound(session_id)
         if lifecycle:
-            app.state.lifecycle_work.check()
+            await invoke(app.state.lifecycle_work, "check")
+        if sessions.get(session_id).shopper != owner or not app.state.shopper_access.owns_session(
+            session_id, owner
+        ):
+            raise SessionNotFound(session_id)
 
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
@@ -383,7 +415,15 @@ def create_app(
             active_interpretations.discard(identity)
 
     @app.get("/health")
-    async def health() -> dict[str, str]:
+    async def health(request: Request):
+        if any(name.startswith("x-copilot-") for name in request.headers):
+            if app.state.host_readiness is None:
+                raise HTTPException(
+                    status_code=503,
+                    detail="Readiness unavailable",
+                    headers={"Cache-Control": "no-store"},
+                )
+            return await app.state.host_readiness.response(request.headers)
         return {"status": "ok", "service": "agent"}
 
     @app.get("/speech/availability")
@@ -473,11 +513,15 @@ def create_app(
             if not sessions.has_capacity():
                 raise HTTPException(status_code=503, detail="Session capacity reached")
             try:
-                admission.store.allocate_session(admission.subject(authority))
+                await invoke(admission, "allocate_session", authority)
             except AdmissionDenied as error:
                 raise HTTPException(
                     status_code=429, detail="Demo session allowance exhausted"
                 ) from error
+        if authority.shopper != http_request.state.shopper:
+            raise HTTPException(status_code=409, detail="Shopper identity changed")
+        if len(authority.sessions) >= (admission.browser_sessions if admission else 8):
+            raise HTTPException(status_code=429, detail="Too many active sessions")
         try:
             session = sessions.create(request.tab_id if request is not None else None)
         except OverflowError as error:

@@ -1,5 +1,36 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 async host boundaries integrated locally — 2026-10-22
+
+Current frontier: explicit create_app lifecycle_work_factory/readiness_factory
+hooks, bounded off-loop AsyncAdmissionPolicy/AsyncLifecycleWork and HostReadiness
+connected to HTTP/model/SSE authority and lifespan. Default backend unchanged.
+Known pending leases transfer/renew through degraded health; generation/expiry
+fences prevent resurrection, reconstruction or uncertain Action replay. Remote
+writes retain quotas on uncertainty; browser/session state stays on the event loop.
+
+Signed health authenticates before I/O and requires all five trusted async checks.
+One retained aggregate holds capacity through slow cancellation cleanup while
+the response returns false within its1.5second async deadline. Final state and
+synchronous local fences precede signing. Real service/catalogue/ledger/provider
+checks remain the future bootstrap's responsibility; no fabricated qualification.
+
+Review found/fixed deadline and aggregate-completion failure races with RED/GREEN;
+clear final21host/reproduction checks8.06s. Moto whole-table rollback was separately
+reproduced corrupting successful competing claims; fixture atomic datastore calls
+fix only mock isolation, preserving shared-revision workflow competition. Reviewer
+independently passed5concurrency checks6.29s. Final865passed/no skips119.85s incl.
+all Agent regressions and fresh release build; focused96passed36.94s. Repo lint,
+format232Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-boundaries-20261022.json; docs/cap06-host-boundaries.md.
+
+Next: actual trusted host bootstrap/checks and restricted settings/key loading,
+Linux Lambda dependencies, costed approved reliable observation delivery, then
+effective IAM/OAC/event eligibility/resource approval and deployment acceptance.
+No scheduler added or cloud backend activated. No AWS/model/resource/key/DNS/TLS
+write, upgrade or push. Bedrock zero quotas, Free-plan/Stockholm/zero-cash limits
+and existing open gates persist. This local integration is not cloud acceptance.
+
 ## CAP-06 controller runtime and signed readiness prepared — 2026-10-22
 
 Current frontier: explicit injected startup/controller factories and settings;
