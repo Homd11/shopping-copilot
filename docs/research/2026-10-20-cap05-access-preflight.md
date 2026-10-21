@@ -1,10 +1,18 @@
 # CAP-05 account access preflight — 20 October 2026
 
-Research only. No authenticated AWS calls, credentials, model invocations, paid
-upgrade, application resources or account changes were made. The current owner
-constraints remain Free plan, Stockholm, and USD0 cash charges.
+**Current frontier:** two separately approved diagnostics failed; the second
+returned ThrottlingException / HTTP429. Read-only applied GPT-OSS20B RPM/TPM and
+Nova Lite on-demand shortlist quotas are zero. Both diagnostic ledgers are
+disabled, USD0.03 held across USD0.04 cumulative authorization, actual billing
+unknown. No additional call is authorized. See the applied-zero-quota section and
+[durable evidence](../../eval/evidence/cap05-diagnostic-20261020/README.md).
 
-## Smallest next owner action
+The initial research below predates authenticated access and the diagnostic calls;
+its no-call/no-login statements describe that earlier stage. The subsequent
+account observations and quota section supersede that initial state. Constraints
+remain Free plan, Stockholm and USD0 cash; no upgrade or application deployment.
+
+## Historical first access action — completed
 
 In the existing **Stockholm project console**, open the ordinary **CloudShell**
 panel. When its Bash prompt is ready, run only:
@@ -261,6 +269,70 @@ from an online error example in place of the exact failed request's evidence.
 This follow-up performed public-source research and local source inspection
 only; no CloudTrail/API lookup, logging change or repeated model call was made.
 
+## Applied zero quotas: activation boundary — 20 October
+
+Later evidence supplied by the coordinating session: a second, separately
+authorized **one USD0.02-credit attempt** failed in 703ms with HTTP429
+`ThrottlingException`, without usage. Subsequent read-only `GetServiceQuota`
+reported gpt-oss-20b RPM `L-AF7F0545=0.0`, `Adjustable=false`, and TPM
+`L-036E14D8=0.0`. A complete seven-page quota listing also found Nova Lite
+on-demand RPM `L-E386A278=0`, `Adjustable=false`, TPM `L-70423BF8=0`, and zero
+daily/cross-Region Nova Micro/Lite values. Availability remained positive and
+the candidate models active/on-demand. Both diagnostic ledgers are disabled;
+each holds USD0.015, **USD0.03 held against USD0.04 cumulative authorization**.
+Neither authorization permits another invocation. This paragraph records supplied
+results; this research follow-up made no authenticated calls.
+
+**What the sources establish:** Bedrock applied quotas may be lower than published
+defaults because of regional factors, account age, usage/payment history,
+fraudulent usage or increase approval. AWS does not promise automatic increases.
+Runtime quotas are shared by Converse, InvokeModel and Chat Completions, so
+changing only the API cannot restore capacity. A positive availability result
+does not override the applied zero capacity.
+[AWS account-specific quota policy](https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html),
+[shared runtime API quotas](https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-runtime.html).
+
+AWS's official troubleshooting article identifies zero runtime quotas despite
+nonzero defaults as a possible indicator of an **account-level restriction** and
+says such restrictions cannot be resolved through IAM/model-access settings.
+It directs account-specific resolution to AWS Support. This is a documented
+possibility, **not a diagnosis** of this account from its 429 response. Account
+age, a safety review, verification/payment state, and regional allocation remain
+unconfirmed causes; no activation date or 24/48-hour fix is established.
+[AWS official account-restriction guidance](https://repost.aws/knowledge-center/bedrock-invokemodel-api-error),
+[AWS official zero/new-account quota guidance](https://repost.aws/knowledge-center/bedrock-throttling-error).
+
+**No blanket Paid-plan requirement was established.** The new project experience
+explicitly lists Bedrock among Free Tier services. Also, AWS expressly says
+gpt-oss-20b/120b open-weight models require no AWS Marketplace subscription.
+Therefore the documented Marketplace subscription setup delay/payment-method
+steps for other third-party models cannot be presented as this GPT-OSS fix.
+No IAM expansion, subscription, payment change or account upgrade is justified
+by this evidence alone.
+[Free-project service list](https://docs.aws.amazon.com/accounts/latest/reference/supported-services-sign-up-new.html),
+[GPT-OSS subscription exception](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html).
+
+**Viable next options within the present constraints:** retain the zero-quota
+evidence and keep live qualification closed. Inspect only existing AWS account
+notices for an explicit incomplete verification action; do not invent an
+activation/payment task. A later read-only quota check can establish whether AWS
+has changed the allocation, but passage of time is not a documented remedy. AWS's
+documented account-specific resolution route is Support; its current
+unavailability is a real external dependency, not a reason to keep requesting the
+same owner response. No guaranteed self-service, cost-free activation route was
+found in the bounded primary-source check.
+
+One limited read-only discovery option exists if useful: AWS documents
+`bedrock-mantle` as a **separate quota allocation**, viewable in Service Quotas.
+Existing evidence about runtime zeros alone cannot prove Mantle values. This is
+not permission to send a Mantle request, create capacity, or silently switch the
+qualified API: the existing CAP-05 adapter uses Converse and Mantle would require
+an explicit contract/design and qualification decision. If the complete quota
+listing already includes the relevant Mantle zeros, no further discovery is
+useful. Neither a different provider nor an endpoint change closes the current
+strict Bedrock gate without the required evidence.
+[Separate Mantle quota allocation](https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-mantle.html).
+
 ## Completed account access after the research
 
 The owner opened ordinary CloudShell and supplied the filtered response:
@@ -278,7 +350,8 @@ are actual subsequent account observations, superseding the earlier research-onl
 absence of CRT/local login and unexecuted installation; the earlier source checks
 were unauthenticated. No access keys were requested or shared, model invocation
 performed, agreement accepted, application infrastructure deployed or plan upgraded.
-See docs/cap05-diagnostic-protocol.md for the pending separately approved first call.
+This was the pre-inference access stage. The diagnostic protocol now records both
+separately approved failed attempts and the subsequent applied-zero-quota evidence.
 
 ### Actual read-only trace outcome
 

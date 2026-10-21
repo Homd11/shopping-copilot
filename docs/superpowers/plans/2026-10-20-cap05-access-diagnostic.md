@@ -81,5 +81,16 @@ for this metadata-only change; prior754pass/1timeout/reruns remain explicit.
 Read-only final trace around307seconds saw surrounding management events but no
 matching inference request; leave cause unknown. Prepared diagnostic002 with
 identical request hash, separate owned folder and prior-result hash binding.
-Additional onecall/USD0.02 approval is pending (would totalUSD0.04 across both);
-first claim/disabled ledger/reservation untouched. No third call/fullset proposed.
+Owner approved the additional one-call/USD0.02 allowance (USD0.04 cumulative).
+Exactly one second attempt failed in703ms with ThrottlingException / HTTP429,
+no usage/output; both ledgers disabled with USD0.015 held each. Actual cost unknown.
+Read-only applied quotas: GPT-OSS20B RPM/TPM=0; Nova Lite on-demand RPM/TPM/daily
+also0. No quota increase requested, third call authorized, or provider switch.
+Account-specific reason unknown; retain the first result unchanged and CAP-05 open.
+Sanitized second-result.json and quotas.json sit beside the first evidence.
+
+- [x] Obtain separate second-call approval, preserve the first claim/reservation.
+- [x] Execute the second call once with no retries and preserve safe error metadata.
+- [x] Disable both ledgers without refund/reset and record read-only applied quotas.
+- [x] Record the external quota blocker and current evidence in the handoff.
+- [ ] Resume live qualification only after access evidence and new bounded approval.

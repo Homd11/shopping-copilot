@@ -1,8 +1,51 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-20
+**Last updated:** 2026-10-21
 
-## First Bedrock diagnostic failed; no retry — 2026-10-20
+## Second diagnostic executed; zero applied quotas — 2026-10-20
+
+The owner separately approved one additional call with at most USD0.02 AWS credit
+use. Exactly one further Converse attempt used the same frozen ar-01 request and
+zero retries. It failed after 703ms with ThrottlingException / HTTP429; no output
+or usage returned. The first attempt's exact service error remains unknown.
+
+Read-only applied Service Quotas show GPT-OSS20B on-demand requests/minute=0 and
+tokens/minute=0 in Stockholm. Nova Lite's on-demand requests/minute, tokens/minute
+and daily tokens are also zero. Positive availability and ACTIVE/ON_DEMAND model
+metadata do not override these account quotas. The zero allocation is an observed
+blocker; its account-specific reason is unknown. No quota increase was requested.
+
+Both exclusive claims are consumed and both diagnostic ledgers are DISABLED.
+Each retains USD0.015 with one uncertain attempt: USD0.03 held across two attempts,
+against USD0.04 cumulative authorization. Actual billed costs remain unknown;
+unused balances do not authorize another call. No third call or full set is
+approved. No provider switch, upgrade, subscription, deployment or DNS change.
+
+Sanitized second result and applied quotas are in
+eval/evidence/cap05-diagnostic-20261020/second-result.json and quotas.json. The
+original first result is unchanged. Private plans/claims/ledgers stay in their
+separate ignored outputs/cap05-bedrock-diagnostic-001/ and -002/ directories.
+
+AWS documents zero quotas as a possible account restriction; no guaranteed
+self-service Free-plan activation or evidenced Paid-upgrade fix was found. GPT-OSS
+needs no Marketplace subscription. Support is currently unreachable; do not keep
+asking for the same owner response or infer that waiting resolves it. See the
+applied-quota section of docs/research/2026-10-20-cap05-access-preflight.md.
+Keep CAP-05 and parent acceptance gates open. Further offline preparation may
+continue within approved scope; any provider/API change requires an explicit
+scope decision and subsequent qualification.
+
+### Read-only continuation check — 21 October 2026
+
+A two-quota GET recheck stopped at LoginRefreshRequired before obtaining fresh
+quota data; no inference was attempted and no account setting changed. The
+20 October zero-quota observation remains the latest verified allocation, not a
+claim about a refreshed 21 October value. Do not request another browser sign-in
+solely to repeat this known blocker. Next permitted independent work is local
+CAP-06 preparation from docs/cap04-deployment-handoff.md; provisioning and live
+qualification retain their gates.
+
+## Historical first diagnostic and second-call proposal — 2026-10-20
 
 Owner explicitly approved one diagnostic with USD0.02 maximum AWS credit use.
 Exactly one Converse attempt ran from the frozen ar-01 request. Provider HTTP

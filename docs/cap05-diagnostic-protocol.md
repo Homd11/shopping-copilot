@@ -1,12 +1,15 @@
-# CAP-05 first Bedrock diagnostic
+# CAP-05 Bedrock diagnostics
 
-**20 October 2026 — the owner approved the single USD0.02-credit diagnostic; its
-one attempt failed.** The original proposal below is retained for review. See the
-[preserved result](../eval/evidence/cap05-diagnostic-20261020/README.md). No retry
-or full set is authorized. USD0.015 remains reserved and uncertain; the ledger is
-now disabled and the claim remains consumed. Actual cost and failure cause remain
-unknown. The later offline service-code telemetry improvement does not authorize
-another request.
+**20 October 2026 — both separately approved one-call diagnostics failed.**
+The second returned ThrottlingException / HTTP429. Read-only applied quotas are
+zero for GPT-OSS20B requests/minute and tokens/minute, and the Nova Lite on-demand
+shortlist. The account-specific cause is unknown. See the [preserved results and
+quotas](../eval/evidence/cap05-diagnostic-20261020/README.md).
+
+Both ledgers are disabled and claims consumed. USD0.03 is held across the two
+attempts against USD0.04 cumulative authorization; actual billed cost is unknown.
+No third call, retry or full set is authorized. The first result and its unknown
+exact service error are preserved. The original proposal follows as history.
 
 ## Verified access
 
@@ -108,7 +111,7 @@ Public IPv4 coverage and remaining infrastructure permissions stay unresolved;
 this model access proof does not close local02/final09/parentCAP04. CAP-05 remains
 open until its actual acceptance requirements hold.
 
-## Proposed second diagnostic — not yet authorized
+## Second diagnostic — separately approved and executed
 
 The first call's exact service error code was not preserved. Read-only model
 metadata confirms ACTIVE/ON_DEMAND, but neither that nor surrounding CloudTrail
@@ -122,16 +125,30 @@ model/Region/limits and zero retries, using the independently reviewed service-c
 metadata improvement. Its purpose is to capture the allowlisted service code and
 HTTP status, not to attempt a full evaluation or silently change parameters.
 
-Proposed additional authorization: USD0.02 AWS credit, one call, with USD0.015
-reserved and held. Total credit authorization across the two diagnostics would
-then be at mostUSD0.04. The first consumed claim, disabled ledger and held USD0.015
+The owner approved the additional USD0.02 AWS credit for one call, with USD0.015
+reserved and held. Total credit authorization across the two diagnostics is
+at most USD0.04. The first consumed claim, disabled ledger and held USD0.015
 remain intact. Do not enable/reset the first ledger or treat its remainingUSD0.005
 as a retry allowance. The second plan lives in a different fixed owned directory,
 outputs/cap05-bedrock-diagnostic-002/, with a hash binding to the preserved first
-result. It has no claim or ledger until a new explicit approval is received.
+result. After approval, its own claim and ledger were created; both claims are
+now consumed and both ledgers disabled with their full reservations retained.
 
 The existing default CLI remains bound to diagnostic001 and refuses ordinary
 rerun. A separately authorized002 execution must explicitly select that prepared
 directory through the reviewed run_once seam and validate its frozen plan and
 prior-result binding before entry. Stop after that single call regardless of
-outcome; no third call is included. No authorization has yet been received for002.
+outcome; no third call is included. Diagnostic002 failed after703ms with
+ThrottlingException / HTTP429 and no output/usage. The utility's fixed internal
+attempt label remains bedrock-diagnostic-001 in each separate ledger; folder,
+claim and prior-result binding identify the second independently approved run.
+
+Subsequent read-only GetServiceQuota and a complete seven-page ListServiceQuotas
+show applied zero GPT-OSS20B requests/minute and tokens/minute; Nova Lite
+on-demand requests/minute, tokens/minute and daily tokens are also zero. No quota
+change was requested. These are account allocations, not public default quotas.
+They explain why the second request cannot proceed at the observed allocation;
+they do not establish the first request's exact service error or an account-level
+cause. The [access research](research/2026-10-20-cap05-access-preflight.md) finds
+no guaranteed Free-plan activation path or proof that a Paid upgrade would fix it.
+No further paid probe is justified by the present zero-quota evidence.

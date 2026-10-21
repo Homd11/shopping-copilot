@@ -3,8 +3,9 @@
 The owner approved one fixed diagnostic with at most USD0.02 additional AWS credit
 use. Exactly one Converse attempt was made for the existing exposed ar-01 case,
 openai.gpt-oss-20b-1:0 in Stockholm, intent-v32/schema9, temperature0 and1536output
-tokens. No automatic retries, further model calls, agreement changes, upgrade,
-deployment or active-provider switch occurred.
+tokens. At this first closeout, no automatic retries, further model calls, agreement
+changes, upgrade, deployment or active-provider switch occurred. The separately
+approved second attempt is recorded below.
 
 The request failed with the adapter's provider_http category after1313ms. There
 was no returned output or usage. The adapter at that source revision retained
@@ -33,3 +34,30 @@ The result summary is sanitized. Original claim, allowance database, frozen plan
 raw launcher report and private correlation details remain in the ignored owned
 outputs/cap05-bedrock-diagnostic-001/ directory. The strict qualification and any
 later separately reported synthetic evaluation remain unexecuted; CAP-05 is open.
+
+## Separately approved second attempt and applied quotas
+
+The owner then approved one additional USD0.02-credit call. Diagnostic002 used
+the identical request hash, bound to the unchanged first result, with its own
+exclusive claim and ledger. Exactly one additional provider attempt failed in
+703ms with ThrottlingException / HTTP429. No output or usage returned. Its
+USD0.015 reservation remains uncertain and its ledger is disabled. Both attempts
+together retain USD0.03 against USD0.04 cumulative authorization; actual charges
+remain unknown. No third call or full set is approved.
+
+[second-result.json](second-result.json) contains the sanitized second result;
+[quotas.json](quotas.json) records the subsequent read-only applied quotas.
+GPT-OSS20B on-demand requests/minute and tokens/minute are both zero. Nova Lite
+on-demand requests/minute, tokens/minute and daily tokens are also zero. Complete
+ListServiceQuotas scan: seven pages, no remaining page; GPT-OSS20B RPM also read
+through GetServiceQuota. No quota change was requested. These findings establish
+a current runtime quota blocker, not a diagnosis of the account-specific reason,
+a blanket restriction on all Bedrock endpoints, or the first call's exact error.
+
+Private002 claim/ledger/raw launcher report remains in its separate ignored output
+folder. The utility's fixed internal attempt label is the same in each distinct
+ledger; the folder and binding distinguish run002. The first result.json is
+unchanged, preserving the second plan's hash binding. AWS research found no
+guaranteed self-service Free-plan activation or evidenced Paid-upgrade fix;
+see [primary-source findings](../../../docs/research/2026-10-20-cap05-access-preflight.md).
+CAP-05 remains open; no provider switch or acceptance waiver is inferred.

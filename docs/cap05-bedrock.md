@@ -1,26 +1,29 @@
 # CAP-05 Bedrock adapter: offline preparation
 
-**20 October 2026 — offline adapter slice implemented; live qualification remains pending.** This is not a selected live model, deployment,
-account-access proof or paid-call authorization. CAP-04's remaining feasibility
-checks and CAP-05's qualification gate stay open.
+**20 October 2026 — offline adapter implemented; two diagnostics failed and live qualification remains pending.**
+Read-only eligibility is confirmed, but applied runtime quotas are zero. This is
+not a qualified live model, deployment or further paid-call authorization.
+CAP-04's remaining feasibility checks and CAP-05's qualification gate stay open.
 
 ## Current access frontier
 
-The first separately approved USD0.02 diagnostic has now executed exactly once
-and failed provider_http after1313ms with no usage/output. Full USD0.015 remains
-held, the diagnostic ledger is disabled and its claim consumed. No root cause or
-billed cost is established; no paid retry/fullset is authorized. See the
-[preserved failure](../eval/evidence/cap05-diagnostic-20261020/README.md). Later
-metadata includes allowlisted service codes and bounded HTTP status, without
-provider bodies, verified by two additional regressions (41adapter/77focused pass).
-This does not repair the original failure or qualify the model.
+Two separately approved one-call diagnostics failed: the first provider_http in
+1313ms (exact service code unknown), the second ThrottlingException / HTTP429 in
+703ms. Read-only applied Stockholm quotas are zero for GPT-OSS20B on-demand
+requests/minute and tokens/minute; Nova Lite on-demand shortlist quotas are also
+zero. The account-specific reason is unknown. Both ledgers are disabled and
+claims consumed, with USD0.03 retained across USD0.04 cumulative authorization.
+Actual billing is unknown; no third call or full set is approved. See the
+[preserved results and quotas](../eval/evidence/cap05-diagnostic-20261020/README.md).
+Safe metadata changes passed41adapter/77focused checks; they do not fix live
+access. No guaranteed Free-plan activation or evidenced upgrade fix was found.
 
 On20October the owner opened CloudShell and supplied all-positive model-availability
 statuses. After a browser-approved cap05-stockholm login using the verified
 current-user AWS CLI2.38.2 and optional CRT dependency, the local SDK independently
-confirmed the same statuses. No model call was made. The [one-call diagnostic
-proposal](cap05-diagnostic-protocol.md) was approved for one USD0.02-credit attempt;
-that failed attempt is preserved and full strict qualification remains pending.
+confirmed the same statuses before inference. The [diagnostic protocol](cap05-diagnostic-protocol.md)
+now records both approved failed attempts. Eligibility does not establish a
+nonzero applied quota; full strict qualification remains pending.
 
 ## Boundary and configuration
 
@@ -129,8 +132,9 @@ Live speed/quality and deployed behavior are still unverified.
 
 Before closing CAP-05:
 
-1. Reconcile remaining account/design prerequisites and verify the exact model's
-   invocation eligibility without using inference as an access probe.
+1. Resolve the observed zero applied model quotas and remaining account/design
+   prerequisites. Positive model eligibility alone is insufficient; use read-only
+   quota evidence before proposing another bounded inference run.
 2. Pin and qualify provider output/schema settings and token/cost semantics. If
    changing native structured output or model selection, retain failed candidates
    and rerun affected deterministic regressions.

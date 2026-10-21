@@ -14,7 +14,14 @@ The current-user CLI and optional CRT dependency are installed; browser login
 uses a separate cap05-stockholm profile, with no access-key sharing. This resolves
 the named candidate's read-only eligibility uncertainty, not its actual inference,
 quality, quota or billed cost. See the [diagnostic proposal](cap05-diagnostic-protocol.md).
-No paid model call, application deployment, DNS write or upgrade occurred.
+Two separately approved diagnostic attempts subsequently failed, the second with
+ThrottlingException / HTTP429. Read-only applied quotas show zero GPT-OSS20B
+on-demand requests/minute and tokens/minute, plus zero Nova Lite on-demand
+shortlist quotas. The account-specific cause is unknown. USD0.03 remains held
+across USD0.04 cumulative authorization, actual cost unknown, both ledgers
+disabled. No further call is approved. No application deployment, DNS write,
+quota increase request or upgrade occurred. See the
+[preserved quota evidence](../eval/evidence/cap05-diagnostic-20261020/quotas.json).
 
 ## Owner continuation — 20 October
 
@@ -38,10 +45,10 @@ resource creation or DNS writes. Those execution steps retain separate gates.
 | AWS Region           | Owner console URL selects eu-north-1 (Europe/Stockholm)                                                                                                      | Stockholm project assignment explicitly confirmed by the subsequent AWS restriction modal                                                                 |
 | Account experience   | Owner screenshots show project switcher, Projects/Team and new Billing page                                                                                  | New project-based signup experience evidenced; its restrictions apply                                                                                     |
 | Service access       | Owner screenshots show Lambda, DynamoDB, ACM and CloudFront pages; VPC dashboard explicitly reports Stockholm                                                | Visibility evidenced; VPC list shows one Available VPC; action permissions and EC2/EBS/S3/admin checks remain pending                                     |
-| Bedrock model access | Owner CloudShell and local SDK availability API both return AUTHORIZED and AVAILABLE agreement/entitlement/Region for gpt-oss-20b in Stockholm on 20 October | Read-only model eligibility confirmed; actual invocation, quota, qualification and billing remain unverified                                              |
+| Bedrock model access | Owner CloudShell and local SDK availability API both return AUTHORIZED and AVAILABLE agreement/entitlement/Region for gpt-oss-20b in Stockholm on 20 October | Eligibility confirmed; two failed diagnostics, second HTTP429; applied GPT-OSS20B RPM/TPM zero; qualification and billing unverified                      |
 | DNS                  | Owner DNS Records screenshot shows Add new record and A/CNAME categories for scpilot.tech                                                                    | Record-management access evidenced with no purchase prompt visible; no write or propagation verified; actual A/CNAME entries remain collapsed/uninspected |
 | Local readiness      | Real proxy, release, allowance, lifecycle and capacity checks; physical Android local exception documented                                                   | Passed locally; not cloud qualification                                                                                                                   |
-| Programmatic access  | Current-user AWS CLI2.38.2 and browser-approved cap05-stockholm profile; local Boto3 read-only model availability succeeds 20 October                        | Authenticated GET only; no inference, resource writes or account upgrade                                                                                  |
+| Programmatic access  | Current-user AWS CLI2.38.2 and browser-approved cap05-stockholm profile; local Boto3 read-only model availability succeeds 20 October                        | Authenticated SDK access; two separately approved failed diagnostics; no application resource writes or account upgrade                                   |
 
 Keep account IDs, billing address, payment details and credentials out of committed
 evidence. Record only plan, dates, dollar balances, Region, observed access status
