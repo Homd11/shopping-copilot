@@ -43,6 +43,8 @@ def test_built_release_is_self_contained_and_refuses_overwrite(built_release):
     assert not list(release.rglob("*.sqlite"))
     assert (release / "agent/admission/dynamodb.py").is_file()
     assert (release / "agent/lifecycle/dynamodb.py").is_file()
+    assert (release / "agent/lifecycle/executor.py").is_file()
+    assert (release / "agent/lifecycle/startup.py").is_file()
     assert not (release / "eval/requirements-cloud.txt").exists()
     assert "moto" not in (release / "requirements.lock").read_text()
     result = command("verify", "--release", release)

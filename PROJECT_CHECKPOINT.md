@@ -1,6 +1,42 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-22
+
+## CAP-06 single command executor and startup HTTP prepared offline — 2026-10-22
+
+Added injected agent/lifecycle/executor.py and startup.py. The executor claims one
+pending intent, refreshes exact authority/deadline and bounded Stockholm client
+policy, then attempts at most one StartInstances/StopInstances operation for its
+fixed configured instance. Validated acknowledgement still requires trusted host
+observation. Service errors, lost/malformed replies and failed settlement never
+cause automatic retry or claim takeover. DynamoDB generation is not an EC2 fence.
+
+The HTTP-v2 handler serves the existing waiting UI for a configured generated
+CloudFront HTTPS origin, exposes only safe status and accepts bounded same-origin
+JSON wake requests. It never dispatches EC2, redeems shopping access or extends
+activity. Three persistent conditioned rate lanes240/10/120per minute fail closed
+on conflicts, rollback, corruption and uncertainty. Permanent metadata markers
+prevent deleted rate rows from reopening as unused. No event/code/SDK logging.
+
+Fresh independent review and RED regressions reproduced two pre-dispatch timing
+gaps: invitation I/O could cross the deadline, and client policy could change
+during authority I/O. Final deadline/client checks now follow those reads.
+Review clear; independently114passed. Final broader admission/lifecycle/allowance
+regressions plus fresh self-contained release build:211passed/no skips in82.78s.
+ESLint, Prettier, Ruff check/format216files, pip and whitespace checks pass.
+Evidence: eval/evidence/cap06-command-startup-20261022.json.
+
+Tests use dummy credentials, Moto DynamoDB and stubbed EC2 only. Moto concurrency
+tests serialize simulated server transactions to compensate for its nonisolated
+backup/rollback implementation; real AWS concurrency/IAM/durability remain
+unverified. No AWS/model call, actual EC2 command, resource/table/instance creation,
+DNS/certificate request, upgrade, provider/backend activation or push occurred.
+
+Next: Lambda/OAC/IAM and fixed instance wiring, trusted readiness/observation
+scheduling and async Agent/host work integration, then approved deployment and
+cloud acceptance. Public cost bounds, zero cash and Free-plan constraints persist.
+Bedrock zero quotas and all open acceptance gates remain blockers; these prepared
+components do not establish deployed automatic wake or cloud readiness.
 
 ## CAP-06 remote lifecycle decisions implemented offline — 2026-10-21
 

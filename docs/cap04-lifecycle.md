@@ -1,5 +1,46 @@
 # Invitation-gated startup and idle shutdown
 
+## CAP-06 command and startup HTTP preparation — 22 October 2026
+
+`agent/lifecycle/executor.py` adds an injected worker for one fixed Stockholm EC2
+instance. Each execution durably claims at most one pending command, refreshes
+its deadline/invitation authority, rechecks bounded client configuration and calls
+StartInstances or StopInstances once. Only a validated matching EC2 response can
+acknowledge a command. Errors and malformed/lost replies are uncertain; failed
+settlement is not retried. Neither acknowledgement nor HTTP acceptance establishes
+readiness. A claimed or uncertain command cannot be taken over or replayed.
+
+The deadline is checked again after invitation I/O, and EC2 client policy after
+authority I/O. These checks reduce timing gaps but cannot make an invitation check
+atomic with an EC2 API. The generation remains a DynamoDB protocol, not an EC2
+generation token. Investigating/unlocking abandoned commands remains owner work.
+
+`agent/lifecycle/startup.py` prepares an injected Function URL HTTP-v2 handler for
+the eventual generated CloudFront origin. GET / serves the existing nonce-CSP
+waiting page with the fixed https://app.scpilot.tech/ destination; GET /status
+returns only the safe lifecycle view; POST /wake validates exact Origin, bounded
+JSON and invitation, then returns durable acceptance. No route dispatches an EC2
+command, redeems shopping access or extends meaningful activity. Codes stay out
+of URLs, responses and storage. A separate trusted worker still has to observe
+readiness and advance commands.
+
+Three fixed DynamoDB rate rows bound http/wake/poll to240/10/120per minute.
+Metadata markers prevent deleting a row and reopening its lane as unused.
+Strong reads and conditioned transactions retain counts across handler instances;
+conflict, corruption, clock rollback and uncertain writes fail closed without
+retries. Application limits do not cap edge requests or Lambda/DynamoDB charges.
+
+The handler has no listener, SDK/credential factory or runtime selection. AWS_IAM,
+CloudFront OAC, edge cost bounds, actual Lambda scheduling and fixed instance
+configuration remain deployment requirements. Existing local HTTP, SQLite stores,
+host services and active provider are unchanged. Tests use dummy credentials,
+Moto DynamoDB and botocore-stubbed EC2 only. The rate concurrency harness serializes
+Moto server transactions because its backup/rollback simulator is not thread
+isolated; reads/CAS still contend. Real AWS conflicts and durability remain
+unverified. See the
+[design](superpowers/specs/2026-10-22-cap06-command-startup.md) and
+[plan](superpowers/plans/2026-10-22-cap06-command-startup.md).
+
 ## CAP-06 remote lifecycle decision component — 21 October 2026
 
 `agent/lifecycle/dynamodb.py` now prepares the remote wake/work/drain state machine

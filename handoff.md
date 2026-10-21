@@ -1,5 +1,33 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 command executor and startup HTTP prepared offline — 2026-10-22
+
+Current frontier: injected single-dispatch EC2 executor and generated-host HTTP-v2
+startup adapter implemented, independently reviewed and packaged. Durable command
+claims never expire into takeover/replay; acknowledgement alone does not admit
+shopping. Errors/lost replies/malformed acknowledgements are uncertain. Final
+deadline check follows invitation I/O and EC2 policy check follows authority I/O,
+with RED/GREEN regressions for both review findings. No actual EC2 fencing claimed.
+
+Startup serves existing waiting HTML with fixed https://app.scpilot.tech/ link,
+safe status and bounded same-origin invitation POST. No HTTP route dispatches a
+command or extends activity. Durable global/wake/poll rate lanes240/10/120per
+minute retain counts across reopen; metadata markers prevent deleted-row reset.
+No code/event/receipt/SDK logs. IAM/OAC must still be enforced by actual deployment.
+
+Independent114tests passed; final focused admission/lifecycle/allowance regressions
+and new release build211passed/no skips82.78s. Repository lint/format, pip and
+whitespace pass. Evidence: eval/evidence/cap06-command-startup-20261022.json.
+Source/design/plan and operational details are linked from docs/cap04-lifecycle.md.
+Optional Moto with dummy credentials and botocore Stubber only; Moto server
+transactions serialized in concurrency harness because its rollback is not isolated.
+
+Next: real Lambda/OAC/IAM/fixed instance and trusted readiness scheduling wiring,
+async Agent/host work leases, durable services, approved deployment and cloud
+acceptance. No AWS/model calls, resource creation, DNS/TLS request, upgrade,
+factory/provider activation or push. Free plan, zero cash, Bedrock zero-quota
+blocker, disabled diagnostic allowances and all open gates are unchanged.
+
 ## CAP-06 remote lifecycle decisions implemented offline — 2026-10-21
 
 Added agent/lifecycle/dynamodb.py: durable wake generation, revision-bound health
