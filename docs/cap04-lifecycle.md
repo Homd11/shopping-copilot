@@ -1,5 +1,15 @@
 # Invitation-gated startup and idle shutdown
 
+## CAP-06 CloudFront/Lambda access preparation — 22 October 2026
+
+The shared waiting page now supplies SHA-256 of the exact POST body for Lambda
+OAC signing, with fail-closed hashing and no code URL/storage/logging. The pure
+access renderer prepares separate startup/controller IAM policies, exact
+CloudFront Function URL permissions and private S3 prefix access, sigv4 OAC and
+uncached control forwarding. No resources or policies have been applied. See
+[the access handoff](cap06-cloud-access.md) for the prepared interfaces and
+remaining Lambda runtime, readiness and deployment qualification work.
+
 ## CAP-06 command and startup HTTP preparation — 22 October 2026
 
 `agent/lifecycle/executor.py` adds an injected worker for one fixed Stockholm EC2

@@ -146,10 +146,21 @@
         const code = input.value;
         input.value = "";
         try {
+          const body = JSON.stringify({ code });
+          const digest = await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(body),
+          );
+          const hash = Array.from(new Uint8Array(digest), (byte) =>
+            byte.toString(16).padStart(2, "0"),
+          ).join("");
           const response = await fetch("/wake", {
             method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ code }),
+            headers: {
+              "content-type": "application/json",
+              "x-amz-content-sha256": hash,
+            },
+            body,
             signal: AbortSignal.timeout(5000),
           });
           if (!response.ok)
