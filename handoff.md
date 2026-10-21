@@ -1,5 +1,41 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 remote lifecycle decisions implemented offline — 2026-10-21
+
+Added agent/lifecycle/dynamodb.py: durable wake generation, revision-bound health
+observations, meaningful activity,128bounded work leases, idle drain/stop commitment
+and single-use command claim/completion. Transactions bind lifecycle identity/
+revision, invitation metadata and current startup invitation validity. Explicit
+initialization permanently records lifecycle_identity in metadata so deleting the
+host item cannot reinitialize/reset an outstanding command fence.
+
+Claimed/uncertain commands never expire into a new dispatcher. Timeout plus an
+observed stopped host cannot unlock a claimed command. Certain late start requires
+cleanup stop; certain stop acknowledgement plus observed stopped precedes restart.
+This is a persistent handoff protocol, not actual EC2 API fencing: no EC2 callback,
+executor or public HTTP/factory selection is included. Unknown outcomes remain
+locked for owner investigation; no automated unlock/replay path exists.
+
+Fresh review reproduced unhealthy idle drain admitting new work: RED regression,
+persisted strictly validated health independent of drain, GREEN, reviewer clear.
+Accepted leases still renew under degraded health. Additional RED/GREEN regressions
+cover deleted-state reset, inconsistent command/state, post-claim revocation,
+invalid lease tokens, future activity timestamps and malformed host observations.
+Independent reviewer39corechecks passed; final suite includes40remote lifecycle
+checks plus remote/local invitation/lifecycle/inference regressions and fresh
+self-contained release build:139passed/no skips in58.83s. Repository lint/format,
+pip and whitespace checks pass. Evidence:
+eval/evidence/cap06-remote-lifecycle-20261021.json. Existing runtime factories,
+local SQLite lifecycle, base dependency lock and provider remain unchanged.
+
+Next: separately tested single command executor/outcome protocol and bounded
+startup/status HTTP, then Lambda/OAC/IAM and async Agent/host readiness integration.
+No AWS/model calls, resource/table/instance creation, actual EC2 command, DNS,
+certificate request, upgrade, active backend/provider switch or push. Real AWS
+conflicts/IAM/durability/costs, public TLS and deployed acceptance remain unverified.
+Bedrock zero-quota blocker, disabled diagnostic allowances and all open acceptance
+gates persist. No cloud readiness or completed automatic-wake deployment claimed.
+
 ## CAP-06 remote invitation adapter implemented offline — 2026-10-21
 
 The first remote invitation/wake-control component is implemented in

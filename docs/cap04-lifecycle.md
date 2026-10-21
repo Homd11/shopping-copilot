@@ -1,5 +1,59 @@
 # Invitation-gated startup and idle shutdown
 
+## CAP-06 remote lifecycle decision component — 21 October 2026
+
+`agent/lifecycle/dynamodb.py` now prepares the remote wake/work/drain state machine
+against the injected DynamoDB invitation authority. Existing local factories and
+SQLite rehearsal remain unchanged. This component does not dispatch EC2 commands,
+serve Lambda HTTP or activate a production controller.
+
+One bounded lifecycle item serializes generation, revision, meaningful activity,
+at most128work leases and one command. Every mutation includes metadata identity
+and lifecycle revision conditions. Wake and start-command claims validate the
+invitation in that same transaction; earlier wake reads are not permanent start
+permission. Status reads create no commands and do not advance activity.
+
+Initialization is explicit and exclusive. A lifecycle identity marker in the
+invitation metadata prevents deleting the lifecycle item and initializing fresh
+state to reset its command history. Missing, mismatched, malformed or uncertain
+state refuses operation; there is no migration, TTL cleanup or reset command.
+
+Work admission and stop commitment contend on the same revision. Meaningful work
+can cancel uncommitted drain. Once stopping is committed, no new work is admitted.
+Accepted finite leases may renew through degraded health; stale generation/token
+authority cannot be reacquired. Readiness observations bind both generation and
+revision before the external probe; intervening state changes invalidate them.
+Health remains independent of drain state, so unhealthy idle drain cannot admit
+new work while existing leases may still renew.
+
+The command interface durably claims one pending start/stop and returns a private
+receipt. Only that exact receipt can settle once. A claim never expires into a new
+dispatcher. Unknown outcome locks the state failed; even an observed stopped host
+cannot permit another generation while a command is claimed or uncertain. Certain
+late start completion requires cleanup stop. Certain stop acknowledgement plus
+observed stopped is required before restart. There are no automatic command retries.
+
+This lock is deliberate: EC2 APIs do not enforce this component's generation
+number. The eventual executor must obey one claimed entry and prove completion;
+this offline decision component does not establish end-to-end EC2 fencing. An
+abandoned/uncertain claim currently requires owner investigation, with no automated
+unlock path. An HTTP startup service, bounded durable rate lanes, scoped IAM,
+single executor, host readiness checks, async Agent integration and actual
+stop/outage recovery acceptance are still required before deployment.
+
+Offline checks use the optional pinned Moto extra and dummy SDK credentials:
+
+```text
+python -m pytest agent/tests/test_lifecycle_dynamodb.py -q
+```
+
+No actual AWS requests, real host commands or model calls are made. Emulator
+success does not qualify AWS conflicts, durability, IAM, cost or operational
+latency. See the [design](superpowers/specs/2026-10-21-cap06-remote-lifecycle.md)
+and [transaction research](research/2026-10-21-cap06-dynamodb-invitation-contract.md).
+
+## Existing local rehearsal
+
 This is the local Ticket 07 rehearsal. It does not provision EC2, Lambda, DNS,
 IAM or a managed control store. Automatic cloud wake remains conditional on
 Ticket 02's account eligibility and complete cost estimate.
