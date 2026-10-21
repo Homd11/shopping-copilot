@@ -7,6 +7,20 @@ from agent.lifecycle.store import LifecycleUnavailable
 STATES = {"pending": 0, "running": 16, "stopping": 64, "stopped": 80}
 
 
+def _state_name(state):
+    names = {**STATES, "shutting-down": 32, "terminated": 48}
+    if (
+        type(state) is not dict
+        or type(state.get("Name")) is not str
+        or state["Name"] not in names
+        or type(state.get("Code")) is not int
+        or not 0 <= state["Code"] <= 65535
+        or state["Code"] & 255 != names[state["Name"]]
+    ):
+        return None
+    return state["Name"]
+
+
 class EC2CommandExecutor:
     def __init__(self, lifecycle, client, instance_id):
         if not isinstance(instance_id, str) or re.fullmatch(r"i-[0-9a-f]{17}", instance_id) is None:
@@ -56,19 +70,18 @@ class EC2CommandExecutor:
         )
         for key, names in zip(("PreviousState", "CurrentState"), allowed, strict=True):
             state = item.get(key)
-            if (
-                type(state) is not dict
-                or not isinstance(state.get("Name"), str)
-                or state["Name"] not in names
-                or type(state.get("Code")) is not int
-                or state["Code"] != STATES[state["Name"]]
-            ):
+            if _state_name(state) not in names:
                 return False
         return True
 
-    def execute_once(self):
+    def execute_once(self, *, operation=None, generation=None):
         self._configuration()
-        receipt = self.lifecycle.claim_command()
+        filters = {}
+        if operation is not None:
+            filters["operation"] = operation
+        if generation is not None:
+            filters["generation"] = generation
+        receipt = self.lifecycle.claim_command(**filters)
         if receipt is None:
             return None
         # Nothing can reclaim this intent if execution pauses here. This is not

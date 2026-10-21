@@ -1,5 +1,16 @@
 # Invitation-gated startup and idle shutdown
 
+## CAP-06 runtime factories and authenticated observation — 22 October 2026
+
+Explicit startup/controller factories now compose the injected durable authority,
+async queue notifier, generation/operation-filtered worker and fixed-host EC2
+observer. Accepted wake may enqueue dispatch; status enqueues observe, which can
+stop but never start. Fresh signed readiness binds the expected release and wake
+generation; ordinary /health liveness cannot admit shopping. The host-side reply
+helper remains inactive pending real readiness/work integration. No deployment,
+secret provisioning, environment-selected factory or reliable scheduler is added.
+See [runtime handoff](cap06-controller-runtime.md) for interfaces and remaining gates.
+
 ## CAP-06 CloudFront/Lambda access preparation — 22 October 2026
 
 The shared waiting page now supplies SHA-256 of the exact POST body for Lambda

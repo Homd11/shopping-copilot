@@ -169,7 +169,7 @@ def _view(value):
     return value
 
 
-def create_startup_handler(lifecycle, rates, *, origin):
+def create_startup_handler(lifecycle, rates, *, origin, notify=None):
     if (
         type(origin) is not str
         or re.fullmatch(r"https://[a-z0-9]{1,63}\.cloudfront\.net", origin) is None
@@ -215,7 +215,10 @@ def create_startup_handler(lifecycle, rates, *, origin):
                 )
             if (path, method) == ("/status", "GET"):
                 rates.rate("poll")
-                return response(200, _view(lifecycle.status()))
+                view = _view(lifecycle.status())
+                if notify is not None and view["generation"] > 0 and view["state"] != "stopped":
+                    notify("observe", view["generation"])
+                return response(200, view)
             if (path, method) != ("/wake", "POST"):
                 return response(404, {"state": "denied"})
             rates.rate("wake")
@@ -233,7 +236,10 @@ def create_startup_handler(lifecycle, rates, *, origin):
                 return response(403, {"state": "denied"})
             except ValueError:
                 return response(403, {"state": "denied"})
-            return response(202, _view(view))
+            view = _view(view)
+            if notify is not None:
+                notify("dispatch", view["generation"])
+            return response(202, view)
         except Exception:
             return response(503, {"state": "unavailable"})
 
