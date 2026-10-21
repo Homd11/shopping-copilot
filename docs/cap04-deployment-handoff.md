@@ -12,6 +12,13 @@ This consolidates the [approved Stockholm amendment](superpowers/specs/2026-10-1
 [account evidence](cap04-account-feasibility.md) and existing local runbooks. It
 supersedes the older supervised/shared-cart design brief as the execution handoff.
 
+22 October preparation update: a pure
+[CloudFront/Lambda access bundle](cap06-cloud-access.md) now expresses exact runtime
+and origin permissions, header/cache settings and browser POST payload signing.
+It is not a deployable stack or proof of effective AWS authorization. No resources
+or policies were applied; final inventory/cost approval and cloud acceptance remain
+required. Startup/controller Lambda invocation counts must enter the final estimate.
+
 ## Selected topology
 
 ```mermaid

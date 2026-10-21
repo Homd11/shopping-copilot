@@ -2,6 +2,37 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 CloudFront/Lambda access and viewer signing prepared — 2026-10-22
+
+Added pure deploy/cloud_access.py: frozen exact-resource bindings render separate
+startup/controller runtime policies, both required Lambda Function URL grants,
+exact-distribution OAC, waiting-prefix S3 access and uncached custom origin header
+forwarding. Startup has no EC2 grant; controller start/stop is fixed-instance and
+DescribeInstances is region-bound. DynamoDB uses GetItem plus transaction-only
+PutItem/UpdateItem/ConditionCheckItem with exact table and namespace; no fictitious
+TransactWriteItems IAM action or runtime initialization permissions. Own precreated
+Lambda log streams only, seven-day retention handoff. No actual identifiers chosen.
+
+AWS primary-source research found viewer POST requires x-amz-content-sha256 for
+Lambda OAC. Shared waiting.html now hashes the exact UTF-8 JSON body with Web
+Crypto and sends that same body; hashing failure sends no POST. Browser tests
+intercept all requests on synthetic HTTPS and localhost with nonce CSP, verify
+the digest with Python hashlib and preserve input cleanup/fixed links/no storage.
+
+Builder/review clear, independently28focused tests passed in3.78s. Final affected
+local/remote lifecycle/startup/executor/access/browser suite and fresh release
+build:159passed/no skips68.92s. ESLint, Prettier, Ruff check/format219files, pip
+and whitespace pass. Evidence: eval/evidence/cap06-cloud-access-20261022.json.
+Guide: docs/cap06-cloud-access.md; cited AWS contract research linked there.
+
+This JSON bundle is not a deployable stack, effective IAM authorization result
+or deployed OAC test. No AWS API/model call, policy/resource creation, DNS/TLS
+request, upgrade, active backend/provider change or push. Next: actual Lambda
+factory/package, controller readiness/observation scheduling, fixed host and async
+Agent work integration, then approved deployment and cloud acceptance. Final cost
+estimate must count controller invocations and DDB operations. Bedrock zero-quota,
+Free-plan/zero-cash constraints and all open gates remain unchanged.
+
 ## CAP-06 single command executor and startup HTTP prepared offline — 2026-10-22
 
 Added injected agent/lifecycle/executor.py and startup.py. The executor claims one

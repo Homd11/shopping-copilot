@@ -1,5 +1,31 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 cloud access and viewer signing prepared — 2026-10-22
+
+Current frontier: deploy/cloud_access.py pure validated bindings-to-JSON renderer
+prepares startup/controller IAM, dual Function URL permissions, exact distribution
+OAC/private waiting-prefix S3 policy, header allowlist and control cache settings.
+No account/resource identifiers are discovered or selected. This is not a stack
+or deployment command. See docs/cap06-cloud-access.md and its cited research.
+
+The shared waiting page now sends SHA-256 of the exact UTF-8 POST body as required
+by Lambda OAC. Failures stop before fetch; code cleanup/no storage/fixed links
+remain. Actual browsers on intercepted synthetic HTTPS and localhost verified
+the hash independently with hashlib under nonce CSP. No AWS requests were sent.
+
+Independent review clear;28focused checks independently passed3.78s. Final
+lifecycle/startup/executor/access/browser tests and fresh release build159passed,
+zero skips68.92s. Repository lint/format219Pythonfiles, pip and whitespace pass.
+Evidence: eval/evidence/cap06-cloud-access-20261022.json. No runtime factory change,
+AWS/model call, policy/resource creation, DNS/TLS write, upgrade or push.
+
+Next: Lambda factory/package and trusted controller readiness/observation transport
+and scheduling, fixed instance and async Agent work leases, then approved resource/
+cost/rollback deployment and cloud acceptance. Account-effective IAM, public OAC
+compatibility and costs are unverified. Include controller invocations/DDB calls
+in the final estimate. Free plan, zero cash, Bedrock zero quotas, diagnostic caps
+and all existing gates stay unchanged.
+
 ## CAP-06 command executor and startup HTTP prepared offline — 2026-10-22
 
 Current frontier: injected single-dispatch EC2 executor and generated-host HTTP-v2
