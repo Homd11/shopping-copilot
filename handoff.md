@@ -1,5 +1,38 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 remote invitation adapter implemented offline — 2026-10-21
+
+The first remote invitation/wake-control component is implemented in
+agent/admission/dynamodb.py. It preserves absolute invitation windows, hash-only
+codes/subjects, cumulative redemption/session limits, revocation and same-grant
+idempotence in bounded conditioned DynamoDB transactions. Wake validation grants
+no shopping/session authority. Explicit initialization refuses nonempty/orphaned
+namespaces; runtime never initializes. Strong reads refresh identity each operation;
+uncertain writes do not retry or refund. Fresh validation rejects expired/revoked
+post-write authority while retaining committed counts.
+
+Existing SQLite factory/configuration and active model provider are unchanged.
+This is an injected, offline-tested backend, not a deployed or selected service.
+Optional Moto5.2.4 extras are pinned separately in eval/requirements-cloud.txt;
+base runtime locks unchanged. Real Boto3 calls are intercepted with dummy
+credentials in-process; no AWS account API/table or local listener was used.
+
+Final adapter40tests pass/no skips. Focused admission/lifecycle/allowance and fresh
+artifact build99passed/no skips in39.96s. Full release/proxy subset14passed in148.42s
+before the final status-only fix; the final99checks rebuilt the latest module.
+Independent reviewer found malformed query records could masquerade as healthy
+status rows: reproduced RED, fixed with shared validation of each actual row,
+rechecked clear. Other RED/GREEN fixes cover strict schema/client bounds,
+post-write revocation and changed invitation limits. Evidence:
+eval/evidence/cap06-remote-invitations-20261021.json.
+
+Next: remote lifecycle generation/work-lease/stop arbitration and safely fenced
+host commands, then Lambda/OAC and async host integration. Earlier wake reads
+must not independently authorize EC2: invitation validity belongs in the same
+atomic wake decision. No resource provisioning, DNS, paid inference, quota reset,
+provider switch, upgrade or public exposure. Bedrock zero-quota blocker, disabled
+diagnostic allowances and remaining CAP-04/05/06/07 gates stay open.
+
 ## CAP-06 public HTTPS configuration prepared — 2026-10-21
 
 Owner said continue with local deployment preparation while Bedrock is blocked.

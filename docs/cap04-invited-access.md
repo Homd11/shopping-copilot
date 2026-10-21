@@ -1,5 +1,49 @@
 # Invited demo access: CAP-04 local ticket 04
 
+## CAP-06 remote invitation component — 21 October 2026
+
+`agent/admission/dynamodb.py` now implements the invitation-store contract against
+an injected low-level DynamoDB client. This is the first remote control component;
+the active admission factory and existing SQLite configuration remain unchanged.
+No AWS table, IAM role, deployed service or new public endpoint has been created.
+
+The candidate table has string `pk`/`sk` keys and an explicitly initialized
+namespace identity. Separate metadata, invitation, code-hash index and subject-hash
+grant records retain absolute windows, revocation and cumulative usage. Strong
+base-table reads and conditioned transactions keep final-slot consumption and
+grant binding atomic. Initialization refuses nonempty namespaces, including
+orphaned rows with missing metadata. No TTL/deletion/restore resets authority.
+
+Same active grant redemption consumes no additional slots. Replacing an expired
+or revoked grant preserves its old usage. Wake validation creates neither a grant
+nor a session; the later lifecycle adapter must revalidate it in the atomic wake
+decision. There is no remote EC2 command adapter or active cloud integration yet.
+
+The injected client must use Stockholm's standard HTTPS endpoint, connect/read
+limits of at most5/15seconds and total_max_attempts=1. Unknown write outcomes
+refuse access without replay or refund. Fresh post-write validation can deny an
+expired/revoked invitation while retaining already committed counters. A fresh
+transaction token is bounded AWS idempotency, not an indefinite operation ledger.
+Status validates the queried rows and exposes only the existing safe fields.
+
+Optional offline tests use Moto5.2.4 with dummy credentials, not an AWS account:
+
+```text
+python -m pip install -r eval/requirements-cloud.txt
+python -m pytest agent/tests/test_admission_dynamodb.py -q
+```
+
+The extra is separately pinned and excluded from release runtime requirements.
+Moto does not qualify AWS transaction conflicts, IAM, durability, costs or latency;
+failure/timeout paths also use explicit injection. Before activation, complete
+remote lifecycle arbitration and fenced host commands, async host integration,
+scope IAM, actual table initialization, clock/cost checks and deployed acceptance.
+No new environment variable or CLI command selects this backend yet.
+[Design](superpowers/specs/2026-10-21-cap06-remote-invitations.md),
+[primary API evidence](research/2026-10-21-cap06-dynamodb-invitation-contract.md).
+
+## Existing local implementation
+
 Implementation and verification need no real testers. The owner issues their codes
 later. Storefront browsing stays public while running; using the Copilot requires
 a valid code when admission is configured.
