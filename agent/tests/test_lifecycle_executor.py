@@ -235,3 +235,13 @@ def test_executor_refreshes_client_policy_after_authority_io(world, ec2, monkeyp
     with pytest.raises(LifecycleUnavailable):
         EC2CommandExecutor(life, ec2[0], INSTANCE).execute_once()
     assert life.claim_command() is None
+
+
+def test_executor_ignores_ec2_documented_internal_state_high_byte(world, ec2):
+    _, _, _, code, life, _ = world
+    life.wake(code)
+    response = reply()
+    response["StartingInstances"][0]["PreviousState"]["Code"] |= 256
+    response["StartingInstances"][0]["CurrentState"]["Code"] |= 256
+    ec2[1].add_response("start_instances", response, {"InstanceIds": [INSTANCE]})
+    assert EC2CommandExecutor(life, ec2[0], INSTANCE).execute_once() == "acknowledged"

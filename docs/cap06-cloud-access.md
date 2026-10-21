@@ -54,8 +54,9 @@ re-entry; wake authority does not authorize a shopping Action.
 
 ## Remaining deployment work
 
-The actual Lambda handler factories/package, controller readiness observations
-and scheduling, fixed host wiring and async Agent work leases are not activated.
+The [explicit runtime factories and authenticated observer](cap06-controller-runtime.md)
+are now prepared offline. Their bootstrap/package, scheduling, fixed host wiring
+and async Agent work leases are not activated.
 Role attachment, private REST bucket ownership/Block Public Access, HTTPS origin
 settings and timeouts, initialized remote identities, concurrency/error handling,
 edge cost containment, public TLS and Android/desktop acceptance remain required.

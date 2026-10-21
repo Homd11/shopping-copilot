@@ -359,10 +359,24 @@ class DynamoLifecycle:
         row["leases"].pop(token, None)
         self._save(before, row, now)
 
-    def claim_command(self):
+    def claim_command(self, *, operation=None, generation=None):
+        if (
+            operation is not None
+            and (type(operation) is not str or operation not in {"start", "stop"})
+            or generation is not None
+            and (type(generation) is not int or not 1 <= generation <= 2**53 - 1)
+        ):
+            raise LifecycleUnavailable()
         before, row, now = self._snapshot()
+        if generation is not None and row["generation"] != generation:
+            raise LifecycleUnavailable()
         command = row["command"]
-        if command is None or command["status"] != "pending":
+        if (
+            command is None
+            or command["status"] != "pending"
+            or operation is not None
+            and command["operation"] != operation
+        ):
             return None
         conditions = []
         if command["operation"] == "start":

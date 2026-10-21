@@ -1,5 +1,36 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 controller runtime and signed readiness prepared — 2026-10-22
+
+Current frontier: explicit injected startup/controller factories and settings;
+bounded async notification after durable wake; revision-bound designated-instance
+observer; strict generation/operation-filtered command worker. Status can request
+observe only, which never starts; duplicate/stale events preserve command fences.
+Lost queue ack returns503 with retained intent. Existing app/local factories and
+provider stay unchanged; no environment-selected or deployed Lambda handler.
+
+Authenticated fixed HTTPS readiness binds fresh nonce, release fingerprint,
+generation and ready boolean with domain-separated HMAC. Ordinary liveness,
+unsigned/stale/mismatched/oversized replies remain unhealthy. Host reply helper is
+not wired until actual host/Agent readiness/work checks exist. No owner key chosen
+or provisioned. EC2 uint16 codes now use documented low byte consistently.
+
+Fresh review found streaming rechunking could defer deadline1025simulated seconds.
+RED/GREEN regression fixed per raw-chunk checking; reviewer now aborts at two
+chunks/two simulated seconds. Review clear,93independent checks23.09s; final broad
+regressions and fresh release build308passed/no skips94.71s. Repo lint/format
+225Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-controller-runtime-20261022.json. Detailed interfaces/limits:
+docs/cap06-controller-runtime.md and linked design/plan/research.
+
+Next: host readiness and async work integration, Linux Lambda dependency package/
+bootstrap, and approved reliable observation scheduling/cost design. Browser polls
+and future host heartbeats alone are not an outage/idle guarantee; no EventBridge/
+SQS/sleep/self-invoke was adopted. Effective IAM, event/concurrency eligibility,
+resource/cost/rollback approval, Bedrock quota fix and cloud acceptance remain open.
+No AWS/model call, resource/policy/DNS/TLS write, production secret, upgrade or push.
+Free-plan/zero-cash constraints and existing safety invariants persist.
+
 ## CAP-06 cloud access and viewer signing prepared — 2026-10-22
 
 Current frontier: deploy/cloud_access.py pure validated bindings-to-JSON renderer

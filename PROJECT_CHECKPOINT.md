@@ -2,6 +2,44 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 runtime factories and trusted readiness prepared — 2026-10-22
+
+Added explicit injected startup/controller factories, role-bound settings, bounded
+async Event notifier and fixed-instance observer/worker. Accepted wake records its
+intent then queues dispatch; status can queue observe, which may claim only STOP.
+Strict operation/generation filters apply inside the durable claim snapshot.
+Duplicate/stale events cannot replay a claimed command or affect a newer generation.
+Unknown queue acknowledgement retains intent and returns generic503; no app retry.
+
+Fresh HMAC readiness binds random nonce, expected release.json SHA-256, generation
+and strict ready bit. Fixed verified HTTPS, no proxy/redirect, bounded streaming;
+ordinary /health liveness and invalid/stale proofs never mark ready. Host reply
+helper remains inactive until real service/catalogue/admission/allowance/provider
+readiness and async work integration. No production key generated or supplied.
+EC2 uint16 state validation now ignores documented internal high byte in both
+observer and executor. Captured revision/generation fences external observations.
+
+Independent review reproduced readiness rechunking delaying the deadline through
+1025slow subchunks; RED regression, raw per-chunk checks, GREEN. Reviewer now stops
+at two chunks/two simulated seconds and reports clear with93checks23.09s.
+Final admission/lifecycle/allowance/runtime/access/browser and fresh release build:
+308passed/no skips94.71s. ESLint/Prettier, Ruff check/format225files, pip and
+whitespace pass. Evidence: eval/evidence/cap06-controller-runtime-20261022.json.
+
+No AWS/model call, resource/policy creation, DNS/TLS write, key provisioning,
+environment-selected backend/provider activation or push. Default SDK builder is
+lazy/explicit, fixed Stockholm endpoints with TLS/proxy/retry bounds; tests inject
+Moto, Stubber and HTTPX MockTransport with dummy credentials. Guide:
+docs/cap06-controller-runtime.md; cited AWS async/state research linked there.
+
+Next: real host readiness/async work integration, Linux Lambda package/bootstrap
+and costed approved reliable observation delivery. Browser polling/future host
+heartbeats do not prove outage/idle scheduling; no new service or sleep/self-loop
+was silently added. Concurrency/event configuration/account-effective IAM and
+approved resource/cost/rollback deployment precede cloud acceptance. Bedrock zero
+quotas, Free plan/zero cash and all open gates persist; automatic wake/stop is not
+deployed or accepted.
+
 ## CAP-06 CloudFront/Lambda access and viewer signing prepared — 2026-10-22
 
 Added pure deploy/cloud_access.py: frozen exact-resource bindings render separate
