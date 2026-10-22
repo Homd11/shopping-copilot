@@ -2,6 +2,64 @@
 
 **Last updated:** 2026-10-23
 
+## CAP-06 inactive Storefront/Caddy host bundle prepared — 2026-10-23
+
+Prepared explicit `deploy.host_component` store/proxy selection using the existing
+protected HostSettings and exact executing release. Storefront uses fixed Node24
+
+> =24.13.0 and only production origins/secret/catalogue/lexical configuration;
+> proxy uses fixed Caddy2.11.7 and the verified public profile/Panel root plus
+> retained `/var/lib/shopping-copilot/caddy`. Both use clean child environments,
+> bounded fixed version checks and execve, without a shell, SDK construction,
+> provider call, parent environment mutation or arbitrary command/profile override.
+> Catalogue is checked read-only; proxy storage must already have protected
+> nonsymlink ancestors and current-UID owner-only rwx permissions. No state/key,
+> catalogue, certificate or allowance is initialized, reset or restored by launch.
+
+New packaged `shopping-copilot-host.target` Wants Storefront/Agent/proxy; members
+are PartOf the target with independent bounded failure restarts, store-before-
+Agent-before-proxy order and explicit conflict/order against the legacy unit.
+Legacy runtime unchanged. Only the target is intended for later enablement.
+Type=exec and active target describe process launch, not HTTP/TLS/model readiness;
+signed readiness and the closed provider gate persist. No uncertain Action replay.
+Agent keeps its1GiB ceiling, new native services256MiB/64tasks each; these are
+ceilings, not measured capacity or an allocation. Only Caddy has ambient/bounding
+CAP_NET_BIND_SERVICE and storage-only write access. Actual capability inheritance,
+native binaries, protected provisioning, systemd252/AL2023 operation, signals,
+observability/capacity, public TLS/DNS and all cloud/model acceptance remain open.
+
+Primary-source research and fresh builder check completed. RED missing module/
+units then27passed5.91s; component/real packaged production Storefront twice and
+real-Caddy adaptation31passed22.95s/no skips. Storefront test routes remained404,
+private reads required the fixture secret, catalogue history unchanged; Windows
+harness selects installed Node/adds SYSTEMROOT, not POSIX exec acceptance.
+Ubuntu systemd255 static verification accepted five units with inert disposable
+root stubs; no service started. Eleven actual Linux private-file/storage primitive
+checks passed, including symlink/FIFO/hardlink/permissions/ancestor refusal. Exact
+AST-extracted functions only, not full HostSettings/real-host acceptance.
+
+Fresh review independently78passed/1deselected24.35s. Its quoted-path robustness
+finding was treated as important to the fixed-profile handoff: normalize Panel
+path separators and refuse quotes/remaining backslashes/control/DEL before exec,
+ordinary spaces supported. Seven character cases plus command integration watched
+RED then GREEN;35component unit cases passed6.95s. No deferred minors. Initial
+full suite1099passed340.33s; final post-fix results are recorded in
+`eval/evidence/cap06-host-services-20261023.json` alongside source hashes, Linux
+limits, review and checks. Guide:`docs/cap06-host-services.md`.
+Final post-fix all-Agent/host/control/package/proxy/fresh-release/browser suite:
+1107passed/no skips345.65s, two upstream websockets deprecation warnings. Ruff
+check/format251files, pip, TS lint, changed Markdown/JSON Prettier and whitespace
+pass. Quoted-path fix is verified by primary RED/GREEN and final broad tests;
+reviewer independently ran78focused cases before that fix, not the final suite.
+
+Next: full protected Linux host configuration/executable acceptance and reconcile
+the conditional observation inventory/cost/credit proposal. Separate exact
+resource/cost/rollback apply approval, effective IAM/OAC/event/account eligibility,
+Bedrock quota/qualification, deployment and cloud acceptance remain required.
+No AWS/model/credential/resource/key/DNS/TLS call/write, public ACME run/validate,
+unit installation/activation, upgrade, extra spend or push. Free-plan/Stockholm/
+zero-cash and all open gates persist.
+
 ## CAP-06 Linux artifacts and explicit host launcher prepared — 2026-10-23
 
 Both unchanged22October role ZIPs passed external-digest verification, isolated

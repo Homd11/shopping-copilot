@@ -35,7 +35,9 @@ resource bounds, bounded restart rate and 20 second shutdown limit. Both standar
 streams are discarded, matching the existing unit; durable redacted host
 observability and actual shutdown timing still require deployment acceptance.
 
-This unit does not supervise the Storefront or Caddy. Full host orchestration,
+23 October continuation: [a separate inactive service bundle](cap06-host-services.md)
+now includes Storefront/Caddy launchers and connects the Agent to a host target.
+The Agent unit alone does not supervise the Storefront or Caddy. Real host orchestration,
 real POSIX permissions, service/key provisioning, instance-role access, public
 HTTPS, provider qualification, Scheduler/inventory/cost reconciliation and cloud
 acceptance remain open. Preparing this entry point does not waive any gate or

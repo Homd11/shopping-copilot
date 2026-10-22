@@ -1,5 +1,26 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 inactive host service bundle prepared — 2026-10-23
+
+Newest status is in PROJECT_CHECKPOINT.md. Explicit deploy.host_component prepares
+protected Storefront/Caddy exec using exact verified release and clean child
+environments; version checks fixed Node24>=24.13.0/Caddy2.11.7. New host target
+Wants store/Agent/proxy; member PartOf, explicit legacy conflict ordering,
+independent bounded restarts. Only Caddy has bind capability and retained-storage
+write access. Nothing installed/enabled/provisioned; default model gate closed.
+No process-launch/target-active state is treated as signed readiness.
+
+Final regression1107passed/no skips345.65s; independent review78focused passes
+before primary's RED/GREEN Caddy path-interpolation fix; no deferred findings.
+Static systemd255/inert root and11actual Linux filesystem primitive checks pass,
+not real AL2023/systemd252/host config/key/capability/TLS/cloud acceptance.
+Evidence:eval/evidence/cap06-host-services-20261023.json;
+guide:docs/cap06-host-services.md. Next: full protected Linux host configuration/
+executable acceptance and observation inventory/cost reconciliation. Exact apply
+approval, Bedrock quotas/qualification and all deployed acceptance remain open.
+No AWS/model/credential/DNS/TLS resource/write/spend/upgrade/push; Stockholm/Free/
+zero-cash invariants persist. Keep work in the existing isolated worktree.
+
 ## CAP-06 inactive external observations prepared — 2026-10-22
 
 Current frontier includes a concrete conditional new-service/cost proposal:

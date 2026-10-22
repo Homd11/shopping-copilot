@@ -53,6 +53,10 @@ def test_built_release_is_self_contained_and_refuses_overwrite(built_release):
     assert (release / "deploy/host_config.py").is_file()
     assert (release / "deploy/host_bootstrap.py").is_file()
     assert (release / "deploy/host_agent.py").is_file()
+    assert (release / "deploy/host_component.py").is_file()
+    for name in ("store.service", "proxy.service", "host.target"):
+        relative = "deploy/shopping-copilot-" + name
+        assert (release / relative).read_bytes() == (ROOT / relative).read_bytes()
     assert (release / "deploy/shopping-copilot-agent.service").read_bytes() == (
         ROOT / "deploy/shopping-copilot-agent.service"
     ).read_bytes()

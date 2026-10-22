@@ -1,12 +1,13 @@
 [Unit]
 Description=Shopping Copilot external-authority Agent
-After=network.target
+After=network.target shopping-copilot.service shopping-copilot-store.service
 Conflicts=shopping-copilot.service
+PartOf=shopping-copilot-host.target
 StartLimitIntervalSec=300
 StartLimitBurst=3
 
 [Service]
-Type=simple
+Type=exec
 User=copilot
 Group=copilot
 WorkingDirectory=/opt/shopping-copilot/current
@@ -22,12 +23,10 @@ ProtectSystem=strict
 ProtectHome=yes
 ReadOnlyPaths=/opt/shopping-copilot /etc/shopping-copilot
 ReadWritePaths=/var/lib/shopping-copilot /var/log/shopping-copilot
+CapabilityBoundingSet=
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 LimitNOFILE=4096
 TasksMax=64
 MemoryMax=1G
 StandardOutput=null
 StandardError=null
-
-[Install]
-WantedBy=multi-user.target

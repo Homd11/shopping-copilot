@@ -1,5 +1,10 @@
 # Local production-style HTTPS routing
 
+23 October continuation: [the inactive host service bundle](../docs/cap06-host-services.md)
+now prepares separate Storefront/Agent/proxy units and one target around the
+public profile. No unit is installed/enabled or public HTTPS activated. The
+historical preparation description below predates those separate launchers.
+
 ## CAP-06 public HTTPS profile: prepared locally
 
 `deploy/Caddyfile.public` is the separate public-ACME candidate for the approved
