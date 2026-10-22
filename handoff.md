@@ -1,5 +1,35 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 reproducible Lambda ZIPs prepared — 2026-10-22
+
+Current frontier: agent/lifecycle/lambda_entry.py fixed-role lazy handler and
+deploy/lambda_package.py offline builder/verifier. Complete14 pure-wheel exact
+hash lock, metadata/RECORD/closure/path/link/collision/size validation, explicit
+source allowlist, deterministic ZIP_STORED/timestamps/POSIX modes and external
+digest trust. Only JMESPath's verified unused jp.py CLI is explicitly omitted;
+SDK data/CA/licences retained. Runtime bounded exact JSON plus separate controller
+key validates before SDK construction; no import clients, cross-role switch,
+automatic failed initialization retry or uncertain Action replay.
+
+Both actual role ZIPs reproduced byte-identically and independently reviewed,
+external digest verified; Windows Python3.12.5 isolated -I -S -B imports/fixed-role
+delegation/versions/service data/CA pass with SDK/network forbidden. Startup
+25,886,261bytes SHA256 88c5f11d3e6770091146a196c4a3a58ece4774ce6a08b4c4a29b57dd25f65661;
+controller25,886,267bytes e208482f62b7a3158766fe59d63be86c47b6e2cb21a9aa2a560b70c6f4248ad0.
+Final1000passed/no skips161.48s includes all Agent, affected host/access/browser
+checks and fresh general release build. Focused64passed3.76s; reviewer64in5.05s,
+no findings. Ruff244files/pip/ESLint/Prettier/whitespace pass. Evidence:
+eval/evidence/cap06-lambda-package-20261022.json; docs/cap06-lambda-package.md.
+
+Next: approved reliable external observation delivery and deployment integration.
+Do not silently add EventBridge/SQS or Lambda sleeps/self-invocation. Actual AL2023
+artifact/architecture execution, key/config provisioning, launcher selection/real
+POSIX enforcement, effective IAM/OAC/event/account eligibility and final costed
+resource/rollback approval remain. No AWS/model/resource/key/DNS/TLS write/call,
+upload, activation, upgrade, gate waiver, extra spend or push. Public PyPI acquisition
+only plus offline target/hash check. Bedrock zero quotas and Free-plan/Stockholm/
+zero-cash persist; Windows packaging proof does not close deployed acceptance.
+
 ## CAP-06 restricted host startup API prepared — 2026-10-22
 
 Current frontier: deploy/host_config.py strict bounded immutable settings and

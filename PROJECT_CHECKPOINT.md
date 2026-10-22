@@ -2,6 +2,44 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 reproducible Lambda ZIPs prepared — 2026-10-22
+
+Added fixed-role lazy Lambda entries and an offline narrow wheel/ZIP builder.
+Exactly14 pure Python dependencies are pinned by version/filename/SHA256 with a
+matching pip hash lock. Builder verifies metadata/tags/Python3.12 compatibility,
+no-extra Linux dependency closure, all RECORD hashes/sizes, paths/links/collisions
+and size limits. Only explicit control modules and waiting.html enter the ZIP;
+no credentials/config/keys/local state/dev/native/bytecode files. JMESPath's one
+unused standalone CLI is verified then explicitly omitted and recorded. SDK data,
+CA certificates, licences and metadata remain. Fixed timestamps/sorted members/
+POSIX modes/ZIP_STORED produce byte-identical rebuilds. External retained ZIP
+digest is required for verification; manifest hashes alone are not authenticity.
+
+Generated handler.handler pins startup/controller role. Bounded exact version1
+runtime JSON and separate canonical controller key validate before SDK creation;
+import creates no clients. First-invocation initialization is cached or latched
+unavailable after failure; events cannot switch roles, invocation failure never
+reconstructs/replays runtime. Generic errors disclose no configuration/key.
+
+Both actual packages independently rebuilt/verified by primary and fresh reviewer,
+then passed Windows Python3.12.5 -I -S -B imports/delegation with SDK/network
+forbidden, dependency provenance/versions and service models/CA checked. Startup
+25,886,261bytes SHA256 88c5f11d3e6770091146a196c4a3a58ece4774ce6a08b4c4a29b57dd25f65661;
+controller25,886,267bytes e208482f62b7a3158766fe59d63be86c47b6e2cb21a9aa2a560b70c6f4248ad0.
+Fresh review clear; focused64passed3.76s (independent64passed5.05s); final all-Agent/
+package/host/access/browser/fresh release build1000passed/no skips161.48s. Ruff
+check/format244files, pip, ESLint, Prettier and whitespace pass. Evidence:
+eval/evidence/cap06-lambda-package-20261022.json; guide:docs/cap06-lambda-package.md.
+
+Next: reliable approved external observation delivery and deployment integration.
+Exact artifact AL2023/architecture execution, runtime configuration/key provisioning,
+host launcher selection/POSIX acceptance, effective IAM/OAC/event/account eligibility
+and final resource/cost/rollback approval remain required. Windows proof is not
+Linux execution or deployed acceptance. No AWS/model/credential/resource/key/DNS/
+TLS call/write, upload, activation, upgrade, scheduler/topology/spend increase or
+push. Public PyPI wheel acquisition only, followed by offline target/hash validation.
+Bedrock zero quotas, Free-plan/Stockholm/zero-cash and all open gates persist.
+
 ## CAP-06 restricted host startup API prepared — 2026-10-22
 
 Added deploy/host_config.py strict bounded version1 JSON, immutable validated
