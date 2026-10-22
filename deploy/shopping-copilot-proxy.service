@@ -1,0 +1,33 @@
+[Unit]
+Description=Shopping Copilot public HTTPS proxy
+After=network.target shopping-copilot.service shopping-copilot-store.service shopping-copilot-agent.service
+Conflicts=shopping-copilot.service
+PartOf=shopping-copilot-host.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=exec
+User=copilot
+Group=copilot
+WorkingDirectory=/opt/shopping-copilot/current
+ExecStart=/opt/shopping-copilot/python/bin/python -B -m deploy.host_component --config /etc/shopping-copilot/host.json --component proxy
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=20
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadOnlyPaths=/opt/shopping-copilot /etc/shopping-copilot
+ReadWritePaths=/var/lib/shopping-copilot/caddy
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LimitNOFILE=4096
+TasksMax=64
+MemoryMax=256M
+StandardOutput=null
+StandardError=null

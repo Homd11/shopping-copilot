@@ -162,6 +162,9 @@ def build(source, output, *, local=False):
             "deploy/Caddyfile.public",
             "deploy/shopping-copilot.service",
             "deploy/shopping-copilot-agent.service",
+            "deploy/shopping-copilot-store.service",
+            "deploy/shopping-copilot-proxy.service",
+            "deploy/shopping-copilot-host.target",
             "agent/lifecycle/waiting.html",
         ):
             shutil.copyfile(source / name, release / name)
