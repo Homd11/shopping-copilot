@@ -1,5 +1,9 @@
 # CAP-06 explicit host startup API
 
+23October continuation: an explicit inactive CLI and separate Agent-only unit are
+now prepared; see [host launcher](cap06-host-launcher.md). The22October description
+below records the factory's original preparation. No service has been activated.
+
 22 October 2026. Restricted settings and owned host-resource assembly are prepared
 and tested locally. No host service, environment selector, systemd command, cloud
 backend or qualified provider was activated. This is not deployment acceptance.

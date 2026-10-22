@@ -141,6 +141,19 @@ def create_host_app(
     else:
         raise ValueError("Host startup refused")
     sdk, admission, service, work, checks, readiness = None, None, None, None, None, None
+
+    async def cleanup():
+        for resource in (readiness, checks, work, admission):
+            if resource is not None:
+                with suppress(Exception):
+                    await resource.close()
+        if admission is None and sdk is not None:
+            with suppress(Exception):
+                await asyncio.to_thread(sdk.close)
+        if service is not None:
+            with suppress(Exception):
+                await service.aclose()
+
     try:
         if type(settings) is not HostSettings or not iscoroutinefunction(provider_ready):
             raise ValueError()
@@ -177,7 +190,7 @@ def create_host_app(
             readiness = _OwnedReadiness(work, settings, checks, provider.ready)
             return readiness
 
-        return create_app(
+        app = create_app(
             environment=values,
             llm_client=model_client,
             admission=admission,
@@ -190,20 +203,10 @@ def create_host_app(
             ),
             catalogue_retrieval_enabled=True,
         )
+        app.state.host_cleanup = cleanup
+        return app
     except Exception:
         pass
-
-    async def cleanup():
-        for resource in (readiness, checks, work, admission):
-            if resource is not None:
-                with suppress(Exception):
-                    await resource.close()
-        if admission is None and sdk is not None:
-            with suppress(Exception):
-                await asyncio.to_thread(sdk.close)
-        if service is not None:
-            with suppress(Exception):
-                await service.aclose()
 
     asyncio.run(cleanup())
     raise ValueError("Host startup refused")

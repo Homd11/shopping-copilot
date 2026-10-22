@@ -1,6 +1,60 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-22
+**Last updated:** 2026-10-23
+
+## CAP-06 Linux artifacts and explicit host launcher prepared — 2026-10-23
+
+Both unchanged22October role ZIPs passed external-digest verification, isolated
+Python3.12 imports and injected fixed-role delegation on Ubuntu24.04.3/Python3.12.3
+and official AWS Lambda Amazon Linux2023/linux-amd64/Python3.12.15. Image pinned:
+`public.ecr.aws/lambda/python@sha256:25aee9bac65f131c5d090d3e3a36ccf232d65cf3e6c1dbd0bffd43ca7ce34406`.
+No network or SDK construction; no host credential/checkout mount; read-only root,
+capabilities removed, no-new-privileges, one CPU/256MiB/64processes/128MiB tmpfs.
+Probe verifies dependency provenance/versions/models/CA and generic fixed-role
+failure/delegation. This closes the exact-artifact AL2023 import execution check,
+not RIE invocation, actual Lambda, IAM/OAC/event/account or integration acceptance.
+Exact ZIP hashes remain those in the22October observation section; no rebuild.
+
+Docker's stale inaccessible runtime dockerInference endpoint initially blocked
+startup. With Desktop stopped, runtime directory only was preserved as
+`C:/Users/pc/AppData/Local/Docker/run.stale-20261023-01`; regenerated runtime and
+Linux API recovered without reset/data purge. Owner subsequently updated Docker;
+fresh checks report Desktop4.96.3/Engine29.9.2/API1.56 and successful Linux runs.
+
+Prepared `python -B -m deploy.host_agent --config ABSOLUTE_PATH`: default protected
+POSIX settings and exact-release app construction happen before the event loop.
+Uvicorn receives the prebuilt app, one process/127.0.0.1:8000/lifespan on, no
+reload/proxy headers/access log/server header or provider qualification switch.
+Factory exposes owned async cleanup, awaited on the same server loop in finally
+even if configuration/server construction or binding fails before lifespan.
+Normal/cancelled lifespan plus final cleanup closes SDK once after draining work.
+CLI failure is fixed/redacted and Uvicorn's own traceback loggers are silenced.
+The default provider gate remains false; signed health cannot claim readiness or
+allow model work. No environment backend selection or uncertain Action replay.
+
+New separately prepared hardened `shopping-copilot-agent.service` conflicts with
+the legacy combined unit; legacy runtime unchanged. Both are packaged in fresh
+immutable releases; neither new unit installation nor activation occurred. It
+supervises Agent only. Full Storefront/Caddy supervision and real target-host
+POSIX/key/config/systemd/signal/shutdown acceptance remain open.
+
+TDD missing-module/unit RED then20passed6.01s. Final host tests84passed27.17s,
+including actual Uvicorn lifespan/bind failures without opening sockets, closed
+qualification/no model call or ledger change, loop refusal and SDK close-once.
+Broader all-Agent/host/control/package/access/waiting/fresh-release/browser suite
+1066passed/no skips297.79s; it collected before the two additional actual-Uvicorn
+cases, both included in final84host checks. Ruff check/format249files, pip check,
+TypeScript lint, changed Markdown/JSON Prettier and whitespace pass. Fresh final
+review clear; independent84host tests23.91s. Two upstream websockets deprecation
+warnings in real-Uvicorn host checks, no failures. Evidence:
+`eval/evidence/cap06-host-launcher-20261023.json`; guide:`docs/cap06-host-launcher.md`.
+
+Next: complete inactive Storefront/Caddy host orchestration and protected Linux
+host configuration acceptance, then reconcile observation inventory/cost/credit
+proposal. Final resource/cost/rollback approval, effective IAM/OAC/event/account
+access, Bedrock quotas/qualification, deployment and cloud acceptance remain open.
+No real AWS/model/credential/resource/key/DNS/TLS call/write, upgrade, activation,
+extra spend or push. Free-plan/Stockholm/zero-cash and all open gates persist.
 
 ## CAP-06 inactive external observations prepared — 2026-10-22
 
