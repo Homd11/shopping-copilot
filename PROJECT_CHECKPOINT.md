@@ -2,6 +2,39 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 concrete host readiness checks prepared — 2026-10-22
+
+Added deploy/host_checks.py: concrete pinned release integrity, authenticated fixed
+private catalogue/revision, remote admission metadata and funded durable allowance
+checks for the existing signed-health hook. Release/SQLite work is off-loop with
+two workers/eight retained calls. Private HTTP has no proxy/redirect/retry/cache,
+identity encoding,32768raw-byte cap, duplicate-JSON refusal and1sasync timeout;
+local catalogue revision/content is rechecked after I/O. Authority/service/guard
+bindings are pinned and revalidated. No grant/session/activity write, allowance
+reset/enable/reservation/refund or unknown-charge release. Allowance observation
+requires maximum supported guarded request headroom; real requests still arbitrate.
+
+Provider verifier remains explicit: unqualified_provider returnsFalse for today's
+blocked Bedrock candidate. Four successful checks cannot sign ready with this
+binding. No new qualification artifact/pass format, fallback or gate waiver.
+Actual restricted configuration/key loading, startup and lifetime wiring remain
+pending; caller drains health, checks, then work/admission/service. This tests the
+authenticated catalogue service, not all shopper journeys or process supervision.
+
+RED/GREEN metadata seam and concrete checks; valid cloned admission-store rebinding
+reproduced/refused. Fresh review clear:32concrete/boundary and19existing host checks
+passed independently. Final all-Agent/concrete/access/browser/fresh artifact build
+894passed/no skips139.37s; focused32passed11.09s. ESLint/Prettier, Ruff check/format
+234files, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-checks-20261022.json; guide:docs/cap06-host-checks.md.
+
+No AWS/model/credential/resource/key/DNS/TLS call or write, backend activation,
+upgrade, scheduler/topology change, spend increase or push. Next: restricted
+host bootstrap and Linux Lambda package; costed approved reliable observation
+delivery, effective IAM/OAC/event eligibility and final resource/cost/rollback
+approval precede deployed acceptance. Bedrock zero quotas, Free plan/Stockholm/
+zero cash and all open gates persist. Local fixtures do not establish qualification.
+
 ## CAP-06 async host authority and signed health integrated — 2026-10-22
 
 Explicit Agent factories now support async remote admission/work and signed host

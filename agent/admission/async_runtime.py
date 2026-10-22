@@ -26,6 +26,12 @@ class AsyncAdmissionPolicy(AdmissionPolicy):
         except AdmissionDenied:
             return False
 
+    async def ready(self):
+        try:
+            return await self._call("check") is None
+        except AdmissionDenied:
+            return False
+
     async def redeem(self, record, code):
         subject = self.subject(record)
         await self._call("redeem", code, subject)

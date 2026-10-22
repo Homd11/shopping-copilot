@@ -64,8 +64,10 @@ live; health never extends it. Cancelled remote I/O still occupies its retained
 bounded slot until the actual SDK operation completes.
 
 Callbacks are a trusted bootstrap interface, not evidence of actual readiness.
-Deployment must wire verified release bytes, healthy services/catalogue, durable
-admission, enabled funded inference allowance and an actually qualified provider.
+The [concrete checks](cap06-host-checks.md) now cover verified release bytes,
+authenticated catalogue service, durable admission and funded allowance. Deployment
+must wire these resources and an actually qualified provider with restricted
+configuration and correct cleanup ownership.
 Checks must avoid recursively calling the Agent aggregate. Local success cannot
 override Bedrock's zero applied quotas or fabricate qualification. No production
 key was generated or selected.

@@ -100,6 +100,11 @@ class DynamoInvitationStore:
     def _key(self, sk):
         return _encode({"pk": self.namespace, "sk": sk})
 
+    def check(self):
+        """Read bound metadata only; never allocates access or allowance."""
+        self._configuration(self.client, self.table, self.namespace)
+        self._metadata()
+
     def _read(self, sk):
         try:
             response = self.client.get_item(

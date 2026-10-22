@@ -1,5 +1,35 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 concrete readiness observations prepared — 2026-10-22
+
+Current frontier: deploy/host_checks.py supplies pinned full release integrity,
+authenticated fixed private catalogue with pre/post SQLite revision/content,
+remote metadata-only admission and enabled allowance with maximum supported
+guarded-request headroom. File/SQLite work uses2workers/8retained calls. HTTP is
+fixed loopback, no proxy/redirect/retry/cache, identity encoding,32768raw bytes,
+duplicate-field rejection and1sasync timeout. Existing HostReadiness bounds response
+and retains cleanup. Authority/service/guard bindings refuse silent rebinding.
+No grant/session/activity or allowance mutation; held uncertainty stays charged.
+
+checks(provider) requires an explicit async verifier. Current unqualified_provider
+returnsFalse: no real Bedrock qualification or pass-artifact format was invented.
+Four concrete successes still sign false with the blocked provider. No runtime
+selector/host CLI or actual bootstrap was activated. Close order remains owner
+responsibility: health, checks, work/admission/service. Module is in fresh artifact.
+
+Fresh review clear, independently32concrete/boundary+19host checks. Final all-Agent/
+concrete/access/browser/fresh release build894passed/no skips139.37s; focused32in
+11.09s. Repo lint/format234Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-checks-20261022.json; guide:docs/cap06-host-checks.md.
+
+Next: restricted configuration/key loading and host bootstrap/lifetime wiring,
+Linux Lambda dependencies, approved reliable external observation delivery, then
+effective IAM/OAC/event eligibility/resource/cost/rollback approval and cloud
+acceptance. No AWS/model/resource/key/DNS/TLS change, backend activation, upgrade,
+new scheduler/topology, allowance increase or push. Bedrock zero quotas and all
+Free-plan/Stockholm/zero-cash constraints remain. Catalogue health alone does not
+verify all shopper journeys or process supervision; local evidence is not deployment.
+
 ## CAP-06 async host boundaries integrated locally — 2026-10-22
 
 Current frontier: explicit create_app lifecycle_work_factory/readiness_factory
