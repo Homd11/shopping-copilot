@@ -2,19 +2,80 @@
 
 **Last updated:** 2026-10-23
 
+## CAP-06 full offline Linux host rehearsal and cost reconciliation — 2026-10-23
+
+Full original HostSettings/default POSIX reader and protected native Storefront
+launcher passed in retained official Lambda AL2023.12/Python3.12.15/glibc2.34
+linux-amd64 image, digest `25aee9bac65f131c5d090d3e3a36ccf232d65cf3e6c1dbd0bffd43ca7ce34406`.
+Network none/read-only root/non-root10001/no capabilities/no-new-privileges;
+1CPU/1GiB/no additional swap/64pids, bounded tmpfs and240second outer timeout.
+Only verified test inputs/binaries mounted read-only; no credentials/home/socket.
+29 pinned diagnostic wheels including Linux uvloop0.22.1 and packaging26.3;
+actual Linux extras dependency closure and six native extensions verified.
+Production Python locks and runtime unchanged. Native Node24.13.0/Caddy2.11.7
+acquired from public vendor archives with digest evidence, no system install.
+
+New eval/linux_host_fixture.py derives a bounded portable test archive from the
+verified production build at b2f0290 (manifest truthfully source_dirty=true for
+untracked preparation). Initial flattened links broke native Node dependency
+resolution; link-topology regression watched RED/GREEN. Preserve193 verified
+internal pnpm links as relative Linux links,742 regular files/3361794bytes;
+not byte-identical Windows artifact or an adopted installation artifact. Original
+manifest and derived digests remain in eval/evidence/cap06-linux-host-20261023.json.
+
+Thirteen full configuration refusals passed. Native Storefront exec/restart twice
+preserved catalogue history and disabled synthetic allowance/uncertain reservation;
+test endpoint404 and private catalogue auth enforced. Actual Agent module import
+and active-loop refusal only, no SDK/app construction/readiness. Caddy version/
+adaptation passed; proxy run handoff captured before exec, never public run or
+validate/ACME. Real EC2/PID1 systemd252, service UID/protected provisioning,
+production Linux lock, capabilities/signals/capacity, TLS/DNS, IAM/OAC/events,
+account access and model/cloud acceptance remain open. This advances the offline
+Linux seams only. Guide:docs/cap06-linux-host-rehearsal.md.
+
+Focused fixture/host/config/bootstrap/check/release/browser regression138passed,
+no skips221.04s; two upstream websockets deprecation warnings. Ruff check/format
+254files and pip check pass. Full release compiled with existing builder and
+the final offline native rehearsal passed; no blanket unrelated model rerun.
+Changed Markdown/JSON formatting and whitespace pass. Default ESLint encountered
+compiled JS in the ignored new rehearsal tree; excluding only that generated tree
+passes all source lint. Exact command/initial failure recorded in evidence.
+Fresh read-only review clear, independently verified every retained digest,
+packaged Python parity and Decimal row. Independent Windows run87passed plus
+11setup errors from one Node catalogue-seed exit3221226505; isolated11bootstrap
+rerun passed7.33s without changes/reset. Unexplained transient retained in evidence,
+not erased or identified as a change regression. No deferred review findings.
+
+Current public-rate inventory review and primary Decimal recomputation replace
+the old55.50+23 arithmetic as evidence of budget fit: explicit continuous60day
+example68.360270 infrastructure /79.390270 including the unapproved11future-model
+planning allocation and separate existing0.03diagnostic hold. 120EC2hours gives
+50.878270 combined; non-tick Lambda30s instead of2s gives102.723650 combined.
+Two functions/edge traffic and shared table/log allowances now explicit. These
+are unmeasured scenarios, not caps, account balance/credit eligibility or proof
+USD80 fits. Scheduler/group/role/metric/two alarms remain conditional unadopted;
+selected inventory and diagnostic/model authorizations unchanged. Sources/assumptions:
+docs/research/2026-10-23-cap06-inventory-reconciliation.md.
+
+Next: finish the exact inactive apply inventory/resource bindings and rollback/
+cost proposal, including production Linux dependency/provisioning choice and
+remaining workload/account evidence. Exact apply approval, Bedrock quota and
+qualification and all existing acceptance gates remain required. No AWS/account/
+credential/model/resource/production-key/DNS/TLS call/write, unit installation/activation,
+upgrade, extra spend or push. Stockholm/Free/USD0cash and all safety fences persist.
+
 ## CAP-06 inactive Storefront/Caddy host bundle prepared — 2026-10-23
 
 Prepared explicit `deploy.host_component` store/proxy selection using the existing
-protected HostSettings and exact executing release. Storefront uses fixed Node24
-
-> =24.13.0 and only production origins/secret/catalogue/lexical configuration;
-> proxy uses fixed Caddy2.11.7 and the verified public profile/Panel root plus
-> retained `/var/lib/shopping-copilot/caddy`. Both use clean child environments,
-> bounded fixed version checks and execve, without a shell, SDK construction,
-> provider call, parent environment mutation or arbitrary command/profile override.
-> Catalogue is checked read-only; proxy storage must already have protected
-> nonsymlink ancestors and current-UID owner-only rwx permissions. No state/key,
-> catalogue, certificate or allowance is initialized, reset or restored by launch.
+protected HostSettings and exact executing release. Storefront uses fixed Node24,
+minimum24.13.0 and only production origins/secret/catalogue/lexical configuration;
+proxy uses fixed Caddy2.11.7 and the verified public profile/Panel root plus
+retained `/var/lib/shopping-copilot/caddy`. Both use clean child environments,
+bounded fixed version checks and execve, without a shell, SDK construction,
+provider call, parent environment mutation or arbitrary command/profile override.
+Catalogue is checked read-only; proxy storage must already have protected
+nonsymlink ancestors and current-UID owner-only rwx permissions. No state/key,
+catalogue, certificate or allowance is initialized, reset or restored by launch.
 
 New packaged `shopping-copilot-host.target` Wants Storefront/Agent/proxy; members
 are PartOf the target with independent bounded failure restarts, store-before-

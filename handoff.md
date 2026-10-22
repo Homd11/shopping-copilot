@@ -1,5 +1,40 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 full offline Linux host checks and inventory review — 2026-10-23
+
+Newest status/evidence: PROJECT_CHECKPOINT.md and
+eval/evidence/cap06-linux-host-20261023.json. Full default POSIX HostSettings,
+13 config refusals,29 diagnostic Linux wheels/six native imports, actual native
+Node24.13.0 Storefront exec/restart/persistence/auth boundaries pass in offline
+AL2023/Python3.12.15/glibc2.34 non-root bounded container. Production runtime/locks
+unchanged. Portable derived artifact preserves verified internal pnpm links;
+flattening failed and was corrected with RED/GREEN topology test. This is not
+exact Windows-artifact or approved cloud-installation acceptance. Agent checks
+stop at active-loop refusal; no SDK/app construction/readiness. Caddy2.11.7
+version/adapt and captured run handoff only, never public run/validate/ACME.
+Guide:docs/cap06-linux-host-rehearsal.md; source/vendor/wheel/container digests
+in evidence/manifest. No unit/package installed or activated, no real state used.
+Primary138focused tests pass221.04s/no skips, Ruff254/pip/changed format pass;
+ESLint passes with only generated rehearsal tree excluded. Fresh review clear;
+independent digests/Decimal verified. Independent87pass plus11setup errors from
+one Windows Node seed exit; isolated11bootstrap rerun pass7.33s/no reset or edits.
+Retain the unexplained transient and exact command/results in evidence.
+
+Public inventory review + primary Decimal calculation show old78.50 allocation
+sum does not prove USD80 fit. Continuous60day example68.360270 infrastructure,
+79.390270 combined with unapproved11future-model planning allocation and separate
+existing0.03hold; 120EC2hours50.878270, non-tick30s sensitivity102.723650. Two
+functions and shared logs/table/edge traffic explicit, workload unmeasured,
+current credit/account facts unknown. Conditional Scheduler/monitoring inventory
+still unadopted. docs/research/2026-10-23-cap06-inventory-reconciliation.md.
+
+Next: concrete inactive apply inventory/bindings, production Linux provisioning/
+dependency choice, workload/account/credit and exact resource/cost/rollback
+proposal. Real systemd252/EC2/capabilities/signals/capacity/TLS/IAM/OAC/events,
+Bedrock quota/qualification and deployed acceptance remain open. Preserve all
+Free/Stockholm/USD0cash/safety/uncertain-Action fences. No cloud/model/account/
+credential/resource/DNS/TLS write/call, extra spend, install/activation or push.
+
 ## CAP-06 inactive host service bundle prepared — 2026-10-23
 
 Newest status is in PROJECT_CHECKPOINT.md. Explicit deploy.host_component prepares
