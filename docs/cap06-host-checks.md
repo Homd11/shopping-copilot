@@ -58,8 +58,10 @@ SQLite, Moto authority with dummy credentials, and intercepted HTTP. The synthet
 artifact is not a deployed or qualified production release. A fresh general release
 build includes this module, but Linux Lambda packaging remains separate work.
 
-Actual restricted configuration/key loading and host bootstrap, qualified-provider
-evidence, reliable external observation delivery, effective IAM/OAC/account
+An [explicit restricted host startup API](cap06-host-bootstrap.md) now prepares
+configuration loading and lifetime wiring. Real POSIX permissions/key provisioning
+and selecting that API for deployment, qualified-provider evidence, reliable
+external observation delivery, effective IAM/OAC/account
 eligibility, resource/cost/rollback approval and deployed acceptance remain open.
 Free plan, Stockholm and zero cash persist; no scheduler service was selected.
 

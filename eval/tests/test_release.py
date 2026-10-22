@@ -50,6 +50,8 @@ def test_built_release_is_self_contained_and_refuses_overwrite(built_release):
     assert (release / "agent/lifecycle/lambda_runtime.py").is_file()
     assert (release / "agent/lifecycle/readiness.py").is_file()
     assert (release / "deploy/host_checks.py").is_file()
+    assert (release / "deploy/host_config.py").is_file()
+    assert (release / "deploy/host_bootstrap.py").is_file()
     assert not (release / "eval/requirements-cloud.txt").exists()
     assert "moto" not in (release / "requirements.lock").read_text()
     result = command("verify", "--release", release)

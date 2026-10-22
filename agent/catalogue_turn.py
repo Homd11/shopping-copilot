@@ -25,13 +25,14 @@ def _encoder(cache):
     return CatalogueEncoder(Path(cache))
 
 
-async def configured_client(config):
-    ranking = os.environ.get("CATALOGUE_RANKING", "lexical")
+async def configured_client(config, environment=None):
+    values = os.environ if environment is None else environment
+    ranking = values.get("CATALOGUE_RANKING", "lexical")
     if ranking not in {"lexical", "hybrid"}:
         raise ValueError("Invalid catalogue ranking")
     encoder = None
     if ranking == "hybrid":
-        cache = os.environ.get("CATALOGUE_MODEL_CACHE")
+        cache = values.get("CATALOGUE_MODEL_CACHE")
         if not cache:
             raise ValueError("Hybrid requires a pre-populated local model cache")
         encoder = await asyncio.to_thread(_encoder, cache)

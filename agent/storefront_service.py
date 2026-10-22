@@ -11,29 +11,35 @@ import httpx
 from agent.shopper_access import ShopperBinding
 
 
-def identity_config() -> dict[str, str]:
-    production = os.environ.get("COPILOT_ENV") == "production"
-    if production and len(os.environ.get("COPILOT_SERVICE_SECRET", "")) < 32:
+def identity_config(environment=None) -> dict[str, str]:
+    values = os.environ if environment is None else environment
+    production = values.get("COPILOT_ENV") == "production"
+    if production and len(values.get("COPILOT_SERVICE_SECRET", "")) < 32:
         raise ValueError("Explicit production service secret is required")
     path = Path(__file__).resolve().parents[1] / "work" / "local-identity.json"
-    saved = json.loads(path.read_text(encoding="utf-8")) if not production and path.exists() else {}
+    saved = (
+        json.loads(path.read_text(encoding="utf-8"))
+        if environment is None and not production and path.exists()
+        else {}
+    )
     return {
-        "secret": os.environ.get("COPILOT_SERVICE_SECRET", saved.get("secret", "")),
-        "panel_origin": os.environ.get("COPILOT_PANEL_ORIGIN", "http://localhost:4100"),
-        "store_origin": os.environ.get("COPILOT_STORE_ORIGIN", "http://localhost:4000"),
-        "private_url": os.environ.get("COPILOT_STORE_PRIVATE_URL", "http://127.0.0.1:4000"),
+        "secret": values.get("COPILOT_SERVICE_SECRET", saved.get("secret", "")),
+        "panel_origin": values.get("COPILOT_PANEL_ORIGIN", "http://localhost:4100"),
+        "store_origin": values.get("COPILOT_STORE_ORIGIN", "http://localhost:4000"),
+        "private_url": values.get("COPILOT_STORE_PRIVATE_URL", "http://127.0.0.1:4000"),
     }
 
 
 class StorefrontService:
-    def __init__(self, config: dict[str, str] | None = None):
-        self.config = config or identity_config()
+    def __init__(self, config: dict[str, str] | None = None, *, environment=None):
+        self.config = config or identity_config(environment)
+        self._environment = None if environment is None else dict(environment)
         self.headers = {"x-service-secret": self.config["secret"]}
         self._client: httpx.AsyncClient | None = None
 
     def _connection(self) -> httpx.AsyncClient:
         if self._client is None:
-            self._client = httpx.AsyncClient(timeout=2, follow_redirects=False)
+            self._client = httpx.AsyncClient(timeout=2, follow_redirects=False, trust_env=False)
         return self._client
 
     async def aclose(self) -> None:
@@ -42,6 +48,7 @@ class StorefrontService:
             self._client = None
 
     def validate_configuration(self) -> None:
+        environment = os.environ if self._environment is None else self._environment
         if len(self.config["secret"]) < 32:
             raise ValueError("Run scripts/init_local_identity.py before starting services")
         for name in ("panel_origin", "store_origin", "private_url"):
@@ -68,7 +75,7 @@ class StorefrontService:
                 or (value.scheme == "http" and not local)
                 or (
                     name != "private_url"
-                    and os.environ.get("COPILOT_ENV") == "production"
+                    and environment.get("COPILOT_ENV") == "production"
                     and value.scheme != "https"
                 )
             ):
@@ -138,6 +145,7 @@ class StorefrontService:
                 },
                 timeout=2,
                 follow_redirects=False,
+                trust_env=False,
             )
             return response.status_code == 201
         except (httpx.HTTPError, ValueError):

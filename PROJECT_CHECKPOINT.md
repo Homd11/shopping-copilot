@@ -2,6 +2,44 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 restricted host startup API prepared — 2026-10-22
+
+Added deploy/host_config.py strict bounded version1 JSON, immutable validated
+HostSettings, separate private raw key files, generic errors and no secret repr.
+Default reader is POSIX-only: protected owner/mode/parents, no-follow/nonblocking
+open, one link, stable bounded fstat/read. Windows refuses default loading; local
+trusted-reader/metadata tests do not prove real Linux permission enforcement.
+
+deploy/host_bootstrap.py explicitly assembles existing remote authority, one
+GuardedClient, owned work/admission/service and concrete signed readiness. It
+refuses active event loops and wrong executing release root before SDK creation.
+No environment/CLI/systemd activation. create_app now accepts copied explicit
+environment through identity/mode/retrieval/encoder selection, without dotenv/
+local-identity fallback or environment mutation. Legacy app attribute is lazy;
+import alone constructs no default app. Private async identity and synchronous
+Confirmation calls disable environment proxies. Default unqualified provider
+blocks requests/model entry and inference charging even with stale healthy=true;
+owned stop and pending renewal remain available. No pass format/fallback invented.
+
+Review reproduced/fixed ambient setting gaps, Confirmation proxy path, provider
+await holding the lease actor lock, and cancelled shutdown closing shared SDK too
+early. RED/GREEN moves a bounded one-flight1s verifier outside the actor; final
+remote/local authority fences follow it. Retained cancellation-resistant close
+drains lifecycle and admission workers before SDK close once off-loop. Review
+clear; final shutdown checks independently2passed3.15s. Final all-Agent/host/config/
+bootstrap/access/browser/fresh artifact build936passed/no skips145.06s; focused
+environment/bootstrap19passed9.41s. ESLint/Prettier, Ruff check/format239files,
+pip and whitespace pass. Evidence:eval/evidence/cap06-host-bootstrap-20261022.json;
+guide:docs/cap06-host-bootstrap.md. Existing launcher/backend remains unchanged.
+
+Next: Linux Lambda dependency packaging, approved reliable external observation
+delivery and deployment integration. Real POSIX/key provisioning and execution
+from installed release (-B interpreter), selecting the host API in launcher,
+effective IAM/OAC/event/account eligibility and final resource/cost/rollback
+approval precede deployed acceptance. No real AWS/model/credential/resource/key/
+DNS/TLS call/write, upgrade, scheduler/topology/spend increase or push. Bedrock
+zero quotas, Free plan/Stockholm/zero cash and all open gates persist.
+
 ## CAP-06 concrete host readiness checks prepared — 2026-10-22
 
 Added deploy/host_checks.py: concrete pinned release integrity, authenticated fixed

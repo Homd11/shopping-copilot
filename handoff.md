@@ -1,5 +1,38 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 restricted host startup API prepared — 2026-10-22
+
+Current frontier: deploy/host_config.py strict bounded immutable settings and
+POSIX-only private reader; host_bootstrap.py explicit pre-loop assembly of owned
+remote admission/work, one allowance guard and concrete signed readiness. Exact
+executing release root checked before SDK; synthetic tests patch root observation,
+so actual packaged execution/Linux ownership are not established. Default Windows
+reader refuses, trusted test reader/metadata cases only. No key provisioning.
+
+App accepts copied environment throughout provider/guard/identity/service mode/
+retrieval/encoder/test routes, no ambient/dotenv/local identity fallback. Legacy
+agent.app:app is lazy/cached, import alone creates none. Private identity and
+synchronous Confirmation disable environment proxies. Unqualified provider stays
+false; requests/model entry/allowance consumption blocked even if authority still
+says healthy. Stop remains available and pending work renews independently.
+
+Fresh review fixes all reproduced gaps: ambient settings/proxy, provider await
+starving lease actor, cancelled close advancing SDK shutdown. One-flight1s verifier
+is outside actor lock with retained cancellation cleanup and final authority
+fences. Retained shutdown drains all lifecycle/admission SDK users before close.
+Review clear, final2shutdown checks independently3.15s. Final all-Agent/host/config/
+bootstrap/access/browser/fresh artifact936passed/no skips145.06s; focused19in9.41s.
+Lint/format239Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-bootstrap-20261022.json; docs/cap06-host-bootstrap.md.
+
+Next: Linux Lambda dependency package, approved reliable external observation
+delivery, then real POSIX/key provisioning/packaged execution (-B), approved
+launcher integration, effective IAM/OAC/event eligibility/resource/cost/rollback
+and cloud acceptance. Current launcher/systemd/backend not selected or modified.
+No AWS/model/credential/resource/key/DNS/TLS call/write, upgrade, scheduler/spend
+increase or push. Bedrock zero quotas and all Free-plan/Stockholm/zero-cash gates
+remain. Default readiness false is not model qualification or deployed acceptance.
+
 ## CAP-06 concrete readiness observations prepared — 2026-10-22
 
 Current frontier: deploy/host_checks.py supplies pinned full release integrity,
