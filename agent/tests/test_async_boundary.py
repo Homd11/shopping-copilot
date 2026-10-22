@@ -85,3 +85,20 @@ def test_async_owner_is_revalidated_after_remote_grant_await():
         assert access.resolve(credential) is record
 
     asyncio.run(scenario())
+
+
+def test_async_admission_readiness_only_checks_bound_metadata(world):
+    _, store, _, _, _, client = world
+    before = store.status()
+
+    async def scenario():
+        policy = AsyncAdmissionPolicy(store)
+        try:
+            assert await policy.ready() is True
+            assert store.status() == before
+            client.delete_item(TableName=store.table, Key=store._key("meta"))
+            assert await policy.ready() is False
+        finally:
+            await policy.close()
+
+    asyncio.run(scenario())
