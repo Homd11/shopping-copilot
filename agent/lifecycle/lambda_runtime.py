@@ -9,7 +9,7 @@ import boto3
 from botocore.config import Config
 
 from agent.admission.dynamodb import DynamoInvitationStore, _identifier
-from agent.lifecycle.controller import ControlObserver, ControlWorker
+from agent.lifecycle.controller import ControlObserver, ControlWorker, is_tick
 from agent.lifecycle.dynamodb import DynamoLifecycle
 from agent.lifecycle.executor import EC2CommandExecutor
 from agent.lifecycle.readiness import HTTPSReadinessProbe
@@ -168,7 +168,9 @@ def create_startup_runtime(settings, *, sdk_factory=_sdk, clock=time):
     return create_startup_handler(lifecycle, rates, origin=settings.origin, notify=notify)
 
 
-def create_controller_runtime(settings, *, sdk_factory=_sdk, clock=time, http_transport=None):
+def create_controller_runtime(
+    settings, *, sdk_factory=_sdk, clock=time, http_transport=None, tick_writer=print
+):
     lifecycle = _lifecycle(settings, "controller", sdk_factory, clock)
     client = sdk_factory("ec2")
     probe = HTTPSReadinessProbe(
@@ -182,8 +184,34 @@ def create_controller_runtime(settings, *, sdk_factory=_sdk, clock=time, http_tr
 
     def handler(event, context):
         try:
-            return worker.handle(event)
+            result = worker.handle(event)
+            if is_tick(event):
+                timestamp = clock()
+                if type(timestamp) not in {int, float} or not 0 <= timestamp < 2**43:
+                    raise ValueError()
+                tick_writer(
+                    json.dumps(
+                        {
+                            "_aws": {
+                                "Timestamp": int(timestamp * 1000),
+                                "CloudWatchMetrics": [
+                                    {
+                                        "Namespace": "ShoppingCopilot/Lifecycle",
+                                        "Dimensions": [["Component"]],
+                                        "Metrics": [{"Name": "TickCompleted", "Unit": "Count"}],
+                                    }
+                                ],
+                            },
+                            "Component": "Controller",
+                            "TickCompleted": 1,
+                        },
+                        separators=(",", ":"),
+                    )
+                )
+            return result
         except Exception:
+            if is_tick(event):
+                raise RuntimeError("Scheduled observation unavailable") from None
             return {"state": "unavailable"}
 
     return handler

@@ -75,7 +75,11 @@ creation. Initialization is attempted once per execution environment; a failure
 stays unavailable until process replacement. Successful runtimes are reused;
 invocation errors do not reconstruct or replay them. Responses disclose no
 exception details; startup fails with HTTP503/no-store and no CORS, controller
-with `state: unavailable`. No background scheduler or automatic retry is added.
+with `state: unavailable`. The later
+[internal scheduled tick preparation](cap06-observation-delivery.md) additionally
+raises a fixed redacted failed invocation for exact controller ticks, including
+latched initialization failure, so Lambda can count Errors. Other event behavior
+stays as above. No background scheduler or automatic retry is added.
 
 Before real use: approve and provision runtime configuration/keys/roles, run the
 exact ZIP on the intended Linux architecture, resolve reliable external

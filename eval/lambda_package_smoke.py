@@ -39,6 +39,12 @@ role = manifest["role"]
 result = handler.handler({}, None)
 assert result == {"state": "unavailable"} if role == "controller" else result["statusCode"] == 503
 assert handler.handler({}, None) == result
+if role == "controller":
+    try:
+        handler.handler({"kind": "tick"}, None)
+        raise AssertionError("Uninitialized scheduled failure was hidden")
+    except RuntimeError as error:
+        assert str(error) == "Scheduled observation unavailable"
 
 config = {
     "version": 1, "table": "demo-table", "namespace": "demo",

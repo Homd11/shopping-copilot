@@ -3,6 +3,13 @@
 22 October 2026. These components are tested offline. No Lambda handler is active,
 no service has been deployed and no owner key or cloud resource was created.
 
+The later [inactive external observation preparation](cap06-observation-delivery.md)
+adds the exact internal `{"kind":"tick"}` event: fresh current observation then
+at most one already-authorized pending command, tick-only EMF completion and
+redacted failed invocation for Lambda Errors. Dispatch/observe contracts below
+remain unchanged. Its proposed Scheduler/IAM/alarms bundle is always disabled;
+actual service adoption, timing, costs and cloud delivery still need qualification.
+
 ## Factories and control flow
 
 `agent/lifecycle/lambda_runtime.py` exposes frozen `ControlSettings`,
