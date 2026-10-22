@@ -127,17 +127,23 @@ def create_app(
     inference_queue_observer=None,
     lifecycle_work_factory=None,
     readiness_factory=None,
+    environment=None,
 ) -> FastAPI:
-    settings = llm_settings or load_llm_settings()
+    environment = None if environment is None else dict(environment)
+    settings = llm_settings or load_llm_settings(environment)
+    values = dict(os.environ) if environment is None else environment
     llm_client = configured_guard(
-        llm_client or build_llm_client(settings), settings, queue_observer=inference_queue_observer
+        llm_client or build_llm_client(settings),
+        settings,
+        environment,
+        queue_observer=inference_queue_observer,
     )
-    admission = admission or configured_admission()
-    lifecycle = lifecycle or configured_lifecycle(os.environ, admission)
+    admission = admission or configured_admission(environment)
+    lifecycle = lifecycle or configured_lifecycle(values, admission)
     if lifecycle is None and (lifecycle_work_factory is not None or readiness_factory is not None):
         raise ValueError("Host factories require explicit lifecycle authority")
-    identity_settings = identity_config()
-    service = storefront_service or StorefrontService(identity_settings)
+    identity_settings = identity_config(environment)
+    service = storefront_service or StorefrontService(identity_settings, environment=environment)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -178,9 +184,7 @@ def create_app(
     app.state.llm_client = llm_client
     app.state.admission = admission
     planner = ScriptedPlanner()
-    test_clock_enabled = (
-        settings.provider == "scripted" and os.environ.get("EVAL_TEST_CLOCK") == "1"
-    )
+    test_clock_enabled = settings.provider == "scripted" and values.get("EVAL_TEST_CLOCK") == "1"
     clock_offset = [0.0]
 
     def session_clock() -> float:
@@ -198,9 +202,9 @@ def create_app(
         service,
         admission=admission,
         panel_origin=identity_settings["panel_origin"],
-        evaluation=os.environ.get("COPILOT_ENV") != "production"
+        evaluation=values.get("COPILOT_ENV") != "production"
         and settings.provider == "scripted"
-        and (evaluation or os.environ.get("COPILOT_EVALUATION") == "1"),
+        and (evaluation or values.get("COPILOT_EVALUATION") == "1"),
         lifecycle_work=(lifecycle_work_factory or LifecycleWork)(lifecycle, sessions)
         if lifecycle
         else None,
@@ -211,7 +215,7 @@ def create_app(
     catalogue_reader = catalogue_reader or HttpCatalogueReader()
 
     retrieval_enabled = (
-        os.environ.get("CATALOGUE_RETRIEVAL_ENABLED") == "1"
+        values.get("CATALOGUE_RETRIEVAL_ENABLED") == "1"
         if catalogue_retrieval_enabled is None
         else catalogue_retrieval_enabled
     )
@@ -283,7 +287,11 @@ def create_app(
                         raise CatalogueTurnInterrupted()
 
                 await ensure_active()
-                reader = catalogue_client or await configured_client(identity_settings)
+                reader = catalogue_client or (
+                    await configured_client(identity_settings)
+                    if environment is None
+                    else await configured_client(identity_settings, environment=environment)
+                )
                 await ensure_active()
                 phase = "intent"
                 prepared = await prepare_turn(
@@ -714,4 +722,9 @@ def create_app(
     return app
 
 
-app = create_app()
+def __getattr__(name):
+    if name != "app":
+        raise AttributeError(name)
+    default = create_app()
+    globals()["app"] = default
+    return default
