@@ -5,6 +5,7 @@ import os
 import re
 from threading import Lock
 
+from agent.lifecycle.controller import is_tick
 from agent.lifecycle.lambda_runtime import (
     ControlSettings,
     create_controller_runtime,
@@ -88,9 +89,15 @@ def make_entry(role, *, environment=None, factory=None):
                         raise ValueError()
                     runtime = candidate
             if runtime is not None:
-                return runtime(event, context)
+                result = runtime(event, context)
+                if not (
+                    role == "controller" and is_tick(event) and result == {"state": "unavailable"}
+                ):
+                    return result
         except Exception:
             pass
+        if role == "controller" and is_tick(event):
+            raise RuntimeError("Scheduled observation unavailable") from None
         return _unavailable(role)
 
     return handler

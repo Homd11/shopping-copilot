@@ -2,6 +2,63 @@
 
 **Last updated:** 2026-10-22
 
+## CAP-06 inactive external observations prepared — 2026-10-22
+
+Prepared a reviewed browser-independent lifecycle design and current primary AWS
+research. Proposed addition: one Stockholm EventBridge Scheduler schedule/group/
+scoped execution role targeting the existing controller every minute, finite UTC
+window, flexible window OFF, no delivery retries and60second delivery/async age.
+No third Lambda, SQS/SNS, public endpoint or runtime schedule-admin permission.
+Exact internal tick reads current generation, observes first, then attempts at
+most one already-pending command with existing fresh invitation/deadline/claim
+fences. It never creates wake intent, extends activity or replays unknown work.
+Successful tick-only bounded EMF completion metric plus missing-completion/error
+alarms prevent browser traffic masking absent observations; no notification action.
+Controller tick/runtime/entry and deploy/observation.py pure configuration are
+implemented and tested locally under the owner's continuation, never activated.
+The schedule always renders DISABLED and alarm actions false. Tick failures cross
+both generic wrappers as a fixed redacted error for Lambda Errors; initialization
+stays latched. Browser dispatch/observe events keep their existing contract.
+
+Public Free-project policy includes scheduler actions as exceptions to one deny;
+that is not account permission. Spend-limit policy can deny CreateSchedule.
+SourceArn trust must bind the schedule GROUP. Actual account/credit/concurrency
+eligibility remains unverified. Gross Stockholm Scheduler86400ticks=$0.094176;
+full conservative scenario includes256MiB/30s Lambda,160RRU/144WRU per tick,
+logs/storage/one custom metric/two alarm metrics:USD22.1716576, rounded22.18.
+Proposed additional planning allocation23 brings previous55.50reference to78.50,
+leaving1.50inside proposed80 plus separate20unallocated from last evidenced100.
+No free allowance subtracted; real duration/billing/traffic remain unmeasured,
+INIT/duplicates/extra requests can exceed assumptions. This consumes most
+prior contingency and is neither a spending cap nor new spending authorization.
+
+Design:docs/superpowers/specs/2026-10-22-cap06-observation-delivery-design.md;
+sources:docs/research/2026-10-22-cap06-observation-delivery-contract.md. Fresh builder
+check found nothing important unanswered; primary separately verified core AWS
+policy/trust/async contracts and Decimal arithmetic. Local RED/GREEN stopped/
+lost-notification/duplicate and concurrent claim/revocation/expiry/deadline/late-
+cleanup/unknown-command/lease/activity races, tick-only metric/redacted failure
+and disabled renderer tests36passed11.40s. Independent final review clear;
+108focused/previous controller-entry-runtime tests33.72s. Instrumented profiles:
+stopped3Get/no write; unclaimedSTART26Get/3transactions;128live leases6868byte
+largest DynamoJSON item; cold construction adds4Get. These fit scenario assumptions,
+not actual billing/capacity guarantees. Both updated role ZIPs rebuilt identically
+and passed isolated Windows3.12 -I -S -B import/fixed-role/error checks, SDK/network
+blocked. Guide:docs/cap06-observation-delivery.md. Final all-Agent/observation/
+package/host/access/browser/fresh release build1036passed/no skips170.67s; Ruff
+check/format247files, pip, ESLint, Prettier and whitespace pass. Evidence:
+eval/evidence/cap06-observation-delivery-20261022.json. Updated startup ZIP
+25888663bytes SHA2567d90b216b33f4697354df220764e8a2f79dd35b63bcc1fff2e2c01f72aac5f7d;
+controller25888669bytes8b968e9daf2d9cb0a8191eec0a5d5a3d9945ebe7d82b10e08707760332b5c641.
+
+Next: exact artifact AL2023 execution, host launcher integration, and reconciliation
+of this explicit new-service/cost/credit proposal. No service is added to selected
+inventory yet. Actual AWS
+apply retains separate full resource/cost/rollback approval; AL2023 execution,
+host launcher/POSIX/key/config/IAM/OAC/event/account checks and Bedrock qualification
+remain open. No real AWS/model/credential/resource/key/DNS/TLS call/write, upgrade,
+activation, extra spend or push. Free-plan/Stockholm/zero-cash invariants persist.
+
 ## CAP-06 reproducible Lambda ZIPs prepared — 2026-10-22
 
 Added fixed-role lazy Lambda entries and an offline narrow wheel/ZIP builder.

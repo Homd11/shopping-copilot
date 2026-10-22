@@ -6,6 +6,10 @@ from agent.lifecycle.executor import EC2CommandExecutor, _state_name
 from agent.lifecycle.store import LifecycleUnavailable
 
 
+def is_tick(event):
+    return type(event) is dict and set(event) == {"kind"} and event["kind"] == "tick"
+
+
 class ControlObserver:
     def __init__(self, lifecycle, client, instance, probe):
         self.lifecycle, self.client, self.instance, self.probe = lifecycle, client, instance, probe
@@ -59,6 +63,19 @@ class ControlWorker:
         self.lifecycle, self.executor, self.observer = lifecycle, executor, observer
 
     def handle(self, event):
+        if is_tick(event):
+            status = self.lifecycle.status()
+            if status["state"] == "stopped":
+                return status
+            generation = status["generation"]
+            if type(generation) is not int or not 1 <= generation <= 2**53 - 1:
+                raise LifecycleUnavailable()
+            # Observe first: an expired pending start must become a failed intent,
+            # not be rescued after its deadline. Existing claim checks revalidate
+            # invitation/deadline/generation before dispatch. No new wake here.
+            self.observer.observe(generation)
+            self.executor.execute_once(generation=generation)
+            return self.lifecycle.status()
         if (
             type(event) is not dict
             or set(event) != {"kind", "generation"}

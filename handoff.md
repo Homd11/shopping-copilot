@@ -1,5 +1,49 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 inactive external observations prepared — 2026-10-22
+
+Current frontier includes a concrete conditional new-service/cost proposal:
+docs/superpowers/specs/2026-10-22-cap06-observation-delivery-design.md. One proposed
+Stockholm Scheduler schedule/group/execution role invokes existing controller
+every minute, exact internal tick with no caller generation/target/start authority,
+fresh observe then at most one already-pending command. Preserve all invitation,
+deadline, generation/revision, lease/drain and uncertain-command/Action fences.
+Finite UTC schedule, flexible OFF, delivery retry0/age60; async error retries0/
+age60. Tick-only EMF completion plus2CloudWatch alarm metrics; no SNS/actions.
+Controller/runtime/entry tick and pure deploy/observation.py renderer are prepared
+offline under the owner's continuation. Schedule always DISABLED/alarms actions
+false. Fixed redacted tick errors cross entry and factory for Lambda Errors;
+failed initialization stays latched. Actual selected service inventory unchanged.
+
+Research:docs/research/2026-10-22-cap06-observation-delivery-contract.md. Published
+Free-project policy does not categorically deny Scheduler, but permissions,
+spend-limit policy/quotas and credit eligibility remain account-specific. Trust
+SourceArn uses schedule GROUP. Independently rechecked contracts and Decimal
+arithmetic; fresh builder check clear. RED/GREEN and local safety/profile/render
+tests36passed11.40s; independent final review clear with108focused/existing cases
+33.72s. Largest128lease item6868DynamoJSON bytes; max26hotGet+4cold metadata,
+3transactions. Fixture counts are not real billing evidence. Both updated role
+ZIPs rebuilt byte-identically and passed isolated Windows3.12 -I -S -B smoke,
+including missing-config tick error, with SDK/network blocked. Final all-Agent/
+observation/package/host/access/browser/fresh release1036passed/no skips170.67s.
+Ruff247files/pip/ESLint/Prettier/whitespace pass. Evidence:
+eval/evidence/cap06-observation-delivery-20261022.json; guide:docs/cap06-observation-delivery.md.
+Updated startup25888663bytes SHA2567d90b216b33f4697354df220764e8a2f79dd35b63bcc1fff2e2c01f72aac5f7d;
+controller25888669bytes8b968e9daf2d9cb0a8191eec0a5d5a3d9945ebe7d82b10e08707760332b5c641.
+
+Conservative86400tick scenario22.1716576USD =>22.18; proposed23credit planning
+allocation yields55.50+23=78.50, only1.50inside proposed80 plus prior20separate
+reserve. Includes256MiB/30s,160RRU/144WRU per tick, logs/storage/custom metric/
+alarms. Assumptions not measurements/caps; INIT/duplicates/public traffic and
+actual operation bytes must be reconciled before apply. No new spend authorized.
+
+Next: Linux artifact execution and host launcher integration; reconcile proposed
+service/credit/account costs before adopting the additional resources.
+No silently adopted scheduler, deployed monitoring, exact idle deadline guarantee,
+account API/model/resource/key/DNS/TLS call/write, upgrade or push. Actual AWS
+apply still requires complete resource/cost/rollback approval and all existing
+Free-plan/Stockholm/zero-cash/Bedrock/account/deployment gates remain open.
+
 ## CAP-06 reproducible Lambda ZIPs prepared — 2026-10-22
 
 Current frontier: agent/lifecycle/lambda_entry.py fixed-role lazy handler and

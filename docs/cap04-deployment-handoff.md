@@ -12,6 +12,19 @@ This consolidates the [approved Stockholm amendment](superpowers/specs/2026-10-1
 [account evidence](cap04-account-feasibility.md) and existing local runbooks. It
 supersedes the older supervised/shared-cart design brief as the execution handoff.
 
+22 October observation update: the
+[browser-independent Scheduler proposal](superpowers/specs/2026-10-22-cap06-observation-delivery-design.md)
+and [current primary-source contract/costs](research/2026-10-22-cap06-observation-delivery-contract.md)
+are ready for owner design review. They propose one schedule/group/scoped role,
+one completion metric and two alarms, with USD23 additional planning allocation
+(prior USD55.50 continuous reference plus allocation = USD78.50). This consumes
+most of the proposed USD80 contingency; actual usage/eligibility and complete
+cost reconciliation remain required. The
+[inactive local tick and disabled bundle](cap06-observation-delivery.md) are now
+prepared/tested under the owner's continuation. No resource, selected inventory
+or spending authorization is changed; actual service adoption/apply still needs
+the complete concrete review.
+
 22 October preparation update: a pure
 [CloudFront/Lambda access bundle](cap06-cloud-access.md) now expresses exact runtime
 and origin permissions, header/cache settings and browser POST payload signing.
