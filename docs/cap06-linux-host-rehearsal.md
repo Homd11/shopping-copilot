@@ -1,5 +1,10 @@
 # CAP-06 isolated Linux host rehearsal
 
+Current follow-up: [host isolation](cap06-host-isolation.md) records fresh minimal
+component configs, separate UID/WAL/log and private IPv4/IPv6 packet proof. This
+page retains earlier evidence; current native Store/proxy launchers refuse the
+original full Agent config used by the earlier rehearsal.
+
 23 October 2026. The full default protected configuration reader and native
 Storefront launcher passed in a disposable Amazon Linux 2023 container. Caddy
 passed version/adaptation and a captured proxy handoff. No host unit, system

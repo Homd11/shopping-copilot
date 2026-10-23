@@ -16,12 +16,8 @@ from agent.catalogue_contract import SearchQuery, SearchResult
 from agent.inference.client import GuardedClient
 from deploy.artifact import verify
 from deploy.catalogue import catalogue_status
+from deploy.host_files import ORIGINS
 
-ORIGINS = {
-    "panel": "https://app.scpilot.tech",
-    "store": "https://store.scpilot.tech",
-    "agent": "https://app.scpilot.tech",
-}
 CATALOGUE_URL = "http://127.0.0.1:4000/__internal/catalogue/search"
 
 

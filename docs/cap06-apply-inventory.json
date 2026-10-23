@@ -3,7 +3,7 @@
   "date": "2026-10-23",
   "kind": "inert-review-dossier",
   "status": "BLOCKED_NOT_AUTHORIZED_TO_APPLY",
-  "source_commit": "81413a0",
+  "source_commit": "c6924a5",
   "constraints": {
     "region": "eu-north-1",
     "account_plan": "Free",
@@ -298,18 +298,27 @@
     },
     {
       "id": "host_services",
-      "count": 3,
+      "count": 4,
       "units": [
         "shopping-copilot-store.service",
         "shopping-copilot-agent.service",
-        "shopping-copilot-proxy.service"
+        "shopping-copilot-proxy.service",
+        "shopping-copilot-metadata.service"
       ],
       "target": "shopping-copilot-host.target",
       "enable_only_target_later": true,
       "legacy_combined_unit": "conflict; do not enable together",
       "currently_install_or_enable": false,
       "caddy_capability": "CAP_NET_BIND_SERVICE only",
-      "provider_ready_default": false
+      "provider_ready_default": false,
+      "service_uids": {
+        "agent": "copilot",
+        "store": "copilot-store",
+        "proxy": "copilot-proxy",
+        "metadata": "root"
+      },
+      "metadata_capability": "CAP_NET_ADMIN only; own nft output chain; root oneshot required by applications",
+      "diagnostics": "fixed per-service local lifecycle records; 64KiB plus two backups; seven-day prune on write"
     }
   ],
   "conditional_resources": [
@@ -373,13 +382,13 @@
     "caddy_candidate": "2.11.7 official linux-amd64 archive/binary digests in tested manifest; security approval pending",
     "release_build": "clean reviewed native Linux production build; do not install derived Windows rehearsal fixture",
     "transfer": "owner-scoped SSH/SCP with independent digests, not a new runtime S3 permission",
-    "host_config": "/etc/shopping-copilot/host.json",
+    "host_config": "/etc/shopping-copilot/agent/host.json",
     "selected_release": "/opt/shopping-copilot/current",
     "python_path": "/opt/shopping-copilot/python/bin/python",
-    "catalogue": "/var/lib/shopping-copilot/catalogue.sqlite",
-    "inference_ledger": "/var/lib/shopping-copilot/inference.sqlite",
-    "service_secret_file": "/etc/shopping-copilot/service.key",
-    "readiness_secret_file": "/etc/shopping-copilot/readiness.key",
+    "catalogue": "/var/lib/shopping-copilot/store/catalogue.sqlite",
+    "inference_ledger": "/var/lib/shopping-copilot/agent/inference.sqlite",
+    "service_secret_file": "/etc/shopping-copilot/agent/service.key",
+    "readiness_secret_file": "/etc/shopping-copilot/agent/readiness.key",
     "caddy_storage": "/var/lib/shopping-copilot/caddy",
     "agent_workers": 1,
     "admission_candidate": {
@@ -402,8 +411,14 @@
     },
     "model": "openai.gpt-oss-20b-1:0",
     "model_streaming_iam_grant": false,
-    "metadata_process_isolation_implemented": false,
-    "durable_host_diagnostics_implemented": false
+    "metadata_process_isolation_implemented": true,
+    "durable_host_diagnostics_implemented": true,
+    "store_config": "/etc/shopping-copilot/store/store.json",
+    "proxy_config": "/etc/shopping-copilot/proxy/proxy.json",
+    "metadata_config": "/etc/shopping-copilot/metadata.json",
+    "store_service_secret_copy": "/etc/shopping-copilot/store/service.key",
+    "host_isolation_activated": false,
+    "actual_systemd_boot_verified": false
   },
   "cost_scenarios": {
     "source": "docs/research/2026-10-23-cap06-inventory-reconciliation.md",
@@ -433,7 +448,7 @@
     "finite activation dates; observation adoption only for conditional resources and unattended automatic-wake acceptance",
     "reserved concurrency and all feature creation/runtime eligibility",
     "native production Linux release, interpreter/lock and provisioning verification",
-    "process-specific metadata credentials isolation and durable redacted host diagnostics",
+    "native host provisioning/activation/reboot verification of prepared process-specific metadata boundary and durable redacted diagnostics",
     "Bedrock usable quota, strict qualification, qualification gate implementation and explicit spend approval",
     "ordered activation/rollback/teardown package with current authority retained and exact final approval",
     "real host/systemd/capability/TLS/IAM/OAC/event/desktop/Android/cloud safety acceptance"

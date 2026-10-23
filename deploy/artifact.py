@@ -164,6 +164,7 @@ def build(source, output, *, local=False):
             "deploy/shopping-copilot-agent.service",
             "deploy/shopping-copilot-store.service",
             "deploy/shopping-copilot-proxy.service",
+            "deploy/shopping-copilot-metadata.service",
             "deploy/shopping-copilot-host.target",
             "agent/lifecycle/waiting.html",
         ):

@@ -231,6 +231,25 @@ def probe(inventory, expected):
 
     save()
     settings = load_host_settings(config)
+    store_config = state / "store.json"
+    store_config.write_text(
+        json.dumps(
+            {
+                name: data[name]
+                for name in (
+                    "version",
+                    "release",
+                    "fingerprint",
+                    "catalogue",
+                    "service_secret_file",
+                )
+            }
+        )
+    )
+    proxy_config = state / "proxy.json"
+    proxy_config.write_text(
+        json.dumps({name: data[name] for name in ("version", "release", "fingerprint")})
+    )
     assert settings.release == Path(host_component.__file__).resolve().parents[1]
     assert "s" * 32 not in repr(settings) and settings.readiness_secret == b"k" * 32
     refused = []
@@ -335,7 +354,11 @@ def probe(inventory, expected):
 
     storage = Path("/var/lib/shopping-copilot/caddy")
     storage.mkdir(mode=0o700)
-    arguments, environment = host_component.command(settings, "proxy")
+    from deploy.component_config import load_component_settings
+
+    arguments, environment = host_component.command(
+        load_component_settings(proxy_config, "proxy"), "proxy"
+    )
     host_component._version(arguments[0], environment)
     adapted = subprocess.run(
         [arguments[0], "adapt", "--config", arguments[3], "--adapter", "caddyfile"],
@@ -359,7 +382,7 @@ def probe(inventory, expected):
     os.execve = capture
     try:
         try:
-            host_component.main(["--config", str(config), "--component", "proxy"])
+            host_component.main(["--config", str(proxy_config), "--component", "proxy"])
         except CapturedExec:
             pass
         else:
@@ -398,7 +421,9 @@ def main():
         block_external()
         from deploy.host_component import main as store
 
-        raise SystemExit(store(["--config", str(WORK / "state/host.json"), "--component", "store"]))
+        raise SystemExit(
+            store(["--config", str(WORK / "state/store.json"), "--component", "store"])
+        )
     assert not sys.argv[2:] and os.geteuid() != 0
     assert sha(Path(__file__)) == inventory["probe_sha256"]
     os.umask(0o077)

@@ -9,7 +9,8 @@ import sys
 from pathlib import Path
 
 from deploy.catalogue import catalogue_status
-from deploy.host_config import HostSettings, _parent_metadata, load_host_settings
+from deploy.component_config import ProxySettings, StoreSettings, load_component_settings
+from deploy.host_files import ORIGINS, _parent_metadata
 
 CADDY_STORAGE = Path("/var/lib/shopping-copilot/caddy")
 
@@ -46,7 +47,9 @@ def _storage(path):
 
 def command(settings, component):
     try:
-        if type(settings) is not HostSettings or component not in {"store", "proxy"}:
+        if component not in {"store", "proxy"} or type(settings) is not (
+            StoreSettings if component == "store" else ProxySettings
+        ):
             raise ValueError()
         settings._validate()
         if _runtime_root() != settings.release:
@@ -57,18 +60,14 @@ def command(settings, component):
             if not script.is_file():
                 raise ValueError()
             catalogue_status(settings.catalogue)
-            values = settings.environment()
             environment.update(
                 {
-                    name: values[name]
-                    for name in (
-                        "COPILOT_ENV",
-                        "COPILOT_SERVICE_SECRET",
-                        "COPILOT_PANEL_ORIGIN",
-                        "COPILOT_STORE_ORIGIN",
-                        "COPILOT_CATALOGUE_DB",
-                        "CATALOGUE_RANKING",
-                    )
+                    "COPILOT_ENV": "production",
+                    "COPILOT_SERVICE_SECRET": settings.service_secret,
+                    "COPILOT_PANEL_ORIGIN": ORIGINS["panel"],
+                    "COPILOT_STORE_ORIGIN": ORIGINS["store"],
+                    "COPILOT_CATALOGUE_DB": str(settings.catalogue),
+                    "CATALOGUE_RANKING": "lexical",
                 }
             )
             return ["/usr/bin/node", str(script)], environment
@@ -131,7 +130,7 @@ def main(argv=None):
         parser.add_argument("--config", type=Path, required=True)
         parser.add_argument("--component", choices=("store", "proxy"), required=True)
         args = parser.parse_args(argv)
-        settings = load_host_settings(args.config)
+        settings = load_component_settings(args.config, args.component)
         arguments, environment = command(settings, args.component)
         _version(arguments[0], environment)
         os.execve(arguments[0], arguments, environment)

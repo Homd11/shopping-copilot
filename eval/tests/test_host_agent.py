@@ -278,7 +278,7 @@ def test_unknown_switch_cannot_bypass_gate(launcher, monkeypatch, capsys, option
 def test_prepared_unit_and_release():
     root = Path(__file__).resolve().parents[2]
     unit = (root / "deploy/shopping-copilot-agent.service").read_text()
-    assert "-m deploy.host_agent --config /etc/shopping-copilot/host.json" in unit
+    assert "-m deploy.host_agent --config /etc/shopping-copilot/agent/host.json" in unit
     for value in ("User=copilot", "NoNewPrivileges=yes", "ProtectSystem=strict", "UMask=0077"):
         assert value in unit
     assert "Conflicts=shopping-copilot.service" in unit

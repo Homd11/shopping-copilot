@@ -14,6 +14,7 @@ import httpx
 import pytest
 
 from deploy.artifact import files
+from deploy.component_config import ProxySettings, load_component_settings
 from deploy.host_config import load_host_settings
 from eval.tests.test_host_checks import catalogue_source as _catalogue_source
 from eval.tests.test_host_checks import prepared as _prepared
@@ -47,9 +48,29 @@ def settings(module, config_file, monkeypatch):
     manifest_path.write_text(json.dumps(manifest))
     data["fingerprint"] = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     path.write_text(json.dumps(data))
-    value = load_host_settings(path, read_private=fixture_reader)
+    minimal = {
+        name: data[name]
+        for name in ("version", "release", "fingerprint", "catalogue", "service_secret_file")
+    }
+    component_path = path.with_name("store.json")
+    component_path.write_text(json.dumps(minimal))
+    value = load_component_settings(component_path, "store", read_private=fixture_reader)
     monkeypatch.setattr(module, "_runtime_root", lambda: release)
     return value
+
+
+@pytest.fixture
+def proxy_settings(settings):
+    return ProxySettings(settings.release, settings.fingerprint)
+
+
+def test_agent_configuration_and_wrong_component_type_are_not_native_inputs(
+    module, settings, config_file
+):
+    full = load_host_settings(config_file[0], read_private=fixture_reader)
+    for value, component in ((full, "store"), (full, "proxy"), (settings, "proxy")):
+        with pytest.raises(ValueError, match="Host component startup refused"):
+            module.command(value, component)
 
 
 def test_fixed_store_environment_excludes_ambient_authority(module, settings, monkeypatch):
@@ -77,10 +98,10 @@ def test_fixed_store_environment_excludes_ambient_authority(module, settings, mo
     assert dict(os.environ) == before
 
 
-def test_fixed_proxy_environment_has_no_secrets(module, settings, monkeypatch):
+def test_fixed_proxy_environment_has_no_secrets(module, settings, proxy_settings, monkeypatch):
     checked = []
     monkeypatch.setattr(module, "_storage", checked.append)
-    argv, environment = module.command(settings, "proxy")
+    argv, environment = module.command(proxy_settings, "proxy")
     assert argv == [
         "/usr/bin/caddy",
         "run",
@@ -108,7 +129,7 @@ def test_proxy_paths_cannot_change_caddyfile_syntax(module, character):
     )
 
 
-def test_proxy_command_validates_interpolated_path(module, settings, monkeypatch):
+def test_proxy_command_validates_interpolated_path(module, proxy_settings, monkeypatch):
     checked = []
 
     def refuse(path):
@@ -118,12 +139,12 @@ def test_proxy_command_validates_interpolated_path(module, settings, monkeypatch
     monkeypatch.setattr(module, "_storage", lambda _: None)
     monkeypatch.setattr(module, "_caddy_path", refuse, raising=False)
     with pytest.raises(ValueError, match="^Host component startup refused$"):
-        module.command(settings, "proxy")
-    assert checked == [settings.release / "panel/dist"]
+        module.command(proxy_settings, "proxy")
+    assert checked == [proxy_settings.release / "panel/dist"]
 
 
 @pytest.mark.parametrize("kind", ["other-release", "tampered", "catalogue", "component", "storage"])
-def test_preflight_refuses_before_exec(module, settings, monkeypatch, kind):
+def test_preflight_refuses_before_exec(module, settings, proxy_settings, monkeypatch, kind):
     component = "store"
     if kind == "other-release":
         monkeypatch.setattr(module, "_runtime_root", lambda: settings.release.parent)
@@ -135,6 +156,7 @@ def test_preflight_refuses_before_exec(module, settings, monkeypatch, kind):
         component = "arbitrary"
     else:
         component = "proxy"
+        settings = proxy_settings
 
         def unsafe(_):
             raise ValueError("unsafe storage")
@@ -209,7 +231,7 @@ def test_main_refuses_generically(module, settings, monkeypatch, capsys, stage):
         raise subprocess.TimeoutExpired("private key/path", 5)
 
     monkeypatch.setattr(
-        module, "load_host_settings", fail if stage == "load" else lambda _: settings
+        module, "load_component_settings", fail if stage == "load" else lambda *_: settings
     )
     monkeypatch.setattr(
         module,
@@ -236,7 +258,7 @@ def test_main_exec_replaces_process_with_exact_command(module, settings, monkeyp
     class Executed(BaseException):
         pass
 
-    monkeypatch.setattr(module, "load_host_settings", lambda _: settings)
+    monkeypatch.setattr(module, "load_component_settings", lambda *_: settings)
     monkeypatch.setattr(module, "_version", lambda *_: None)
     expected = module.command(settings, "store")
 
@@ -262,7 +284,24 @@ def test_unit_bundle_order_conflicts_caps_and_explicit_target():
         assert "shopping-copilot.service" in unit["Unit"]["Conflicts"].split()
         after = unit["Unit"]["After"].split()
         assert "shopping-copilot.service" in after and "shopping-copilot-host.target" not in after
-        assert unit["Service"]["User"] == "copilot"
+        component = name.removeprefix("shopping-copilot-").removesuffix(".service")
+        assert unit["Service"]["User"] == (
+            "copilot" if component == "agent" else "copilot-" + component
+        )
+        assert unit["Service"]["Group"] == unit["Service"]["User"]
+        assert "shopping-copilot-metadata.service" in after
+        assert (
+            unit["Unit"]["BindsTo"]
+            == unit["Unit"]["Requires"]
+            == "shopping-copilot-metadata.service"
+        )
+        assert unit["Service"]["ProtectProc"] == "invisible"
+        assert unit["Service"]["RestrictNamespaces"] == unit["Service"]["RestrictSUIDSGID"] == "yes"
+        assert unit["Service"]["LogsDirectory"] == "shopping-copilot/" + component
+        assert unit["Service"]["LogsDirectoryMode"] == "0700"
+        assert "--service " + component + " --event starting" in unit["Service"]["ExecStartPre"]
+        assert "--service " + component + " --event stopped" in unit["Service"]["ExecStopPost"]
+        assert "/etc/shopping-copilot/" + component + "/" in unit["Service"]["ExecStart"]
         assert unit["Service"]["NoNewPrivileges"] == "yes"
         assert unit["Service"]["ProtectSystem"] == "strict"
         if "proxy" in name:
@@ -271,11 +310,29 @@ def test_unit_bundle_order_conflicts_caps_and_explicit_target():
             )
             assert unit["Service"]["AmbientCapabilities"] == "CAP_NET_BIND_SERVICE"
             assert unit["Service"]["CapabilityBoundingSet"] == "CAP_NET_BIND_SERVICE"
-            assert unit["Service"]["ReadWritePaths"] == "/var/lib/shopping-copilot/caddy"
+            assert (
+                unit["Service"]["ReadWritePaths"]
+                == "/var/lib/shopping-copilot/caddy /var/log/shopping-copilot/proxy"
+            )
         else:
             assert not unit["Service"].get("AmbientCapabilities", "")
         if "agent" in name:
             assert "shopping-copilot-store.service" in after
+            assert unit["Service"]["SupplementaryGroups"] == "copilot-catalogue"
+            assert "/var/lib/shopping-copilot/store" in unit["Service"]["ReadOnlyPaths"]
+        if component != "proxy":
+            assert (
+                unit["Service"]["ReadWritePaths"]
+                == f"/var/lib/shopping-copilot/{component} /var/log/shopping-copilot/{component}"
+            )
+    barrier = configparser.ConfigParser()
+    barrier.read(ROOT / "deploy/shopping-copilot-metadata.service")
+    service = barrier["Service"]
+    assert service["User"] == "root" and service["Type"] == "oneshot"
+    assert service["RemainAfterExit"] == "yes" and "ExecStop" not in service
+    assert service["CapabilityBoundingSet"] == "CAP_NET_ADMIN"
+    assert service["RestrictAddressFamilies"] == "AF_NETLINK"
+    assert service.get("PrivateNetwork", "no") == "no"
 
 
 def test_packaged_production_store_uses_generated_environment(
@@ -296,7 +353,13 @@ def test_packaged_production_store_uses_generated_environment(
     data["release"] = str(release)
     data["fingerprint"] = hashlib.sha256((release / "release.json").read_bytes()).hexdigest()
     path.write_text(json.dumps(data))
-    settings = load_host_settings(path, read_private=fixture_reader)
+    minimal = {
+        name: data[name]
+        for name in ("version", "release", "fingerprint", "catalogue", "service_secret_file")
+    }
+    component_path = path.with_name("store.json")
+    component_path.write_text(json.dumps(minimal))
+    settings = load_component_settings(component_path, "store", read_private=fixture_reader)
     monkeypatch.setattr(module, "_runtime_root", lambda: release)
     argv, environment = module.command(settings, "store")
     before = catalogue_status(settings.catalogue)
