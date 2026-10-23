@@ -1,5 +1,12 @@
 # CAP-06 host service bundle
 
+Current23October revision: [host isolation](cap06-host-isolation.md) supersedes
+the shared-UID/config/no-diagnostics statements and command paths below. Store
+now uses `/etc/shopping-copilot/store/store.json`, proxy `.../proxy/proxy.json`,
+Agent `.../agent/host.json`. Three separate application UIDs require a fourth
+root metadata oneshot and use bounded private lifecycle logs. The remainder is
+historical evidence for the earlier bundle; no unit/account/firewall is activated.
+
 23 October 2026. This bundle is prepared and tested locally. No unit is installed
 or enabled, no public listener was started, and no certificate, production key,
 AWS resource, DNS or policy change was made. The provider remains unqualified.

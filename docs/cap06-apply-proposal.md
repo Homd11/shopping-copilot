@@ -40,7 +40,7 @@ stop and revise this package; do not create a new VPC/NAT or alter shared routin
 | Startup delivery       | One pay-as-you-go CloudFront distribution with generated hostname/certificate, two origins, two always-sign SigV4 OACs (S3 and Lambda), one custom control origin-request policy. Managed disabled-cache policy is referenced, not created. No viewer Function, custom alias/certificate, flat-rate plan or second distribution.                   |
 | Startup/control        | Two Python3.12 x86_64 ZIP Lambdas: `scpilot-capstone-startup` and `scpilot-capstone-controller`, outside VPC, each proposed256MiB/30s/512MiB temporary storage, no provisioned concurrency/layers. One AWS_IAM Function URL on startup only. Reserved concurrency1 each is a candidate requiring quota evidence, not a budget cap.                 |
 | Lambda identities/logs | Two same-named Lambda-trusted IAM roles, one inline policy each; two explicit `/aws/lambda/NAME` log groups, retention7days. Precreate groups; runtime may only create/write its own streams.                                                                                                                                                      |
-| Public shopping        | Two existing-registrar A records, `app.scpilot.tech` and `store.scpilot.tech`, pointing only to the bound EIP; proposed TTL300 where supported. One host target owns three prepared store/Agent/proxy services. Caddy retains ACME state outside code.                                                                                             |
+| Public shopping        | Two existing-registrar A records, `app.scpilot.tech` and `store.scpilot.tech`, pointing only to the bound EIP; proposed TTL300 where supported. One host target owns three application services and a required root metadata oneshot. Caddy retains ACME state outside code.                                                                       |
 
 Base IAM count is **three runtime roles, one profile and three inline policies**.
 S3 bucket policy and the two startup Function URL invoke statements are resource
@@ -152,32 +152,24 @@ candidate vendor digests are already retained; they are not claims of newest or
 currently approved secure versions. Verify licence/provenance/security and do not
 download/install packages from first-boot user-data with unpinned scripts.
 
-Only `shopping-copilot-host.target` is intended for later enablement, with the
-three prepared members and explicit legacy-unit conflict. The existing service
-account is `copilot`; release/interpreter/executables are root-owned and readable/
-executable by the service. Private host JSON and raw key files must be readable
-by their actual consuming service UID with owner-only permissions: under the
-current ordinary POSIX reader, use that UID as file owner with0400/0600, not a
-root-owned0600 file that `copilot` cannot open. Do not add group/other access or
-relax the private-file checks. Keep protected root-owned parent directories and
-the unit's read-only config mount; mutable state uses its existing private owner/
-ancestor checks. This states the current reader requirement, not sufficient
-per-component secret isolation: delivery/ownership across future isolated users
-still needs the acknowledged host design work before real provisioning. Select a
-canonical release under `/opt/shopping-copilot/releases/`; `current` is the owner
-selection link, not a way to bypass release/fingerprint checks. Install the fixed
-Python path and `/usr/bin/node`/`/usr/bin/caddy` as verified ordinary executables.
-Never initialize state during service launch or add a provider-ready flag.
+Only `shopping-copilot-host.target` is intended for later enablement. It owns
+three application services and a required metadata oneshot, with the legacy-unit
+conflict preserved. Separate service users/config/state and the root firewall
+exception are specified in [host isolation](cap06-host-isolation.md). No users,
+permissions, firewall rules or units are installed by this dossier. Provisioning
+must prove root-owned immutable code/interpreter, private per-consuming-UID files,
+catalogue group/read-only mount and native service behavior before activation.
 
-Retain these paths outside release selection: catalogue and inference SQLite
-under `/var/lib/shopping-copilot`, protected host JSON and separate service/
-readiness raw files under `/etc/shopping-copilot`, and Caddy state under
-`/var/lib/shopping-copilot/caddy`. Account for all of them in the single20GiB
-volume. Root/current-user private file rules, parent ownership, symlink/hardlink
-refusal, exact bound identities and ledger history remain enforced. Keep root
-provisioning from accidentally writing service-owned state with incompatible
-ownership. Catalogue backup uses the existing SQLite backup API, never a live
-filesystem copy; it is not an allowance or invitation backup.
+Canonical configs: `/etc/shopping-copilot/agent/host.json`,
+`/etc/shopping-copilot/store/store.json`, `/etc/shopping-copilot/proxy/proxy.json`,
+and root-only `/etc/shopping-copilot/metadata.json`. Catalogue is retained under
+`/var/lib/shopping-copilot/store`; inference ledger under `.../agent`; certificates
+under `.../caddy`. Private service-secret bytes are duplicated into distinct
+Agent/Store owner-only files; proxy receives neither copy. Readiness is Agent-only.
+Per-service logs use `/var/log/shopping-copilot/{agent,store,proxy}`. All state/logs
+remain on the single20GiB volume. Never initialize state during launch, relax
+private checks, install a derived Windows rehearsal fixture or reset authority.
+Catalogue backup uses the SQLite backup API; it is not an allowance backup.
 
 One readiness key generation is shared between the protected host raw key and
 controller-only `COPILOT_READINESS_KEY_HEX`; startup must not receive it. Lambda
@@ -189,22 +181,23 @@ by separate owner authority; they are not regenerated on deploy, window renewal,
 host replacement or rollback. No new inference ledger/allowance is authorized;
 existing uncertain accounting and diagnostic holds must be reconciled first.
 
-**Metadata isolation is not implemented.** IMDSv2/hop limit1 does not separate
-local processes. All three prepared services use the same UID, so a simple
-UID-owner firewall exception for `copilot` would also allow Storefront/Caddy to
-reach role credentials. AWS documents local process firewall restrictions;
-the actual host needs a reviewed process/service isolation mechanism and reboot/
-failure tests before credentials/public exposure. No rule or service-user change
-is installed by this dossier. [AWS IMDS access restrictions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-metadata-limiting-access.html).
-This is also an inference from the current unit files, not a demonstrated exploit.
+**Local implementation and disposable proof are prepared; host activation is
+unverified.** Separate UIDs and an own-chain nftables output barrier now reject
+IPv4/IPv6 metadata for Storefront/proxy while allowing Agent and trusted root.
+Application units BindsTo/After the required barrier. Repeated application is
+idempotent in meaning; failed batches preserve the old policy. Actual Linux UID,
+packet, catalogue/WAL/restart and bounded redacted-log checks are recorded in
+[host isolation](cap06-host-isolation.md). No real IMDS/account was contacted.
+IMDSv2/hop1 alone still does not separate local processes. Root is deliberately
+trusted; active oneshot state does not detect external root firewall deletion.
+[AWS IMDS access restrictions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-metadata-limiting-access.html).
 
-Other host gates remain: actual Agent/SDK/lifespan/signed readiness with the bound
-authority, AL2023 systemd/capability/signal behavior, measured combined memory/CPU/
-disk headroom, and durable redacted host diagnostics. Current units discard child
-streams; a running target is not health or observability. Candidate admission and
-inference queue settings in the inventory reuse the local capacity profile; they
-are not measured t3.small/Bedrock capacity. Prices, allowance and future finite
-invitation quotas/windows remain unapproved/unbound, never inferred from USD11.
+Actual AL2023 systemd252 boot/stop/restart/capability enforcement, native approved
+provisioning/runtime lock, Agent SDK/lifespan/signed readiness, measured combined
+capacity and durable-log retrieval across reboot remain required. Stream output
+is discarded; the new logs record process lifecycle only. Candidate admission/
+inference limits are unmeasured; model qualification, prices, allowance and
+finite invitation windows remain unapproved/unbound. No cloud gate is closed.
 
 ## Cost decision and stop criteria
 
@@ -357,9 +350,10 @@ name discovered later. Partial creation can already accrue costs.
 ## Current handoff
 
 This dossier completes the offline inventory/sequence consolidation, not the
-blocked prerequisites themselves. The next implementation seam is **host
-credential/process isolation, native production provisioning/lock and durable
-redacted diagnostics**, followed by a fully bound approval/execution package.
+blocked prerequisites themselves. Next is **native production provisioning/lock
+and actual-host acceptance of the prepared
+credential/process isolation and durable diagnostics**, followed by a fully bound
+approval/execution package.
 Current model quota/qualification and account/credit/workload evidence remain
 independent blockers; no further model attempt, sign-in, quota-increase request,
 upgrade or resource experiment is authorized here. Continue local work without

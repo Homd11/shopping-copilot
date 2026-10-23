@@ -2,6 +2,62 @@
 
 **Last updated:** 2026-10-23
 
+## CAP-06 local host isolation and lifecycle diagnostics — 2026-10-23
+
+Separate copilot/copilot-store/copilot-proxy UIDs and minimal native Store/proxy
+settings are implemented. Agent config now .../agent/host.json; Store .../store/
+store.json; proxy .../proxy/proxy.json. Private-reader rules remain unchanged;
+readiness/ledger Agent-only, distinct owner-only Agent/Store service-key copies,
+proxy no application keys. Agent group/read-only catalogue boundary and Store
+setgid2750/db0640/umask0027 are prepared; no actual account/migration/provisioning.
+
+Root stdlib metadata helper validates exact config/release/fingerprint/bound UID
+before one fixed bounded nft call. New required root/NET_ADMIN oneshot owns only
+its inet output chain; each application Requires/BindsTo/After it. Failed barrier
+prevents startup; stop leaves rules and stops applications. Root remains trusted;
+external root rule deletion is not detected by active oneshot state. Inventory
+now counts4local services (3applications+1barrier), with AWS counts/costs unchanged.
+
+Fixed per-service lifecycle hooks/log directories use descriptor nofollow checks,
+private regular single-link files, one-second advisory lock, file/directory fsync,
+64KiB/file+2backups/seven-day prune on write. Only time/service/event/fixed outcome;
+no raw child/error/environment/key output. Failed prestart logging refuses launch.
+Lifecycle is not readiness; filesystem failures cannot guarantee a failure record.
+
+Fresh derived production artifact passed nonroot AL2023/Python3.12.15/glibc2.34
+full default settings/13refusals/29diagnostic wheels/six native imports/Node24.13.0
+exec/auth/restart/persistence/Agent early refusal/Caddy2.11.7 adapt+captured handoff.
+Separate disposable root-bootstrap proof switches real synthetic UIDs: key/state/
+proc-environment/signal denials, no child effective caps, live group-readable WAL,
+Agent denied writes, two native Store restarts, seven unsafe log cases/three I/O
+failures/rotation/retention/fsync/lock/eight writers. Store-closed/missing-WAL
+Agent refusal is expected; Store startup prepares sidecars, no immutable/write bypass.
+
+Real nft1.0.4 fake IPv4+IPv6 metadata packets allow only root/Agent; Store/proxy/
+unrelated UID denied, ordinary loopback preserved, repeat semantics/failed-batch
+atomicity/unrelated table preserved. Network none/read-only root, fixed caps and
+bounded tmpfs; only loopback, no actual IMDS/account.14official hash-checked RPMs
+extracted as test tools, not installed/signature/security approved. Six units pass
+static systemd255.4 with inert stubs, not actual systemd252 boot/reboot acceptance.
+
+Final full Agent+eval:1318pass/no skips/2upstream deprecation warnings in935.10s.
+Initial run1310pass/8fixture setup errors after lint removed an imported fixture;
+restored import,8focused and30new-module pass, then clean full rerun. Repository
+cacheprovider is disabled, so --lf reran all1318 rather than selecting failures.
+TypeScript199pass, workspace/production build, Ruff262, pip and scoped ESLint pass.
+Fresh whole-slice review:0Critical/0Important/1Minor, handoff wording corrected;
+no deferred finding or second review. Evidence/guide:
+eval/evidence/cap06-host-isolation-20261023.json, docs/cap06-host-isolation.md.
+
+Next: approved native Linux provisioning/production lock and actual host UID/
+capability/systemd252 boot/dependency/reboot/log-retrieval/metadata acceptance;
+full Agent lifespan/signed readiness/capacity, current account/credits/workload,
+Bedrock usable quota/strict qualification and final bound resource/cost/rollback
+approval remain open. No AWS/account/model call, real key/state/user change,
+install/activation, DNS/public TLS, extra spend, upgrade or push. All model/
+authority/uncertain-outcome/Free/Stockholm/USD0cash gates persist; CAP04/05/06/07
+and cloud acceptance are not closed by local implementation.
+
 ## CAP-06 inactive concrete apply dossier prepared — 2026-10-23
 
 docs/cap06-apply-proposal.md and cap06-apply-inventory.json consolidate exact

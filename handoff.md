@@ -1,5 +1,26 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 separate host users, metadata barrier and lifecycle logs — 2026-10-23
+
+Newest status: PROJECT_CHECKPOINT.md; docs/cap06-host-isolation.md and
+eval/evidence/cap06-host-isolation-20261023.json. Separate UID/minimal configs,
+Agent-only keys/ledger, group-read-only catalogue, required root nft oneshot and
+bounded private lifecycle hooks are implemented locally, not provisioned. Full
+nonroot native AL2023 proof and actual synthetic multiUID WAL/Store restart/log/
+private IPv4+IPv6 packet proof pass; six units pass static systemd255, no PID1.
+Fresh review0Critical/0Important/1Minor corrected. Final Python1318pass935.10s/
+no skips/2upstream warnings; TypeScript199pass, builds/Ruff262/pip/scopedESLint/
+changed format/diff pass. Initial8fixture setup errors repaired and targeted/full
+reruns green; disabled cacheprovider made --lf execute the full suite. No cloud/
+model/resources/keys/DNS/TLS/spend/activation.
+
+Next is native production provisioning/runtime lock and actual systemd252 host
+acceptance, plus existing account/cost/Bedrock strict-qualification and exact
+resource/cost/rollback approval gates. Metadata root exception is intentional;
+log lifecycle is not readiness; missing WAL fails closed until Store startup.
+No gate, uncertainty hold or authority is reset. Preserve worktree/local branch;
+no install, apply, merge or push authorized by this preparation.
+
 ## CAP-06 inactive resource/cost/rollback dossier — 2026-10-23
 
 Newest status:PROJECT_CHECKPOINT.md. docs/cap06-apply-proposal.md and the inert
