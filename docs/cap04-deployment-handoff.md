@@ -1,5 +1,12 @@
 # CAP-04 deployment handoff
 
+**23 October preparation update:** the current concrete candidate inventory and
+ordered recovery are in [the inactive apply dossier](cap06-apply-proposal.md).
+[The23October reconciliation](research/2026-10-23-cap06-inventory-reconciliation.md)
+supersedes the historical budget-fit implications below. The old55.50+23=78.50
+allocation arithmetic does not establish an USD80 fit. No resources, observation
+service adoption, spending, DNS change or apply approval follows from either record.
+
 **20 October 2026 — conditional preparation package; no deployment performed.**
 The owner could not reach Billing Support and instructed us to continue with the
 available evidence. Further preparation need not wait for that response. Public

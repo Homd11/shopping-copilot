@@ -1,5 +1,32 @@
 # Shopping Copilot — project handoff
 
+## CAP-06 inactive resource/cost/rollback dossier — 2026-10-23
+
+Newest status:PROJECT_CHECKPOINT.md. docs/cap06-apply-proposal.md and the inert
+cap06-apply-inventory.json fix proposed resource names/counts/settings, distinguish
+preflight facts/generated receipts/activation bindings (all actual values null),
+and record exact staging/recovery/teardown and state/secret boundaries. Not a stack,
+CLI, approval-ready result or deployment. Base3roles/3inline policies/1profile,
+2functions/loggroups/OACs and1custom forwarding policy explicit; conditional
+Scheduler/group/role/metric/2alarms unadopted/inactive. Dedicated SG/owner-public-key
+SSH and clean native Linux build/28wheel runtime are proposals, not owner adoption.
+Existing shared network never created/deleted. Corrected cost scenarios persist;
+USD80fit/current credits unknown, no additional inference/spend authority.
+Existing pure renderer/constructor/phase-binding/count/Decimal checks pass;
+fresh review findings corrected in one primary docs-only pass: private-file
+ownership/readability, first-deploy safe-stop, conditional adoption and full host
+IAM teardown. Post-fix consistency/format/whitespace pass, no second independent
+review or runtime rerun. eval/evidence/cap06-apply-dossier-20261023.json.
+
+Next implementation gap: shared copilot UID means IMDSv2 or owner-UID allowlisting
+does not separate Storefront/proxy from Agent credentials; reviewed process/
+credential isolation still needed. Durable redacted host diagnostics, native
+production lock/interpreter/provisioning, real systemd/capability/capacity and
+model/account/workload/cloud acceptance remain open. Keep provider closed;
+quota/strict qualification and bound final resource/cost/rollback approvals still
+required before AWS writes. No account/model/resource/credential/production-key/
+DNS/TLS operation, install/activation, new spend, upgrade or push occurred.
+
 ## CAP-06 full offline Linux host checks and inventory review — 2026-10-23
 
 Newest status/evidence: PROJECT_CHECKPOINT.md and

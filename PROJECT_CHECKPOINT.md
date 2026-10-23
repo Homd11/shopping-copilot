@@ -2,6 +2,66 @@
 
 **Last updated:** 2026-10-23
 
+## CAP-06 inactive concrete apply dossier prepared — 2026-10-23
+
+docs/cap06-apply-proposal.md and cap06-apply-inventory.json consolidate exact
+proposed names/settings/counts, phased bindings, credential/state custody,
+activation, code rollback and targeted teardown. Inert data/docs only, not a stack,
+CLI input or an approval-ready result. Generated IDs remain null; distinguish
+pre-creation account/network/artifact facts, later creation receipts and
+activation/authority/key references. No synthetic ID is a real account binding.
+
+Base proposal explicitly counts3runtime roles/3inline policies/1profile,2Lambdas/
+2log groups/2OACs/1custom control forwarding policy and one each host/root volume/
+retainedEIP/table/private bucket/distribution/dedicated host security group/owner
+public-key import, plus2registrarAchanges and3host services/target. Shared existing
+network not created/deleted. Extra SG/SSH administration/names/settings/native
+Linux provisioning are builder proposals, not new owner adoption. Conditional
+group/schedule/invoke-role/metric/2alarms remain unadopted, inactive, separately
+costed; no third function/new notification or administrative service.
+
+Proposed build uses clean reviewed native Linux output and the28tested runtime
+wheels (no diagnostic packaging); exact interpreter/lock/security approval and
+native build/provisioning remain open. Owner-scoped SSH copies verified artifacts;
+host role has no S3 artifact/backup or EC2-control grant. Host policy bound review
+still needed; model InvokeModel grant held until qualification/spend authority.
+Secret values absent, actual allowance/identity/key generation never performed.
+
+Pure existing renderer checks with in-memory synthetic bindings pass: both
+function/log/OAC/header contracts, disabled finite60day observation documents,
+closed alarm/adoption/apply/provider flags, null real bindings, candidate admission
+limits and phase-field coverage. Decimal rows/sensitivities independently agree.
+Fresh review found2Important and2Minor instruction gaps; primary addressed all
+as material to a usable apply/rollback record in one docs/data-only pass: private
+config must be owner-only and readable by consuming UID (no root0600 shortcut),
+first deployment uses closed safe-stop/no invented previous-release hash,
+observation approval is conditional for base-only private preparation, and host
+profile/inline policy/role cleanup is explicit. Owner-driven observations after
+schedule disable are explicit. Post-fix consistency/format/whitespace pass; no
+second independent review or runtime suite rerun for unchanged code. Evidence:
+eval/evidence/cap06-apply-dossier-20261023.json. No deferred findings.
+
+Important newly explicit gap: all prepared host units share copilot UID; IMDSv2/
+hop1 alone and a copilot UID-owner exception cannot isolate Storefront/proxy from
+Agent role credentials. Process/service credential isolation needs a reviewed
+implementation and reboot/failure evidence. Current units also discard streams;
+durable redacted host diagnostics and actual service/capability/capacity remain
+unqualified. Do not fix either gap by an unreviewed provisioning workaround.
+
+Costs carry23October Decimal scenarios, no new prices or fit claim:46.253592base+
+22.1066776conditional=68.3602696infra;79.3902696combined;120h50.8782696;
+30snon-tick sensitivity102.7236496. USD80unvalidated,11futuremodel allocation
+unapproved, existing0.03held/0.04diagnostic authorization unchanged. Historical
+handoff now points to the corrected reconciliation. No current-account proof.
+
+Next: host process/credential isolation and durable redacted diagnostics, with
+native production provisioning/lock; then remaining account/workload/model and
+bound resource/cost/rollback acceptance before any apply. No AWS account/model/
+credential/resource/production-key/DNS/TLS API/write, install/activation, extra
+spend, upgrade or push. Public primary AWS documentation only was checked.
+All previous model, safety, Free/Stockholm/USD0cash and uncertain-outcome fences
+persist; no cloud/model gate is closed by this dossier.
+
 ## CAP-06 full offline Linux host rehearsal and cost reconciliation — 2026-10-23
 
 Full original HostSettings/default POSIX reader and protected native Storefront
