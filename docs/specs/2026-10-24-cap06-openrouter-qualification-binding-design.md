@@ -1,8 +1,13 @@
 # Explicit OpenRouter qualification binding
 
-**Proposed24October2026; not approved or implemented.** Continue the approved
+**Owner-approved for implementation24October2026; implementation in progress.** Continue the approved
 Controlled Storefront graduation scope. This design covers one missing host
 authority boundary, not independent Storefronts, a new model or AWS activation.
+
+**Owner amendment24October:** hash and validate protected evidence/custody at
+startup only. There is no runtime file-reading worker or per-request disk hashing.
+The20source-file comparison is an offline audit concern and never a runtime
+eligibility test. Operator changes take effect through explicit restart/rebinding.
 
 ## Intent and evidence
 
@@ -19,10 +24,10 @@ host operation, current key credit or production capacity.
 The current host intentionally always returns provider-unqualified. Implement a
 trusted, explicit binding between that accepted model evidence, the executing
 release and the configured provider/custody. There is no `ready=true` setting.
-Missing, invalid, expired, changed or mismatched evidence must refuse.
+Missing, invalid, expired or mismatched startup evidence must refuse.
 
-All choices below are builder proposals for approval, not previously agreed owner
-choices. Approval of this design authorizes implementation/tests with synthetic
+The owner approved the builder choices below through the explicit implementation
+approval in this chat. Approval of this design authorizes implementation/tests with synthetic
 custody only. Actual key access/migration, calls/spend, resources, public exposure
 and final host/deployment acceptance retain their existing gates.
 
@@ -56,7 +61,7 @@ issued_at<=now<expires_at and a maximum60day interval. No extra keys or interpol
 Its accepted report digest must be the recorded immutable15October acceptance.
 Its reconciliation digest identifies the reviewed offline evidence and code
 bindings; neither can be an arbitrary caller-supplied passing score. The exact
-allowed digest/source tuple is maintained in code and changes only through review.
+accepted report/reconciliation digests are maintained in code and change through review.
 This first implementation supports this single accepted model/evidence tuple;
 future models need their own acceptance, not a generic self-certification tool.
 
@@ -66,8 +71,10 @@ The canonical reconciliation bytes are
 That record pins accepted runtime39f03ef and current source8afa7d1. Its
 `current_model_contract_sources` supplies the exact20canonical Git-byte SHA256
 values for all Python files in agent/llm and agent/inference, plus agent/advice.py
-and agent/catalogue_retrieval.py. Those20release files must match, independently
-of worktree CRLF observations; no arbitrary path or caller hash is accepted. The
+and agent/catalogue_retrieval.py. Those source hashes remain offline provenance;
+runtime never walks or pins these20files. A reviewed bugfix/new release requires
+normal release verification and a newly pinned binding, not a runtime source-table
+edit. The
 original accepted-report SHA256 is
 `7a168063cc6b179cd484e7c6098923a8592b737752dd3908e0dd3a0e1853fd98`.
 The public reconciliation stays an offline audit record; only the separately
@@ -82,10 +89,10 @@ same owner/permission/no-symlink/single-hardlink checks as current host secrets.
 The accepted report currently occupies470510bytes. Hash and validate exact bytes;
 do not rewrite line endings, source hashes, case rows, scores or historical costs.
 
-The private key digest binds the already loaded explicit provider key without
+At startup, the private key digest binds the already loaded explicit provider key without
 putting key bytes in a report. It is private custody metadata: never include it in
-public evidence, repr, errors or logs. Read the protected key file again through
-the existing reader to detect changed custody. No new key, allowance, settlement,
+public evidence, repr, errors or logs. Read the protected key file through the
+existing reader during startup and capture its identity. No new key, allowance, settlement,
 enable/reset or refund is created. A future private binding preparer may write a
 new0600file exclusively from explicit protected inputs; no actual key is read
 while implementing/testing it. Generating candidate bytes alone is not operator
@@ -111,27 +118,29 @@ promise of availability or a new credit allocation.
 
 ## Lifetime, freshness and refusal
 
-Create an owned verifier once the actual guard exists during explicit host
-assembly. It uses one bounded synchronous-I/O worker with capacity1; all private
-reads/hashing occur off the event loop. Keep the existing one-flight1second
-provider bound and1.5second signed aggregate bound. Saturation, timeout, ordinary
-I/O/parse errors or any changed binding return strict false; cancellation propagates
-while entered worker capacity stays retained. No successful qualification cache.
+Read/hash/validate the protected binding, report, reconciliation and key custody
+once during explicit pre-loop startup, alongside normal release verification.
+Validate the actual guard/client after assembly before serving. Capture an
+immutable qualification and custody snapshot. Do not create a runtime I/O worker,
+watch files or re-read/re-hash evidence/key files across requests or lifecycle
+awaits. Protected0600inputs change through operator action/restart; changes to
+disk do not silently reconfigure an already running process.
 
-Every successful observation yields an internal immutable proof token containing
-the binding/content fingerprints and validity interval. Work must freshly
-revalidate the same token after its awaited lifecycle check, including current
-time and custody; changed, revoked, expired or closed evidence cannot authorize
-entry based only on a result obtained before that await. The final request
+An owned lightweight verifier uses only the captured snapshot, current time,
+closed state and bound in-memory client/ledger configuration. Keep the existing
+one-flight1second provider bound and1.5second signed aggregate bound. Every
+successful observation yields an internal immutable proof token. After awaiting
+lifecycle authority, recheck the same in-memory token, expiry and client bindings;
+expired, closed or mutated in-memory authority must refuse. The final request
 authorization boundary still runs immediately before the provider POST after the
-key check. Define revocation as refusal when freshly observed at these boundaries;
+key check. File-based operator revocation is applied on restart; process closure,
+expiry and lifecycle authority still refuse at runtime. Define revocation by those boundaries;
 do not promise recall of an already sent request or refund uncertain outcomes.
 Renewal and Stop remain independent of qualification.
 
-The host owns verifier lifetime explicitly. Close marks it unavailable, drains
-provider callbacks and the actual retained I/O worker, then closes the remaining
-owned host resources in the established order. Startup failure must clean it too.
-Cancelling the callback task alone is insufficient to close a shielded worker.
+The host owns verifier lifetime explicitly. Close marks it unavailable and drains
+provider callbacks, then closes the remaining host resources in their established
+order. Startup failure must clean it too. There is no qualification worker to drain.
 The existing trusted callback injection remains a test seam; it cannot be combined
 with this production binding to override its result. Error text stays fixed and
 redacted, with no key, custody digest, path or rejected input.
@@ -140,11 +149,13 @@ redacted, with no key, custody digest, path or rejected input.
 
 TDD at the real private-reader/verifier and host-factory seams: exact positive
 synthetic binding; absent/partial CLI pair; duplicate/oversized/missing/tampered
-evidence; wrong release/model/client/config/key/ledger; forbidden permissions,
-links and aliasing; future/expired/too-long intervals; revocation/expiry/custody
-changes across lifecycle and provider waits; one retained worker through timeout
-and cancellation; Stop/renewal independence; cleanup exactly once on failure and
-shutdown. No actual provider requests or allowance mutations.
+evidence at startup; wrong release/model/client/config/key/ledger; forbidden
+permissions, links and aliasing; future/expired/too-long intervals; in-memory
+revocation/expiry across lifecycle and provider waits; runtime observations perform
+zero evidence/key/source reads; disk changes become effective on restart; Stop/
+renewal independence; cleanup exactly once on failure and shutdown. A normally
+verified/rebound release with a minor source bugfix must not fail on the old20file
+table. No actual provider requests or allowance mutations.
 
 Preserve existing v1/v2 default-false tests and all safety regressions. Test valid
 synthetic bindings with actual app assembly while intercepting external authority
