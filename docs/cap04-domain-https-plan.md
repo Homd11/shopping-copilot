@@ -1,5 +1,7 @@
 # CAP-04: domain and HTTPS preparation
 
+> **19 October superseding selection:** the owner approved [direct Caddy-managed public HTTPS for app/store and a generated CloudFront startup link](superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md). The account explicitly blocks Virginia ACM without upgrade. The conditional custom-alias/ACM procedure below is historical for this account, not the selected deployment path. DNS will use A records to a retained EIP for app/store; public ACME issuance/renewal needs its own qualified Caddy configuration. No records or certificates have been created.
+
 Date: 14 October 2026. Status: owner-approved browser layout; local ticket 03 routing implemented.
 
 See [configured-runtime evidence](research/2026-10-14-cap04-production-origins.md) and

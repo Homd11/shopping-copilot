@@ -51,12 +51,34 @@ class ShopperAccess:
         self.records[hashlib.sha256(credential.encode()).hexdigest()] = record
         return credential, record
 
-    def owns_session(self, session_id: str, binding: ShopperBinding) -> bool:
+    def owns_session(self, session_id: str, binding: ShopperBinding, admitted=None) -> bool:
         self.resolve("")
         return any(
-            record.shopper == binding and session_id in record.sessions
+            record.shopper == binding
+            and session_id in record.sessions
+            and (admitted is None or admitted(record))
             for record in self.records.values()
         )
+
+    async def owns_session_async(self, session_id, binding, admitted=None):
+        from inspect import isawaitable
+
+        self.resolve("")
+        for key, record in tuple(self.records.items()):
+            if record.shopper != binding or session_id not in record.sessions:
+                continue
+            allowed = True if admitted is None else admitted(record)
+            if isawaitable(allowed):
+                allowed = await allowed
+            self.resolve("")
+            if (
+                allowed is True
+                and self.records.get(key) is record
+                and record.shopper == binding
+                and session_id in record.sessions
+            ):
+                return True
+        return False
 
     def challenge(self, record: BrowserAuthority) -> str:
         now = self.clock()

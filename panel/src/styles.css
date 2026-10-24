@@ -27,6 +27,7 @@ body {
   overflow: hidden;
 }
 #app {
+  position: relative;
   min-width: 0;
   min-height: 0;
 }
@@ -472,6 +473,65 @@ select:focus-visible,
   .workspace {
     grid-template-rows: minmax(0, 70fr) minmax(0, 30fr);
   }
+}
+.admission-entry {
+  position: absolute;
+  inset: 12px;
+  z-index: 10;
+  align-content: center;
+  padding: 24px;
+  border: 1px solid #dce4f2;
+  border-radius: 20px;
+  background: #fff;
+  color: #183756;
+  overflow-y: auto;
+}
+#admission-busy {
+  position: absolute;
+  inset: 12px 12px auto;
+  z-index: 11;
+  padding: 12px;
+  border: 1px solid #e3cd8d;
+  border-radius: 10px;
+  background: #fff7df;
+  color: #664600;
+}
+.admission-entry h2 {
+  font-size: 24px;
+  margin: 0 0 12px;
+}
+.admission-entry p {
+  line-height: 1.7;
+}
+.admission-entry label {
+  display: block;
+  margin: 18px 0 8px;
+}
+.admission-entry input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px;
+  border: 1px solid #a8b8d8;
+  border-radius: 10px;
+  direction: ltr;
+  font: inherit;
+}
+.admission-entry button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #2855df;
+  color: #fff;
+  font: inherit;
+}
+.admission-entry :is(input, button):focus-visible {
+  outline: 3px solid #7796ff;
+  outline-offset: 3px;
+}
+.admission-entry button:disabled {
+  opacity: 0.6;
 }
 @media (prefers-reduced-motion: reduce) {
   *,

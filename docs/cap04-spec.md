@@ -1,5 +1,7 @@
 # CAP-04 cloud readiness specification
 
+> **19 October selected network amendment:** AWS account evidence blocks Virginia ACM without a paid upgrade. The owner selected [generated-host automatic startup plus direct Caddy HTTPS on the owned shopping domains](superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md). Shopping origins and safety contracts remain unchanged. Generated CloudFront HTTPS serves only waiting/control, not the shopping iframe/API. No resources, paid calls, DNS changes or account upgrade are authorized. This supersedes custom-domain CloudFront/Virginia-certificate assumptions below.
+
 **Status:** ready-for-agent
 
 The owner approved the 11 October cloud-readiness design. This specification

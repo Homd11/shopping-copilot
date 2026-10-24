@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator, Callable, Iterable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
@@ -48,6 +48,12 @@ class LLMRequest:
     attempt_id: str | None = None
     # Coordinators can own retries and prohibit hidden provider attempts.
     provider_attempt_limit: Literal[1, 2] = 2
+    # Local runtime authority only; never serialized into prompts or provider payloads.
+    authorization_check: Callable[[], Awaitable[None]] | None = None
+
+    async def authorize(self) -> None:
+        if self.authorization_check is not None:
+            await self.authorization_check()
 
 
 class LLMClient(Protocol):

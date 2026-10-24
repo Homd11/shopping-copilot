@@ -1,3 +1,4 @@
+from agent.llm.bedrock import BedrockClient
 from agent.llm.config import LLMConfigurationError, LLMSettings
 from agent.llm.contract import LLMClient, ScriptedLLMClient
 from agent.llm.gemini import GeminiClient
@@ -17,6 +18,8 @@ def build_llm_client(settings: LLMSettings) -> LLMClient:
         return GeminiClient(settings)
     if settings.provider == "openrouter":
         return OpenRouterClient(settings)
+    if settings.provider == "bedrock":
+        return BedrockClient(settings)
     raise LLMConfigurationError(
         f"The {settings.provider} LLM adapter is not available in this build"
     )

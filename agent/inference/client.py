@@ -2,37 +2,15 @@
 
 import asyncio
 import json
-from contextlib import aclosing
+from contextlib import aclosing, suppress
 from dataclasses import dataclass, replace
 from decimal import Decimal
 from math import isfinite
+from time import monotonic
 from uuid import uuid4
 
 from agent.inference.ledger import InferenceRefused, units
-
-
-def _expanded_schema(value, root, stack=()):
-    if isinstance(value, list):
-        return [_expanded_schema(item, root, stack) for item in value]
-    if not isinstance(value, dict):
-        return value
-    if "$ref" in value:
-        reference = value["$ref"]
-        if not isinstance(reference, str) or not reference.startswith("#/") or reference in stack:
-            raise InferenceRefused("unavailable")
-        target = root
-        for part in reference[2:].split("/"):
-            target = target[part.replace("~1", "/").replace("~0", "~")]
-        expanded = _expanded_schema(target, root, (*stack, reference))
-        return {
-            **expanded,
-            **_expanded_schema(
-                {key: item for key, item in value.items() if key != "$ref"}, root, stack
-            ),
-        }
-    return {
-        key: _expanded_schema(item, root, stack) for key, item in value.items() if key != "$defs"
-    }
+from agent.llm.provider_schema import inline_schema_references
 
 
 @dataclass(frozen=True)
@@ -53,7 +31,7 @@ class InferencePrices:
                 {
                     "system": request.system,
                     "messages": [{"role": m.role, "content": m.content} for m in request.messages],
-                    "response_schema": _expanded_schema(schema, schema),
+                    "response_schema": inline_schema_references(schema),
                 }
             ).encode()
         except (ValueError, KeyError, TypeError, RecursionError) as error:
@@ -79,6 +57,7 @@ class GuardedClient:
         maximum_active: int,
         maximum_waiting: int,
         wait_seconds: float,
+        queue_observer=None,
     ):
         if (
             isinstance(maximum_active, bool)
@@ -98,10 +77,19 @@ class GuardedClient:
         self._admitted = 0
         self._capacity = maximum_active + maximum_waiting
         self._wait_seconds = wait_seconds
+        self._queue_observer = queue_observer
+
+    def _observe_queue(self, outcome, started):
+        if self._queue_observer is not None:
+            # Trusted local telemetry must never change execution or authority.
+            with suppress(Exception):
+                self._queue_observer(outcome, (monotonic() - started) * 1000)
 
     async def complete(self, request):
+        started = monotonic()
         async with self._admission_lock:
             if self._admitted >= self._capacity:
+                self._observe_queue("full", started)
                 raise InferenceRefused("busy")
             self._admitted += 1
         acquired = False
@@ -109,13 +97,17 @@ class GuardedClient:
             try:
                 await asyncio.wait_for(self._semaphore.acquire(), timeout=self._wait_seconds)
             except TimeoutError as error:
+                self._observe_queue("timeout", started)
                 raise InferenceRefused("busy") from error
             acquired = True
+            self._observe_queue("acquired", started)
+            await request.authorize()
             attempt = request.attempt_id or str(uuid4())
             bound = self.prices.reservation(request)
             await asyncio.to_thread(self.ledger.reserve, attempt, bound)
             chunks = []
             try:
+                await request.authorize()
                 async with aclosing(
                     self.client.complete(
                         replace(request, attempt_id=attempt, provider_attempt_limit=1)

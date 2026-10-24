@@ -1,5 +1,7 @@
 # CAP-04: credit-only cloud design revision
 
+> **19 October owner-approved amendment:** actual account evidence blocks Virginia ACM without a paid upgrade. Use [generated-host wake plus direct shopping HTTPS](2026-10-19-cap04-stockholm-ingress-amendment.md): Caddy public ACME on app/store, generated CloudFront waiting/control hostname, Stockholm S3/Lambda/DynamoDB. Earlier custom-domain CloudFront candidates are comparisons only. This is a design selection with no resource, paid-call or DNS authorization.
+
 Date: 11 October 2026. Status: design approved by the owner on 11 October; CAP-04 remains open.
 
 > **14 October amendment:** the owner supplied `scpilot.tech` and selected sibling

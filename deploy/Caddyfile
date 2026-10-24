@@ -4,6 +4,11 @@
 	persist_config off
 	storage file_system "{$COPILOT_CADDY_STORAGE}"
 	log {
+		output file "{$COPILOT_CADDY_STORAGE}/diagnostics.jsonl" {
+			roll_size 1MiB
+			roll_keep 2
+			roll_keep_for 168h
+		}
 		format filter {
 			wrap json
 			fields {

@@ -40,6 +40,18 @@ class SessionRegistry:
         self._sessions[session.session_id] = session
         return session
 
+    def has_capacity(self) -> bool:
+        self._expire()
+        return len(self._sessions) < self._capacity
+
+    def has_pending_work(self) -> bool:
+        self._expire()
+        return any(
+            session.active_task is not None
+            and session.active_task.status in {"interpreting", "awaiting_action_result"}
+            for session in self._sessions.values()
+        )
+
     def get(self, session_id: str) -> Session:
         self._expire()
         if session_id in self._expired_ids:

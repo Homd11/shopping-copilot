@@ -1,5 +1,670 @@
 # Shopping Copilot — project handoff
 
+## PR3 CI integration fixes — 2026-10-24
+
+PROJECT_CHECKPOINT.md records clean-CI repairs: explicit synthetic admission-test
+configuration, scheduling-independent two-tab ownership checks with reverse-order
+coverage, frozen offline pnpm deployment in isolated staging, and pinned offline
+cloud-test dependencies in CI. Focused80+8+8+11tests pass; fresh fix review clear.
+See PR3 for final CI and merge receipts. No safety check or cloud/model gate is
+waived, and no AWS/model/key/DNS/TLS/spending action is authorized by integration.
+Native production provisioning/runtime lock and real-host acceptance remain next.
+
+## CAP-06 separate host users, metadata barrier and lifecycle logs — 2026-10-23
+
+Newest status: PROJECT_CHECKPOINT.md; docs/cap06-host-isolation.md and
+eval/evidence/cap06-host-isolation-20261023.json. Separate UID/minimal configs,
+Agent-only keys/ledger, group-read-only catalogue, required root nft oneshot and
+bounded private lifecycle hooks are implemented locally, not provisioned. Full
+nonroot native AL2023 proof and actual synthetic multiUID WAL/Store restart/log/
+private IPv4+IPv6 packet proof pass; six units pass static systemd255, no PID1.
+Fresh review0Critical/0Important/1Minor corrected. Final Python1318pass935.10s/
+no skips/2upstream warnings; TypeScript199pass, builds/Ruff262/pip/scopedESLint/
+changed format/diff pass. Initial8fixture setup errors repaired and targeted/full
+reruns green; disabled cacheprovider made --lf execute the full suite. No cloud/
+model/resources/keys/DNS/TLS/spend/activation.
+
+Next is native production provisioning/runtime lock and actual systemd252 host
+acceptance, plus existing account/cost/Bedrock strict-qualification and exact
+resource/cost/rollback approval gates. Metadata root exception is intentional;
+log lifecycle is not readiness; missing WAL fails closed until Store startup.
+No gate, uncertainty hold or authority is reset. Preserve worktree/local branch;
+no install, apply, merge or push authorized by this preparation.
+
+## CAP-06 inactive resource/cost/rollback dossier — 2026-10-23
+
+Newest status:PROJECT_CHECKPOINT.md. docs/cap06-apply-proposal.md and the inert
+cap06-apply-inventory.json fix proposed resource names/counts/settings, distinguish
+preflight facts/generated receipts/activation bindings (all actual values null),
+and record exact staging/recovery/teardown and state/secret boundaries. Not a stack,
+CLI, approval-ready result or deployment. Base3roles/3inline policies/1profile,
+2functions/loggroups/OACs and1custom forwarding policy explicit; conditional
+Scheduler/group/role/metric/2alarms unadopted/inactive. Dedicated SG/owner-public-key
+SSH and clean native Linux build/28wheel runtime are proposals, not owner adoption.
+Existing shared network never created/deleted. Corrected cost scenarios persist;
+USD80fit/current credits unknown, no additional inference/spend authority.
+Existing pure renderer/constructor/phase-binding/count/Decimal checks pass;
+fresh review findings corrected in one primary docs-only pass: private-file
+ownership/readability, first-deploy safe-stop, conditional adoption and full host
+IAM teardown. Post-fix consistency/format/whitespace pass, no second independent
+review or runtime rerun. eval/evidence/cap06-apply-dossier-20261023.json.
+
+Next implementation gap: shared copilot UID means IMDSv2 or owner-UID allowlisting
+does not separate Storefront/proxy from Agent credentials; reviewed process/
+credential isolation still needed. Durable redacted host diagnostics, native
+production lock/interpreter/provisioning, real systemd/capability/capacity and
+model/account/workload/cloud acceptance remain open. Keep provider closed;
+quota/strict qualification and bound final resource/cost/rollback approvals still
+required before AWS writes. No account/model/resource/credential/production-key/
+DNS/TLS operation, install/activation, new spend, upgrade or push occurred.
+
+## CAP-06 full offline Linux host checks and inventory review — 2026-10-23
+
+Newest status/evidence: PROJECT_CHECKPOINT.md and
+eval/evidence/cap06-linux-host-20261023.json. Full default POSIX HostSettings,
+13 config refusals,29 diagnostic Linux wheels/six native imports, actual native
+Node24.13.0 Storefront exec/restart/persistence/auth boundaries pass in offline
+AL2023/Python3.12.15/glibc2.34 non-root bounded container. Production runtime/locks
+unchanged. Portable derived artifact preserves verified internal pnpm links;
+flattening failed and was corrected with RED/GREEN topology test. This is not
+exact Windows-artifact or approved cloud-installation acceptance. Agent checks
+stop at active-loop refusal; no SDK/app construction/readiness. Caddy2.11.7
+version/adapt and captured run handoff only, never public run/validate/ACME.
+Guide:docs/cap06-linux-host-rehearsal.md; source/vendor/wheel/container digests
+in evidence/manifest. No unit/package installed or activated, no real state used.
+Primary138focused tests pass221.04s/no skips, Ruff254/pip/changed format pass;
+ESLint passes with only generated rehearsal tree excluded. Fresh review clear;
+independent digests/Decimal verified. Independent87pass plus11setup errors from
+one Windows Node seed exit; isolated11bootstrap rerun pass7.33s/no reset or edits.
+Retain the unexplained transient and exact command/results in evidence.
+
+Public inventory review + primary Decimal calculation show old78.50 allocation
+sum does not prove USD80 fit. Continuous60day example68.360270 infrastructure,
+79.390270 combined with unapproved11future-model planning allocation and separate
+existing0.03hold; 120EC2hours50.878270, non-tick30s sensitivity102.723650. Two
+functions and shared logs/table/edge traffic explicit, workload unmeasured,
+current credit/account facts unknown. Conditional Scheduler/monitoring inventory
+still unadopted. docs/research/2026-10-23-cap06-inventory-reconciliation.md.
+
+Next: concrete inactive apply inventory/bindings, production Linux provisioning/
+dependency choice, workload/account/credit and exact resource/cost/rollback
+proposal. Real systemd252/EC2/capabilities/signals/capacity/TLS/IAM/OAC/events,
+Bedrock quota/qualification and deployed acceptance remain open. Preserve all
+Free/Stockholm/USD0cash/safety/uncertain-Action fences. No cloud/model/account/
+credential/resource/DNS/TLS write/call, extra spend, install/activation or push.
+
+## CAP-06 inactive host service bundle prepared — 2026-10-23
+
+Newest status is in PROJECT_CHECKPOINT.md. Explicit deploy.host_component prepares
+protected Storefront/Caddy exec using exact verified release and clean child
+environments; version checks fixed Node24>=24.13.0/Caddy2.11.7. New host target
+Wants store/Agent/proxy; member PartOf, explicit legacy conflict ordering,
+independent bounded restarts. Only Caddy has bind capability and retained-storage
+write access. Nothing installed/enabled/provisioned; default model gate closed.
+No process-launch/target-active state is treated as signed readiness.
+
+Final regression1107passed/no skips345.65s; independent review78focused passes
+before primary's RED/GREEN Caddy path-interpolation fix; no deferred findings.
+Static systemd255/inert root and11actual Linux filesystem primitive checks pass,
+not real AL2023/systemd252/host config/key/capability/TLS/cloud acceptance.
+Evidence:eval/evidence/cap06-host-services-20261023.json;
+guide:docs/cap06-host-services.md. Next: full protected Linux host configuration/
+executable acceptance and observation inventory/cost reconciliation. Exact apply
+approval, Bedrock quotas/qualification and all deployed acceptance remain open.
+No AWS/model/credential/DNS/TLS resource/write/spend/upgrade/push; Stockholm/Free/
+zero-cash invariants persist. Keep work in the existing isolated worktree.
+
+## CAP-06 inactive external observations prepared — 2026-10-22
+
+Current frontier includes a concrete conditional new-service/cost proposal:
+docs/superpowers/specs/2026-10-22-cap06-observation-delivery-design.md. One proposed
+Stockholm Scheduler schedule/group/execution role invokes existing controller
+every minute, exact internal tick with no caller generation/target/start authority,
+fresh observe then at most one already-pending command. Preserve all invitation,
+deadline, generation/revision, lease/drain and uncertain-command/Action fences.
+Finite UTC schedule, flexible OFF, delivery retry0/age60; async error retries0/
+age60. Tick-only EMF completion plus2CloudWatch alarm metrics; no SNS/actions.
+Controller/runtime/entry tick and pure deploy/observation.py renderer are prepared
+offline under the owner's continuation. Schedule always DISABLED/alarms actions
+false. Fixed redacted tick errors cross entry and factory for Lambda Errors;
+failed initialization stays latched. Actual selected service inventory unchanged.
+
+Research:docs/research/2026-10-22-cap06-observation-delivery-contract.md. Published
+Free-project policy does not categorically deny Scheduler, but permissions,
+spend-limit policy/quotas and credit eligibility remain account-specific. Trust
+SourceArn uses schedule GROUP. Independently rechecked contracts and Decimal
+arithmetic; fresh builder check clear. RED/GREEN and local safety/profile/render
+tests36passed11.40s; independent final review clear with108focused/existing cases
+33.72s. Largest128lease item6868DynamoJSON bytes; max26hotGet+4cold metadata,
+3transactions. Fixture counts are not real billing evidence. Both updated role
+ZIPs rebuilt byte-identically and passed isolated Windows3.12 -I -S -B smoke,
+including missing-config tick error, with SDK/network blocked. Final all-Agent/
+observation/package/host/access/browser/fresh release1036passed/no skips170.67s.
+Ruff247files/pip/ESLint/Prettier/whitespace pass. Evidence:
+eval/evidence/cap06-observation-delivery-20261022.json; guide:docs/cap06-observation-delivery.md.
+Updated startup25888663bytes SHA2567d90b216b33f4697354df220764e8a2f79dd35b63bcc1fff2e2c01f72aac5f7d;
+controller25888669bytes8b968e9daf2d9cb0a8191eec0a5d5a3d9945ebe7d82b10e08707760332b5c641.
+
+Conservative86400tick scenario22.1716576USD =>22.18; proposed23credit planning
+allocation yields55.50+23=78.50, only1.50inside proposed80 plus prior20separate
+reserve. Includes256MiB/30s,160RRU/144WRU per tick, logs/storage/custom metric/
+alarms. Assumptions not measurements/caps; INIT/duplicates/public traffic and
+actual operation bytes must be reconciled before apply. No new spend authorized.
+
+Next: Linux artifact execution and host launcher integration; reconcile proposed
+service/credit/account costs before adopting the additional resources.
+No silently adopted scheduler, deployed monitoring, exact idle deadline guarantee,
+account API/model/resource/key/DNS/TLS call/write, upgrade or push. Actual AWS
+apply still requires complete resource/cost/rollback approval and all existing
+Free-plan/Stockholm/zero-cash/Bedrock/account/deployment gates remain open.
+
+## CAP-06 reproducible Lambda ZIPs prepared — 2026-10-22
+
+Current frontier: agent/lifecycle/lambda_entry.py fixed-role lazy handler and
+deploy/lambda_package.py offline builder/verifier. Complete14 pure-wheel exact
+hash lock, metadata/RECORD/closure/path/link/collision/size validation, explicit
+source allowlist, deterministic ZIP_STORED/timestamps/POSIX modes and external
+digest trust. Only JMESPath's verified unused jp.py CLI is explicitly omitted;
+SDK data/CA/licences retained. Runtime bounded exact JSON plus separate controller
+key validates before SDK construction; no import clients, cross-role switch,
+automatic failed initialization retry or uncertain Action replay.
+
+Both actual role ZIPs reproduced byte-identically and independently reviewed,
+external digest verified; Windows Python3.12.5 isolated -I -S -B imports/fixed-role
+delegation/versions/service data/CA pass with SDK/network forbidden. Startup
+25,886,261bytes SHA256 88c5f11d3e6770091146a196c4a3a58ece4774ce6a08b4c4a29b57dd25f65661;
+controller25,886,267bytes e208482f62b7a3158766fe59d63be86c47b6e2cb21a9aa2a560b70c6f4248ad0.
+Final1000passed/no skips161.48s includes all Agent, affected host/access/browser
+checks and fresh general release build. Focused64passed3.76s; reviewer64in5.05s,
+no findings. Ruff244files/pip/ESLint/Prettier/whitespace pass. Evidence:
+eval/evidence/cap06-lambda-package-20261022.json; docs/cap06-lambda-package.md.
+
+Next: approved reliable external observation delivery and deployment integration.
+Do not silently add EventBridge/SQS or Lambda sleeps/self-invocation. Actual AL2023
+artifact/architecture execution, key/config provisioning, launcher selection/real
+POSIX enforcement, effective IAM/OAC/event/account eligibility and final costed
+resource/rollback approval remain. No AWS/model/resource/key/DNS/TLS write/call,
+upload, activation, upgrade, gate waiver, extra spend or push. Public PyPI acquisition
+only plus offline target/hash check. Bedrock zero quotas and Free-plan/Stockholm/
+zero-cash persist; Windows packaging proof does not close deployed acceptance.
+
+## CAP-06 restricted host startup API prepared — 2026-10-22
+
+Current frontier: deploy/host_config.py strict bounded immutable settings and
+POSIX-only private reader; host_bootstrap.py explicit pre-loop assembly of owned
+remote admission/work, one allowance guard and concrete signed readiness. Exact
+executing release root checked before SDK; synthetic tests patch root observation,
+so actual packaged execution/Linux ownership are not established. Default Windows
+reader refuses, trusted test reader/metadata cases only. No key provisioning.
+
+App accepts copied environment throughout provider/guard/identity/service mode/
+retrieval/encoder/test routes, no ambient/dotenv/local identity fallback. Legacy
+agent.app:app is lazy/cached, import alone creates none. Private identity and
+synchronous Confirmation disable environment proxies. Unqualified provider stays
+false; requests/model entry/allowance consumption blocked even if authority still
+says healthy. Stop remains available and pending work renews independently.
+
+Fresh review fixes all reproduced gaps: ambient settings/proxy, provider await
+starving lease actor, cancelled close advancing SDK shutdown. One-flight1s verifier
+is outside actor lock with retained cancellation cleanup and final authority
+fences. Retained shutdown drains all lifecycle/admission SDK users before close.
+Review clear, final2shutdown checks independently3.15s. Final all-Agent/host/config/
+bootstrap/access/browser/fresh artifact936passed/no skips145.06s; focused19in9.41s.
+Lint/format239Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-bootstrap-20261022.json; docs/cap06-host-bootstrap.md.
+
+Next: Linux Lambda dependency package, approved reliable external observation
+delivery, then real POSIX/key provisioning/packaged execution (-B), approved
+launcher integration, effective IAM/OAC/event eligibility/resource/cost/rollback
+and cloud acceptance. Current launcher/systemd/backend not selected or modified.
+No AWS/model/credential/resource/key/DNS/TLS call/write, upgrade, scheduler/spend
+increase or push. Bedrock zero quotas and all Free-plan/Stockholm/zero-cash gates
+remain. Default readiness false is not model qualification or deployed acceptance.
+
+## CAP-06 concrete readiness observations prepared — 2026-10-22
+
+Current frontier: deploy/host_checks.py supplies pinned full release integrity,
+authenticated fixed private catalogue with pre/post SQLite revision/content,
+remote metadata-only admission and enabled allowance with maximum supported
+guarded-request headroom. File/SQLite work uses2workers/8retained calls. HTTP is
+fixed loopback, no proxy/redirect/retry/cache, identity encoding,32768raw bytes,
+duplicate-field rejection and1sasync timeout. Existing HostReadiness bounds response
+and retains cleanup. Authority/service/guard bindings refuse silent rebinding.
+No grant/session/activity or allowance mutation; held uncertainty stays charged.
+
+checks(provider) requires an explicit async verifier. Current unqualified_provider
+returnsFalse: no real Bedrock qualification or pass-artifact format was invented.
+Four concrete successes still sign false with the blocked provider. No runtime
+selector/host CLI or actual bootstrap was activated. Close order remains owner
+responsibility: health, checks, work/admission/service. Module is in fresh artifact.
+
+Fresh review clear, independently32concrete/boundary+19host checks. Final all-Agent/
+concrete/access/browser/fresh release build894passed/no skips139.37s; focused32in
+11.09s. Repo lint/format234Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-checks-20261022.json; guide:docs/cap06-host-checks.md.
+
+Next: restricted configuration/key loading and host bootstrap/lifetime wiring,
+Linux Lambda dependencies, approved reliable external observation delivery, then
+effective IAM/OAC/event eligibility/resource/cost/rollback approval and cloud
+acceptance. No AWS/model/resource/key/DNS/TLS change, backend activation, upgrade,
+new scheduler/topology, allowance increase or push. Bedrock zero quotas and all
+Free-plan/Stockholm/zero-cash constraints remain. Catalogue health alone does not
+verify all shopper journeys or process supervision; local evidence is not deployment.
+
+## CAP-06 async host boundaries integrated locally — 2026-10-22
+
+Current frontier: explicit create_app lifecycle_work_factory/readiness_factory
+hooks, bounded off-loop AsyncAdmissionPolicy/AsyncLifecycleWork and HostReadiness
+connected to HTTP/model/SSE authority and lifespan. Default backend unchanged.
+Known pending leases transfer/renew through degraded health; generation/expiry
+fences prevent resurrection, reconstruction or uncertain Action replay. Remote
+writes retain quotas on uncertainty; browser/session state stays on the event loop.
+
+Signed health authenticates before I/O and requires all five trusted async checks.
+One retained aggregate holds capacity through slow cancellation cleanup while
+the response returns false within its1.5second async deadline. Final state and
+synchronous local fences precede signing. Real service/catalogue/ledger/provider
+checks remain the future bootstrap's responsibility; no fabricated qualification.
+
+Review found/fixed deadline and aggregate-completion failure races with RED/GREEN;
+clear final21host/reproduction checks8.06s. Moto whole-table rollback was separately
+reproduced corrupting successful competing claims; fixture atomic datastore calls
+fix only mock isolation, preserving shared-revision workflow competition. Reviewer
+independently passed5concurrency checks6.29s. Final865passed/no skips119.85s incl.
+all Agent regressions and fresh release build; focused96passed36.94s. Repo lint,
+format232Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-host-boundaries-20261022.json; docs/cap06-host-boundaries.md.
+
+Next: actual trusted host bootstrap/checks and restricted settings/key loading,
+Linux Lambda dependencies, costed approved reliable observation delivery, then
+effective IAM/OAC/event eligibility/resource approval and deployment acceptance.
+No scheduler added or cloud backend activated. No AWS/model/resource/key/DNS/TLS
+write, upgrade or push. Bedrock zero quotas, Free-plan/Stockholm/zero-cash limits
+and existing open gates persist. This local integration is not cloud acceptance.
+
+## CAP-06 controller runtime and signed readiness prepared — 2026-10-22
+
+Current frontier: explicit injected startup/controller factories and settings;
+bounded async notification after durable wake; revision-bound designated-instance
+observer; strict generation/operation-filtered command worker. Status can request
+observe only, which never starts; duplicate/stale events preserve command fences.
+Lost queue ack returns503 with retained intent. Existing app/local factories and
+provider stay unchanged; no environment-selected or deployed Lambda handler.
+
+Authenticated fixed HTTPS readiness binds fresh nonce, release fingerprint,
+generation and ready boolean with domain-separated HMAC. Ordinary liveness,
+unsigned/stale/mismatched/oversized replies remain unhealthy. Host reply helper is
+not wired until actual host/Agent readiness/work checks exist. No owner key chosen
+or provisioned. EC2 uint16 codes now use documented low byte consistently.
+
+Fresh review found streaming rechunking could defer deadline1025simulated seconds.
+RED/GREEN regression fixed per raw-chunk checking; reviewer now aborts at two
+chunks/two simulated seconds. Review clear,93independent checks23.09s; final broad
+regressions and fresh release build308passed/no skips94.71s. Repo lint/format
+225Pythonfiles, pip and whitespace pass. Evidence:
+eval/evidence/cap06-controller-runtime-20261022.json. Detailed interfaces/limits:
+docs/cap06-controller-runtime.md and linked design/plan/research.
+
+Next: host readiness and async work integration, Linux Lambda dependency package/
+bootstrap, and approved reliable observation scheduling/cost design. Browser polls
+and future host heartbeats alone are not an outage/idle guarantee; no EventBridge/
+SQS/sleep/self-invoke was adopted. Effective IAM, event/concurrency eligibility,
+resource/cost/rollback approval, Bedrock quota fix and cloud acceptance remain open.
+No AWS/model call, resource/policy/DNS/TLS write, production secret, upgrade or push.
+Free-plan/zero-cash constraints and existing safety invariants persist.
+
+## CAP-06 cloud access and viewer signing prepared — 2026-10-22
+
+Current frontier: deploy/cloud_access.py pure validated bindings-to-JSON renderer
+prepares startup/controller IAM, dual Function URL permissions, exact distribution
+OAC/private waiting-prefix S3 policy, header allowlist and control cache settings.
+No account/resource identifiers are discovered or selected. This is not a stack
+or deployment command. See docs/cap06-cloud-access.md and its cited research.
+
+The shared waiting page now sends SHA-256 of the exact UTF-8 POST body as required
+by Lambda OAC. Failures stop before fetch; code cleanup/no storage/fixed links
+remain. Actual browsers on intercepted synthetic HTTPS and localhost verified
+the hash independently with hashlib under nonce CSP. No AWS requests were sent.
+
+Independent review clear;28focused checks independently passed3.78s. Final
+lifecycle/startup/executor/access/browser tests and fresh release build159passed,
+zero skips68.92s. Repository lint/format219Pythonfiles, pip and whitespace pass.
+Evidence: eval/evidence/cap06-cloud-access-20261022.json. No runtime factory change,
+AWS/model call, policy/resource creation, DNS/TLS write, upgrade or push.
+
+Next: Lambda factory/package and trusted controller readiness/observation transport
+and scheduling, fixed instance and async Agent work leases, then approved resource/
+cost/rollback deployment and cloud acceptance. Account-effective IAM, public OAC
+compatibility and costs are unverified. Include controller invocations/DDB calls
+in the final estimate. Free plan, zero cash, Bedrock zero quotas, diagnostic caps
+and all existing gates stay unchanged.
+
+## CAP-06 command executor and startup HTTP prepared offline — 2026-10-22
+
+Current frontier: injected single-dispatch EC2 executor and generated-host HTTP-v2
+startup adapter implemented, independently reviewed and packaged. Durable command
+claims never expire into takeover/replay; acknowledgement alone does not admit
+shopping. Errors/lost replies/malformed acknowledgements are uncertain. Final
+deadline check follows invitation I/O and EC2 policy check follows authority I/O,
+with RED/GREEN regressions for both review findings. No actual EC2 fencing claimed.
+
+Startup serves existing waiting HTML with fixed https://app.scpilot.tech/ link,
+safe status and bounded same-origin invitation POST. No HTTP route dispatches a
+command or extends activity. Durable global/wake/poll rate lanes240/10/120per
+minute retain counts across reopen; metadata markers prevent deleted-row reset.
+No code/event/receipt/SDK logs. IAM/OAC must still be enforced by actual deployment.
+
+Independent114tests passed; final focused admission/lifecycle/allowance regressions
+and new release build211passed/no skips82.78s. Repository lint/format, pip and
+whitespace pass. Evidence: eval/evidence/cap06-command-startup-20261022.json.
+Source/design/plan and operational details are linked from docs/cap04-lifecycle.md.
+Optional Moto with dummy credentials and botocore Stubber only; Moto server
+transactions serialized in concurrency harness because its rollback is not isolated.
+
+Next: real Lambda/OAC/IAM/fixed instance and trusted readiness scheduling wiring,
+async Agent/host work leases, durable services, approved deployment and cloud
+acceptance. No AWS/model calls, resource creation, DNS/TLS request, upgrade,
+factory/provider activation or push. Free plan, zero cash, Bedrock zero-quota
+blocker, disabled diagnostic allowances and all open gates are unchanged.
+
+## CAP-06 remote lifecycle decisions implemented offline — 2026-10-21
+
+Added agent/lifecycle/dynamodb.py: durable wake generation, revision-bound health
+observations, meaningful activity,128bounded work leases, idle drain/stop commitment
+and single-use command claim/completion. Transactions bind lifecycle identity/
+revision, invitation metadata and current startup invitation validity. Explicit
+initialization permanently records lifecycle_identity in metadata so deleting the
+host item cannot reinitialize/reset an outstanding command fence.
+
+Claimed/uncertain commands never expire into a new dispatcher. Timeout plus an
+observed stopped host cannot unlock a claimed command. Certain late start requires
+cleanup stop; certain stop acknowledgement plus observed stopped precedes restart.
+This is a persistent handoff protocol, not actual EC2 API fencing: no EC2 callback,
+executor or public HTTP/factory selection is included. Unknown outcomes remain
+locked for owner investigation; no automated unlock/replay path exists.
+
+Fresh review reproduced unhealthy idle drain admitting new work: RED regression,
+persisted strictly validated health independent of drain, GREEN, reviewer clear.
+Accepted leases still renew under degraded health. Additional RED/GREEN regressions
+cover deleted-state reset, inconsistent command/state, post-claim revocation,
+invalid lease tokens, future activity timestamps and malformed host observations.
+Independent reviewer39corechecks passed; final suite includes40remote lifecycle
+checks plus remote/local invitation/lifecycle/inference regressions and fresh
+self-contained release build:139passed/no skips in58.83s. Repository lint/format,
+pip and whitespace checks pass. Evidence:
+eval/evidence/cap06-remote-lifecycle-20261021.json. Existing runtime factories,
+local SQLite lifecycle, base dependency lock and provider remain unchanged.
+
+Next: separately tested single command executor/outcome protocol and bounded
+startup/status HTTP, then Lambda/OAC/IAM and async Agent/host readiness integration.
+No AWS/model calls, resource/table/instance creation, actual EC2 command, DNS,
+certificate request, upgrade, active backend/provider switch or push. Real AWS
+conflicts/IAM/durability/costs, public TLS and deployed acceptance remain unverified.
+Bedrock zero-quota blocker, disabled diagnostic allowances and all open acceptance
+gates persist. No cloud readiness or completed automatic-wake deployment claimed.
+
+## CAP-06 remote invitation adapter implemented offline — 2026-10-21
+
+The first remote invitation/wake-control component is implemented in
+agent/admission/dynamodb.py. It preserves absolute invitation windows, hash-only
+codes/subjects, cumulative redemption/session limits, revocation and same-grant
+idempotence in bounded conditioned DynamoDB transactions. Wake validation grants
+no shopping/session authority. Explicit initialization refuses nonempty/orphaned
+namespaces; runtime never initializes. Strong reads refresh identity each operation;
+uncertain writes do not retry or refund. Fresh validation rejects expired/revoked
+post-write authority while retaining committed counts.
+
+Existing SQLite factory/configuration and active model provider are unchanged.
+This is an injected, offline-tested backend, not a deployed or selected service.
+Optional Moto5.2.4 extras are pinned separately in eval/requirements-cloud.txt;
+base runtime locks unchanged. Real Boto3 calls are intercepted with dummy
+credentials in-process; no AWS account API/table or local listener was used.
+
+Final adapter40tests pass/no skips. Focused admission/lifecycle/allowance and fresh
+artifact build99passed/no skips in39.96s. Full release/proxy subset14passed in148.42s
+before the final status-only fix; the final99checks rebuilt the latest module.
+Independent reviewer found malformed query records could masquerade as healthy
+status rows: reproduced RED, fixed with shared validation of each actual row,
+rechecked clear. Other RED/GREEN fixes cover strict schema/client bounds,
+post-write revocation and changed invitation limits. Evidence:
+eval/evidence/cap06-remote-invitations-20261021.json.
+
+Next: remote lifecycle generation/work-lease/stop arbitration and safely fenced
+host commands, then Lambda/OAC and async host integration. Earlier wake reads
+must not independently authorize EC2: invitation validity belongs in the same
+atomic wake decision. No resource provisioning, DNS, paid inference, quota reset,
+provider switch, upgrade or public exposure. Bedrock zero-quota blocker, disabled
+diagnostic allowances and remaining CAP-04/05/06/07 gates stay open.
+
+## CAP-06 public HTTPS configuration prepared — 2026-10-21
+
+Owner said continue with local deployment preparation while Bedrock is blocked.
+Added deploy/Caddyfile.public for exactly app.scpilot.tech/store.scpilot.tech:
+explicit Let's Encrypt ACME, fixed loopback upstreams, external persistent Caddy
+state, strict SNI/Host and HTTP/1.1+HTTP/2. Existing deploy/Caddyfile is unchanged.
+Public profile routes/log redaction match the existing parsed rehearsal contract;
+legacy host/bind/upstream/static-certificate overrides cannot change its identity.
+
+Both profiles now ship in the hashed release. A modified installed public profile
+fails verification. Neither the existing runtime nor service launches/selects the
+public profile. The template does not validate external state paths/ownership or
+build-origin correspondence; those require the eventual host preflight/service.
+
+TDD: four missing-profile failures before implementation. Final real-Caddy and
+release run:14passed,0failed,0skipped in148.60s; actual artifact builds and scripted
+restart/browser checks preserve uncertain Action, invitation and allowance state.
+Fresh-context review clear, independently3adapt tests passed with no skips.
+Repository ESLint/Prettier and Ruff check/format pass; Caddy canonical bytes,
+unchanged rehearsal config and whitespace checks pass. Evidence:
+eval/evidence/cap06-public-https-20261021.json; plan:
+docs/superpowers/plans/2026-10-21-cap06-public-https-preparation.md.
+
+No AWS/model calls, certificate requests, DNS writes, public listeners, provider
+switch, account upgrade or push in this slice. Adaptation parses only; no module
+provisioning, public TLS/renewal/redirect or cloud-browser qualification is claimed.
+CAP-05, remaining CAP-04 feasibility and CAP-06/07 acceptance stay open. Next local
+work is the remote invitation/lifecycle authority contract and host preflight;
+resource/IAM apply, DNS, trusted host readiness and live qualification retain their
+gates. Preserve both consumed diagnostic claims and disabled allowances.
+
+## Second diagnostic executed; zero applied quotas — 2026-10-20
+
+The owner separately approved one additional call with at most USD0.02 AWS credit
+use. Exactly one further Converse attempt used the same frozen ar-01 request and
+zero retries. It failed after 703ms with ThrottlingException / HTTP429; no output
+or usage returned. The first attempt's exact service error remains unknown.
+
+Read-only applied Service Quotas show GPT-OSS20B on-demand requests/minute=0 and
+tokens/minute=0 in Stockholm. Nova Lite's on-demand requests/minute, tokens/minute
+and daily tokens are also zero. Positive availability and ACTIVE/ON_DEMAND model
+metadata do not override these account quotas. The zero allocation is an observed
+blocker; its account-specific reason is unknown. No quota increase was requested.
+
+Both exclusive claims are consumed and both diagnostic ledgers are DISABLED.
+Each retains USD0.015 with one uncertain attempt: USD0.03 held across two attempts,
+against USD0.04 cumulative authorization. Actual billed costs remain unknown;
+unused balances do not authorize another call. No third call or full set is
+approved. No provider switch, upgrade, subscription, deployment or DNS change.
+
+Sanitized second result and applied quotas are in
+eval/evidence/cap05-diagnostic-20261020/second-result.json and quotas.json. The
+original first result is unchanged. Private plans/claims/ledgers stay in their
+separate ignored outputs/cap05-bedrock-diagnostic-001/ and -002/ directories.
+
+AWS documents zero quotas as a possible account restriction; no guaranteed
+self-service Free-plan activation or evidenced Paid-upgrade fix was found. GPT-OSS
+needs no Marketplace subscription. Support is currently unreachable; do not keep
+asking for the same owner response or infer that waiting resolves it. See the
+applied-quota section of docs/research/2026-10-20-cap05-access-preflight.md.
+Keep CAP-05 and parent acceptance gates open. Further offline preparation may
+continue within approved scope; any provider/API change requires an explicit
+scope decision and subsequent qualification.
+
+### Read-only continuation check — 21 October 2026
+
+A two-quota GET recheck stopped at LoginRefreshRequired before obtaining fresh
+quota data; no inference was attempted and no account setting changed. The
+20 October zero-quota observation remains the latest verified allocation, not a
+claim about a refreshed 21 October value. Do not request another browser sign-in
+solely to repeat this known blocker. Next permitted independent work is local
+CAP-06 preparation from docs/cap04-deployment-handoff.md; provisioning and live
+qualification retain their gates.
+
+## Historical first diagnostic and second-call proposal — 2026-10-20
+
+Owner approved one USD0.02credit diagnostic. One attempt failed provider_http after
+1313ms without usage/output; costunknown. USD0.015held, USD0.005unused, ledgernow
+DISABLED, oneuncertainattempt and exclusiveclaimconsumed. No retries/fullset allowed.
+See eval/evidence/cap05-diagnostic-20261020/ and ignored original report/ledger.
+Readonlymodeldetails ACTIVE/ON_DEMAND; initialCloudTrailnoevent is inconclusive.
+No upgrade/agreement/deployment or activeprovider change.
+
+Offline metadata follow-up stores only allowlisted servicecode/HTTPstatus, not
+provider bodies.41adapter/77combined checks and independentreview pass. No claim
+that it fixes the live failure. Diagnostic002prepared with identical requesthash,
+separate folder/prior-resultbinding; oneadditionalcall/USD0.02credit approval
+pending (USD0.04cumulativemaximum), preserve oldfailure/disabledledger/reservation.
+Finalreadonlytrace at307seconds still lacks matching event; causeunknown. Accounteligibilitypositive but livequality/billing
+unverified; local02/final09/parentCAP04/liveCAP05 remainopen.
+
+## CAP-05 access confirmed; single diagnostic awaits budget — 2026-10-20
+
+All four availability statuses positive in owner CloudShell and local SDK GET.
+CLI2.38.2 current-user installation signature verified; owner browser-login profile
+cap05-stockholm; optional CRT0.36.0 installed and pinned separately. No keys shared,
+model calls, application deployment, upgrade or provider switch. CloudShell's
+ordinary managed environment/home exists. Model quality/price/quota not inferred.
+
+Use docs/cap05-diagnostic-protocol.md. One frozen ar-01 request, USD0.02 proposed
+credit ceiling, USD0.015 held reservation, exclusive claim/no replay, actual
+request-hash recheck after SDK setup; eightdiagnostic/75focused checks pass and
+both reviews clear after the binding fix. No runtime change or fullbrowserrepeat;
+prior754pass/1timeout plus three serial passes remains the honest full-suite record.
+Await explicit diagnostic budget approval before run; no larger set is authorized.
+Local02/final09/parentCAP04 and liveCAP05 remain open. No push.
+
+## CAP-05 offline adapter implemented — 2026-10-20
+
+See docs/cap05-bedrock.md and dated design/plan. Bedrock Converse candidate is
+Stockholm openai.gpt-oss-20b-1:0, lazy SDK, one attempt, local validator, safe errors,
+bounded metadata, late authority check and cancellation drain. Existing guard
+retains unknown costs; no token-based settlement. Canonical schema expansion now
+protects reference siblings and rolling assistant-leading history is preserved.
+Both independent review findings fixed with regressions; Standards clear.
+
+39 Bedrock/79 combined focused and TS199/build/types/lint/format/pip checks pass.
+Full Python/browser:754 passed,1 failure in761.94s; Franco-Arabic case hit its
+10-second deadline. Three unchanged serial reruns pass; no root cause or product
+fix claimed and no false full-green claim. Logs outputs/cap05-bedrock-verification/.
+No active provider/key/cap switch or AWS calls/resources. Local02/final09/parentCAP04
+and liveCAP05 stay open; next model/access and cost semantics, then separately
+budgeted live qualification. Original checkout/tracker preserved; no push.
+
+## Continue with available evidence — 2026-10-20
+
+Owner could not reach Billing Support and directed continuation. Stop treating a
+Support reply as a prerequisite for further preparation. Public IPv4 coverage is
+still unresolved, not a passed check or permission for cash charges/upgrades.
+Use docs/cap04-deployment-handoff.md for the consolidated conditional package and
+CAP-05/06/07 sequence. Local02/final09/parentCAP-04 remain open; local09 preparation
+proceeds under this explicit owner exception. Next actionable work is offline
+Bedrock adapter/infrastructure preparation. Live qualification, resource creation
+and DNS writes retain separate authorization. No runtime or external changes.
+
+## Virginia blocked; automatic generated-host startup selected — 2026-10-19
+
+Newest account evidence: AWS explicitly denies Virginia ACM and confirms Stockholm
+project assignment, requiring paid upgrade for other Regions. Do not try API
+issuance to work around it. Owner selected docs/superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md:
+Caddy public ACME on app/store, generated CloudFront waiting/control link plus
+Stockholm Lambda/DynamoDB/S3; manual prewarming remains fallback. Cold shopping
+bookmarks cannot wake the host. Same shopping origins/cookies/Action safety and
+code reentry preserved. Builder check clear. Prices approximately USD26.99 low-duty
+or USD55.50 continuous 60-day candidate, not a cap or spending approval. Local 02/09
+and parent CAP-04 stay open. DNS record-management controls now confirmed (no writes/purchase prompt). Credit screenshots list Bedrock, Elastic Compute Cloud, Lambda, DynamoDB, S3, CloudFront and CloudWatch. Stockholm VPC dashboard/list open: one Available VPC, three subnets, zero NAT gateways and zero Elastic IPs; default status not inferred. Both Virtual Private Cloud and VPC searches return no match; public IPv4 coverage unresolved. Individual credit expires 7 October 2027 at 15:41 UTC (start 7 October 2026), distinct from Free-plan end 7 April 2027; no extension of plan access or resource authority inferred. Independent Spec clear; historical Virginia diagnostic label corrected after Standards review.
+No runtime/resource/certificate/DNS/model/upgrade changes. Existing test Caddyfile
+has automatic HTTPS disabled; qualification/deployment config is still future work.
+
+## Account evidence refresh — 2026-10-19
+
+Local 02 remains active after 08 closure. New owner screenshots confirm USD100.00,
+USD0.00 current-month cost, free-plan dashboard and end 7 April 2027; extra activities
+0 of 5 / USD0 of 100 earned. Owner then supplied explicit Free-plan Billing/project menus and a URL selecting eu-north-1 Stockholm. Bedrock catalogue/gpt-oss-20b details and CloudFront dashboard now open normally (owner evidence). Individual credit terms and model invocation/feature creation authority remain unverified. Lambda/DynamoDB/ACM landing screenshots now confirm visibility, with page Regions unverified. Generic Virginia ACM link produces a blank sign-in/session-selector redirect, not AccessDenied. ACM list subsequently opens with zero entries; owner working URL confirms eu-north-1 Stockholm. Virginia remains unverified; next try changing only the regional hostname segment in the same signed-in browser, preserving session prefix/path. No certificate request or invocation; do not retain the account/session URL.
+See docs/cap04-account-feasibility.md. No local AWS CLI/profile found, so do not
+claim a programmatic account/authorization audit. No resources/paid calls/DNS or
+account upgrades. Local 09 blocked by 02; parent CAP-04 remains open. Keep the fresh
+pricing refresh separate from confirmed account entitlement. Original checkout
+preserved; no push authorized.
+
+## Physical Android closes local Ticket 08 — 2026-10-18
+
+Newest frontier: local02 account/network feasibility; 09 is blocked by02 and parent
+CAP-04 stays open. Actual CMF Phone1 Chrome155.0.8059.41 plus4desktop contexts
+passed five isolated cart changes, foreign404 both ways and phone refresh without
+another POST. Further phone request refused safely during held overload;10total
+fixture calls,0paid. See docs/cap04-capacity.md and ignored
+outputs/cap04-capacity-android-001/. Owner manually accepted disposable local
+leaf warnings; no phone CA or public DNS changes. Owned processes/test tab/USB
+forwarding/new ADB server/key cleaned up. Ask owner to turn USB debugging off if
+not yet done; this phone setting is not independently verified. No production
+source changes after b5bccfc's full716/TS199/build/lint verification; only evidence
+docs/tracker changed. No cloud or push; original checkout untouched.
+
+## Combined concurrency: physical Android pending — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for current evidence. Ticket 08 automated slice on
+`codex/cap04-capacity` from `da59a56` passes 716 Python/browser tests in 733.52s
+and 199 TypeScript tests/build/types/lint/format. Independent Spec and Standards
+reviews are clear. See docs/cap04-capacity.md for actual 1/5/8 Chrome/Edge/mobile
+emulation results, finite limits, isolated fake-provider setup and future candidate
+host procedure. Full output: outputs/cap04-capacity-verification/. Phone/EC2 results
+remain unverified; Ticket 08, 02 and parent CAP-04 stay open. Owner connected CMF
+Phone 1, enabled USB debugging and reached Chrome discovery pending device
+authentication. Browser UI tooling is disabled in Work settings, so this setup is
+owner guided. No OS/phone trust-store or public network changes, AWS or paid calls;
+original checkout and existing inference cap/configuration are untouched.
+
+## Invitation-gated lifecycle rehearsal — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for the current frontier. Ticket 07 changes are on
+`codex/cap04-lifecycle` from `476cb30`, resolved locally. Focused 17 lifecycle/browser
+checks and 199 TypeScript tests/build/types/lint/format pass; both independent
+reviews cleared the reproduced race/failure fixes. Final serial verification:
+713 Python/browser tests passed in 728.29s; durable output and exit-code 0 JSON
+are under `outputs/cap04-lifecycle-verification/`. Runbook: docs/cap04-lifecycle.md;
+ledger: docs/superpowers/plans/2026-10-18-cap04-lifecycle.md. Real built processes
+prove waiting-to-shopping and stop/start commerce reset; the shared-filesystem
+control adapter is local-only, not deployed AWS/IAM evidence. Next is local 08;
+02 feasibility and parent CAP-04 remain open. No cloud, paid calls, DNS/trust
+changes or push; original checkout untouched.
+
+## Built release and recovery — 2026-10-18
+
+Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 06 is
+resolved on `codex/cap04-release` from `b9248bb`. Final serial checks pass:
+696 Python/browser tests in 691.70s, 199 TypeScript tests, builds/type checks,
+lint and formatting. Durable ignored output is under `outputs/cap04-release-verification/`.
+The prior session result was unavailable on chat resumption and is not counted as
+acceptance. See [the release runbook](docs/cap04-release-recovery.md). Focused
+release checks, 199 TypeScript tests/build/types/lint, native WSL permissions and
+Caddy configuration adaptation pass. Both independent reviews are clear after
+fixing a reproduced bytecode-verification bypass. No deployed service manager,
+EC2 capacity, DNS/TLS trust changes or paid inference is claimed. Work is committed
+locally without push; next prefer local 07. Parent
+CAP-04 and account/network ticket 02 remain open. Original checkout is untouched.
+
+## Invited admission — 2026-10-16
+
+Use PROJECT_CHECKPOINT.md for current verification status. Local ticket 04 is
+resolved on `codex/cap04-admission` from merged main `83fc92a`. Final full checks
+pass: 686 Python/browser tests, 199 TypeScript tests, builds/type checks, lint and
+formatting. See [owner controls](docs/cap04-invited-access.md).
+Independent Spec/Standards findings and the two-tab startup regression are fixed
+and reviewed. Local development remains opt-in; production requires explicit
+admission configuration. No real codes, participants, paid calls or cloud changes.
+This branch is not pushed. Next local work is 06 release/restart; 02 and parent
+CAP-04 remain open. Preserve the original checkout's dirty documents.
+
 ## Publication — 2026-10-15
 
 Owner manual smoke test passed and push/merge was explicitly authorized. Delivery
