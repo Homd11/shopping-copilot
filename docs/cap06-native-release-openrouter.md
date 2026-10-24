@@ -128,3 +128,5 @@ uninterrupted green full run is not claimed. No product code or safety guard was
 changed to suppress it.
 
 Machine-readable proof and regression results: [native release evidence](../eval/evidence/cap06-native-release-openrouter-20261024.json).
+
+Subsequent [native Agent startup proof](cap06-native-agent-startup.md) extends the original running-loop-only observation to actual Uvicorn/lifespan execution with synthetic external authority. It preserves the default closed provider gate and leaves real host/cloud qualification open.

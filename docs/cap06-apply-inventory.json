@@ -443,7 +443,10 @@
       "independent_native_extraction_verified": true,
       "full_agent_startup_verified": false,
       "selected_for_cloud_apply": false,
-      "evidence": "eval/evidence/cap06-native-release-openrouter-20261024.json"
+      "evidence": "eval/evidence/cap06-native-release-openrouter-20261024.json",
+      "native_startup_with_synthetic_authority_verified": true,
+      "real_external_authority_startup_verified": false,
+      "startup_evidence": "eval/evidence/cap06-native-agent-startup-20261024.json"
     }
   },
   "cost_scenarios": {
