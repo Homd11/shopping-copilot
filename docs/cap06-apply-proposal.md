@@ -408,3 +408,11 @@ all older holds; actual runtime allowance/migration remain unapproved. The next
 concrete subset is the[first private host inspection](cap06-first-private-host-inspection.md),
 with its own exact credit/SSH/stop/resource proposal. Parent creation/activation
 bindings remain null; that subset is also unapproved until the owner accepts it.
+
+The25Octoberowner-approved[first private inspection completed](cap06-first-private-host-results.md):
+one actual host/root/SG/existingpublickeyimport were created, the host was stopped
+and its temporary EIP released. The original unapproved wording above describes
+the earlier full-deployment dossier and historical proposal. This subset approval
+does not activate the full stack. Reuse the privately recorded stopped host only
+through the next explicitly reviewed timer/runtime/provisioning handoff; do not
+create a duplicate or infer application activation/key migration authority.

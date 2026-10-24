@@ -563,5 +563,18 @@
     "captured_capacity": "eval/evidence/cap06-captured-capacity-20261025.json",
     "custody_preflight": "eval/evidence/cap06-custody-preflight-20261024.json",
     "first_private_inspection_proposal": "docs/cap06-first-private-host-inspection.json"
+  },
+  "existing_private_inspection": {
+    "evidence": "eval/evidence/cap06-first-private-host-inspection-20261025.json",
+    "owner_approved_scope_only": true,
+    "created_instances": 1,
+    "stopped_instances": 1,
+    "retained_encrypted_root_volumes": 1,
+    "remaining_allocated_eips": 0,
+    "actual_resource_ids_in_private_custody": true,
+    "adopted_for_production_activation": false,
+    "do_not_create_duplicate_host": true,
+    "restart_requires_timer_handoff_review": true,
+    "retention_decision_due_utc": "2026-12-23T18:00:00Z"
   }
 }

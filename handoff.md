@@ -1,5 +1,60 @@
 # Shopping Copilot — project handoff
 
+## Approved first host inspection complete; persistent timer restricts future starts - 2026-10-25
+
+The owner approved and completed the exact USD4.50credit SSH-only private-host
+inspection. Do not request that same approval again or create another host.
+Newest checkpoint, docs/cap06-first-private-host-results.md and
+eval/evidence/cap06-first-private-host-inspection-20261025.json record the result;
+private operation .scratch/cap06-first-private-host-execution/run-6d37e489-24e.
+Original proposal JSON remains unchanged approval evidence; execution receipts
+are separate. The wider production dossier stays inactive while privately
+referencing the actual retained inspection resources.
+
+One t3.small/Standard, encrypted retained20GiB gp3 root3000IOPS/125MiBps, dedicated
+SSH22ownerIPv4/32SG/egress443and existing public-key import were created. No
+instance profile, application service, model/provider-key/ledger migration or
+allowance initialization, DNS/TLS/public application activation. API checks verify
+automaticIPv4false/no initial publicIP and required IMDSv2/hop1. Owned console
+evidence established SSH host-key trust; existing owner-key possession passed
+without raw private-key copying/logging. One EIP was allocated then released.
+
+Actual AL2023.12.20261021/kernel6.18.54/systemd252PID1/OpenSSL3.5.8/system
+Python3.9.25were observed. Python3.12, Node, nftables and project service users/
+directories are absent. Two vCPUs,2002350080bytes RAM/no swap,20GiB root/XFS and
+cloud-init done. Bounded32section SSHinspection returned9508stdout bytes/zero
+stderr/exit0; persistent deadline verified. Mode0600upload of the4.4MBnative
+archive matched SHA256
+5e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23;
+no extraction or execution. Actual application/reboot/sandbox/capacity acceptance
+is not established by these baseline observations.
+
+Launched24October21:14:06UTC, observed stopped21:17:38UTC, EIP released and stage
+finished21:18:01UTC: under four minutes by the observation bound, versus approved
+two-hour running/allocation windows. Final fresh AWS checks confirm stopped/no
+publicIP/no EIPs/active Free plan.61CLI invocations include11successful mutations,
+two corrected local formatting/encoding errors without failed-creation retry and
+one intentional stop-authorization dry run. Billing is not finalized; EBS still
+accrues. Retain stopped host/root, SG and imported public-key record; no deletion
+automation or permission follows from the23December2026at18:00UTCreview deadline.
+
+**Never automatically start this retained host.** The enabled Persistent timer
+retains absolute24October22:44:06UTC(25October01:44:06Cairo)and OnBootSec90min.
+A future start after the calendar deadline may immediately power off. Before
+that deadline a separately approved next operation must rebind/verify protection
+first; after it, review a concrete recovery method before starting. Ordinary
+user-data/cloud-boothook ordering is unverified and cannot be assumed to solve
+the trap. No reboot, timer repair or recovery was attempted. Current no-restart
+constraint leaves the stopped host/timer unchanged.
+
+Next prepare the concrete offline package/runtime/provisioning plan, then obtain
+separate approval for the next actual host operation with timer recovery handled.
+Full app deployment, actual custody/accounting migration, new model/runtime
+allowance, qualified production capacity and public activation stay closed.
+Preserve USD0cash/Free plan, unchanged non-resettingUSD2provider cap and all
+228settled/19held accounting history. No Step25/PDF/push/merge. This section
+supersedes older awaiting-inspection-approval instructions below; retain history.
+
 ## Captured capacity verified; private inspection needs exact resource approval - 2026-10-25
 
 Newest PROJECT_CHECKPOINT.md and docs/cap06-captured-capacity.md record the frozen

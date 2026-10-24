@@ -2,6 +2,72 @@
 
 **Last updated:** 2026-10-25
 
+## First private host inspected and stopped; retained timer forbids automatic restart - 2026-10-25
+
+The owner explicitly approved the exact first SSH-only host inspection and its
+USD4.50existing-credit allocation. That stage is complete; do not request the
+same inspection approval again or create another host. The original proposal
+JSON remains unchanged as immutable approval evidence; actual execution receipts
+are separate. Guide: docs/cap06-first-private-host-results.md; evidence:
+eval/evidence/cap06-first-private-host-inspection-20261025.json. Private operation:
+.scratch/cap06-first-private-host-execution/run-6d37e489-24e.
+
+Created one owned Stockholm t3.small, one20GiB encrypted retained gp3 root, one
+dedicated SG and an import of the existing owner public key. API observations
+verify Standard CPU credits,3000IOPS/125MiBps, automaticIPv4false/no initial public
+IP, required IMDSv2/hop1, no instance profile, SSH22only from the captured owner
+IPv4/32and egress443only. Exactly one EIP was allocated/associated and later
+released. SSH host identity was verified from the owned EC2 console before
+connecting. Existing owner-key possession was demonstrated without copying or
+logging raw private-key material. No application, IAM runtime role, model call,
+actual provider key/ledger migration, allowance initialization or DNS/TLS activation.
+
+The bounded32section payload returned9508stdout bytes, zero stderr and SSHexit0.
+Actual host: AL2023.12.20261021, kernel6.18.54, systemd252asPID1, OpenSSL3.5.8 and
+system Python3.9.25. Python3.12, Node and nftables are absent; no application service
+users/directories are provisioned. Two vCPUs, RAM2002350080bytes/no swap,20GiB root
+device/XFS and cloud-init done were observed. Timer persistence and its installed
+deadline were verified. The4.4MBnative archive was uploaded mode0600and its
+SHA2565e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23
+matched; it was not extracted or executed. These are base-host facts, not deployed
+application, service isolation, reboot or qualified-capacity acceptance.
+
+Launch was24October21:14:06UTC; stopped was observed21:17:38UTC and released EIP/
+completed stage confirmed21:18:01UTC. The observation-bounded cumulative running
+interval is under four minutes, inside the approved two-hour limits. A final fresh
+check confirms stopped/no public IP/no allocated EIPs and the active Free plan.
+There were61CLI invocations,11successful mutations including stop/release, two
+local CLI formatting/encoding errors corrected without a failed-creation retry,
+and one intentional stop-authorization dry run. Exact IDs/identity/IP remain in
+private receipts. Billing is not finalized; retained EBS continues to cost money.
+The stopped host/root, SG and imported public-key record remain retained. The
+23December2026at18:00UTCretention decision deadline is not deletion permission;
+there is no deletion automation. The wider deployment dossier remains inactive,
+with private references to these existing inspection resources rather than
+invented or falsely null creation receipts.
+
+**Do not automatically start the retained host.** Its enabled persistent timer
+still has absolute deadline24October2026at22:44:06UTC
+(25October01:44:06Cairo), plus OnBootSec90min. A future start after the missed
+calendar deadline may immediately power off; the boot-relative timer does not
+guarantee a fresh90minute access window. A separately approved next operation
+before that deadline must rebind/verify the stop protection first. After the
+deadline, review a concrete recovery method before starting; do not assume updated
+ordinary user data or a cloud-boothook will outrun the timer. No reboot, timer
+repair or recovery procedure was tested or performed. Leave the stopped host and
+timer as recorded under the completed stage's no-automatic-restart constraint.
+
+Next local work is a concrete offline provisioning/package/runtime preparation
+proposal addressing the observed missing dependencies and service isolation,
+followed by a separately approved next host operation that honors the timer.
+Actual application deployment, key/accounting migration, a new runtime spending
+grant, production capacity and public activation remain unapproved/unverified.
+Preserve the Free plan/USD0cash constraint, explicit OpenRouter fallback's
+non-resetting USD2cap,228settled receipt history and19older held reservations.
+No production-ready claim, Step25/generalisation, PDF work, push or merge. This
+section supersedes the older pending-inspection approval frontier below while
+retaining its historical evidence and original limits.
+
 ## Captured capacity fixed; exact private inspection awaits resource approval - 2026-10-25
 
 Read-only actual custody preflight made exactly one fixed OpenRouter key-metadata
