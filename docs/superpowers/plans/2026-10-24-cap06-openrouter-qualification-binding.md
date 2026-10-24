@@ -40,11 +40,11 @@
 - ProviderBinding.snapshot()->BindingSnapshot: return captured startup evidence after an in-memory expiry check; never reread files. Initial private file validation remains in load_provider_binding.
 - ProviderBinding.settings is the exact supplied HostSettings; binding/snapshot repr excludes private fingerprints and input paths.
 
-- [ ] Write positive synthetic fixture with patched fixed test pins, actual existing v2 settings and retained allowance; missing module is RED. Assert no model construction, ledger mutation or key disclosure.
-- [ ] Add malformed/duplicate/oversized/missing/digest/model/config/release/key/ledger/time/permission/link/alias/source-byte/metadata drift refusal tests. Assert exception has no cause/context or sensitive repr.
-- [ ] Implement exact report/reconciliation pin constants, startup-only private proof loading, normal release verification and immutable snapshots; no source pin table. Evidence files are binding.parent/accepted-report.json and reconciliation.json; binding path explicitly selects that directory.
-- [ ] Implement shared effective profile (OpenRouter timeout30, minimal/excluded reasoning, cap2, price ceilings and request/output bounds). Preparer returns bytes only; actual protected output installation remains external.
-- [ ] Run pytest eval/tests/test_provider_binding.py -q; Expected: all pass. Ruff/format affected files; commit.
+- [x] Write positive synthetic fixture with patched fixed test pins, actual existing v2 settings and retained allowance; missing module is RED. Assert no model construction, ledger mutation or key disclosure.
+- [x] Add malformed/duplicate/oversized/missing/digest/model/config/release/key/ledger/time/permission/link/alias/source-byte/metadata drift refusal tests. Assert exception has no cause/context or sensitive repr.
+- [x] Implement exact report/reconciliation pin constants, startup-only private proof loading, normal release verification and immutable snapshots; no source pin table. Evidence files are binding.parent/accepted-report.json and reconciliation.json; binding path explicitly selects that directory.
+- [x] Implement shared effective profile (OpenRouter timeout30, minimal/excluded reasoning, cap2, price ceilings and request/output bounds). Preparer returns bytes only; actual protected output installation remains external.
+- [x] Run pytest eval/tests/test_provider_binding.py -q; Expected: all pass. Ruff/format affected files; commit.
 
 ## Task2: Owned async qualification verifier
 
@@ -57,10 +57,10 @@
 - Proof carries private owner token, immutable snapshot and validity; it cannot be reused across verifier instances. Public repr is fixed.
 - Check actual guard bindings and captured snapshot/time; no I/O worker, network, evidence/key/source reads or allowance operations at runtime.
 
-- [ ] RED missing module; test true synthetic observation/recheck, foreign proof, mutated delegate/settings/ledger/prices/queue, revoked/expired evidence and strict false on dependencies.
-- [ ] Forbid all private-reader calls after startup; prove observe/recheck still work, disk changes apply only at the next startup, and expiry/closure/client mutation refuses.
-- [ ] Implement actual client/effective settings binding and lightweight owned close state. Cancellation propagates, ordinary errors become None/false without logging raw details.
-- [ ] Run both new modules' tests; Expected: all pass with zero fake provider POSTs/ledger changes. Ruff/format and commit.
+- [x] RED missing module; test true synthetic observation/recheck, foreign proof, mutated delegate/settings/ledger/prices/queue, revoked/expired evidence and strict false on dependencies.
+- [x] Forbid all private-reader calls after startup; prove observe/recheck still work, disk changes apply only at the next startup, and expiry/closure/client mutation refuses.
+- [x] Implement actual client/effective settings binding and lightweight owned close state. Cancellation propagates, ordinary errors become None/false without logging raw details.
+- [x] Run both new modules' tests; Expected: all pass with zero fake provider POSTs/ledger changes. Ruff/format and commit.
 
 ## Task3: Explicit host wiring, proof freshness and CLI
 
@@ -74,16 +74,16 @@
 - \_QualifiedWork.check captures proof, awaits lifecycle check, then rechecks fresh owned proof and generation/failure/closure before returning.
 - host_agent paired --qualification/--qualification-sha256; absent pair calls existing factory path unchanged. Present pair loads preflight binding before assembly; no env/bypass option.
 
-- [ ] RED CLI partial-pair/default tests and qualified host/refusal/freshness/cleanup tests. Test actual typed clients with intercepted HTTP/SDK and synthetic private custody only.
-- [ ] Implement two-stage startup, owner close and post-await in-memory proof revalidation. Verify expiration/closure during lifecycle wait and provider key wait cannot reach model POST/output; Stop/renewal stays independent.
-- [ ] Run new binding/verifier tests plus host bootstrap/agent/openrouter/checks and affected inference/lifecycle/safety tests; Expected: all pass, default proof false, no actual inference.
-- [ ] Run relevant source checks, commit source to enable genuine clean native capture.
+- [x] RED CLI partial-pair/default tests and qualified host/refusal/freshness/cleanup tests. Test actual typed clients with intercepted HTTP/SDK and synthetic private custody only.
+- [x] Implement two-stage startup, owner close and post-await in-memory proof revalidation. Verify expiration/closure during lifecycle wait and provider key wait cannot reach model POST/output; Stop/renewal stays independent.
+- [x] Run new binding/verifier tests plus host bootstrap/agent/openrouter/checks and affected inference/lifecycle/safety tests; Expected: all pass, default proof false, no actual inference.
+- [x] Run relevant source checks, commit source to enable genuine clean native capture.
 
 ## Task4: Native release, evidence and final review
 
-**Files:** Extend eval/native_agent_probe.py and its tests, add docs/cap06-provider-qualification.md and eval/evidence/cap06-provider-qualification-20261024.json; update checkpoint/handoff/inert dossier and this ledger.
+**Files:** Add eval/native_qualification_probe.py and its tests, add docs/cap06-provider-qualification.md and eval/evidence/cap06-provider-qualification-20261024.json; update checkpoint/handoff/inert dossier and this ledger.
 
-- [ ] Add native synthetic proof using real accepted report/reconciliation and actual20source files, fake protected key/retained ledger and read-only authority. Prove default false, explicitly bound qualification true, runtime expiry/closure and startup wrong-custody/evidence refusal and complete cleanup; zero model/AWS requests.
+- [ ] Add native synthetic proof using real accepted report/reconciliation and a normally verified release (source hashes remain offline), fake protected key/retained ledger and read-only authority. Prove default false, explicitly bound qualification true, runtime expiry/closure and startup wrong-custody/evidence refusal and complete cleanup; zero model/AWS requests.
 - [ ] Build new clean original native release under signed Python3.12.14/Node24.22.1, finite memory/CPU/time and Windows headroom guard; run Agent and independent archive roundtrip serially. Expected: exit0, immutable source/manifest and honestly synthetic qualification.
 - [ ] Run focused/full relevant Python checks, source lint/format/pip and required TypeScript/build checks if packaging affected. Preserve earlier broad-suite exception; do not manufacture a full-green claim.
 - [ ] One fresh whole-slice review; fix material findings with RED/GREEN regressions and focused suite. Record minor findings and all native limits/digests.

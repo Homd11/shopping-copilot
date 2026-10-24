@@ -9,6 +9,7 @@ from uvicorn import Config, Server
 
 from deploy.host_bootstrap import create_host_app
 from deploy.host_config import load_host_settings
+from deploy.provider_binding import load_provider_binding
 
 
 class _Parser(argparse.ArgumentParser):
@@ -58,9 +59,19 @@ def main(argv=None):
             raise ValueError()
         parser = _Parser(description="Run the restricted host Agent", allow_abbrev=False)
         parser.add_argument("--config", type=Path, required=True)
+        parser.add_argument("--qualification", type=Path)
+        parser.add_argument("--qualification-sha256")
         args = parser.parse_args(argv)
+        if (args.qualification is None) != (args.qualification_sha256 is None):
+            raise ValueError()
         settings = load_host_settings(args.config)
-        app = create_host_app(settings)
+        if args.qualification is None:
+            app = create_host_app(settings)
+        else:
+            qualification = load_provider_binding(
+                settings, args.qualification, args.qualification_sha256
+            )
+            app = create_host_app(settings, qualification=qualification)
         asyncio.run(_serve(app))
         return 0
     except KeyboardInterrupt:
