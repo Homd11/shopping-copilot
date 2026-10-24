@@ -2,6 +2,39 @@
 
 **Last updated:** 2026-10-24
 
+## Explicit OpenRouter settings prepared; native source capture next — 2026-10-24
+
+Protected HostSettings v1 remains Bedrock-compatible. Strict v2 now permits only
+openrouter/google/gemini-3.5-flash-lite with a bounded protected external Agent-only
+provider_key_file; plaintext keys/extra fields/provider/model/cap knobs rejected.
+Immutable secret-redacted settings bind existing inference prices/ledger to that
+choice, literalUSD2ceiling, no dotenv/ambient selector. No provider/key/ledger
+activation; default qualification remains closed.55new config tests and both
+provider app-seam cases prove refused readiness/no calls/charges/guarded audio.
+
+Genuine shallow source preparer captures exact original commit/tree from clean
+HEAD, excludes owner config/refs/hooks/history/ignored files, and publishes a
+bounded deterministic ZIP. Native consumer creates empty refs then real Git
+checkout/fsck/status; no provenance stub.18source tests plus7legacy fixture tests
+pass; combined focused108tests pass. One combined compatibility batch had a Node
+seed startup error3221226505,17cached setup errors; unchanged isolated23test module
+passes. New app test initially expected speech before readiness; corrected to the
+existing authenticated503refusal. No application guard was weakened.
+
+Verified project-only pnpm cache359entries/6333content paths and retained Node/
+Caddy/pnpm staged, no owner projects/config. Pinned image-matched Git2.50.1 RPM
+downloaded via official public metadata, checksum/supplier signatures verified in
+temporary private rpmdb, Git/licence extracted only; actual ldd dependencies all
+present. No host package installed. Metadata's107MBexpanded XML is streamed with
+128MiBbound and published checksum, after initial64MiB assumption refused it.
+
+Fresh code review clear after explicitly narrowing native Agent proof to running-
+loop refusal only; full native Agent startup/readiness stays unverified. Next:
+commit/capture this exact clean source, run network-none native production build
+and synthetic runtime proof, then sequential complete regression checks. No actual
+native release acceptance is claimed yet. No AWS/provider API, actual secret or
+allowance change, service/user/firewall install/activation, public TLS/DNS or push.
+
 ## Controlled Storefront scope restored; Linux runtime prepared — 2026-10-24
 
 Owner clarified the generalisation prerequisite was stale. Independent Storefronts

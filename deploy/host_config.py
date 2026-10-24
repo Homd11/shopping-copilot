@@ -32,6 +32,9 @@ class HostSettings:
     service_secret: str = field(repr=False)
     readiness_secret: bytes = field(repr=False)
     private_files: tuple[Path, ...] = field(default=(), repr=False)
+    provider: str = "bedrock"
+    model: str = "openai.gpt-oss-20b-1:0"
+    provider_key: str = field(default="", repr=False)
 
     def __post_init__(self):
         try:
@@ -51,6 +54,22 @@ class HostSettings:
                 raise ValueError()
         _identifier(self.invitation_identity)
         _identifier(self.lifecycle_identity)
+        if (
+            type(self.provider) is not str
+            or type(self.model) is not str
+            or type(self.provider_key) is not str
+            or (self.provider, self.model)
+            not in {
+                ("bedrock", "openai.gpt-oss-20b-1:0"),
+                ("openrouter", "google/gemini-3.5-flash-lite"),
+            }
+            or (
+                re.fullmatch(r"[!-~]{32,256}", self.provider_key) is None
+                if self.provider == "openrouter"
+                else self.provider_key != ""
+            )
+        ):
+            raise ValueError()
         if (
             type(self.service_secret) is not str
             or re.fullmatch(r"[!-~]{32,128}", self.service_secret) is None
@@ -100,8 +119,16 @@ class HostSettings:
         return {
             **self.inference,
             "COPILOT_ENV": "production",
-            "LLM_PROVIDER": "bedrock",
-            "LLM_MODEL": "openai.gpt-oss-20b-1:0",
+            "LLM_PROVIDER": self.provider,
+            "LLM_MODEL": self.model,
+            **(
+                {
+                    "OPENROUTER_API_KEY": self.provider_key,
+                    "OPENROUTER_TOTAL_CAP_DOLLARS": "2.00",
+                }
+                if self.provider == "openrouter"
+                else {}
+            ),
             "AWS_REGION": "eu-north-1",
             "LLM_TIMEOUT_SECONDS": "20",
             "CATALOGUE_RETRIEVAL_ENABLED": "1",
@@ -136,13 +163,29 @@ def load_host_settings(config_path, *, read_private=_read_private):
             "inference",
             "admission_limits",
         }
-        if (
-            type(data) is not dict
-            or set(data) != names
-            or type(data["version"]) is not int
-            or data["version"] != 1
-        ):
+        if type(data) is not dict or type(data.get("version")) is not int:
             raise ValueError()
+        provider, model, provider_key = "bedrock", "openai.gpt-oss-20b-1:0", ""
+        provider_files = ()
+        if data["version"] == 2:
+            names |= {"provider", "model", "provider_key_file"}
+        if set(data) != names or data["version"] not in {1, 2}:
+            raise ValueError()
+        if data["version"] == 2:
+            if (
+                data["provider"] != "openrouter"
+                or data["model"] != "google/gemini-3.5-flash-lite"
+                or type(data["provider_key_file"]) is not str
+            ):
+                raise ValueError()
+            provider_path = Path(data["provider_key_file"])
+            if not provider_path.is_absolute():
+                raise ValueError()
+            raw_key = read_private(provider_path, 256)
+            if type(raw_key) is not bytes:
+                raise ValueError()
+            provider, model, provider_key = data["provider"], data["model"], raw_key.decode("ascii")
+            provider_files = (provider_path,)
         secret_path, key_path = (
             Path(data["service_secret_file"]),
             Path(data["readiness_secret_file"]),
@@ -162,7 +205,10 @@ def load_host_settings(config_path, *, read_private=_read_private):
             admission_limits=data["admission_limits"],
             service_secret=secret.decode("ascii"),
             readiness_secret=key,
-            private_files=(path, secret_path, key_path),
+            private_files=(path, secret_path, key_path, *provider_files),
+            provider=provider,
+            model=model,
+            provider_key=provider_key,
         )
     except Exception:
         pass

@@ -1,5 +1,17 @@
 # Shopping Copilot — project handoff
 
+## Native source and OpenRouter preparation in progress — 2026-10-24
+
+Newest PROJECT_CHECKPOINT.md: strict protected HostSettingsv2 supports approved
+OpenRouter fallback; v1 Bedrock retained, default qualification closed, keycap2and
+existing allowance/unknown holds unchanged.55config/108combined focused checks
+pass; source snapshot preserves actual original shallow commit/tree with no owner
+config/history. Signed extracted Git2.50.1 and project-only cached Node packages
+ready. Next capture a clean committed source and run real offline Linux build;
+no native artifact/runtime acceptance yet. Full Agent native startup/readiness
+remains open, not established by running-loop refusal. No provider/account call,
+actual key/allowance migration, AWS resource/service/public TLS/DNS change or push.
+
 ## Controlled Storefront Linux runtime preparation — 2026-10-24
 
 Owner confirms independent Storefronts are out of graduation scope; Step25 branch
