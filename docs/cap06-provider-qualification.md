@@ -108,3 +108,8 @@ Even a passing synthetic binding is not actual-host/key qualification. Real
 protected key/remaining allowance custody, host/security/systemd/reboot/capability/
 metadata/log acceptance, qualified capacity, current resource/cost/rollback and
 public deployment approval plus desktop/Android acceptance remain separate gates.
+
+Subsequent [captured-client concurrency measurement](cap06-captured-capacity.md)
+found and fixed a parallel pure-verification refusal without changing startup-only
+hashing or the provider lock. Its new023d9f6native archive supersedes the older
+functional candidate above; the original proof remains historical and unchanged.
