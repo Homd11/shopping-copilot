@@ -383,6 +383,8 @@
       "provider": "openrouter",
       "model": "google/gemini-3.5-flash-lite",
       "non_resetting_key_cap_usd": "2.00",
+      "protected_config_v2_supported": true,
+      "config_contract": "strict v2 fixes provider/model/cap; protected external Agent-only provider_key_file; v1 retains Bedrock; ambient selection ignored",
       "host_integration_complete": false,
       "qualification_binding_complete": false,
       "key_and_remaining_allowance_custody_bound": false,
@@ -422,6 +424,7 @@
       "output_price_usd_per_million": null
     },
     "model": "openai.gpt-oss-20b-1:0",
+    "model_selection_status": "v1 Bedrock candidate retained; v2 approved OpenRouter fallback supported, actual deployed selection and qualification unbound",
     "model_streaming_iam_grant": false,
     "metadata_process_isolation_implemented": true,
     "durable_host_diagnostics_implemented": true,
@@ -461,7 +464,7 @@
     "reserved concurrency and all feature creation/runtime eligibility",
     "native production Linux release, interpreter/lock and provisioning verification",
     "native host provisioning/activation/reboot verification of prepared process-specific metadata boundary and durable redacted diagnostics",
-    "explicit selected-provider host integration and qualification/readiness binding: usable quota for Bedrock, or approved current OpenRouter fallback with protected key/remaining allowance custody; no new call/spend authority",
+    "actual selected-provider host integration and qualification/readiness binding: v1 Bedrock or strict v2 OpenRouter config supported; usable Bedrock quota or protected OpenRouter key/remaining allowance custody remains unbound; no new call/spend authority",
     "ordered activation/rollback/teardown package with current authority retained and exact final approval",
     "real host/systemd/capability/TLS/IAM/OAC/event/desktop/Android/cloud safety acceptance"
   ],

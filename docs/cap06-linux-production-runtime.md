@@ -114,12 +114,22 @@ Preserve the non-resetting$2cap, existing
 charges/unknown holds and explicit provider selection. No new deposit, higher cap,
 silent switch or extra model-call authority follows from the fallback choice.
 
-The protected HostSettings path still selects Bedrock and ignores ambient dotenv
-configuration. A later bounded integration must explicitly bind OpenRouter's
-private Agent-only key, selected model, qualification/readiness evidence and
-durable allowance within verified remaining key credit. Existing local model
-evidence does not establish deployed infrastructure acceptance. The current host
-provider verifier remains closed; this preparation does not activate it.
+Protected HostSettings v1 retains its fixed Bedrock selection. Strict v2 now
+supports exactly `openrouter` / `google/gemini-3.5-flash-lite`, with an absolute
+external `provider_key_file` read through the protected POSIX file boundary. The
+key is bounded printable ASCII, excluded from representations and release files,
+and passed only through the explicit Agent environment. Inline keys, extra fields,
+other provider/model selections and configurable cap overrides are rejected. Both
+versions ignore ambient dotenv selection; v2 fixes the non-resetting cap at $2.00
+and preserves the existing inference ledger and allowance validation.
+
+The 55 focused configuration tests cover both versions and protected-secret
+refusals. Both provider cases at the application seam retain the authenticated
+closed-readiness response, zero model calls and unchanged allowance state. These
+checks prepare configuration support; they do not establish actual key custody,
+verified remaining credit, selected-model qualification or full native Agent
+startup. Those bindings remain open. The host provider verifier stays closed;
+existing local model evidence does not establish deployed acceptance.
 
 Still open: a clean native Linux release with real Git provenance; production
 interpreter/package/security and provisioning acceptance; actual systemd boot/
