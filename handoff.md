@@ -1,5 +1,26 @@
 # Shopping Copilot — project handoff
 
+## Vendor-aligned native release verified - 2026-10-24
+
+Newest PROJECT_CHECKPOINT.md and docs/cap06-vendor-runtime-alignment.md record the
+clean2c9ae36 release built under actual signed AL2023 Python3.12.14 and Node24.22.1.
+All28application wheels/6native imports,14native standard-library modules,
+Storefront restarts, actual synthetic-authority Agent startup/closed readiness/
+shutdown/refusal and independent archive roundtrip pass. Exact evidence and
+source/archive/manifest/tool hashes: eval/evidence/cap06-vendor-runtime-alignment-20261024.json.
+62+140focused tests pass; prior broad-suite exception retained. No root lock/wheel
+version change, real key/ledger/model call/resource/public activation/push/merge.
+
+Read-only owner-reauthenticated account/AMI/network/quota observations are in
+eval/evidence/cap06-production-host-preflight-20261024.json. Active Free plan and
+USD100credit confirmed; exact candidate AMI/default overrides recorded. Inert
+dossier references candidates without adopting creation/activation bindings.
+Next: actual host/security/provisioning adoption, selected-provider qualification/
+custody/capacity, then exact resource/cost/rollback and deployed-host/public tests.
+Owner resumed project work after PC diagnosis; serial native runs have finite
+limits and a Windows memory-headroom guard, no global OS settings changed.
+Step25 remains out of scope and PDF work is explicitly cancelled.
+
 ## Native Agent started with synthetic authority - 2026-10-24
 
 Newest PROJECT_CHECKPOINT.md and docs/cap06-native-agent-startup.md supersede the

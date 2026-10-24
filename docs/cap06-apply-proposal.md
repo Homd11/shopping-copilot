@@ -1,6 +1,6 @@
 # CAP-06 resource, cost and rollback proposal
 
-**23 October 2026 — inactive preparation; blocked, not ready for apply approval.**
+**Updated24 October 2026 — inactive preparation; blocked, not ready for apply approval.**
 The [inert inventory](cap06-apply-inventory.json) fixes proposed names, quantities,
 settings and required evidence. It is not a CloudFormation/Terraform stack, CLI
 input or permission to create anything. No AWS account/credential/model API,
@@ -14,6 +14,14 @@ provider as an explicitly selected fallback, preserving its existing non-resetti
 USD2cap and charges. This does not activate the provider or waive qualification,
 key/allowance custody, host readiness, exact costs or resource/rollback approvals.
 Protected HostSettings v1 retains Bedrock; strict v2 supports the approved OpenRouter fallback with an external Agent-only key and fixed cap. The [native release](cap06-native-release-openrouter.md) and [synthetic-authority Agent startup](cap06-native-agent-startup.md) are verified. Actual interpreter/security adoption, real external authority, provider qualification/custody and host provisioning remain open.
+
+The subsequent [vendor runtime alignment](cap06-vendor-runtime-alignment.md)
+verifies a new clean release under signed AL2023 Python3.12.14 and Node24.22.1,
+including actual Agent startup and independent archive extraction. The
+[read-only account preflight](../eval/evidence/cap06-production-host-preflight-20261024.json)
+records the owner-reauthenticated active Free plan, current credit, available
+network/quota observations and exact Amazon-owned AMI candidate. No resource was
+created, adopted or authorized by those observations; final bindings remain null.
 
 Recorded consistency checks and review limits are in
 [the evidence record](../eval/evidence/cap06-apply-dossier-20261023.json).
@@ -94,8 +102,10 @@ Generated IDs cannot exist before creation. There are three separate stages:
    balance and other usage; authorize existing network/image/admin path; approve
    exact names/settings/costs/finite window/retention and rollback. Resolve the
    model prerequisite and production build/provisioning/isolation gaps below.
-   No fresh account check occurred in this preparation. Prior availability
-   AUTHORIZED/AVAILABLE and zero applied model quotas remain historical evidence.
+   The24October read-only preflight records active Free-plan/current credit and
+   network/quota/AMI candidates. Refresh and explicitly adopt relevant bindings
+   before creation. Prior Bedrock AUTHORIZED/AVAILABLE and zero applied model
+   quotas remain historical evidence; they do not qualify the OpenRouter route.
 2. **Private creation receipts, after a future bounded approval:** capture returned
    instance/volume/EIP/security-group/keypair/role/profile/table/bucket/distribution/
    OAC/policy/function/log identifiers and configuration digests in a protected
@@ -155,10 +165,13 @@ The Windows-derived rehearsal ZIP is never the installation artifact. The28
 runtime wheels rehearsed in `eval/linux-host-runtime.json`, including uvloop0.22.1,
 now have separate preparation inputs at `deploy/linux-runtime.json` and
 `deploy/requirements-linux.lock`; packaging26.3 remains diagnostic only. Production
-interpreter/lock adoption, exact Python3.12 provenance, AMI/kernel/security approval
-and a fresh native build/runtime check remain required. Node24.13.0 and Caddy2.11.7
-candidate vendor digests are already retained; they are not claims of newest or
-currently approved secure versions. Verify licence/provenance/security and do not
+interpreter/lock adoption and AMI/kernel/security approval remain required.
+The new2c9ae36 native source release passes a clean offline build, Storefront and
+Agent startup, and independent extraction under the signed Python3.12.14 RPM
+candidate and Node24.22.1. This supersedes the earlier tools as the functional
+candidate without relabelling their historical receipts. Caddy2.11.7 remains the
+retained candidate; native adaptation is not public TLS/security acceptance.
+Verify licence/provenance/security and do not
 download/install packages from first-boot user-data with unpinned scripts.
 
 Only `shopping-copilot-host.target` is intended for later enablement. It owns
@@ -365,7 +378,8 @@ blocked prerequisites themselves. Next is **native production provisioning/lock
 and actual-host acceptance of the prepared
 credential/process isolation and durable diagnostics**, followed by a fully bound
 approval/execution package.
-Current model quota/qualification and account/credit/workload evidence remain
-independent blockers; no further model attempt, sign-in, quota-increase request,
-upgrade or resource experiment is authorized here. Continue local work without
+Selected-model qualification/custody and current resource/cost/workload approval
+remain independent gates. The24October account preflight narrows the earlier
+unknowns without authorizing creation, inference spending, quota changes or an
+upgrade. Continue local work without
 repeating the unavailable Support request or weakening any gate.

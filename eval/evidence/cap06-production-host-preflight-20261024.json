@@ -216,7 +216,7 @@
     "libs_nevra": "python3.12-libs-0:3.12.14-2.amzn2023.0.1.x86_64",
     "repository_receipt_sha256": "7cdca63cde667c7ed0bed5c1dea5a48450681d97045fa8dad108d2c2bfca518a",
     "tested_lambda_interpreter_patch": "3.12.15",
-    "host_runtime_alignment_required": true,
+    "host_runtime_alignment_required": false,
     "actual_ami_installed_interpreter_observed": false,
     "production_interpreter_approved": false,
     "signed_package_count": 19,
@@ -247,8 +247,11 @@
       }
     },
     "native_smoke_profile_sha256": "942278cdb21c53d1c59b9b7b9ac3453f11c69aaeb4bb37e49d5e35a5ab9bfe71",
-    "application_build_under_candidate_verified": false,
-    "system_installed": false
+    "application_build_under_candidate_verified": true,
+    "system_installed": false,
+    "candidate_runtime_alignment_verified": true,
+    "actual_host_interpreter_adoption_required": true,
+    "alignment_evidence": "eval/evidence/cap06-vendor-runtime-alignment-20261024.json"
   },
   "provider": {
     "selected_route_unchanged": "approved OpenRouter fallback; exactmodel remains separatelyqualified",
@@ -267,7 +270,7 @@
     "push_merge": false
   },
   "remaining_gates": [
-    "exact host interpreter/vendor advisories/runtime alignment and nativeproof",
+    "actual host interpreter/vendor advisories/security and installed package adoption",
     "actual host/systemd/remoteauthority/capacity acceptance",
     "selected-provider qualification and protected key/remaining allowance custody",
     "exact cost/resource/rollback and public activation approval"

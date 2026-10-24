@@ -2,6 +2,59 @@
 
 **Last updated:** 2026-10-24
 
+## Signed vendor runtime alignment verified - 2026-10-24
+
+The new clean native release is from original source2c9ae36/treeb13637d2.
+Archive SHA256 c3c7d6da9c2874d0f8c0ced73e67887abb4251db59acfe95e0b74a53a3f8a5a3;
+manifest SHA256 f043325da8e4fab8dfc47b9ec3701b10a72a438d0891a5876fe33cf865cc440e.
+Actual build and child processes use signed AL2023 repository2023.12.20261021
+Python3.12.14-2.amzn2023.0.1/private19RPM closure and signed Node24.22.1. The
+retained Lambda interpreter extracts only, then execs the real vendor interpreter.
+All14native standard-library checks, OpenSSL3.5.8,28locked application packages,
+6native application imports,2Storefront restarts and protected POSIX key/uncertainty
+checks pass. Root requirements.lock and all28wheel versions/hashes are unchanged.
+
+Actual Agent startup from that same archive passes with read-only synthetic
+authority, default provider false, signed closed readiness, proof/identity refusals,
+graceful SIGTERM and generation0 cleanup. Separate3.12.14 extraction verifies
+943manifest files/192relative symlinks/39contained hardlinks. All three native runs
+finish with empty stderr. Original historical archives/manifests remain unchanged.
+Guide: docs/cap06-vendor-runtime-alignment.md; exact profile/tool/vendor/output
+digests: eval/evidence/cap06-vendor-runtime-alignment-20261024.json.
+
+Fresh62runtime/bootstrap/probe tests and140release/source/Agent/OpenRouter/config
+tests pass,2upstream warnings. Ruff274files/pipcheck/changed formatting pass.
+Fresh source review has no material findings; bounded tar-metadata allocation
+hardening is recorded as minor. Prior broad-suite exception remains historical.
+Native runs are serial, resource-limited and guarded by measured Windows headroom;
+no OS memory setting changed. Owner explicitly resumed after the PC diagnosis.
+
+Owner-reauthenticated read-only AWS preflight confirms the same active Free-plan
+project, USD100credit/7April2027 expiry, available default network and quota
+arithmetic, and Amazon-owned AMI ami-0111419d42d14a400. No proposed host/EIP/key/SG
+exists. Candidate root/public-IP defaults need explicit proposal overrides. Evidence:
+eval/evidence/cap06-production-host-preflight-20261024.json. The inert dossier now
+references these candidates; creation/activation bindings remain null and false.
+
+Next: adopt actual host interpreter/vendor security/AMI/provisioning parameters;
+selected OpenRouter qualification, protected key/remaining-credit custody and
+capacity; then exact current resource/cost/rollback approval, actual host/systemd/
+users/reboot/metadata/capability/log acceptance and approved public desktop/Android
+tests. No model call/spend, actual key/ledger change, AWS resource change, public
+activation, push or merge in this slice. No generalisation/Step25 or PDF work.
+
+The accepted15October local OpenRouter report is still present at
+eval/reports/model-qualification-20261014T213739Z/results.json, SHA256
+7a168063cc6b179cd484e7c6098923a8592b737752dd3908e0dd3a0e1853fd98.
+Read-only inspection confirms accepted local replacement,43/44core and7advice
+cases,72POSTs/USD0.09501011 and no unsettled costs in that cohort. All six frozen
+intent/pipeline/wire/provider-schema/advice/retrieval source hashes still match.
+LLM configuration/factory/contract/adapter files have since changed, so do not
+promote this into current-host qualification or discard/repeat paid evidence
+automatically. Next reconcile those changes and the existing acceptance record
+before defining any separately authorized deployed qualification. No real key,
+current balance or allowance state was read by this report-only inspection.
+
 ## Native Agent startup verified with synthetic authority - 2026-10-24
 
 The original2dbe015 native archive now runs the actual Agent/Uvicorn on Linux,

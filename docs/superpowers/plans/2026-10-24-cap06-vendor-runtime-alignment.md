@@ -31,28 +31,39 @@ choices for approved native host preparation, not new product scope.
 
 ## Task1: Candidate acquisition and source reconciliation
 
-- [ ] Observe vendor Python3.12.14 core startup from signature-verified RPMs; retain
+- [x] Observe vendor Python3.12.14 core startup from signature-verified RPMs; retain
       missing-library failures and acquire their signed fixed-release providers.
-- [ ] RED wheel Requires-Python patch-boundary regressions; update only Linux
+- [x] RED wheel Requires-Python patch-boundary regressions; update only Linux
       preparation target/fixtures from3.12.15 to3.12.14. Keep root requirements.lock
       and the28wheel versions/hashes unchanged; GREEN complete runtime tests.
-- [ ] Bind the native build tool to Node24.22.1 and the private interpreter prefix.
+- [x] Bind the native build tool to Node24.22.1 and the private interpreter prefix.
       Reject missing/wrong private runtime inputs; environment paths remain fixed.
 
 ## Task2: Actual vendor runtime and release proof
 
-- [ ] Require real3.12.14 prefix/ABI/stdlib native imports and pip from verified
+- [x] Require real3.12.14 prefix/ABI/stdlib native imports and pip from verified
       candidate files, with no image-site fallback. Diagnostic tools stay external
       to the28application distributions.
-- [ ] Commit source, capture original clean commit/tree, run frozen offline pnpm
+- [x] Commit source, capture original clean commit/tree, run frozen offline pnpm
       and hash-locked wheel install plus the unchanged release builder under the
       vendor interpreter and signed Node24.22.1. Preserve actual manifest/source.
-- [ ] Repeat native Storefront/Agent startup, signed default-closed readiness,
+- [x] Repeat native Storefront/Agent startup, signed default-closed readiness,
       permission/allowance/uncertainty/persistence and bounded shutdown/refusal.
-- [ ] Focused runtime/release/host tests, relevant source checks and fresh review.
+- [x] Focused runtime/release/host tests, relevant source checks and fresh review.
       Record exact interpreter/libs/tool/runtime/archive digests and proof limits;
       update checkpoint/inert proposal and commit locally.
 
 Actual EC2/AMI installed package state, systemd/users/reboot/security acceptance,
 real authority/provider qualification/custody/capacity and exact cost/resource/
 rollback/public activation gates remain open.
+
+## Verified outcome —24October
+
+Clean native source2c9ae36 built under actual signed vendor Python3.12.14 and
+Node24.22.1. Storefront checks, actual synthetic-authority Agent startup with
+closed provider readiness, shutdown/refusal and independent archive extraction
+all pass.62runtime/bootstrap/probe tests and140release/source/host checks pass;
+source lint/format/pipcheck pass. Exact immutable profiles/results and remaining
+adoption gates: docs/cap06-vendor-runtime-alignment.md and its evidence record.
+No root dependency/wheel version change, model spending, actual key/ledger
+change, resource creation/public activation, push or merge.
