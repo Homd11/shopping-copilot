@@ -79,6 +79,8 @@ def initialize():
         GIT_TERMINAL_PROMPT="0",
         GIT_NO_REPLACE_OBJECTS="1",
     )
+    if sys.executable == "/rehearsal/vendor-python/usr/bin/python3.12":
+        os.environ["LD_LIBRARY_PATH"] = "/rehearsal/vendor-python/usr/lib64"
     os.umask(0o077)
 
 
@@ -372,6 +374,8 @@ def restore_policy(source, expected):
 
 
 def build(expected):
+    assert sys.version_info[:3] == (3, 12, 14)
+    assert sys.executable == "/rehearsal/vendor-python/usr/bin/python3.12"
     for name in ("home", "bin"):
         (WORK / name).mkdir(mode=0o700)
     assert directory_digest(Path("/store")) == (expected["store_manifest_sha256"], 6334)
@@ -382,7 +386,7 @@ def build(expected):
     wrapper.write_text('#!/bin/sh\nexec /usr/bin/node /pnpm/bin/pnpm.cjs "$@"\n')
     wrapper.chmod(0o755)
     assert command("pnpm", "--version") == "11.19.0"
-    assert command("node", "--version") == "v24.13.0"
+    assert command("node", "--version") == "v24.22.1"
     source = unpack_source(expected["source"])
     restore_policy(source, expected)
     assert command("pnpm", "store", "path", cwd=source) == str(store / "v11")
@@ -463,6 +467,9 @@ def build(expected):
         "source_clean": True,
         "genuine_git": True,
         "offline_native_build": True,
+        "python_version": ".".join(map(str, sys.version_info[:3])),
+        "python_prefix": sys.prefix,
+        "node_version": command("node", "--version"),
         "policy_cache_sha256": expected["policy_cache_sha256"],
         "policy_lock_sha256": expected["policy_lock_sha256"],
         "manifest_sha256": sha(release / "release.json"),

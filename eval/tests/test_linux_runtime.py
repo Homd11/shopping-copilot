@@ -18,7 +18,7 @@ TARGET = {
     "platform_machine": "x86_64",
     "libc": "glibc",
     "libc_version": "2.34",
-    "marker_python_full_version": "3.12.15",
+    "marker_python_full_version": "3.12.14",
 }
 ROOTS = [
     "boto3==1.43.115",
@@ -257,7 +257,7 @@ def test_wheelhouse_bytes_are_exact_and_missing_or_extra_inputs_refuse(inputs, a
         {"Name": "fastapi\nName: fastapi"},
         {"Version": "999.0"},
         {"Requires-Python": ">=3.13"},
-        {"Requires-Python": "<3.12.15"},
+        {"Requires-Python": "<3.12.14"},
         {"Requires-Python": None},
     ],
 )
@@ -267,6 +267,21 @@ def test_wheel_metadata_identity_and_python_contract_must_match(inputs, override
     replace_wheel(inputs, "fastapi", overrides=overrides)
     with pytest.raises(ValueError, match=f"^{REFUSAL}$"):
         verify_inputs(*inputs[:2])
+
+
+@pytest.mark.parametrize(
+    "requirement,compatible",
+    [(">=3.12.15", False), (">=3.12.14,<3.12.15", True)],
+)
+def test_selected_vendor_patch_controls_wheel_python_compatibility(inputs, requirement, compatible):
+    from deploy.linux_runtime import verify_inputs
+
+    replace_wheel(inputs, "fastapi", overrides={"Requires-Python": requirement})
+    if compatible:
+        assert verify_inputs(*inputs[:2])["runtime_wheels"] == 28
+    else:
+        with pytest.raises(ValueError, match=f"^{REFUSAL}$"):
+            verify_inputs(*inputs[:2])
 
 
 @pytest.mark.parametrize(

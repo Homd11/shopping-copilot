@@ -26,7 +26,7 @@ TARGET = {
     "platform_machine": "x86_64",
     "libc": "glibc",
     "libc_version": "2.34",
-    "marker_python_full_version": "3.12.15",
+    "marker_python_full_version": "3.12.14",
 }
 RUNTIME_NAMES = {
     "annotated-types",
