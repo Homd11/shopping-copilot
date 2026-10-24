@@ -23,6 +23,13 @@ records the owner-reauthenticated active Free plan, current credit, available
 network/quota observations and exact Amazon-owned AMI candidate. No resource was
 created, adopted or authorized by those observations; final bindings remain null.
 
+The [OpenRouter source reconciliation](cap06-openrouter-reconciliation.md) now
+preserves the prior local model acceptance with exact source/wire/refusal evidence,
+without a new paid set. Its [binding design](superpowers/specs/2026-10-24-cap06-openrouter-qualification-binding-design.md)
+is proposed only: no trusted runtime verifier or private operator binding exists
+yet, and default provider readiness remains false. Offline attribution does not
+close actual-host/custody/capacity or deployment-approval gates.
+
 Recorded consistency checks and review limits are in
 [the evidence record](../eval/evidence/cap06-apply-dossier-20261023.json).
 

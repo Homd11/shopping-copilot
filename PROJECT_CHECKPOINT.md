@@ -2,6 +2,45 @@
 
 **Last updated:** 2026-10-24
 
+## OpenRouter acceptance reconciled offline; binding design proposed - 2026-10-24
+
+The accepted local15October report remains byte-identical at SHA256
+7a168063cc6b179cd484e7c6098923a8592b737752dd3908e0dd3a0e1853fd98.
+Committed39f03ef reconstructs the accepted runtime source despite the report's
+earlier declared base:140raw matches,57GitLF-to-recordedCRLF matches and3different
+evaluation-tool/test files only. No report/source rewrite. All six frozen
+interpretation/advice/retrieval files still match. OpenRouter's only adapter change
+is the local pre-POST authorization await; configured effective timeout stays30s.
+
+Actual bounded offline harness passes12pairs:6identical wire/output pairs across
+intent/step/advice and stream modes, plus6new authority-refusal cases with zero
+current POST/output.24adapter executions/42mock exchanges,7offline guard checks,
+no loop errors/pending tasks. The first harness attempt is explicitly rejected and
+retained, not counted as passing evidence. No real network/SDK/key/balance reads.
+151focused OpenRouter/schema/allowance/host tests pass19.14s,2upstream warnings.
+Guide: docs/cap06-openrouter-reconciliation.md. Public source/receipt evidence:
+eval/evidence/cap06-openrouter-reconciliation-20261024.json, SHA256
+53b9995a3b131b636b40076c98acca3a96ff253009de07b0a1494a1b95991549.
+It also pins20canonical Git-byte model-contract source files, including the shared
+reservation-schema helper; current-host qualification remains explicitly false.
+
+The proposed implementation design is
+docs/superpowers/specs/2026-10-24-cap06-openrouter-qualification-binding-design.md.
+It adds an explicit protected operator-pinned evidence binding, effective config/
+actual client/release/key/ledger checks, bounded owned verifier I/O and freshness
+across lifecycle awaits. Existing no-binding default remains false; no ready=true
+flag or inference authorization is added. Design is not approved/implemented.
+Fresh builder review's two ambiguities were settled: exact canonical evidence/
+20source tuple is now pinned; pre-SDK structural/provenance validation is separate
+from actual-client validation after assembly, with full cleanup on late refusal.
+
+Next obtain owner approval of this concrete readiness-authority design before
+implementing its new qualification format/verifier. Approval would cover synthetic
+implementation/tests only, not real custody, model calls/spend, resources or public
+activation. Existing actual-host/security/capacity, exact cost/resource/rollback
+and deployed desktop/Android gates remain. No product code, configured provider,
+key/ledger, AWS resource, public DNS/TLS, push or merge changed in this audit.
+
 ## Signed vendor runtime alignment verified - 2026-10-24
 
 The new clean native release is from original source2c9ae36/treeb13637d2.

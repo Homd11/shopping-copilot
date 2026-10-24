@@ -1,5 +1,23 @@
 # Shopping Copilot — project handoff
 
+## OpenRouter evidence reconciled; design awaits approval - 2026-10-24
+
+Newest checkpoint and docs/cap06-openrouter-reconciliation.md retain the accepted
+43/44core/19safety/7advice model cohort without any paid repeat. Original report
+hash unchanged;39f03ef reconstructs runtime sources with explicit LF/CRLF provenance.
+12offline comparison/refusal pairs and151focused tests pass. Canonical evidence:
+eval/evidence/cap06-openrouter-reconciliation-20261024.json, SHA53b9995a...;
+20current model-contract files are pinned as Git bytes. No real provider/key/
+allowance access or product/runtime/qualification change occurred.
+
+Next proposed design:
+docs/superpowers/specs/2026-10-24-cap06-openrouter-qualification-binding-design.md.
+It specifies an explicitly pinned private binding and owned fresh verifier; no
+binding preserves default-false and existing v1/v2 selection. Fresh builder
+questions were resolved in the document. It is NOT approved or implemented; ask
+owner to approve this concrete authority design before implementation. Actual
+custody/spending/resource/public gates remain independently closed.
+
 ## Vendor-aligned native release verified - 2026-10-24
 
 Newest PROJECT_CHECKPOINT.md and docs/cap06-vendor-runtime-alignment.md record the
