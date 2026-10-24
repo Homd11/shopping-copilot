@@ -78,8 +78,6 @@ def initialize():
         GIT_CONFIG_GLOBAL="/dev/null",
         GIT_TERMINAL_PROMPT="0",
         GIT_NO_REPLACE_OBJECTS="1",
-        npm_config_store_dir="/rehearsal/store",
-        npm_config_offline="true",
     )
     os.umask(0o077)
 
@@ -367,21 +365,22 @@ def build(expected):
         (WORK / name).mkdir(mode=0o700)
     assert directory_digest(Path("/store")) == (expected["store_manifest_sha256"], 6334)
     assert directory_digest(Path("/pnpm"))[0] == expected["pnpm_manifest_sha256"]
-    shutil.copytree("/store", WORK / "store/v11")
+    store = WORK / "home/.local/share/pnpm/store"
+    shutil.copytree("/store", store / "v11")
     wrapper = WORK / "bin/pnpm"
     wrapper.write_text('#!/bin/sh\nexec /usr/bin/node /pnpm/bin/pnpm.cjs "$@"\n')
     wrapper.chmod(0o755)
     assert command("pnpm", "--version") == "11.19.0"
-    assert command("pnpm", "store", "path") == "/rehearsal/store/v11"
     assert command("node", "--version") == "v24.13.0"
     source = unpack_source(expected["source"])
+    assert command("pnpm", "store", "path", cwd=source) == str(store / "v11")
     command(
         "pnpm",
         "install",
         "--frozen-lockfile",
         "--offline",
         "--store-dir",
-        str(WORK / "store"),
+        str(store),
         cwd=source,
         timeout=180,
     )
