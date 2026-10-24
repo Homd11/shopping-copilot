@@ -4,20 +4,29 @@ from fastapi.testclient import TestClient
 from agent.app import create_app
 from agent.llm import LLMSettings, ScriptedLLMClient
 from agent.storefront_service import StorefrontService, identity_config
+from agent.tests.test_admission_http import policy
 
 
-def test_production_excludes_evaluation_routes_even_when_requested(monkeypatch):
+def test_production_excludes_evaluation_routes_even_when_requested(monkeypatch, tmp_path):
     monkeypatch.setenv("COPILOT_ENV", "production")
     monkeypatch.setenv("COPILOT_PANEL_ORIGIN", "https://app.scpilot.tech")
     monkeypatch.setenv("COPILOT_STORE_ORIGIN", "https://store.scpilot.tech")
     monkeypatch.setenv("COPILOT_SERVICE_SECRET", "test-only-service-credential-for-public-runtime")
     monkeypatch.setenv("COPILOT_EVALUATION", "1")
     app = create_app(
-        evaluation=True, llm_settings=LLMSettings(provider="scripted", model="scripted-v1")
+        evaluation=True,
+        llm_settings=LLMSettings(provider="scripted", model="scripted-v1"),
+        admission=policy(tmp_path)[0],
     )
     client = TestClient(app)
     assert client.post("/step", json={}).status_code == 404
     assert client.post("/__test/advance-time", json={"seconds": 1}).status_code == 404
+
+
+def test_production_requires_admission_even_for_scripted_rehearsals(monkeypatch):
+    monkeypatch.setenv("COPILOT_ENV", "production")
+    with pytest.raises(ValueError, match="admission"):
+        create_app(llm_settings=LLMSettings(provider="scripted", model="scripted-v1"))
 
 
 def test_production_requires_explicit_service_secret(monkeypatch):

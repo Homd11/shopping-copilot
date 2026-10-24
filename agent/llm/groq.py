@@ -115,6 +115,7 @@ class GroqClient:
             transport=self._transport,
             timeout=self._settings.timeout_seconds,
         ) as client:
+            await request.authorize()
             response = await client.post(endpoint, headers=headers, json=payload)
             if response.status_code == 429:
                 try:

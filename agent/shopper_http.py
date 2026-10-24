@@ -5,6 +5,10 @@ import secrets
 from fastapi import FastAPI, Request
 from starlette.responses import JSONResponse
 
+from agent.admission.limits import AdmissionLimits, denied, is_owner_stop
+from agent.admission.store import AdmissionDenied
+from agent.async_boundary import invoke
+from agent.lifecycle.store import LifecycleUnavailable
 from agent.session_state import SessionExpired, SessionNotFound
 from agent.sessions import SessionStore
 from agent.shopper_access import ShopperAccess
@@ -18,10 +22,13 @@ def install_shopper_http(
     *,
     panel_origin: str,
     evaluation: bool,
+    admission=None,
+    lifecycle_work=None,
 ) -> None:
     access = ShopperAccess()
     app.state.shopper_access = access
     app.state.storefront_service = service
+    app.state.lifecycle_work = lifecycle_work
 
     async def alive(record) -> bool:
         if record.shopper is None:
@@ -45,6 +52,11 @@ def install_shopper_http(
         ]
         credential = cookie_values[0] if len(cookie_values) == 1 else ""
         record = access.resolve(credential)
+        if admission is not None and record is not None:
+            try:
+                admission.browser_request(record, stop=is_owner_stop(request.method, path))
+            except AdmissionDenied:
+                return denied("access_busy", 429)
         new_cookie = None
         if path == "/shopper/bootstrap" and request.method == "POST":
             if request.headers.get("origin") != panel_origin:
@@ -107,10 +119,35 @@ def install_shopper_http(
                 result = JSONResponse({"detail": "Shopper linking failed"}, status_code=409)
             result.headers["Cache-Control"] = "no-store"
             return result
-        if not await alive(record):
+        bound_shopper = record.shopper
+        if not await alive(record) or record.shopper != bound_shopper:
             return JSONResponse(
                 {"detail": "Storefront identity expired or unavailable"}, status_code=401
             )
+        if path == "/shopper/admission":
+            if request.method == "POST" and admission is not None:
+                try:
+                    payload = await request.json()
+                    if not isinstance(payload, dict):
+                        raise AdmissionDenied()
+                    await invoke(admission, "redeem", record, payload.get("code"))
+                except (ValueError, AdmissionDenied):
+                    return denied("access_required")
+            elif request.method != "GET":
+                return JSONResponse({"detail": "Method not allowed"}, status_code=405)
+            return JSONResponse(
+                {
+                    "required": admission is not None,
+                    "admitted": admission is None or await invoke(admission, "allowed", record),
+                },
+                headers={"Cache-Control": "no-store"},
+            )
+        if (
+            admission is not None
+            and not is_owner_stop(request.method, path)
+            and not await invoke(admission, "allowed", record)
+        ):
+            return denied("access_required")
         parts = path.strip("/").split("/")
         if len(parts) >= 2 and parts[0] == "sessions":
             if parts[1] not in record.sessions:
@@ -126,15 +163,73 @@ def install_shopper_http(
         access.resolve(credential, touch=True)
         request.state.shopper = record.shopper
         request.state.browser_authority = record
-        bound_shopper = record.shopper
+
+        async def lifecycle_authorized():
+            if lifecycle_work is not None:
+                try:
+                    await invoke(lifecycle_work, "check")
+                except LifecycleUnavailable:
+                    return False
+            return True
 
         async def still_authorized():
+            if not await lifecycle_authorized():
+                return False
             if access.resolve(credential) is not record or record.shopper != bound_shopper:
                 return False
+            if admission is not None and not await invoke(admission, "allowed", record):
+                return False
             valid = await alive(record)
-            return valid and record.shopper == bound_shopper
+            return (
+                valid
+                and access.resolve(credential) is record
+                and record.shopper == bound_shopper
+                and (admission is None or await invoke(admission, "allowed", record))
+                and await lifecycle_authorized()
+                and access.resolve(credential) is record
+                and record.shopper == bound_shopper
+            )
 
         request.state.shopper_authorized = still_authorized
-        response = await call_next(request)
+        token = None
+        meaningful = False
+        try:
+            if lifecycle_work is not None and not is_owner_stop(request.method, path):
+                await invoke(lifecycle_work, "check")
+                if request.method == "POST":
+                    token = await invoke(lifecycle_work, "begin")
+            if access.resolve(credential) is not record or record.shopper != bound_shopper:
+                return JSONResponse(
+                    {"detail": "Shopper identity changed"},
+                    status_code=409,
+                    headers={"Cache-Control": "no-store"},
+                )
+            if len(parts) >= 2 and parts[0] == "sessions" and parts[1] not in record.sessions:
+                return JSONResponse(
+                    {"detail": "Session not found"},
+                    status_code=404,
+                    headers={"Cache-Control": "no-store"},
+                )
+            response = await call_next(request)
+            meaningful = (
+                request.method == "POST"
+                and response.status_code < 300
+                and (
+                    path == "/shopper/activity"
+                    or path == "/sessions"
+                    or path.endswith(("/messages", "/answers", "/retry"))
+                )
+            )
+        except LifecycleUnavailable:
+            response = denied("demo_waiting", 503)
+        finally:
+            if token is not None:
+                try:
+                    await invoke(lifecycle_work, "finish", token, meaningful=meaningful)
+                except LifecycleUnavailable:
+                    response = denied("demo_waiting", 503)
         response.headers["Cache-Control"] = "no-store"
         return response
+
+    if admission is not None:
+        app.add_middleware(AdmissionLimits, policy=admission)

@@ -115,18 +115,35 @@ def test_process_restarts_invalidate_authority_without_replaying_cart_changes():
             browser.close()
 
 
-def test_simultaneous_tabs_share_one_shopper_but_require_task_takeover():
+@pytest.mark.parametrize("delayed_first_tab", [False, True], ids=["concurrent", "second-tab-wins"])
+def test_simultaneous_tabs_share_one_shopper_but_require_task_takeover(delayed_first_tab):
     with local_services(), sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=True)
         try:
             context = browser.new_context()
             a, b = context.new_page(), context.new_page()
+            held_scripts = []
+            if delayed_first_tab:
+                # A committed document may run its script after the second tab.
+                a.route("**/src/main.ts", lambda route: held_scripts.append(route))
             a.goto("http://localhost:4100/", wait_until="commit")
             b.goto("http://localhost:4100/", wait_until="commit")
-            expect(a.locator("#shopper-message")).to_be_enabled(timeout=15000)
-            expect(b.locator("#task-status")).to_contain_text("another tab", timeout=15000)
+            if delayed_first_tab:
+                expect(b.locator("#shopper-message")).to_be_enabled(timeout=15000)
+                assert len(held_scripts) == 1
+                held_scripts[0].continue_()
+            for page in (a, b):
+                # Wait for either valid initialization result without choosing a winner.
+                expect(page.locator("#shopper-message:enabled, #takeover-session")).to_be_visible(
+                    timeout=15000
+                )
+            assert sum(page.locator("#shopper-message").is_enabled() for page in (a, b)) == 1
+            owner, observer = (a, b) if a.locator("#shopper-message").is_enabled() else (b, a)
+            expect(observer.locator("#shopper-message")).to_be_disabled()
+            expect(observer.locator("#task-status")).to_contain_text("another tab")
+            expect(observer.locator("#takeover-session")).to_be_visible()
             browser_post(
-                a,
+                owner,
                 "http://localhost:4000/cart/items",
                 data={
                     "product_id": "shoe-09",
@@ -137,7 +154,7 @@ def test_simultaneous_tabs_share_one_shopper_but_require_task_takeover():
                     "operation_id": "shared-profile",
                 },
             )
-            frame = b.frame_locator("#storefront-frame")
+            frame = observer.frame_locator("#storefront-frame")
             frame.locator("body").evaluate("() => { location.href = '/cart'; }")
             expect(frame.locator('input[name="quantity"]')).to_have_value("2")
             assert a.evaluate("localStorage.getItem('shopping-copilot.session-id')") == b.evaluate(

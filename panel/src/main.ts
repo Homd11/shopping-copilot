@@ -12,6 +12,7 @@ import {
 import "./styles.css";
 import { linkShopper } from "./shopper-link.js";
 import { subscribeAgentStream } from "./event-stream.js";
+import { requireAdmission } from "./admission.js";
 
 declare const __COPILOT_PUBLIC_ORIGINS__: {
   panel: string;
@@ -25,6 +26,23 @@ if (window.location.origin !== __COPILOT_PUBLIC_ORIGINS__.panel)
 
 let browserCsrf = "";
 let shopperContext = "";
+let interactionReady = false;
+let lastInteraction = -Infinity;
+function reportInteraction() {
+  if (
+    !shopperContext ||
+    !interactionReady ||
+    authorityLost ||
+    document.visibilityState !== "visible"
+  )
+    return;
+  const now = performance.now();
+  if (now - lastInteraction < 30_000) return;
+  lastInteraction = now;
+  void agentFetch(`${AGENT_ORIGIN}/shopper/activity`, { method: "POST" }).catch(
+    () => {},
+  );
+}
 async function agentFetch(
   url: string,
   options: RequestInit = {},
@@ -35,7 +53,20 @@ async function agentFetch(
     headers: { ...options.headers, "x-csrf-token": browserCsrf },
   });
   if (response.status === 401 || response.status === 403)
-    controller.invalidateShopper();
+    void handleAuthorityLoss();
+  if (response.status === 429 || response.status === 503) {
+    if (root) {
+      let notice = root.querySelector<HTMLElement>("#admission-busy");
+      if (!notice) {
+        notice = document.createElement("p");
+        notice.id = "admission-busy";
+        notice.setAttribute("role", "alert");
+        root.append(notice);
+      }
+      notice.textContent =
+        "الخدمة مشغولة أو وصلت لحد الاستخدام. حاول لاحقًا. / Busy or usage limit reached. Try later.";
+    }
+  }
   return response;
 }
 
@@ -72,7 +103,9 @@ class HttpAgentTransport implements AgentTransport {
       after,
       onCursor,
       undefined,
-      () => controller.invalidateShopper(),
+      () => {
+        void handleAuthorityLoss();
+      },
     );
   }
 
@@ -285,6 +318,14 @@ window.addEventListener("message", (event) => {
   )
     return;
   const message = event.data as StorefrontMessage;
+  if (
+    event.data?.type === "shopper_activity" &&
+    shopperContext &&
+    event.data.shopper_context === shopperContext
+  ) {
+    reportInteraction();
+    return;
+  }
   if (event.data?.type === "shopper_reset") {
     controller.invalidateShopper();
     return;
@@ -298,6 +339,34 @@ window.addEventListener("message", (event) => {
     controller.receiveStorefront(message);
   }
 });
+let authorityLost = false;
+async function handleAuthorityLoss() {
+  if (authorityLost) return;
+  authorityLost = true;
+  interactionReady = false;
+  controller.invalidateShopper();
+  try {
+    await requireAdmission(root!, AGENT_ORIGIN, browserCsrf, true);
+  } catch {
+    // Identity/storage failure keeps the existing fail-closed reload state.
+  } finally {
+    const notice = document.createElement("div");
+    notice.id = "admission-busy";
+    notice.setAttribute("role", "alert");
+    const text = document.createElement("p");
+    text.textContent =
+      "الاتصال توقف أو الخدمة مشغولة. انتظر قليلًا ثم أعد التحميل وراجع السلة. / Connection interrupted or busy. Wait, then reload and check your cart.";
+    const retry = document.createElement("button");
+    retry.id = "access-reload";
+    retry.type = "button";
+    retry.textContent = "إعادة تحميل / Reload";
+    retry.addEventListener("click", () => window.location.reload());
+    notice.append(text, retry);
+    root!.querySelector("#admission-busy")?.remove();
+    root!.append(notice);
+  }
+}
+
 async function startLinked() {
   try {
     const begin = async () => {
@@ -306,11 +375,16 @@ async function startLinked() {
       const linked = await linkShopper(frame!, AGENT_ORIGIN, STOREFRONT_ORIGIN);
       browserCsrf = linked.csrf;
       shopperContext = linked.context;
-      await controller.start();
     };
     if (navigator.locks)
       await navigator.locks.request("copilot-shopper-link", begin);
     else throw new Error("A secure browser with Web Locks is required");
+    // Code entry must not hold a cross-tab lock while waiting for the Shopper.
+    await requireAdmission(root!, AGENT_ORIGIN, browserCsrf);
+    await navigator.locks.request("copilot-shopper-link", () =>
+      controller.start(),
+    );
+    interactionReady = true;
   } catch {
     const status = document.createElement("p");
     status.setAttribute("role", "alert");
@@ -320,3 +394,8 @@ async function startLinked() {
   }
 }
 void startLinked();
+for (const kind of ["pointerdown", "keydown"]) {
+  document.addEventListener(kind, (event) => {
+    if (event.isTrusted) reportInteraction();
+  });
+}

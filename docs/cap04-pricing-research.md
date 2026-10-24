@@ -1,5 +1,12 @@
 # CAP-04 AWS pricing and Free Tier research
 
+Historical 7 October reference. The
+[19 October refresh](research/2026-10-19-cap04-network-cost-refresh.md) supersedes
+its freshness/account assumptions and adds verified Stockholm prices, the owner's
+new project-based signup constraints, and complete running/stopped candidate costs.
+See the [current evidence ledger](cap04-account-feasibility.md); neither note proves
+account feature entitlement or authorizes provisioning.
+
 **Checked: 7 October 2026. Proposal inputs only; CAP-04 remains open.** The owner now requires a personal account, zero out-of-pocket spend, two months of hosting, no purchased domain, and a public link for independent testers. The earlier [supervised-host brief](cap04-aws-design-draft.md) is not an approved public deployment. No account access, subscriptions, inference or resources were used for this research.
 
 Owner update after research: a supplied console screenshot shows a newly created **Free account plan**, **$100 remaining** and a plan end date of **7 April 2027**. No programmatic account access occurred. Credit applicability and individual credit expiry remain unverified.
