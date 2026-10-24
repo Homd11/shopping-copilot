@@ -91,12 +91,15 @@ class _ProviderGate:
                 task.cancel()
 
     async def observe(self):
-        result = await self._call(
-            self._verify if self._qualified is None else self._qualified.observe
-        )
-        if self._qualified is None:
-            return True if result is True else None
-        return result if type(result) is QualificationProof else None
+        if self._qualified is not None:
+            if self._closed:
+                return None
+            # Captured verification is in-memory and does not suspend for I/O.
+            # It must not consume the legacy callback's single-flight slot.
+            result = await self._qualified.observe()
+            return result if type(result) is QualificationProof and not self._closed else None
+        result = await self._call(self._verify)
+        return True if result is True else None
 
     async def ready(self):
         return await self.observe() is not None
@@ -104,7 +107,9 @@ class _ProviderGate:
     async def recheck(self, proof):
         if self._qualified is None:
             return proof is True and not self._closed
-        return await self._call(lambda: self._qualified.recheck(proof)) is True
+        return (
+            not self._closed and await self._qualified.recheck(proof) is True and not self._closed
+        )
 
     async def _drain(self):
         try:

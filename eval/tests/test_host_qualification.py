@@ -137,6 +137,26 @@ def test_changed_disk_evidence_is_a_restart_boundary_not_a_runtime_watch(qualifi
         )
 
 
+@pytest.mark.parametrize("count", [2, 5, 8])
+def test_parallel_captured_work_checks_preserve_each_valid_authorization(
+    qualified_host, world, count
+):
+    app = app_for(qualified_host, world)
+    before = app.state.llm_client.ledger.status()
+
+    async def parallel_checks():
+        return await asyncio.gather(
+            *(app.state.lifecycle_work.check() for _ in range(count)),
+            return_exceptions=True,
+        )
+
+    with TestClient(app) as client:
+        results = client.portal.call(parallel_checks)
+        assert results == [None] * count
+        assert app.state.llm_client.client.call_metadata == []
+        assert app.state.llm_client.ledger.status() == before
+
+
 @pytest.mark.parametrize("mutation", ["expiry", "client", "closed"])
 def test_captured_authority_is_rechecked_after_lifecycle_await(
     qualified_host, world, monkeypatch, mutation
