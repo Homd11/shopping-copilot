@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import httpx
 import pytest
@@ -60,10 +61,28 @@ def proof(settings):
     }
 
 
+@pytest.mark.parametrize("provider", ["bedrock", "openrouter"])
 def test_host_factory_wires_owned_resources_and_blocks_unqualified_requests(
-    config_file, world, monkeypatch
+    config_file, world, monkeypatch, provider
 ):
     make_ready(world)
+    if provider == "openrouter":
+        path, data = config_file
+        provider_key = path.with_name("provider.key")
+        provider_key.write_text("synthetic-provider-key-" + "x" * 64)
+        data.update(
+            version=2,
+            provider="openrouter",
+            model="google/gemini-3.5-flash-lite",
+            provider_key_file=str(provider_key),
+        )
+        data["inference"].update(
+            INFERENCE_PROVIDER="openrouter",
+            INFERENCE_MODEL="google/gemini-3.5-flash-lite",
+            INFERENCE_INPUT_USD_PER_MILLION="0.3",
+            INFERENCE_OUTPUT_USD_PER_MILLION="2.5",
+        )
+        path.write_text(json.dumps(data))
     settings = load_host_settings(config_file[0], read_private=fixture_reader)
     sdk = world[5]
     closed = []
@@ -85,6 +104,7 @@ def test_host_factory_wires_owned_resources_and_blocks_unqualified_requests(
     assert selected == ["dynamodb"]
     assert isinstance(app.state.llm_client, GuardedClient)
     assert app.state.llm_client.client is model
+    assert settings.environment()["LLM_PROVIDER"] == provider
     before = app.state.llm_client.ledger.status()
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
         result = client.get("/health", headers=proof(settings))
@@ -107,6 +127,9 @@ def test_host_factory_wires_owned_resources_and_blocks_unqualified_requests(
             client.post("/shopper/admission", json={"code": code}, headers=auth).json()["admitted"]
             is True
         )
+        speech = client.get("/speech/availability", headers=auth)
+        assert speech.status_code == 503 and speech.json()["code"] == "demo_waiting"
+        assert settings.provider_key == "" or settings.provider_key not in speech.text
         assert client.post("/sessions", headers=auth).status_code == 503
         session = app.state.lifecycle_work.sessions.create()
         session.shopper = record.shopper
