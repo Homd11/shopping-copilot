@@ -111,9 +111,10 @@ network-none AL2023 container. The native smoke observed Python3.12.14,
 modules from the private prefix, with no Lambda/site-package fallback. Vendor
 pip23.2.1 also starts from that prefix. The retained receipt is
 `.scratch/cap06-production-host/python-3.12.14/smoke-complete/output/vendor-python.json`.
-This resolves the candidate's isolated symbol/import question; the application
-release still needs a clean build and repeated startup under these same bytes.
-No EC2 package installation or production-security adoption follows from it.
+This resolves the candidate's isolated symbol/import question. The subsequent
+[alignment proof](../cap06-vendor-runtime-alignment.md) also passes a clean
+application build and repeated startup under those same bytes. No EC2 package
+installation or production-security adoption follows from it.
 
 Local code inspection found `TemporaryDirectory` in the release builder and
 installer (`deploy/artifact.py`), not in project Agent request handlers. Both
