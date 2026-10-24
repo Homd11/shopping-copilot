@@ -1,6 +1,8 @@
 # First private Linux host inspection
 
-Prepared25October2026; no resource creation is authorized or executed. This is a
+Executed after explicit owner approval25October2026; see [results](cap06-first-private-host-results.md).
+The original pre-approval proposal and its unchanged JSON manifest follow as history.
+At preparation time no resource creation had been authorized or executed. This is a
 small first cloud stage within the approved Controlled Storefront scope. It does
 not authorize application activation, provider spending or key/ledger migration.
 The [exact manifest](cap06-first-private-host-inspection.json) binds the reviewed
