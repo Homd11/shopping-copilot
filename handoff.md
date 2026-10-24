@@ -1,5 +1,28 @@
 # Shopping Copilot — project handoff
 
+## Offline provisioning procedure awaiting review - 2026-10-25
+
+Newest design: docs/superpowers/specs/2026-10-25-cap06-offline-provisioning-design.md.
+Ordered procedure: docs/superpowers/plans/2026-10-25-cap06-offline-provisioning.md.
+Owner asked to keep all work offline until the provisioning plan is reviewable;
+only local document/evidence work ran. No fresh cloud check or host mutation.
+Last recorded original host remains stopped with its EIP released.
+
+Author-proposed defaults: separately approved same-AZ helper to repair the
+detached original root; mask/archive the expired inspection units and replace
+with a calendar-free90minute/Persistent=false provisioning guard before boot;
+native parallel Python3.12.14 without changing system3.9; pinned Node24.22.1,
+Caddy2.11.7 and minimal native nftables RPMs;1GiB swap/swappiness10. Application
+units stay disabled/inactive; key/ledger/allowance custody stays untouched.
+
+Do not execute plan checkboxes yet. Recovery-tool verification/rehearsal, complete
+RPM/provider inventory and frozen additive transaction, missing Caddy/RPM signature
+evidence and a new exact resource/credit/time/rollback approval remain required.
+The completed USD4.50inspection approval is not permission for a rescue helper or
+another boot. Original volume identity/UUID and retained custody must survive;
+helper-only disposal requires its own exact approval. No production readiness or
+capacity claim follows from this design. Use the newest checkpoint for details.
+
 ## Approved first host inspection complete; persistent timer restricts future starts - 2026-10-25
 
 The owner approved and completed the exact USD4.50credit SSH-only private-host

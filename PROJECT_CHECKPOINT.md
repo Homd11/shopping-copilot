@@ -2,6 +2,38 @@
 
 **Last updated:** 2026-10-25
 
+## Offline provisioning design prepared for review - 2026-10-25
+
+The owner requested an offline procedure for parallel Python3.12 (preserving
+system Python3.9), Node, Caddy, nftables, a possible small swap file and clean
+recovery from the expired persistent inspection timer. Design:
+docs/superpowers/specs/2026-10-25-cap06-offline-provisioning-design.md. Ordered
+procedure: docs/superpowers/plans/2026-10-25-cap06-offline-provisioning.md.
+These are proposals, not owner approval to execute their checkboxes.
+
+Proposed defaults: repair the original root while detached using a separately
+approved same-AZ temporary helper; archive/mask the old timer/service and enable a
+new calendar-free90minute/Persistent=false provisioning timer before original boot;
+install native parallel Python3.12.14 plus pinned Node24.22.1/Caddy2.11.7 and a
+minimal additive nftables RPM closure; add1GiB swap/swappiness10 with no concurrency
+or service-limit increase. Application units remain disabled/inactive. No generic
+provisioning framework, runtime worker or provider-custody change is proposed.
+
+Execution prerequisites remain open: primary-tool recovery verification/rehearsal,
+complete actual RPM/provider inventory and frozen transaction, Caddy publisher
+signature/nft RPM signature evidence, and a new exact helper/root/IP/host credit,
+time and teardown approval. Existing19/14diagnostic RPM fixtures are not install
+lists. The prior USD4.50inspection grant does not authorize the new helper. The
+original root must never be deleted or have its filesystem UUID changed.
+
+This design work used only retained local files. No cloud/network/SSH call,
+download, Docker startup, package install, swap creation, root detach, timer
+repair, host start or new spending occurred. Last recorded stopped/no-IP custody
+is unchanged; it was not freshly queried during this offline work. The next step
+is owner review of this design, followed only by its specifically authorized
+preparation stage. Production-interpreter, application/public activation and
+model/accounting gates remain closed.
+
 ## First private host inspected and stopped; retained timer forbids automatic restart - 2026-10-25
 
 The owner explicitly approved the exact first SSH-only host inspection and its
