@@ -5,15 +5,16 @@
 - Read `CONTEXT.md` before naming or changing domain concepts.
 - Read `PROJECT_CHECKPOINT.md` before implementation work to recover the current frontier and verified evidence.
 - Read `handoff.md` when joining the project or resuming after a context reset; use `PROJECT_CHECKPOINT.md` for the newest status when historical sections differ.
-- Use `MVP_PLAN.md` as the local MVP scope and `IMPLEMENTATION_PLAN_FINAL (1).md` as the ordered execution plan.
+- Use `MVP_PLAN.md` as the local MVP scope. Use `IMPLEMENTATION_PLAN_FINAL (1).md` only where it agrees with the approved graduation scope and newest checkpoint; its independent-storefront Steps 25–28 and broader production roadmap are not graduation prerequisites.
 - Read `.scratch/shopping-copilot-local-mvp/spec.md` before product work. Its approved behaviour decisions override older plan wording when they conflict.
 - Work on the next incomplete plan step unless the user explicitly reprioritizes the work.
 - Keep each change within the active step and preserve unrelated user changes.
 
 ## Product gates
 
-- Complete the local MVP gate before independent-storefront generalisation.
-- Complete the generalisation gate before AWS or production-readiness work.
+- Approved graduation scope: **Controlled Storefront only → Linux production-host preparation → AWS Bedrock qualification and Stockholm (`eu-north-1`) Free-plan deployment**. Independent-storefront generalisation is strictly out of scope for this target and belongs to the post-graduation SaaS roadmap.
+- The local MVP gate is closed under its recorded owner-approved amendments. Continue from `PROJECT_CHECKPOINT.md`; do not reopen it or require generalisation before host preparation or the Controlled Storefront AWS capstone.
+- Preserve the Free-plan and $0-cash constraints. Actual AWS resources, public activation, model spending and deployment require their existing account, qualification, exact cost/resource/rollback and acceptance gates; local host preparation does not waive them.
 - Preserve the safety invariants: off-origin navigation is blocked, Sensitive Field values are excluded, Guarded Mutations require bound Confirmation, and stale or duplicate Actions are rejected.
 - Preserve refresh recovery without automatically replaying an Action whose outcome is uncertain.
 
