@@ -41,7 +41,7 @@ def command(*args, cwd=None, timeout=60, env=None):
 
 def directory_digest(root):
     records = []
-    for path in sorted(root.rglob("*")):
+    for path in sorted(root.rglob("*"), key=lambda value: value.relative_to(root).as_posix()):
         assert not path.is_symlink()
         if path.is_file():
             records.append(
