@@ -1,6 +1,31 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-23
+**Last updated:** 2026-10-24
+
+## PR3 clean-CI readiness fixes — 2026-10-24
+
+The first Ubuntu CI runs exposed clean-environment assumptions before merge:
+a RawClient admission test lacked an explicit service secret; one browser test
+assumed the first tab won concurrent initialization; legacy pnpm deploy forced
+unfrozen re-resolution and required uncached macOS-only fsevents metadata even
+for a production offline build. No application safety check was relaxed.
+
+The admission test now supplies a synthetic explicit environment. The two-tab
+test accepts either legitimate owner while asserting exactly one enabled tab,
+shared session/cart, disabled observer and explicit takeover; forced reverse
+initialization is also covered. Packaging keeps the isolated manifest workspace,
+uses its temporary injectWorkspacePackages override to select pnpm's frozen
+production deployment path, and retains --offline. Source lock/config untouched.
+CI installs pinned eval/requirements-cloud.txt so authority/host tests run.
+
+RED cases reproduced; focused GREEN:80DynamoDB,8admission,8shopper-isolation,
+11release/recovery. Fresh review of the four-file fix:0findings. Clean AL2023/
+pnpm11.19.0 diagnostic reproduced the metadata failure and frozen-path success;
+its Git provenance was stubbed for the diagnostic, not a production build claim.
+Actual CI/merge receipts are on https://github.com/Homd11/shopping-copilot/pull/3.
+The next product frontier remains native host provisioning/runtime lock and
+existing host/model/account/cost/apply acceptance. No AWS activation, inference,
+production keys, DNS/TLS or spending authority changed through CI integration.
 
 ## CAP-06 local host isolation and lifecycle diagnostics — 2026-10-23
 

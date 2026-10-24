@@ -127,12 +127,14 @@ def build(source, output, *, local=False):
             "--outDir",
             stage / "release",
         )
+        # Use pnpm's frozen deployment path only in the isolated staging workspace.
+        # Legacy deploy re-resolves even dev-only platform dependencies with --prod.
         run(
             "--filter",
             "@shopping-copilot/store",
             "deploy",
             "--prod",
-            "--legacy",
+            "--config.injectWorkspacePackages=true",
             "--offline",
             stage / "dependencies",
             cwd=dependency_source,

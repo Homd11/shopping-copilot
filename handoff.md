@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## PR3 CI integration fixes — 2026-10-24
+
+PROJECT_CHECKPOINT.md records clean-CI repairs: explicit synthetic admission-test
+configuration, scheduling-independent two-tab ownership checks with reverse-order
+coverage, frozen offline pnpm deployment in isolated staging, and pinned offline
+cloud-test dependencies in CI. Focused80+8+8+11tests pass; fresh fix review clear.
+See PR3 for final CI and merge receipts. No safety check or cloud/model gate is
+waived, and no AWS/model/key/DNS/TLS/spending action is authorized by integration.
+Native production provisioning/runtime lock and real-host acceptance remain next.
+
 ## CAP-06 separate host users, metadata barrier and lifecycle logs — 2026-10-23
 
 Newest status: PROJECT_CHECKPOINT.md; docs/cap06-host-isolation.md and

@@ -72,7 +72,9 @@ def test_expiry_and_durable_session_quota_apply_before_task_creation(tmp_path):
 def test_global_rate_survives_new_cookies_and_chunked_body_limit(tmp_path):
     admission, _ = policy(tmp_path, global_rate=4, browser_rate=4, maximum_bytes=128)
     app = create_app(
-        admission=admission, llm_settings=LLMSettings(provider="scripted", model="scripted-v1")
+        admission=admission,
+        llm_settings=LLMSettings(provider="scripted", model="scripted-v1"),
+        environment={"COPILOT_SERVICE_SECRET": "admission-http-test-secret-00000000"},
     )
     with RawClient(app) as client:
         oversized = client.post("/shopper/bootstrap", content=iter([b"x" * 80, b"y" * 80]))
