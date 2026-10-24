@@ -550,12 +550,15 @@
       "delete dedicated host inline policy then unused host role, or explicitly retain under approved record"
     ]
   },
-  "latest_preparation_source_commit": "2c9ae3615dc2c25cc455d8501849777438d5a906",
+  "latest_preparation_source_commit": "4deaf586fc069768f83cceadd6917b5e80a18190",
   "preparation_evidence": {
     "native_runtime": "eval/evidence/cap06-vendor-runtime-alignment-20261024.json",
     "read_only_account_preflight": "eval/evidence/cap06-production-host-preflight-20261024.json",
-    "candidate_archive_sha256": "c3c7d6da9c2874d0f8c0ced73e67887abb4251db59acfe95e0b74a53a3f8a5a3",
-    "candidate_manifest_sha256": "f043325da8e4fab8dfc47b9ec3701b10a72a438d0891a5876fe33cf865cc440e",
-    "adopted_for_creation_or_activation": false
+    "candidate_archive_sha256": "a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807",
+    "candidate_manifest_sha256": "804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c",
+    "adopted_for_creation_or_activation": false,
+    "provider_binding": "eval/evidence/cap06-provider-qualification-20261024.json",
+    "synthetic_binding_verified": true,
+    "actual_host_or_key_qualified": false
   }
 }

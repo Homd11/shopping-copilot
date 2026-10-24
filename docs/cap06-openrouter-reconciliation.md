@@ -71,3 +71,8 @@ protected key/remaining allowance custody, exact resource/cost/rollback/public
 approval and deployed desktop/Android acceptance remain open. Preserve the
 non-resettingUSD2key cap, every existing charge/hold and the default closed gate.
 No new paid set or automatic model/provider switch follows from reconciliation.
+
+Subsequent owner approval and the startup-only amendment are now implemented and
+verified with synthetic custody in [provider qualification](cap06-provider-qualification.md).
+That later result supersedes the proposed-only implementation status above; this
+original offline reconciliation and its fixed evidence bytes remain unchanged.
