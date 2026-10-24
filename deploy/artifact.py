@@ -66,11 +66,16 @@ def install(source, output):
 
 
 def build(source, output, *, local=False):
+    from deploy.linux_runtime import inventory
+
     source, output = Path(source).resolve(strict=True), Path(output).absolute()
     if output.exists() or output.is_symlink() or not output.parent.is_dir():
         raise ValueError("Release output must be a new directory under an existing parent")
     if source.is_relative_to(output):
         raise ValueError("Release output cannot contain source")
+    # Validate preparation inputs before invoking build tools. The development
+    # lock is preserved separately; it is not the Linux runtime install contract.
+    inventory(source)
     pnpm = shutil.which("pnpm")
     if not pnpm:
         raise ValueError("Pinned pnpm is required")
@@ -159,6 +164,8 @@ def build(source, output, *, local=False):
             "storefront-definition.json",
             "pyproject.toml",
             "requirements.lock",
+            "deploy/linux-runtime.json",
+            "deploy/requirements-linux.lock",
             "pnpm-lock.yaml",
             "deploy/Caddyfile",
             "deploy/Caddyfile.public",

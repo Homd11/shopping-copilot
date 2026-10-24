@@ -1,5 +1,14 @@
 # CAP-04 deployment handoff
 
+**Owner clarification — 24October:** graduation remains Controlled Storefront only.
+Continue Linux production-host preparation; independent-Storefront generalisation
+is outside this scope. If Bedrock is unusable, the current OpenRouter provider is
+an approved alternative, explicitly configured with its existing non-resetting
+USD2cap. Host integration, qualification/readiness binding and current allowance
+custody still need verification. No silent switching, new spend or deployment
+approval follows from the fallback selection. See
+[current runtime preparation](cap06-linux-production-runtime.md).
+
 **23 October preparation update:** the current concrete candidate inventory and
 ordered recovery are in [the inactive apply dossier](cap06-apply-proposal.md).
 [The23October reconciliation](research/2026-10-23-cap06-inventory-reconciliation.md)
@@ -52,7 +61,7 @@ flowchart LR
     Proxy --> Agent[Built Panel and single Agent worker]
     Proxy --> Store[Controlled Storefront and Bridge]
     Host --- Proxy
-    Agent -->|Scoped model invocation| Model[CAP-05 qualified Bedrock model]
+    Agent -->|Scoped model invocation| Model[Qualified explicitly selected model]
     Agent --> Authority
     Agent --> Disk[(Retained encrypted EBS allowance)]
     Store --> Catalogue[(Retained EBS SQLite catalogue)]
@@ -67,19 +76,19 @@ not bypass admission or the safe idle-stop contract.
 
 ## Service and state inventory
 
-| Component   | Selected scope                                                | Persistence and boundary                                                                    |
-| ----------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| EC2         | One candidate Linux t3.small, Standard CPU credits, Stockholm | One Agent worker; size remains subject to deployed measurement                              |
-| EBS         | 20 GB encrypted gp3                                           | Catalogue, allowance and restricted host configuration survive stop/start and code rollback |
-| Public IPv4 | One retained Elastic IP, direct public subnet/IGW             | Address remains billable while stopped; credit coverage unresolved                          |
-| Caddy       | Public ports 80/443 for challenge/HTTPS; loopback upstreams   | Restricted persistent ACME account/certificate/key state, separate from releases            |
-| S3          | Private release/catalogue-backup objects and waiting assets   | Private REST origin, OAC, explicit backup/object inventory; no public website bucket        |
-| CloudFront  | Pay-as-you-go generated waiting hostname                      | Cache only public static assets; never cache invitation/control or personal responses       |
-| Lambda      | Regional, outside VPC; AWS_IAM Function URL via OAC           | Short requests; no function waits for boot; only designated host control                    |
-| DynamoDB    | Remote invitation/lifecycle coordination                      | Durable conditional authority across EC2 stops; no shared-filesystem cloud adapter          |
-| Bedrock     | Exact CAP-05 qualified model and endpoint                     | Model access, token/rate accounting and qualification still required; no fallback provider  |
-| Diagnostics | Bounded redacted local logs and budgeted CloudWatch usage     | Seven-day application diagnostic retention; do not enable raw model invocation logging      |
-| DNS         | Existing registrar management for app/store                   | No Route53 zone; inspect actual records and delegation before writes                        |
+| Component   | Selected scope                                                            | Persistence and boundary                                                                        |
+| ----------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| EC2         | One candidate Linux t3.small, Standard CPU credits, Stockholm             | One Agent worker; size remains subject to deployed measurement                                  |
+| EBS         | 20 GB encrypted gp3                                                       | Catalogue, allowance and restricted host configuration survive stop/start and code rollback     |
+| Public IPv4 | One retained Elastic IP, direct public subnet/IGW                         | Address remains billable while stopped; credit coverage unresolved                              |
+| Caddy       | Public ports 80/443 for challenge/HTTPS; loopback upstreams               | Restricted persistent ACME account/certificate/key state, separate from releases                |
+| S3          | Private release/catalogue-backup objects and waiting assets               | Private REST origin, OAC, explicit backup/object inventory; no public website bucket            |
+| CloudFront  | Pay-as-you-go generated waiting hostname                                  | Cache only public static assets; never cache invitation/control or personal responses           |
+| Lambda      | Regional, outside VPC; AWS_IAM Function URL via OAC                       | Short requests; no function waits for boot; only designated host control                        |
+| DynamoDB    | Remote invitation/lifecycle coordination                                  | Durable conditional authority across EC2 stops; no shared-filesystem cloud adapter              |
+| Model       | Qualified Bedrock candidate or owner-approved current OpenRouter fallback | Explicit host selection, access, accounting and qualification/readiness binding remain required |
+| Diagnostics | Bounded redacted local logs and budgeted CloudWatch usage                 | Seven-day application diagnostic retention; do not enable raw model invocation logging          |
+| DNS         | Existing registrar management for app/store                               | No Route53 zone; inspect actual records and delegation before writes                            |
 
 No RDS, Redis, ALB, NAT gateway, interface endpoint, extra customer-managed KMS
 key, Secrets Manager, ECR or CloudFront flat-rate subscription is selected. If an
@@ -123,8 +132,10 @@ codes are a deployment artifact.
    the command split; describe operations may need broader resource syntax but
    must not accept a browser-selected host. The Agent may not launch arbitrary
    instances or allocate addresses. Test the final IAM policies in CAP-06/07.
-4. Use an EC2 role and SDK credential chain for Bedrock and required remote control
-   access, with only the qualified model and named tables/objects. No long-lived
+4. Use an EC2 role and SDK credential chain for required remote authority access
+   and, when selected, the exact qualified Bedrock model. The OpenRouter fallback
+   uses a separately protected Agent-only provider key and the existing allowance
+   guard; it does not require a Bedrock invoke grant. No long-lived
    AWS access key goes into source, images, browser builds or runtime.env. Require
    IMDSv2 and isolate metadata access from unintended service/browser paths.
 5. S3 bucket policy and Lambda invoke permissions restrict CloudFront OAC to the
