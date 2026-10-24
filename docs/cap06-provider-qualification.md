@@ -74,10 +74,35 @@ permit another qualification set. Existing uncertain reservations stay held.
 Focused unit/integration checks cover strict startup inputs, zero runtime evidence
 I/O, restart-only file changes, expiry across lifecycle/key/output waits, client
 and custody mismatches, normal occupancy, cleanup and default-closed startup.
-The new native fixture exercises original accepted evidence with synthetic key/
-allowance/authority. Its actual run and immutable release/profile/result digests
-will be recorded in the final evidence receipt; until then native qualification
-proof is pending. Earlier native archives remain historical, unchanged evidence.
+The native run passes under signed Python3.12.14 and Node24.22.1 from clean original
+source4deaf586fc069768f83cceadd6917b5e80a18190. Its archive SHA256 is
+a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807; manifest SHA256 is
+804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c.
+Actual Agent startup preserves default false, reaches signed true only with the
+explicit synthetic binding, remains true after copied evidence deletion and
+refuses signed readiness/work after expiry. Expired, wrong-key and altered-report
+startups refuse before SDK construction. All owned resources close; existing
+uncertain allowance, catalogue and manifest stay intact. No real model/SDK call.
+The independent archive roundtrip verifies945files,192relative symlinks and39
+contained hardlinks. All three passing native runs exit0 with empty stderr.
+
+Full Python suite:1552passed in961.14seconds,2upstream deprecation warnings.
+TypeScript:199passed across3workspaces. Ruff281files/format/pip checks pass.
+Default ESLint also scans old ignored generated JavaScript copies and reports66
+no-undef errors there; source lint passes with .scratch/.superpowers excluded.
+Default Prettier reports12ignored working-ledger files; all419tracked format-supported files pass separately. The fresh review's3material timing findings were reproduced
+and fixed with RED/GREEN tests, including cancellation-safe lease cleanup.
+
+The first native build was stopped by the conservative8GiBcommit-headroom guard;
+its exact container was removed and its rejected receipt is retained. The serial
+rerun kept the2GiBcontainer cap and used a7GiBcommit floor plus4GiBphysical floor
+(8GiBphysical required at entry). Minimum observed passing-build headroom was
+7.51GiBcommit/13.33GiBphysical. No Windows memory setting changed. Task-started
+Docker Desktop was stopped after confirming no remaining containers.
+
+Machine-readable [evidence](../eval/evidence/cap06-provider-qualification-20261024.json)
+records the exact profiles, hashes, results, memory receipts and rejected attempt.
+Earlier native archives remain historical, unchanged evidence.
 
 Even a passing synthetic binding is not actual-host/key qualification. Real
 protected key/remaining allowance custody, host/security/systemd/reboot/capability/

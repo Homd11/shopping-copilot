@@ -26,9 +26,11 @@ created, adopted or authorized by those observations; final bindings remain null
 The [OpenRouter source reconciliation](cap06-openrouter-reconciliation.md) now
 preserves the prior local model acceptance with exact source/wire/refusal evidence,
 without a new paid set. Its [binding design](superpowers/specs/2026-10-24-cap06-openrouter-qualification-binding-design.md)
-is proposed only: no trusted runtime verifier or private operator binding exists
-yet, and default provider readiness remains false. Offline attribution does not
-close actual-host/custody/capacity or deployment-approval gates.
+is now owner-approved and implemented with [synthetic custody proof](cap06-provider-qualification.md).
+It uses startup-only protected evidence hashing and in-memory expiry/client checks;
+source hashes stay offline. No actual operator binding has been installed, and
+default provider readiness remains false. Synthetic verification does not close
+actual-host/custody/capacity or deployment-approval gates.
 
 Recorded consistency checks and review limits are in
 [the evidence record](../eval/evidence/cap06-apply-dossier-20261023.json).
@@ -173,7 +175,7 @@ runtime wheels rehearsed in `eval/linux-host-runtime.json`, including uvloop0.22
 now have separate preparation inputs at `deploy/linux-runtime.json` and
 `deploy/requirements-linux.lock`; packaging26.3 remains diagnostic only. Production
 interpreter/lock adoption and AMI/kernel/security approval remain required.
-The new2c9ae36 native source release passes a clean offline build, Storefront and
+The historical2c9ae36 native source release passes a clean offline build, Storefront and
 Agent startup, and independent extraction under the signed Python3.12.14 RPM
 candidate and Node24.22.1. This supersedes the earlier tools as the functional
 candidate without relabelling their historical receipts. Caddy2.11.7 remains the
@@ -283,7 +285,7 @@ or silently added to the two lifecycle alarms.
    would be overwritten. Stage protected configuration/key custody and only the
    separately authorized inference ledger. Verify host/Lambda policies and exact
    Function URL/OAC signing with owned controlled checks; keep runtime model gate
-   closed until its real qualification implementation is reviewed.
+   closed until actual protected custody, operator-pinned binding and host/capacity acceptance are established. The implementation itself has been reviewed and tested with synthetic custody.
 4. Verify native units/permissions/process metadata isolation/redacted diagnostics
    and bounded real-host readiness with retained authority. If external TLS is
    needed for that acceptance, obtain the specific DNS/TLS exposure approval first,
@@ -390,3 +392,10 @@ remain independent gates. The24October account preflight narrows the earlier
 unknowns without authorizing creation, inference spending, quota changes or an
 upgrade. Continue local work without
 repeating the unavailable Support request or weakening any gate.
+
+The latest functional candidate is original source4deaf586, with archive
+a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807 and manifest
+804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c. See the
+[provider binding evidence](../eval/evidence/cap06-provider-qualification-20261024.json).
+This updates preparation only; creation/activation bindings stay null and all
+provider-qualified/apply/public flags stay false.

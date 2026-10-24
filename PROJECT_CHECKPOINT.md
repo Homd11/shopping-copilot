@@ -2,6 +2,64 @@
 
 **Last updated:** 2026-10-24
 
+## Captured OpenRouter qualification verified natively - 2026-10-24
+
+The owner-approved binding implementation now passes native Linux proof with
+synthetic protected custody and read-only external authority. The owner's amendment
+is authoritative: validate/hash protected evidence and custody at startup only;
+runtime qualification uses the captured snapshot, expiry, closure and in-memory
+bindings. There is no runtime private-file worker or disk hashing, and no runtime
+20source-file pin table. The20source hashes remain offline provenance. Normal
+reviewed source fixes use release verification and explicit rebinding.
+
+Clean original source4deaf586fc069768f83cceadd6917b5e80a18190,
+tree51ce93d5210fe42610d0cdca20e8415ad2f23a22, builds under the signed
+AL2023 Python3.12.14/Node24.22.1 runtime in99.06s. Archive SHA256
+a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807;
+manifest SHA256804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c.
+Independent native extraction verifies945manifest files,192relative symlinks,
+39contained hardlinks and1228archive entries. Earlier archives/proofs are unchanged.
+
+The actual Agent starts with a valid explicitly pinned synthetic binding and signs
+ready=true. Runtime private-evidence/key I/O is zero. Deleting the copied report
+after startup leaves that captured qualification valid; expiry signs ready=false
+and refuses work. Expired binding, wrong key and bad evidence refuse before SDK
+construction. No-binding readiness remains false; graceful shutdown and generation0
+refusal/cleanup are preserved. No real SDK or provider request was made. This is
+native synthetic binding evidence, not actual production key/host qualification.
+
+Full Python1552tests pass in961.14s with2upstream warnings; TypeScript199tests
+pass. Fresh review's3P2 findings were reproduced and fixed with RED/GREEN
+regressions, including the final startup metadata consistency fence. Default
+workspace lint encounters66diagnostics in old generated scratch JavaScript;
+default formatting emits12ignored-ledger warnings. Scoped ESLint and all419tracked format-supported files pass;
+Ruff281files/format/pip checks also pass; retain these command limitations and earlier historical broad
+suite exceptions rather than relabel them as uninterrupted full-green evidence.
+
+The first build stopped at its8GiBavailable-commit guard after a measured7.93GiB
+minimum; the exact container was removed and the rejected receipt retained. The
+serial rerun used a7GiBguard with the same2GBcontainer cap and passed, measuring
+minimum7.51GiBavailable commit and13.33GiBavailable physical memory. No OS memory
+setting changed. Exact profiles/receipts/outcomes:
+eval/evidence/cap06-provider-qualification-20261024.json;
+operating guide: docs/cap06-provider-qualification.md.
+
+Next: actual protected key/remaining-allowance custody and measured qualified
+capacity; actual host/interpreter/security/provisioning/systemd/reboot/metadata/
+capability/log acceptance and adoption; then a current exact resource/cost/rollback
+proposal and approval before creation/activation, followed by approved deployed
+desktop/Android safety acceptance. Actual custody/host/capacity and all apply/public
+flags remain false/null. Preserve the Free plan, USD0cash constraint and explicitly
+selected OpenRouter google/gemini-3.5-flash-lite with its unchanged non-resetting
+USD2cap and uncertain charges. No real key/ledger change, model spending, resources,
+public activation, push or merge occurred. Controlled Storefront only; Step25 and
+PDF work stay out of scope.
+
+This newest section supersedes the earlier design-awaiting-approval, runtime-worker
+and20source-pin proposals below. The design and implementation were approved;
+continue from the remaining actual-custody/host/deployment gates without asking
+for that approval again. Earlier sections retain their historical limits.
+
 ## OpenRouter acceptance reconciled offline; binding design proposed - 2026-10-24
 
 The accepted local15October report remains byte-identical at SHA256

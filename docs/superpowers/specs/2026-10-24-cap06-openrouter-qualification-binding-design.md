@@ -1,6 +1,6 @@
 # Explicit OpenRouter qualification binding
 
-**Owner-approved for implementation24October2026; implementation in progress.** Continue the approved
+**Owner-approved and implemented with synthetic custody24October2026; native proof passed.** Continue the approved
 Controlled Storefront graduation scope. This design covers one missing host
 authority boundary, not independent Storefronts, a new model or AWS activation.
 
@@ -21,7 +21,7 @@ New authorization/accounting behavior has focused offline regression evidence.
 These facts preserve local model-language acceptance; they do not prove deployed
 host operation, current key credit or production capacity.
 
-The current host intentionally always returns provider-unqualified. Implement a
+Before this change, the host intentionally always returned provider-unqualified. Implement a
 trusted, explicit binding between that accepted model evidence, the executing
 release and the configured provider/custody. There is no `ready=true` setting.
 Missing, invalid, expired or mismatched startup evidence must refuse.

@@ -83,11 +83,11 @@
 
 **Files:** Add eval/native_qualification_probe.py and its tests, add docs/cap06-provider-qualification.md and eval/evidence/cap06-provider-qualification-20261024.json; update checkpoint/handoff/inert dossier and this ledger.
 
-- [ ] Add native synthetic proof using real accepted report/reconciliation and a normally verified release (source hashes remain offline), fake protected key/retained ledger and read-only authority. Prove default false, explicitly bound qualification true, runtime expiry/closure and startup wrong-custody/evidence refusal and complete cleanup; zero model/AWS requests.
-- [ ] Build new clean original native release under signed Python3.12.14/Node24.22.1, finite memory/CPU/time and Windows headroom guard; run Agent and independent archive roundtrip serially. Expected: exit0, immutable source/manifest and honestly synthetic qualification.
-- [ ] Run focused/full relevant Python checks, source lint/format/pip and required TypeScript/build checks if packaging affected. Preserve earlier broad-suite exception; do not manufacture a full-green claim.
-- [ ] One fresh whole-slice review; fix material findings with RED/GREEN regressions and focused suite. Record minor findings and all native limits/digests.
-- [ ] Update operating guide/evidence/checkpoint/dossier; all real custody/capacity/apply/public flags remain false/null. Commit locally, leave worktree clean; no push/merge/deployment.
+- [x] Add native synthetic proof using real accepted report/reconciliation and a normally verified release (source hashes remain offline), fake protected key/retained ledger and read-only authority. Prove default false, explicitly bound qualification true, runtime expiry/closure and startup wrong-custody/evidence refusal and complete cleanup; zero model/AWS requests.
+- [x] Build new clean original native release under signed Python3.12.14/Node24.22.1, finite memory/CPU/time and Windows headroom guard; run Agent and independent archive roundtrip serially. Expected: exit0, immutable source/manifest and honestly synthetic qualification.
+- [x] Run focused/full relevant Python checks, source lint/format/pip and required TypeScript/build checks if packaging affected. Preserve earlier broad-suite exception; do not manufacture a full-green claim.
+- [x] One fresh whole-slice review; fix material findings with RED/GREEN regressions and focused suite. Record minor findings and all native limits/digests.
+- [x] Update operating guide/evidence/checkpoint/dossier; all real custody/capacity/apply/public flags remain false/null. Commit locally, leave worktree clean; no push/merge/deployment.
 
 ## Plan self-review
 

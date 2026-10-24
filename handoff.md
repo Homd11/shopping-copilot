@@ -1,5 +1,49 @@
 # Shopping Copilot — project handoff
 
+## Captured provider binding passes native proof - 2026-10-24
+
+Newest PROJECT_CHECKPOINT.md, docs/cap06-provider-qualification.md and
+eval/evidence/cap06-provider-qualification-20261024.json record the implemented,
+owner-approved OpenRouter evidence/custody binding. The owner amendment governs:
+protected evidence/key hashes are checked at startup only; runtime uses captured
+proof, expiry, closure and in-memory authority. There is no runtime file-reading
+worker, per-request disk hashing or20source-file eligibility table. Source hashes
+remain offline provenance, and reviewed source fixes use normal release/rebinding.
+
+Clean native source4deaf586fc069768f83cceadd6917b5e80a18190,
+tree51ce93d5210fe42610d0cdca20e8415ad2f23a22, builds in99.06s under signed
+AL2023 Python3.12.14/Node24.22.1. Archive SHA256
+a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807;
+manifest SHA256804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c.
+Roundtrip verifies945files/192relative symlinks/39contained hardlinks/1228entries.
+
+Actual native Agent proof passes: default readinessfalse; valid pinned synthetic
+binding signs true with zero runtime private I/O; deleting the copied report still
+signs true; expiry signs false and refuses work. Expired/wrong-key/bad-evidence
+startup refuses before SDK construction. Shutdown and generation0cleanup remain
+verified. Zero real SDK/provider calls, actual key/ledger changes or model spend.
+This proof does not establish actual production custody, host or capacity acceptance.
+
+Full Python1552passed/961.14s/2upstream warnings; TypeScript199pass. Fresh review's
+3P2 findings all have RED/GREEN fixes. Default lint's66old generated-scratch-JS
+diagnostics and default formatting's12ignored-ledger warnings are retained; scoped
+ESLint and419tracked-file formatting checks pass, as do Ruff281files/format/pip. Earlier broad-suite exceptions stay
+historical. First8GiBheadroom-guarded build stopped at7.93GiB; its exact container
+was removed and rejected receipt retained. Serial7GiBguard rerun passed under the
+same2GBcontainer cap, with minimum7.51GiBcommit/13.33GiBphysical available. No OS
+memory setting changed; earlier release/proof records remain unchanged.
+
+Next continue actual protected key/remaining-allowance custody, qualified capacity,
+host/security/provisioning/systemd/reboot/metadata/capability/log acceptance and
+adoption, then the exact current resource/cost/rollback proposal and required
+creation/activation approvals; approved deployed desktop/Android tests remain.
+All actual custody/host/capacity/apply/public flags remain false/null. Keep the
+Free plan/USD0cash and explicit OpenRouter Gemini3.5FlashLite/non-resettingUSD2cap
+with retained uncertainty. No resources/public activation/push/merge; no Step25 or
+PDF work. The binding design was approved and implemented: do not request its
+approval again. This section supersedes older awaiting-approval, runtime-worker
+and20runtime-source-pin wording below; retain it as history only.
+
 ## OpenRouter evidence reconciled; design awaits approval - 2026-10-24
 
 Newest checkpoint and docs/cap06-openrouter-reconciliation.md retain the accepted
