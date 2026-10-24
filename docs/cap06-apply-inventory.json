@@ -550,15 +550,18 @@
       "delete dedicated host inline policy then unused host role, or explicitly retain under approved record"
     ]
   },
-  "latest_preparation_source_commit": "4deaf586fc069768f83cceadd6917b5e80a18190",
+  "latest_preparation_source_commit": "023d9f621bc9432b871e519d51e6ce57bb7dc204",
   "preparation_evidence": {
     "native_runtime": "eval/evidence/cap06-vendor-runtime-alignment-20261024.json",
     "read_only_account_preflight": "eval/evidence/cap06-production-host-preflight-20261024.json",
-    "candidate_archive_sha256": "a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807",
-    "candidate_manifest_sha256": "804243ca8138d0a402fe7594397725bf9f9c6cb6d7dc91337677f04f7a07c20c",
+    "candidate_archive_sha256": "5e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23",
+    "candidate_manifest_sha256": "efc1f9da4388c24b9e8b312aed2871c1aa7174f78370a531f2400a8c6b9d0757",
     "adopted_for_creation_or_activation": false,
     "provider_binding": "eval/evidence/cap06-provider-qualification-20261024.json",
     "synthetic_binding_verified": true,
-    "actual_host_or_key_qualified": false
+    "actual_host_or_key_qualified": false,
+    "captured_capacity": "eval/evidence/cap06-captured-capacity-20261025.json",
+    "custody_preflight": "eval/evidence/cap06-custody-preflight-20261024.json",
+    "first_private_inspection_proposal": "docs/cap06-first-private-host-inspection.json"
   }
 }

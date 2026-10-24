@@ -1,5 +1,60 @@
 # Shopping Copilot — project handoff
 
+## Captured capacity verified; private inspection needs exact resource approval - 2026-10-25
+
+Newest PROJECT_CHECKPOINT.md and docs/cap06-captured-capacity.md record the frozen
+native capacity failure and fix. Baseline source4deafpasses1/1but only1/5and1/8,
+with the other concurrent callers refused by a single-flight coordination bug.
+Fix023d9f621bc9432b871e519d51e6ce57bb7dc204,
+treeade5f9f5d6960a9a263f01589df0f70c7c37cc87, passes the unchanged probe1/1,
+5/5and5/8plus3expected busy refusals under queue2active/3waiting/8second wait bounds.
+Provider lock is unchanged; peak mock POST concurrency1. App-probe RSS73.51MiB
+excludes whole-host/browser memory. This is captured synthetic evidence, not
+qualified EC2/remote-model/full HTTP/browser capacity; zero real SDK/model calls.
+
+Native archive SHA256
+5e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23;
+manifest SHA256efc1f9da4388c24b9e8b312aed2871c1aa7174f78370a531f2400a8c6b9d0757.
+Clean signed Python3.12.14/Node24.22.1 build107.06s, capacity22.02s and original
+default/qualified Agent startup/expiry/refusal proof37.03s pass with empty stderr.
+Independent roundtrip945files/192symlinks/39hardlinks/1228entries passes; old
+archives stay unchanged. Parallel2/5/8regressions were RED then55focused checks
+pass. Full Python1555passed934.43s/2upstream warnings; Ruff281files passes; one
+focused review has no material findings. TS unchanged, preceding199pass retained.
+Docker Desktop is stopped. Evidence:
+eval/evidence/cap06-captured-capacity-20261025.json.
+
+Actual read-only custody preflight used one fixed provider key-metadata GET,
+no model POST, and two hash-stable immutable read-only SQLite observations.
+Non-resettingUSD2cap and positive key credit confirmed; exact balance stays
+private. Inventory deduplicates228settled attempts/USD0.29469302and preserves
+19older unknown holds/USD0.255886201. Provider-usage attribution remains incomplete;
+do not sum cumulative reports again, release holds or infer a runtime budget.
+Actual migration/initialization/enablement/new allowance remains unapproved.
+Guide/evidence: docs/cap06-custody-preflight.md and
+eval/evidence/cap06-custody-preflight-20261024.json.
+
+Next reviewable gate is the exact first private host inspection proposal:
+docs/cap06-first-private-host-inspection.md/json. One Stockholm t3.small/Standard,
+20GiB encrypted retained gp3 root, one EIP, dedicated SSH22ownerIPv4/32SG and
+existing public-key import; no app/IAM profile/actual keys/ledger/model calls/public
+activation. At most2cumulative running/EIP hours; direct API stop, observed stopped
+state and EIP release before finishing. Guest90minute timer is defense only.
+Unknown creation outcomes recover exact operation UUID/tag/client-token resources
+before stop/release; no blind retries. Thirteen fresh read-only AWS calls and one
+checkip GET bind existing account/AMI/network/public key; identifiers/IP stay private.
+
+Proposed USD4.50existing-credit allocation, USD0cash/Free plan; gross USD3.39846642
+including60day root retention, sensitivity USD3.63732357. Creation window through
+25October18:00UTC; stopped/EIP released by20:00UTC with earlier per-operation
+limits. Retention decision due23December2026at18:00UTC is not deletion permission.
+All apply flags are false. Obtain the owner's exact stage resource/cost/stop/
+retention approval before any AWS mutation, per AGENTS.md; this is not another
+provider-design approval. No resource created/custody migrated/runtime grant,
+production-ready claim, Step25/PDF, push or merge. Actual host/security/capacity
+and deployed/public gates remain. This leading section supersedes stale next-step
+wording below; keep historical evidence intact.
+
 ## Captured provider binding passes native proof - 2026-10-24
 
 Newest PROJECT_CHECKPOINT.md, docs/cap06-provider-qualification.md and

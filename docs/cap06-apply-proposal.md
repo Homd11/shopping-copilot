@@ -399,3 +399,12 @@ a94a4f379509cb257a7ee9c99a2e93cc2864deff56d2d3fb6b0e7aafd79d7807 and manifest
 [provider binding evidence](../eval/evidence/cap06-provider-qualification-20261024.json).
 This updates preparation only; creation/activation bindings stay null and all
 provider-qualified/apply/public flags stay false.
+
+The25October[captured OpenRouter concurrency proof](cap06-captured-capacity.md)
+fixes parallel in-memory qualification refusal and passes the synthetic1/5/8
+cohorts under source023d9f6. It does not establish actual host or live-provider
+capacity. [Read-only custody reconciliation](cap06-custody-preflight.md) preserves
+all older holds; actual runtime allowance/migration remain unapproved. The next
+concrete subset is the[first private host inspection](cap06-first-private-host-inspection.md),
+with its own exact credit/SSH/stop/resource proposal. Parent creation/activation
+bindings remain null; that subset is also unapproved until the owner accepts it.

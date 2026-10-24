@@ -1,6 +1,76 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-24
+**Last updated:** 2026-10-25
+
+## Captured capacity fixed; exact private inspection awaits resource approval - 2026-10-25
+
+Read-only actual custody preflight made exactly one fixed OpenRouter key-metadata
+GET and no model POST: the existing key has its unchanged non-resetting USD2cap
+and positive remaining credit; exact balance and identity details remain private.
+Two existing SQLite ledgers were inspected through immutable read-only connections,
+with stable hashes and no writes. Deduplicated journals support228settled attempts
+at USD0.29469302 and19older uncertain reservations conservatively held at
+USD0.255886201. Cumulative reports/measurement journals are overlapping views,
+not extra charges. Provider-usage attribution remains incomplete; do not assume
+missing usage or unknown holds are zero/refunded. Runtime allowance migration,
+initialization/enablement or a new spending grant is not approved. Guide/evidence:
+docs/cap06-custody-preflight.md and eval/evidence/cap06-custody-preflight-20261024.json.
+
+The frozen native captured-capacity probe exposed a single-flight coordination
+bug in source4deaf:1/1passed, but five concurrent calls yielded1/5plus4
+LifecycleUnavailable refusals and eight yielded1/8plus7refusals. The retained
+baseline is failure evidence. Source023d9f621bc9432b871e519d51e6ce57bb7dc204,
+treeade5f9f5d6960a9a263f01589df0f70c7c37cc87, fixes that coordination without
+changing the provider lock. The exact same frozen probe now passes1/1,5/5and
+5/8with3expected busy refusals under queue2active/3waiting/8second wait bounds. Peak
+provider POST concurrency remains1. App-probe RSS is73.51MiB; this excludes the
+whole host/browser and does not qualify deployed capacity or full HTTP journeys.
+No real model or SDK call was made.
+
+New clean native archive SHA256
+5e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23;
+manifest SHA256efc1f9da4388c24b9e8b312aed2871c1aa7174f78370a531f2400a8c6b9d0757.
+The signed Python3.12.14/Node24.22.1 build passes in107.06s; captured capacity in
+22.02s; default/qualified Agent startup, runtime expiry and startup refusals in
+37.03s. Independent archive roundtrip verifies945files/192relative symlinks/
+39contained hardlinks/1228entries. All native runs pass with empty stderr; earlier
+archives are unchanged. New parallel2/5/8tests reproduced RED before the fix;
+55focused checks pass. Full Python1555passed in934.43s with2upstream warnings;
+Ruff281files passes and one focused review has no material findings. TypeScript
+is unchanged; retain the preceding199passing checks. Docker Desktop is stopped.
+Guide: docs/cap06-captured-capacity.md; evidence:
+eval/evidence/cap06-captured-capacity-20261025.json.
+
+The exact first private inspection proposal is ready in
+docs/cap06-first-private-host-inspection.md/json. It covers one Stockholm t3.small
+with Standard CPU credits, one20GiB encrypted gp3 retained root, one EIP, one
+dedicated SG with SSH22from the captured ownerIPv4/32 and an imported existing
+owner public key. No application service, IAM profile, actual provider key/ledger,
+model call, DNS/TLS or public shopping activation is included. At most two
+cumulative running/EIP-allocation hours; owned API stop, observed stopped state
+and EIP release must complete before finishing. The guest90minute stop timer is
+defense in depth, not a billing cap. Unknown API outcomes require exact operation
+UUID/tag/client-token recovery before owned stop/release; no blind creation retry.
+
+The proposal allocates an estimated USD4.50from existing AWS credits, USD0cash,
+on the current Free plan. Gross estimate including the entire60day retained root
+is USD3.39846642; conservative storage sensitivity USD3.63732357. Thirteen fresh
+read-only AWS calls and one fixed checkip GET confirm the existing bound account,
+Amazon AMI, network and owner public key; personal/account/IP details stay private.
+The creation window runs through25October18:00UTC, with stopped state/EIP release
+by20:00UTC and earlier per-operation limits. Retention decision is due
+23December2026at18:00UTC; this is not deletion permission. Recheck bindings before
+creation and review again if the window expires. All apply flags remain false.
+
+Next: obtain the owner's exact resource/cost/stop/retention approval for this
+concrete first-inspection stage before any AWS mutation, as required by AGENTS.md.
+The provider binding design is already approved; do not ask for that approval
+again. No resource has been created, no actual custody migrated and no new runtime
+allowance granted. Actual host/security/systemd/reboot/metadata/capability/log,
+qualified capacity, deployed HTTP/browser and later public acceptance remain open.
+Controlled Storefront only; unchanged non-resetting USD2cap and all holds; no
+Step25, PDF, push or merge. This section supersedes older continuation instructions
+below while preserving their original evidence and limitations.
 
 ## Captured OpenRouter qualification verified natively - 2026-10-24
 
