@@ -376,7 +376,19 @@
   ],
   "runtime_proposal": {
     "production_linux_lock_adopted": false,
-    "runtime_wheels_candidate": "28 runtime entries from eval/linux-host-runtime.json; exclude diagnostic packaging",
+    "runtime_wheels_candidate": "28 hash-pinned runtime entries in deploy/linux-runtime.json and deploy/requirements-linux.lock, verified offline; interpreter/provisioning adoption remains open",
+    "provider_fallback": {
+      "owner_approved_date": "2026-10-24",
+      "condition": "Bedrock unusable",
+      "provider": "openrouter",
+      "model": "google/gemini-3.5-flash-lite",
+      "non_resetting_key_cap_usd": "2.00",
+      "host_integration_complete": false,
+      "qualification_binding_complete": false,
+      "key_and_remaining_allowance_custody_bound": false,
+      "extra_model_calls_authorized": false,
+      "silent_switching_allowed": false
+    },
     "python_candidate": "CPython3.12 ABI; exact host build/source/digest unresolved",
     "node_candidate": "24.13.0 official linux-x64 archive/binary digests in tested manifest; security approval pending",
     "caddy_candidate": "2.11.7 official linux-amd64 archive/binary digests in tested manifest; security approval pending",
@@ -449,7 +461,7 @@
     "reserved concurrency and all feature creation/runtime eligibility",
     "native production Linux release, interpreter/lock and provisioning verification",
     "native host provisioning/activation/reboot verification of prepared process-specific metadata boundary and durable redacted diagnostics",
-    "Bedrock usable quota, strict qualification, qualification gate implementation and explicit spend approval",
+    "explicit selected-provider host integration and qualification/readiness binding: usable quota for Bedrock, or approved current OpenRouter fallback with protected key/remaining allowance custody; no new call/spend authority",
     "ordered activation/rollback/teardown package with current authority retained and exact final approval",
     "real host/systemd/capability/TLS/IAM/OAC/event/desktop/Android/cloud safety acceptance"
   ],

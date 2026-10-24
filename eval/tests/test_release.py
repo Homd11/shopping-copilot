@@ -114,6 +114,43 @@ def test_public_https_profiles_are_packaged_and_modification_is_refused(built_re
     assert command("verify", "--release", installed).returncode != 0
 
 
+def test_linux_runtime_lock_is_packaged_and_immutable(built_release, tmp_path):
+    manifest = json.loads((built_release / "release.json").read_text())
+    for name in ("deploy/linux-runtime.json", "deploy/requirements-linux.lock"):
+        packaged = built_release / name
+        assert packaged.is_file(), "The release must carry its dedicated Linux runtime inputs"
+        assert packaged.read_bytes() == (ROOT / name).read_bytes()
+        assert name in manifest["files"]
+    assert (built_release / "requirements.lock").read_bytes() == (
+        ROOT / "requirements.lock"
+    ).read_bytes()
+    installed = tmp_path / "modified-linux-lock"
+    assert command("install", "--release", built_release, "--output", installed).returncode == 0
+    lock = installed / "deploy/requirements-linux.lock"
+    lock.write_bytes(lock.read_bytes() + b"# modified after packaging\n")
+    assert command("verify", "--release", installed).returncode != 0
+
+
+def test_drifted_linux_lock_refuses_before_build_tools(tmp_path, monkeypatch):
+    from deploy.artifact import build
+
+    source = tmp_path / "source"
+    (source / "deploy").mkdir(parents=True)
+    for name in ("pyproject.toml", "deploy/linux-runtime.json", "deploy/requirements-linux.lock"):
+        (source / name).write_bytes((ROOT / name).read_bytes())
+    lock = source / "deploy/requirements-linux.lock"
+    lock.write_bytes(lock.read_bytes() + b"unreviewed==1\n")
+
+    def forbidden(*_, **__):
+        pytest.fail("Invalid runtime inputs must be refused before invoking build tools")
+
+    monkeypatch.setattr(subprocess, "run", forbidden)
+    output = tmp_path / "release"
+    with pytest.raises(ValueError, match="^Linux runtime inputs refused$"):
+        build(source, output, local=True)
+    assert not output.exists()
+
+
 def seed_catalogue(path):
     result = subprocess.run(
         [

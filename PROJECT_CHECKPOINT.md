@@ -2,6 +2,59 @@
 
 **Last updated:** 2026-10-24
 
+## Controlled Storefront scope restored; Linux runtime prepared — 2026-10-24
+
+Owner clarified the generalisation prerequisite was stale. Independent Storefronts
+remain strictly outside graduation. Step25 docs-only branch is parked at e44136c,
+unmerged; do not implement or resume it. Original main AGENTS.md was corrected in
+local commits a500e7b/01959bb. This clean host branch starts from main02bcf37 plus
+those instruction corrections. No source from the Step25 branch was brought over.
+
+Owner also permits the existing OpenRouter provider if Bedrock stays unusable:
+openrouter/google/gemini-3.5-flash-lite, explicit selection, unchanged non-resetting
+USD2cap and existing charges/holds. No top-up, increased cap, new call authorization
+or automatic switching. HostSettings still pins Bedrock and its provider verifier
+stays closed. Next integration must explicitly protect the Agent-only OpenRouter
+key and bind selected-model qualification/readiness and remaining allowance; local
+qualification does not establish deployed infrastructure acceptance.
+
+Separate deploy/linux-runtime.json and deploy/requirements-linux.lock prepare the
+28existing Linux runtime candidates with hashes and uvicorn[standard]/uvloop0.22.1.
+Dev/editable/diagnostic packages excluded; root requirements.lock unchanged. Offline
+preparation verifier binds direct project roots, exact lock bytes, explicit target,
+actual wheel metadata/hash/length/tags/Python and Linux extras dependency closure.
+Release builder validates before tools and packages both inputs immutably.
+
+Actual retained AL2023/Python3.12.15/glibc2.34 proof installs exactly28offline with
+require-hashes/no-index/no-deps, proves Linux closure and six native imports, no
+image-site fallback or application/provider startup. Diagnostic packaging26.3 is
+read-only external tooling, never an installed runtime dependency. Container is
+non-root/network-none/read-only/no caps/no-new-privileges/finite resources, removed
+after completion. One existing official base image retained; no custom application
+image or persistent container stack. Docker Desktop started for this proof only.
+
+RED2missing implementation/1missing release input; GREEN47lock,19host-boundary,
+151host/config/launcher/isolation and12release plus1pre-build drift refusal pass.
+TypeScript199/build/Ruff265/pip pass; source ESLint/Prettier pass with retained
+ignored scratch/tooling excluded. Fresh code/document review0findings; independent
+47lock tests pass. Full Python:1367pass/2warnings/1setup error in941.89s; unchanged
+Moto/Botocore invitation fixture raised MemoryError reading endpoint metadata.
+Entire affected DynamoDB module recheck40pass/10.69s without edits. Allocation
+failure not reproduced; exact cause/pressure not established. Retain the original
+error, no suppression or blanket full-green claim.
+ZIP backslash-normalization fixture/reader refusal repaired; Ruff subprocess style
+fixed and exact final native probe repeated. Evidence/guide:
+eval/evidence/cap06-linux-production-runtime-20261024.json,
+docs/cap06-linux-production-runtime.md.
+
+This prepares runtime inputs, not production interpreter/security/installation
+approval. Next is a clean native Linux release with real Git provenance, native
+provisioning/real systemd/reboot/readiness/capacity and explicit selected-provider
+host integration, then account/cost/bound apply/deployed acceptance. All existing
+Free/Stockholm/USD0cash, authority and uncertain-outcome gates remain. No provider/
+AWS call, key/state change, host service installation/activation, DNS/public TLS,
+new download, paid test or push.
+
 ## PR3 clean-CI readiness fixes — 2026-10-24
 
 The first Ubuntu CI runs exposed clean-environment assumptions before merge:

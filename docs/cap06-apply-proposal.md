@@ -7,6 +7,16 @@ input or permission to create anything. No AWS account/credential/model API,
 resource, production key, unit, DNS record or public certificate was changed.
 The existing Free-plan, Stockholm and USD0cash constraints remain binding.
 
+**Owner clarification — 24October:** independent-Storefront generalisation is
+outside graduation. Continue Controlled Storefront Linux production-host
+preparation. If Bedrock remains unusable, the owner permits the current OpenRouter
+provider as an explicitly selected fallback, preserving its existing non-resetting
+USD2cap and charges. This does not activate the provider or waive qualification,
+key/allowance custody, host readiness, exact costs or resource/rollback approvals.
+The protected host path still pins Bedrock and needs explicit fallback integration.
+The separate [Linux runtime preparation](cap06-linux-production-runtime.md) prepares
+28hash-pinned runtime inputs; native release/interpreter/provisioning gates remain.
+
 Recorded consistency checks and review limits are in
 [the evidence record](../eval/evidence/cap06-apply-dossier-20261023.json).
 
@@ -144,9 +154,10 @@ do not escalate, upgrade or broaden runtime permissions when denied.
 Proposed provisioning is an owner-controlled native Linux build of clean reviewed
 source, followed by SSH/SCP of verified artifacts and independent digest checking.
 The Windows-derived rehearsal ZIP is never the installation artifact. The28
-runtime wheels in `eval/linux-host-runtime.json`, including uvloop0.22.1, are a
-candidate Linux lock; exclude packaging26.3 (diagnostic only). Production lock
-adoption, exact Python3.12 interpreter provenance, AMI/kernel/security approval
+runtime wheels rehearsed in `eval/linux-host-runtime.json`, including uvloop0.22.1,
+now have separate preparation inputs at `deploy/linux-runtime.json` and
+`deploy/requirements-linux.lock`; packaging26.3 remains diagnostic only. Production
+interpreter/lock adoption, exact Python3.12 provenance, AMI/kernel/security approval
 and a fresh native build/runtime check remain required. Node24.13.0 and Caddy2.11.7
 candidate vendor digests are already retained; they are not claims of newest or
 currently approved secure versions. Verify licence/provenance/security and do not
@@ -238,7 +249,9 @@ or silently added to the two lifecycle alarms.
 
 ## Future activation sequence — not executed
 
-1. Resolve model usable quota/strict CAP-05 qualification and the missing host/
+1. Resolve the explicitly selected model's qualification: usable quota for Bedrock,
+   or the approved current OpenRouter fallback with protected key/remaining
+   allowance custody and qualification/readiness binding. Resolve missing host/
    account/cost/binding evidence. Prepare final bound policies, native release,
    hashes, finite dates, ownership marker and recovery record. Obtain specific
    resource/cost/rollback approval only after that result is reviewable.

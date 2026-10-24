@@ -1,5 +1,32 @@
 # Shopping Copilot — project handoff
 
+## Controlled Storefront Linux runtime preparation — 2026-10-24
+
+Owner confirms independent Storefronts are out of graduation scope; Step25 branch
+parked/unmerged at e44136c. Main AGENTS.md corrected locally at a500e7b/01959bb.
+Active codex/cap06-linux-production-host starts02bcf37 plus those fixes. Current
+OpenRouter fallback is owner-approved if Bedrock unusable, with explicit selection
+and unchanged non-resettingUSD2cap/charges; host still pins Bedrock/closed verifier.
+No provider call or allowance/key change. See newest PROJECT_CHECKPOINT.md.
+
+Prepared dedicated28runtime hash lock/profile, preparation-only offline wheel/
+target/metadata/Linux-extras closure verifier and immutable release inclusion.
+Actual non-root network-none retained AL2023/Python3.12.15/glibc2.34 install proves
+28runtime distributions and6native imports, no application/provider startup.
+Diagnostic packaging remains external tooling; interpreter approval false. No app
+image or persistent container stack. Guide/evidence:
+docs/cap06-linux-production-runtime.md,
+eval/evidence/cap06-linux-production-runtime-20261024.json.
+
+Focused checks/review green. Full Python1367pass/2warnings/1MemoryError in unchanged
+Moto/Botocore fixture setup; affected40testmodule passes on recheck without edits.
+Cause not established; original error retained, full run not claimed green.
+Next: real clean native
+Git release, interpreter/provisioning/systemd/readiness/capacity, explicit protected
+OpenRouter fallback integration/qualification/allowance custody, remaining account/
+cost/apply/public acceptance. No Step25/generalisation, cloud activation, model
+calls, extra spend, production key/state/DNS/TLS changes or push.
+
 ## PR3 CI integration fixes — 2026-10-24
 
 PROJECT_CHECKPOINT.md records clean-CI repairs: explicit synthetic admission-test
