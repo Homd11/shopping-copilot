@@ -24,6 +24,27 @@ def test_tool_directory_digest_uses_case_sensitive_relative_path_order(tmp_path)
     assert directory_digest(tmp_path) == (hashlib.sha256(canonical).hexdigest(), 2)
 
 
+@pytest.mark.parametrize(
+    "executable,library_path",
+    [
+        ("/rehearsal/vendor-python/usr/bin/python3.12", "/rehearsal/vendor-python/usr/lib64"),
+        ("/var/lang/bin/python3.12", None),
+    ],
+)
+def test_vendor_child_environment_has_only_the_fixed_native_library_path(
+    monkeypatch, executable, library_path
+):
+    environment = {"AWS_ACCESS_KEY_ID": "forbidden", "LD_LIBRARY_PATH": "/owner/private"}
+    monkeypatch.setattr(native_release_probe.sys, "platform", "linux")
+    monkeypatch.setattr(native_release_probe.sys, "executable", executable)
+    monkeypatch.setattr(native_release_probe.os, "environ", environment)
+    monkeypatch.setattr(native_release_probe.os, "geteuid", lambda: 10001, raising=False)
+    monkeypatch.setattr(native_release_probe.os, "umask", lambda _: None)
+    native_release_probe.initialize()
+    assert "AWS_ACCESS_KEY_ID" not in environment
+    assert environment.get("LD_LIBRARY_PATH") == library_path
+
+
 @pytest.mark.parametrize("changed", [None, "lock", "cache"])
 def test_policy_receipt_is_bound_before_private_cache_restoration(tmp_path, monkeypatch, changed):
     inputs, source, work = (tmp_path / name for name in ("input", "source", "work"))
