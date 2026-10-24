@@ -360,6 +360,17 @@ def runtime(expected):
     print(json.dumps(result, sort_keys=True))
 
 
+def restore_policy(source, expected):
+    """Restore pnpm's genuine policy successes only for the sealed lock and cache."""
+    cache = INPUT / "lockfile-verified.jsonl"
+    assert sha(source / "pnpm-lock.yaml") == expected["policy_lock_sha256"]
+    assert sha(cache) == expected["policy_cache_sha256"] and cache.stat().st_size <= 1024**2
+    destination = WORK / "home/.cache/pnpm/lockfile-verified.jsonl"
+    destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with destination.open("xb") as output:
+        output.write(cache.read_bytes())
+
+
 def build(expected):
     for name in ("home", "bin"):
         (WORK / name).mkdir(mode=0o700)
@@ -373,6 +384,7 @@ def build(expected):
     assert command("pnpm", "--version") == "11.19.0"
     assert command("node", "--version") == "v24.13.0"
     source = unpack_source(expected["source"])
+    restore_policy(source, expected)
     assert command("pnpm", "store", "path", cwd=source) == str(store / "v11")
     command(
         "pnpm",
@@ -451,6 +463,8 @@ def build(expected):
         "source_clean": True,
         "genuine_git": True,
         "offline_native_build": True,
+        "policy_cache_sha256": expected["policy_cache_sha256"],
+        "policy_lock_sha256": expected["policy_lock_sha256"],
         "manifest_sha256": sha(release / "release.json"),
         "archive_sha256": sha(output),
         "archive_bytes": output.stat().st_size,
