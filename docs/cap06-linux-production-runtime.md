@@ -143,3 +143,5 @@ The architecture remains native Python/Node/Caddy services on the selected EC2
 host. Docker supplies disposable local evidence. No new deployment architecture,
 AWS resource, production state, IAM grant, DNS record or public certificate is
 created by this slice.
+
+Subsequent [native Agent startup with synthetic authority](cap06-native-agent-startup.md) verifies the real Uvicorn/lifespan, signed closed readiness and graceful shutdown. Real external authority, selected-model qualification and actual host/systemd acceptance remain open.

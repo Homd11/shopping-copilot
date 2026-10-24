@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Native Agent started with synthetic authority - 2026-10-24
+
+Newest PROJECT_CHECKPOINT.md and docs/cap06-native-agent-startup.md supersede the
+prior running-loop-only limit. Actual native Agent/Uvicorn starts from original
+2dbe015 archive with protected settings/model factory, read-only injected authority
+and default provider false. Four concrete checks pass; signed readiness stays
+false. SIGTERM cleanup and generation0refusal pass, synthetic uncertainty/catalogue/
+manifest preserved; zero model/AWS requests or actual key/state changes.
+9new/71focused host tests, Ruff272files/pip pass; reviewed harness header/timeout
+findings fixed with native/controlled-removal checks. Previous broad-suite cleanup
+exception retained. No production code, service activation, public TLS/DNS or push.
+Real host/interpreter/security/systemd/remote authority/provider qualification/
+custody/capacity/account/cost/apply/public acceptance remain next. Step25 stays out.
+
 ## Native release and instructor PDF prepared - 2026-10-24
 
 See newest PROJECT_CHECKPOINT.md and native-release evidence/guide. Clean genuine

@@ -13,9 +13,7 @@ preparation. If Bedrock remains unusable, the owner permits the current OpenRout
 provider as an explicitly selected fallback, preserving its existing non-resetting
 USD2cap and charges. This does not activate the provider or waive qualification,
 key/allowance custody, host readiness, exact costs or resource/rollback approvals.
-The protected host path still pins Bedrock and needs explicit fallback integration.
-The separate [Linux runtime preparation](cap06-linux-production-runtime.md) prepares
-28hash-pinned runtime inputs; native release/interpreter/provisioning gates remain.
+Protected HostSettings v1 retains Bedrock; strict v2 supports the approved OpenRouter fallback with an external Agent-only key and fixed cap. The [native release](cap06-native-release-openrouter.md) and [synthetic-authority Agent startup](cap06-native-agent-startup.md) are verified. Actual interpreter/security adoption, real external authority, provider qualification/custody and host provisioning remain open.
 
 Recorded consistency checks and review limits are in
 [the evidence record](../eval/evidence/cap06-apply-dossier-20261023.json).

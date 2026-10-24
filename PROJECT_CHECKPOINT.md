@@ -2,6 +2,42 @@
 
 **Last updated:** 2026-10-24
 
+## Native Agent startup verified with synthetic authority - 2026-10-24
+
+The original2dbe015 native archive now runs the actual Agent/Uvicorn on Linux,
+with real protected POSIX settings, release-root binding, model factory and
+OpenRouterClient. Only the existing SDK factory seam supplies fixed read-only
+synthetic external authority; default provider qualification stays false. Real
+Storefront/release/admission/enabled-allowance checks pass independently, signed
+health is ready=false/no-store, invalid MAC403 performs no datastore read, and
+unauthenticated speech returns the existing401 identity refusal. No actual model
+or AWS request, control mutation or real key/ledger change.
+
+Native SIGTERM completes original lifespan cleanup; Uvicorn then re-raises the
+signal to the original OS handler (exit-15). Audit before the re-raise proves owned
+work/admission/check workers closed and authority closed exactly once. Generation0
+startup separately refuses with fixed redacted error and full owned cleanup.
+Synthetic enabledUSD0.73 allowance/retainedUSD0.04uncertainty, catalogue and original
+manifest remain unchanged. Exact source/archive/profile/probe hashes and bounds:
+`eval/evidence/cap06-native-agent-startup-20261024.json`;
+guide: `docs/cap06-native-agent-startup.md`.
+
+9new protocol checks and71focused host checks pass,2upstream warnings; Ruff272files
+and pipcheck pass. Fresh review's two harness findings fixed: retain HTTP headers'
+case-insensitive lookup; correct ignored Docker timeout removal prefix. Exact
+named-container cleanup verified with controlled2second timeout and reinspection.
+An additional mistaken speech403 expectation was corrected to existing401; no
+production guard changed. First two native failures retained; final proof passes.
+Earlier full-suite/browser-cleanup exception remains recorded, not relabelled.
+
+Next is actual host acceptance: production interpreter/AMI/package security,
+provisioning/systemd/PID1/reboot/users/capabilities/metadata/logging; real external
+authority and selected-provider qualification/key/remaining-credit custody, measured
+qualified capacity; then current account/Free-plan cost/resource/rollback bindings
+and approved public activation/desktop/Android safety acceptance. No deployment,
+AWS/provider request, extra spend, service/DNS/TLS activation, push or merge in this
+slice. Controlled Storefront only; Step25 stays parked/unmerged.
+
 ## Native Linux release and protected OpenRouter preparation verified - 2026-10-24
 
 Built the production-origin release from clean source
