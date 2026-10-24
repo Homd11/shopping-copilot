@@ -49,7 +49,7 @@ host bootstrap regression.
       retained ledger uncertainty and no provider construction/ledger initialization.
 - [x] Extend existing app seam for both provider selections; verify closed signed
       readiness, admission/Stop behaviour, no model calls/charges and speech refusal.
-- [ ] Run complete host compatibility and broader regressions; record transient
+- [x] Run complete host compatibility and broader regressions; record transient
       Node fixture startup failure and successful unchanged isolated recheck.
 
 ## Task2: Genuine clean native build
@@ -57,31 +57,33 @@ host bootstrap regression.
 Files: eval/native_release_source.py, its tests, eval/native_release_probe.py and
 versioned evidence/guide. Keep acquired tools, caches and source inputs ignored.
 
-- [ ] Observe RED source-snapshot tests, implement a bounded deterministic ZIP of
+- [x] Observe RED source-snapshot tests, implement a bounded deterministic ZIP of
       actual shallow Git objects with exact commit/tree and no owner configuration.
-- [ ] Verify pinned Git RPM against published metadata and pinned-image public key;
+- [x] Verify pinned Git RPM against published metadata and pinned-image public key;
       extract selected binary/licence only; prove version and actual DSO availability.
-- [ ] Stage only359locked pnpm entries and6333verified content paths; preserve the
+- [x] Stage only359locked pnpm entries and6333verified content paths; preserve the
       original cache and exclude projects/configuration/symlinks/credentials.
-- [ ] Commit reviewed source first, capture that exact clean revision, and run
+- [x] Commit reviewed source first, capture that exact clean revision, and run
       real native Git checkout/fsck/status, frozen offline install and unmodified
       production build with retained source commit/tree and artifact digest.
-- [ ] Exercise the actual native release/runtime with synthetic private state,
+- [x] Exercise the actual native release/runtime with synthetic private state,
       default POSIX v2 key refusals, native Storefront restart/auth/persistence and
       Agent running-loop refusal only. Full native Agent startup/readiness remains
       open. No SDK/provider/ACME execution or manifest adaptation.
 
 ## Task3: Verification and current frontier
 
-- [ ] Fresh whole-slice review; fix material issues with targeted RED/GREEN checks.
-- [ ] Run source format/lint/build/TypeScript tests and full Python Agent/Evaluation
+- [x] Fresh whole-slice review; fix material issues with targeted RED/GREEN checks.
+- [x] Run source format/lint/build/TypeScript tests and full Python Agent/Evaluation
       suites sequentially, in separate processes, after Docker proof cleanup.
       This preserves coverage while reducing local peak allocation after the
       prior combined-run MemoryError; retain every failure and exact rerun result.
-- [ ] Record native/source/toolchain/runtime digests, key privacy/authority and
+- [x] Record native/source/toolchain/runtime digests, key privacy/authority and
       proof limits; update checkpoint/handoff/apply dossier and commit locally.
 
 Still open afterward: production interpreter/AMI/package security adoption,
 actual host provisioning/systemd boot/reboot/capability/metadata/log acceptance,
 full Agent qualified readiness/capacity, remaining key allowance custody and exact
 account/cost/resource/rollback approvals, then cloud desktop/Android acceptance.
+
+Verification exception retained: complete Agent899passed; Evaluation546passed,2warnings,1Browser.close response-disposal failure in unchanged milestone harness. Whole affected module passes unchanged on recheck1test/12.78s. No uninterrupted full-green claim or product workaround. See eval/evidence/cap06-native-release-openrouter-20261024.json.

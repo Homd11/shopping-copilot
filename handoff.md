@@ -1,16 +1,26 @@
 # Shopping Copilot — project handoff
 
-## Native source and OpenRouter preparation in progress — 2026-10-24
+## Native release and instructor PDF prepared - 2026-10-24
 
-Newest PROJECT_CHECKPOINT.md: strict protected HostSettingsv2 supports approved
-OpenRouter fallback; v1 Bedrock retained, default qualification closed, keycap2and
-existing allowance/unknown holds unchanged.55config/108combined focused checks
-pass; source snapshot preserves actual original shallow commit/tree with no owner
-config/history. Signed extracted Git2.50.1 and project-only cached Node packages
-ready. Next capture a clean committed source and run real offline Linux build;
-no native artifact/runtime acceptance yet. Full Agent native startup/readiness
-remains open, not established by running-loop refusal. No provider/account call,
-actual key/allowance migration, AWS resource/service/public TLS/DNS change or push.
+See newest PROJECT_CHECKPOINT.md and native-release evidence/guide. Clean genuine
+Linux production-origin release from2dbe015 is verified, archive roundtrip intact;
+strict protected OpenRouter HostSettingsv2 prepared, v1 Bedrock retained and default
+readiness closed.28runtime distributions/6native imports,2Storefront restarts and
+synthetic secret/allowance checks pass. Agent proof is running-loop refusal only;
+full startup, systemd/real host/interpreter/security/qualification/custody/capacity
+and cloud cost/apply/public acceptance remain open. Step25 stays parked/unmerged.
+
+Agent899tests pass; Evaluation546pass/2warnings/1unchanged milestone browser
+cleanup failure retained. Whole affected module1passes unchanged on recheck.
+199TypeScript tests/build/source lint/format/pipcheck pass; fresh reviews clear.
+No uninterrupted full-green claim, suppressed error, product workaround, provider/
+account call, actual key/allowance/production service/DNS/TLS change, push or merge.
+
+English instructor PDF (six visually checked pages, all five owner-supplied team
+names) is at `D:/agent depi/outputs/instructor-brief-20261024/output/pdf/Shopping-Copilot-Project-Overview.pdf`.
+It covers idea, real technologies, pretrained LLM integration, seven trained local
+classifier families/synthetic comparison, implementation and remaining deployment.
+Generator is retained in the same output root's `source/make_report.py`.
 
 ## Controlled Storefront Linux runtime preparation — 2026-10-24
 

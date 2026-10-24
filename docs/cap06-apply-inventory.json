@@ -394,7 +394,7 @@
     "python_candidate": "CPython3.12 ABI; exact host build/source/digest unresolved",
     "node_candidate": "24.13.0 official linux-x64 archive/binary digests in tested manifest; security approval pending",
     "caddy_candidate": "2.11.7 official linux-amd64 archive/binary digests in tested manifest; security approval pending",
-    "release_build": "clean reviewed native Linux production build; do not install derived Windows rehearsal fixture",
+    "release_build": "clean genuine native Linux production-origin candidate verified; actual cloud selection and host acceptance remain open",
     "transfer": "owner-scoped SSH/SCP with independent digests, not a new runtime S3 permission",
     "host_config": "/etc/shopping-copilot/agent/host.json",
     "selected_release": "/opt/shopping-copilot/current",
@@ -433,7 +433,18 @@
     "metadata_config": "/etc/shopping-copilot/metadata.json",
     "store_service_secret_copy": "/etc/shopping-copilot/store/service.key",
     "host_isolation_activated": false,
-    "actual_systemd_boot_verified": false
+    "actual_systemd_boot_verified": false,
+    "native_release_candidate": {
+      "source_commit": "2dbe015115822d0e2821b194645e416c71d20d30",
+      "source_tree": "ff109049c131baab1ac15f29ebf5dc66bc875ef9",
+      "archive_sha256": "bb525fcf8a218fa9f6aa1d475cb8dc01ee57f842456bad26d044f5a984ce134a",
+      "manifest_sha256": "bbf04fb131f066492876218bccacf8907a9b19db78408e1eb4eb57ae1ba31944",
+      "offline_native_build_verified": true,
+      "independent_native_extraction_verified": true,
+      "full_agent_startup_verified": false,
+      "selected_for_cloud_apply": false,
+      "evidence": "eval/evidence/cap06-native-release-openrouter-20261024.json"
+    }
   },
   "cost_scenarios": {
     "source": "docs/research/2026-10-23-cap06-inventory-reconciliation.md",
@@ -462,7 +473,7 @@
     "complete workload costs including Agent operations, INIT, duplicates, logs and abuse",
     "finite activation dates; observation adoption only for conditional resources and unattended automatic-wake acceptance",
     "reserved concurrency and all feature creation/runtime eligibility",
-    "native production Linux release, interpreter/lock and provisioning verification",
+    "adoption of verified native Linux release candidate, production interpreter/lock and provisioning verification",
     "native host provisioning/activation/reboot verification of prepared process-specific metadata boundary and durable redacted diagnostics",
     "actual selected-provider host integration and qualification/readiness binding: v1 Bedrock or strict v2 OpenRouter config supported; usable Bedrock quota or protected OpenRouter key/remaining allowance custody remains unbound; no new call/spend authority",
     "ordered activation/rollback/teardown package with current authority retained and exact final approval",

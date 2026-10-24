@@ -2,38 +2,63 @@
 
 **Last updated:** 2026-10-24
 
-## Explicit OpenRouter settings prepared; native source capture next — 2026-10-24
+## Native Linux release and protected OpenRouter preparation verified - 2026-10-24
 
-Protected HostSettings v1 remains Bedrock-compatible. Strict v2 now permits only
-openrouter/google/gemini-3.5-flash-lite with a bounded protected external Agent-only
-provider_key_file; plaintext keys/extra fields/provider/model/cap knobs rejected.
-Immutable secret-redacted settings bind existing inference prices/ledger to that
-choice, literalUSD2ceiling, no dotenv/ambient selector. No provider/key/ledger
-activation; default qualification remains closed.55new config tests and both
-provider app-seam cases prove refused readiness/no calls/charges/guarded audio.
+Built the production-origin release from clean source
+`2dbe015115822d0e2821b194645e416c71d20d30`, tree
+`ff109049c131baab1ac15f29ebf5dc66bc875ef9`, using genuine shallow Git in bounded
+non-root, network-none Linux. Original builder and manifest were not adapted.
+Archive SHA256 `bb525fcf8a218fa9f6aa1d475cb8dc01ee57f842456bad26d044f5a984ce134a`;
+manifest SHA256 `bbf04fb131f066492876218bccacf8907a9b19db78408e1eb4eb57ae1ba31944`.
+Independent native extraction verifies943manifest entries,192relative symlinks
+and39contained hardlinks. Retained official base image only; no custom app image
+or persistent container. Local archive:
+`.scratch/cap06-native-release/run-42e3a8559748/output/release.tar`.
 
-Genuine shallow source preparer captures exact original commit/tree from clean
-HEAD, excludes owner config/refs/hooks/history/ignored files, and publishes a
-bounded deterministic ZIP. Native consumer creates empty refs then real Git
-checkout/fsck/status; no provenance stub.18source tests plus7legacy fixture tests
-pass; combined focused108tests pass. One combined compatibility batch had a Node
-seed startup error3221226505,17cached setup errors; unchanged isolated23test module
-passes. New app test initially expected speech before readiness; corrected to the
-existing authenticated503refusal. No application guard was weakened.
+Strict protected HostSettingsv2 supports only the approved OpenRouter model and
+external Agent-only key, immutable/redacted settings and literal non-resetting
+USD2cap. V1 Bedrock retained; default qualification closed. Actual native runtime
+proves28distributions/6native imports, protected POSIX key refusals, two Storefront
+restarts/private API auth, catalogue and synthetic uncertain allowance preserved,
+and no key in Storefront environment. Caddy adapt only. Agent running-loop refusal
+only: full native Agent startup/readiness remains unverified. No actual key or
+ledger migration, provider/account call, spend, production service activation,
+public DNS/TLS, push or merge.
 
-Verified project-only pnpm cache359entries/6333content paths and retained Node/
-Caddy/pnpm staged, no owner projects/config. Pinned image-matched Git2.50.1 RPM
-downloaded via official public metadata, checksum/supplier signatures verified in
-temporary private rpmdb, Git/licence extracted only; actual ldd dependencies all
-present. No host package installed. Metadata's107MBexpanded XML is streamed with
-128MiBbound and published checksum, after initial64MiB assumption refused it.
+pnpm's separate policy verifier fetched metadata despite offline package install.
+Normal-policy, metadata-only, script-disabled preparation verified359workspace and
+68production entries and produced two genuine cache records. Exact cache/lock
+hashes bound before privateHOME restoration; unchanged policies then passed the
+actual offline build. Canonical Windows/Linux tool ordering and default pnpm store
+cwd issues were fixed with focused regressions. First metadata container startup
+failed during measured Windows allocation pressure; after owner closed Brave tabs,
+engine healthy and run passed without Docker restart. Earlier Moto MemoryError's
+cause remains unproven.
 
-Fresh code review clear after explicitly narrowing native Agent proof to running-
-loop refusal only; full native Agent startup/readiness stays unverified. Next:
-commit/capture this exact clean source, run network-none native production build
-and synthetic runtime proof, then sequential complete regression checks. No actual
-native release acceptance is claimed yet. No AWS/provider API, actual secret or
-allowance change, service/user/firewall install/activation, public TLS/DNS or push.
+Verification:55new OpenRouter checks,18source checks and4probe checks pass; both
+provider app-seam cases preserve closed readiness. Fresh code/document reviews
+clear. Source lint/format,199TypeScript tests/build,270Python files and pipcheck
+pass. Complete separate Agent suite899passes; Evaluation546passes/2warnings/
+1failure in unchanged milestone browser cleanup (`Browser.close: Response has been
+disposed`). Whole affected module recheck1passes/12.78s without changes. Preserve
+original failure; do not claim uninterrupted full-green. No suppressed error or
+product workaround. Guide/evidence:
+`docs/cap06-native-release-openrouter.md`,
+`eval/evidence/cap06-native-release-openrouter-20261024.json`.
+
+Next: production interpreter/AMI/package security adoption and actual native host
+provisioning/systemd boot/reboot/capability/metadata/log acceptance; full Agent
+startup/readiness/capacity and selected-provider qualification/key/remaining-credit
+custody; exact current account/cost/resource/rollback bindings, then approved cloud
+activation and deployed desktop/Android safety acceptance. Step25/generalisation
+remains parked/unmerged/out of scope. Main still has the two local AGENTS scope
+commits; no push or merge was performed in this slice.
+
+Owner requested an instructor PDF in English, then added team names Ahmed Yasser,
+Mohamed Hamdy, Ezz, Ali Amr and Rania Ali. Delivered six visually checked pages on
+idea/stack/actual ML study/implementation, with synthetic-score and deployment
+limits. PDF: `D:/agent depi/outputs/instructor-brief-20261024/output/pdf/Shopping-Copilot-Project-Overview.pdf`.
+Editable generator retained alongside it under `source/make_report.py`.
 
 ## Controlled Storefront scope restored; Linux runtime prepared — 2026-10-24
 

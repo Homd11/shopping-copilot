@@ -131,8 +131,10 @@ verified remaining credit, selected-model qualification or full native Agent
 startup. Those bindings remain open. The host provider verifier stays closed;
 existing local model evidence does not establish deployed acceptance.
 
-Still open: a clean native Linux release with real Git provenance; production
-interpreter/package/security and provisioning acceptance; actual systemd boot/
+A [clean native Linux release with real Git provenance](cap06-native-release-openrouter.md)
+has now passed its bounded offline build, runtime and archive round-trip checks.
+Still open: production interpreter/package/security and provisioning acceptance;
+actual systemd boot/
 reboot/capabilities/metadata isolation; full Agent readiness and measured combined
 capacity; selected-provider qualification and account/cost/bound apply approvals;
 then public TLS and deployed desktop/Android/safety/recovery/rollback acceptance.
