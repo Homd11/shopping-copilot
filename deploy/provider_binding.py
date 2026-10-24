@@ -171,17 +171,17 @@ class ProviderBinding:
             self._path.parent / "accepted-report.json",
             self._path.parent / "reconciliation.json",
         )
+        protected_paths = (*evidence_paths, *settings.private_files)
         private = tuple(
             _entry(path, limit, self._reader)
             for path, limit in zip(
-                (*evidence_paths, *settings.private_files),
+                protected_paths,
                 (16384, 1024**2, 1024**2, 16384, 128, 64, 256),
                 strict=True,
             )
         )
         paths = (
-            *evidence_paths,
-            *settings.private_files,
+            *protected_paths,
             settings.catalogue,
             Path(settings.inference["INFERENCE_LEDGER_PATH"]),
         )
@@ -272,6 +272,12 @@ class ProviderBinding:
             settings.service_secret.encode("ascii"),
             settings.readiness_secret,
             settings.provider_key.encode("ascii"),
+        ):
+            raise ValueError()
+        # Later private reads must not leave an earlier file's captured metadata stale.
+        if any(
+            _metadata(path.lstat()) != entry[1][0]
+            for path, entry in zip(protected_paths, private, strict=True)
         ):
             raise ValueError()
         return BindingSnapshot(

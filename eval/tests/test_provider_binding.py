@@ -120,6 +120,41 @@ def test_binding_observation_preserves_actual_allowance_and_private_metadata(bin
 
 
 @pytest.mark.parametrize(
+    "target", ["binding", "report", "reconciliation", "config", "service", "readiness"]
+)
+@pytest.mark.parametrize("mutation", ["change", "replace"])
+def test_startup_refuses_earlier_file_changes_during_later_private_read(
+    binding_world, target, mutation
+):
+    _, settings, path, _, _, load = binding_world
+    earlier = {
+        "binding": path,
+        "report": path.parent / "accepted-report.json",
+        "reconciliation": path.parent / "reconciliation.json",
+        "config": settings.private_files[0],
+        "service": settings.private_files[1],
+        "readiness": settings.private_files[2],
+    }[target]
+    changed = []
+
+    def reader(current, limit):
+        raw = fixture_reader(current, limit)
+        if current == settings.private_files[3]:
+            before = earlier.read_bytes()
+            if mutation == "change":
+                earlier.write_bytes(before + b" ")
+            else:
+                replacement = earlier.with_name(earlier.name + ".replacement")
+                replacement.write_bytes(before)
+                replacement.replace(earlier)
+            changed.append(earlier)
+        return raw
+
+    assert_refused(lambda: load(reader=reader))
+    assert changed == [earlier]
+
+
+@pytest.mark.parametrize(
     "field,value",
     [
         ("version", True),
