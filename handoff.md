@@ -1,5 +1,39 @@
 # Shopping Copilot — project handoff
 
+## Local provisioning preparation verified; separate AWS approval pending - 2026-10-26
+
+Owner approved the25Octoberdesign/plan; public research/acquisition and bounded
+local rehearsals now passed. Guide: docs/cap06-offline-provisioning-preparation.md;
+hash-index evidence: eval/evidence/cap06-offline-provisioning-preparation-20261026.json.
+Caddy archive/checksums pass exact publisher/issuer/transparency checks;14nft
+fixture RPM signatures pass; five signature-negative cases refuse. Native
+systemd252 offline mask/enable/verify and seven unsafe fixtures pass. Mounted
+disposable XFS on WSL6.6 proves duplicate UUID handling, mandatory unmount before
+fresh rw mount, non-modifying clean-log check, timer repair and UUID preservation.
+Root0600fully allocated1GiB XFS swap file/header pass; active swap is NOT tested.
+Config originals/no-write repeat/seven conflict refusals pass. Owned test mounts,
+loops and temporary workspace were removed; no system packages were installed.
+
+Corrected procedure forbids helper reboot with original root attached, forbids
+rw remount of norecovery and distinguishes file length from usable swap bytes.
+Actual hostkernel6.18boot, active swap/reboot persistence, sandbox/metadata,
+readiness, capacity and public activation remain unverified. Historical default
+xfs_repair32worker/PID abort and corrective phase2_threads=1 proof are recorded.
+
+Next: docs/cap06-private-provisioning-proposal.md requires separate exact owner
+approval: USD0.25incrementaleligiblecredits, one same-AZ temporaryhelper/root,
+90minutes per host, one EIP at most3hours, original-root timer repair/fixed-input
+provisioning and helper-only cleanup; valid after approval26Octoberthrough
+27October18:00Cairo with earlier bounded stop/release deadlines. Public estimate
+USD0.14078071/USD0.16893685with20%buffer; original retained-storage grant is not
+double-counted/extended. Do not perform these AWS steps on design approval alone.
+Actual originalRPM/providers/frozen additive transaction remain required before
+install; if unresolved, finish timer recovery/inventory and stop. No AWS account
+request, SSH, host start, real root/timer/swap/package modification or custody/model
+access occurred here; last stopped/no-IP cloud observation was not freshly read.
+Use newest checkpoint; preserve Freeplan/USD0cash, model accounting/holds and
+production_interpreter_approved=false. No generalisation/PDF/push/merge.
+
 ## Offline provisioning procedure awaiting review - 2026-10-25
 
 Newest design: docs/superpowers/specs/2026-10-25-cap06-offline-provisioning-design.md.

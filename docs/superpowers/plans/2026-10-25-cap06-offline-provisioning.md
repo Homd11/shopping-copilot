@@ -10,7 +10,11 @@
 
 **Spec:** [Offline provisioning design](../specs/2026-10-25-cap06-offline-provisioning-design.md). Read it alongside this procedure, including its exact input hashes and acceptance limits.
 
-**Status:** Offline design only. Every checkbox below is **future work**, not a record of execution. In particular, no helper, package install, swap file or timer repair has been performed.
+**Status, 26 October:** owner-approved design; local preparation below has executed.
+See [its evidence](../../cap06-offline-provisioning-preparation.md). Tasks 2–5 remain
+unexecuted pending the exact new resource/cost approval and their checks. No AWS
+host boot, package install, real swap file or timer repair has occurred. Synthetic
+files created during rehearsal were removed with their private test filesystems.
 
 ## Global constraints
 
@@ -58,22 +62,27 @@ any action. Do not run a manifest merely because it contains `approved=true`.
 **Consumes:** retained inspection receipt, the design's input pins, runtime/wheel locks and historical vendor records.
 **Produces:** checked local artifacts and a list of remaining inventory-dependent RPMs; synthetic timer/swap rehearsal receipts. No cloud or original-root changes.
 
-- [ ] Following owner review, separately authorize any missing primary documentation/signature acquisition and a bounded disposable Linux rehearsal. Current offline-only permission does not include downloads or starting Docker.
-- [ ] Verify exact XFS read-only/writable mount behavior with duplicate UUIDs, compatible systemd offline unit handling and AWS stopped-root attachment requirements against primary documentation. Retain the exact tool versions and sources; do not treat candidate mount options in the spec as already tested.
-- [ ] Rehearse the timer procedure on a synthetic root with regular old unit files, an enable symlink and a synthetic expired stamp. Assert that only the two old units/their exact link/stamp are archived/masked, unrelated timers survive, and only the replacement `OnBootSec=90min`, `Persistent=false` timer is enabled. Repeat with wrong ownership, unexpected drop-ins and a linked backup path: expect refusal without partial replacement. No real poweroff command may run during this rehearsal.
-- [ ] Rehearse exclusive non-sparse 1-GiB swap-file creation on disposable XFS, exact mode/blocks, marked fstab/sysctl updates, a clean repeat and refusal of an existing foreign/link destination. Activate only disposable swap if that rehearsal is explicitly permitted; never use the Windows/WSL host's own swap as a test target.
-- [ ] Recheck local retained hashes against the spec, `deploy/linux-runtime.json` and `deploy/requirements-linux.lock`. Retain the Node signature result; obtain/verify the missing Caddy publisher-signature material and trusted Amazon RPM signatures in the later authorized acquisition stage. Do not execute unverified binaries.
-- [ ] Leave the final RPM transaction pending until the complete original-root RPM/provider inventory is available. Native Python seeds are the three RPMs in the spec; Node/Caddy remain direct pinned binaries. Do not package all 19/14 extracted diagnostic RPMs as an install list.
+- [x] Owner approval on26October authorized local public documentation/signature acquisition and the bounded disposable Linux rehearsal. The earlier design-only offline boundary ended at that review; it did not authorize AWS operations.
+- [x] Verify exact XFS read-only/writable mount behavior with duplicate UUIDs, compatible systemd offline unit handling and AWS stopped-root attachment requirements against primary documentation. Retain the exact tool versions and sources; do not treat candidate mount options in the spec as already tested.
+- [x] Rehearse the timer procedure on a synthetic root with regular old unit files, an enable symlink and a synthetic expired stamp. Assert that only the two old units/their exact link/stamp are archived/masked, unrelated timers survive, and only the replacement `OnBootSec=90min`, `Persistent=false` timer is enabled. Repeat with wrong ownership, unexpected drop-ins and a linked backup path: expect refusal without partial replacement. No real poweroff command may run during this rehearsal.
+- [x] Rehearse exclusive non-sparse 1-GiB swap-file creation on disposable XFS, exact mode/blocks, marked fstab/sysctl candidate files and exclusive-create refusal. The later configuration rehearsal also verified exact no-write repeats and seven foreign/link/conflict refusals. Activate only disposable swap if that rehearsal is explicitly permitted; never use the Windows/WSL host's own swap as a test target.
+- [x] Recheck local retained hashes against the spec, `deploy/linux-runtime.json` and `deploy/requirements-linux.lock`. Retain the Node signature result; obtain/verify the missing Caddy publisher-signature material and trusted Amazon RPM signatures in the later authorized acquisition stage. Do not execute unverified binaries.
+- [x] Leave the final RPM transaction pending until the complete original-root RPM/provider inventory is available. Native Python seeds are the three RPMs in the spec; Node/Caddy remain direct pinned binaries. Do not package all 19/14 extracted diagnostic RPMs as an install list.
 
-**Exit check:** recovery/swap rehearsal is sufficient to write exact commands, provenance gaps are explicit, no host or acceptance state has changed. Commit only the reviewed runbook/manifest format refinements, not private identities.
+**Result:** exact native systemd252 offline edits, seven unsafe-file refusals,
+duplicate-UUID mounted-XFS recovery, clean-log diagnostics and a fully allocated
+1-GiB XFS swap signature passed. Caddy/RPM signatures passed. Managed config repeat/no-write and seven refusal checks also passed. Host swap
+activation, reboot persistence and complete actual RPM closure remain unverified
+and are not claimed by these checked preparation items. No real host or
+acceptance flag changed.
 
 ## Task 2: Prepare the next exact AWS operation proposal
 
 **Consumes:** reviewed design/rehearsal and current retained custody.
 **Produces:** owner-reviewable resource/cost/rollback proposal; no creation until its approval.
 
-- [ ] Price the proposed helper, its encrypted root, original-host running interval, existing retained root and one temporary EIP using then-current applicable account/region terms. Preserve Free-plan/USD0-cash requirements and credit coverage; do not reuse USD4.50 as an unused grant or assume an EIP is free while idle.
-- [ ] Bound the helper to one same-AZ instance with its own encrypted root, no IAM profile/auto public IP, existing revalidated key/SSH-only SG if compatible, and one EIP reused sequentially between helper and original. State exact total running/allocation deadlines and API cleanup authority; helper and original guest guards are 90 minutes and do not extend those limits. No concurrent extra EIP, NAT, snapshot, DNS or application ingress.
+- [x] Prepare the exact public-price worksheet in `docs/cap06-private-provisioning-proposal.md`: USD0.14078071 estimate, USD0.16893685 with20%buffer, proposed USD0.25 incremental eligible-credit allocation. Actual account/credit coverage still requires the separately approved preflight; the earlier USD4.50 grant is not reused.
+- [x] Bound the proposal (not an executed operation) to one same-AZ instance with its own encrypted root, no IAM profile/auto public IP, existing revalidated key/SSH-only SG if compatible, and one EIP reused sequentially between helper and original. State exact total running/allocation deadlines and API cleanup authority; helper and original guest guards are 90 minutes and do not extend those limits. No concurrent extra EIP, NAT, snapshot, DNS or application ingress.
 - [ ] Explicitly approve only helper-instance termination and deletion of its exact temporary root after backup retrieval. Protect the original host/root/ENI/SG/key; ambiguity means stop/release and retain, never delete by name. Specify cleanup if root detach/attach or final verification fails.
 - [ ] Establish original/helper stop permissions and external stop/IP-release fallback before launch. Confirm root encryption/retention/AZ ownership afresh during the authorized stage. Sign-in or Paid-plan requests must not silently widen scope.
 

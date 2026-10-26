@@ -1,6 +1,61 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-25
+**Last updated:** 2026-10-26
+
+## Provisioning design approved; local preparation passes, exact AWS stage awaits approval - 2026-10-26
+
+Owner approved the complete25Octoberdesign/plan. Local preparation then retrieved
+public primary docs and verification inputs, checked exact Caddy publisher
+identity/issuer/transparency with offline Cosign, and verified all14retained
+nftables RPM signatures against pinned Amazon key bytes in a private RPMdb.
+Three Caddy and two RPM negative cases refuse. No actual package installation.
+
+Bounded native systemd252.23-15.amzn2023 synthetic-root checks prove old timer/
+service masking, new relative timer enabling and unit verification; seven unsafe
+file/override fixtures refuse without changes. A disposable mounted-XFS test on
+WSLkernel6.6.87.2, using signed AL2023 xfsprogs6.12/util-linux2.37.4 tools, proves
+duplicate-UUID refusal, ro/nouuid/norecovery access, writable-remount refusal,
+clean unmount/non-modifying log check/new rw/nouuid mount, exact timer-file edit
+and unchanged filesystem UUID. A fully written1GiB XFS file/root0600 has a valid
+swap header and1073737728usable bytes at4096page size. No swap activation/sysctl
+application or real-host boot. Config staging preserves originals, exact repeats
+make no write and seven foreign/linked/conflict fixtures refuse without changes.
+All created mounts/owned loops/temp workspace were removed. Native runtime/wheel/
+release pins and production_interpreter_approved=false remain unchanged.
+
+Guide: docs/cap06-offline-provisioning-preparation.md. Sanitized hashes/results:
+eval/evidence/cap06-offline-provisioning-preparation-20261026.json. Detailed inputs/
+receipts: .scratch/cap06-offline-provisioning/{signatures,rehearsal}. Primary
+recovery and signature records: docs/research/2026-10-26-cap06-offline-recovery-contract.md
+and docs/research/2026-10-26-cap06-provisioning-signatures.md. Corrective findings
+are carried into the approved procedure: never reboot helper with original root
+attached; unmount norecovery before a fresh writable mount; account for swap's
+header page. A default32worker/32PID xfs_repair abort was retained and diagnosed;
+the bounded clean-file check passed with phase2_threads=1, without relaxing caps.
+
+Next exact proposal: docs/cap06-private-provisioning-proposal.md, USD0.25incremental
+eligible credits versus USD0.14078071public estimate/USD0.16893685with20%buffer.
+It proposes one same-AZ helper/20GiB encrypted temporary root,90minutes running
+each for helper/original, sole EIP allocated at most3hours, exact offline root
+timer recovery, fixed-input runtime installation/swap if actual closure is ready,
+and helper-only disposal. Valid start window after separate approval26October
+through27October18:00Cairo; fixed earlier cleanup deadlines and original retained
+root protection apply. Public-price data/Decimal calculation are retained under
+.scratch/cap06-private-provisioning-prices-20261026. Existing root retention ends
+at its unchanged23December18:00UTCreview deadline; no deletion follows from that.
+
+**No new resource approval yet.** No AWS authenticated read/write, SSH, host start,
+root detach, actual install/swap/timer repair, model request or real custody access
+ran during this preparation. Last recorded stopped/no-IP state is unchanged and
+was not freshly queried. The next stage requires this concrete resource/cost/
+rollback approval under AGENTS.md, plus fresh Free-plan/credit/custody/tool checks.
+Complete original RPM/providers must be obtained during authorized detached-root
+inspection and an additive transaction frozen before installation; otherwise stop
+after timer recovery/inventory. Actual EC2 boot/swap persistence, systemd sandbox/
+metadata/readiness/capacity and public activation remain later acceptance gates.
+Preserve the OpenRouter non-resettingUSD2cap/228settled/19held accounting history.
+No Step25, PDF, new model spending, push or merge. This section supersedes older
+awaiting-design-review wording below without changing historical receipts.
 
 ## Offline provisioning design prepared for review - 2026-10-25
 
