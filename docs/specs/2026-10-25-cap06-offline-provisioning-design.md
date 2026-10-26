@@ -5,6 +5,14 @@ document was prepared from retained local evidence, without cloud, SSH or networ
 access, downloads, package installation, Docker startup or changes to the host.
 The stopped state below is the last recorded observation, not a fresh cloud check.
 
+**26 October update:** the owner approved this design. The
+[local preparation result](../../cap06-offline-provisioning-preparation.md) records
+subsequent public-source acquisition, signature verification and bounded disposable
+Linux rehearsals. That work did not access AWS accounts or change the real host.
+The [new resource proposal](../../cap06-private-provisioning-proposal.md) still
+requires separate approval. The opening historical wording describes the original
+25 October design work, not these later approved checks.
+
 ## Goal and chosen approach
 
 Prepare the existing Controlled Storefront host for native Linux execution:
@@ -73,7 +81,10 @@ permission for it.
 2. Detach only the original stopped instance's recorded root; attach it as a
    secondary helper volume. Match the AWS volume ID to the Nitro serial/by-id
    mapping and inspect partitions. Never guess `/dev/nvme1n1`. The helper and
-   original roots may share an XFS UUID if based on the same image.
+   original roots may share an XFS UUID if based on the same image. Never reboot
+   the helper with the original attached: duplicate boot identifiers can select
+   the wrong root. If it stops unexpectedly, detach the original before any
+   helper restart; never solve this by changing the original UUID/label.
 3. Inspect the identified filesystem read-only without log replay first. The
    candidate XFS options are `ro,nouuid,norecovery`; verify them against the exact
    tools/manuals and rehearse before the future operation. Discover and record
@@ -83,7 +94,13 @@ permission for it.
    recovery plan; do not discard the log, run `xfs_repair -L`, force-detach, format
    or repartition. No filesystem repair is authorized by this design.
 4. After the read-only checks, perform only the named timer repair on a clean
-   writable mount. Back up exact unit bytes, ownership, permissions, enable link
+   writable mount. First unmount the `norecovery` inspection mount; never remount
+   it writable. Run the reviewed non-modifying clean-log check while unmounted,
+   then make a new `rw,nouuid` mount only after a clean result. The bounded local
+   rehearsal used `xfs_repair -n -m 256 -o phase2_threads=1`; the thread option
+   avoids a demonstrated default-worker/PID-limit failure. Capture actual helper
+   tool compatibility before using it. Back up exact unit bytes, ownership,
+   permissions, enable link
    and any exact owned persistent stamp in a root-only operation directory.
    Copy that small recovery record to owner-held storage before helper teardown.
    Do not clear `/var/lib/systemd/timers` globally. The candidate stamp
@@ -152,8 +169,8 @@ inventory to calculate a minimal additive RPM transaction. Keep the existing
 | Python         | `python3.12` and `python3.12-libs`, `0:3.12.14-2.amzn2023.0.1.x86_64`; native Amazon RPM signatures verified in retained acquisition receipts                        |
 | venv bootstrap | `python3.12-pip-wheel`, `0:23.2.1-4.amzn2023.0.12.noarch`; use native ensurepip; global `python3.12-pip` is not required by default                                  |
 | Node.js        | Official `node-v24.22.1-linux-x64.tar.xz`; retained signed checksum verification against pinned official release keys                                                |
-| Caddy          | `caddy_2.11.7_linux_amd64.tar.gz`; retained SHA256/SHA512 comparisons; **publisher signature verification still missing**                                            |
-| nftables       | `nftables-1:1.0.4-3.amzn2023.0.3.x86_64`; retained repository checksum evidence; **RPM signature verification still missing**                                        |
+| Caddy          | `caddy_2.11.7_linux_amd64.tar.gz`; retained SHA256/SHA512 comparisons; publisher identity/issuer and transparency verification passed on 26 October                  |
+| nftables       | `nftables-1:1.0.4-3.amzn2023.0.3.x86_64`; retained repository checksum evidence; all 14 retained fixture RPM signatures verified on 26 October                       |
 | Application    | Native release source `023d9f621bc9432b871e519d51e6ce57bb7dc204`, tree `ade5f9f5d6960a9a263f01589df0f70c7c37cc87`; 4,423,680-byte archive verified during inspection |
 
 SHA256 pins for the key inputs, distinct from signatures:
@@ -190,8 +207,9 @@ inventory-only boot after timer repair; stop again before approving installation
 
 Before any install, freeze the exact NEVRA, file size, SHA256, trusted signing-key
 fingerprint, dependency closure and scriptlet effects for every selected RPM.
-Acquire/verify missing Caddy signature material and RPM signatures in a later
-authorized preparation stage, not during this offline design. Refuse unexpected
+The [26 October signature receipt](../../research/2026-10-26-cap06-provisioning-signatures.md)
+closes these checks for the retained Caddy/nftables inputs. Every newly selected
+RPM still needs the same checks. Refuse unexpected
 erases, downgrades, replacements of installed libraries, Python 3.9 or kernel
 changes. Repositories stay disabled during installation, weak dependencies off,
 local RPM signature checking on. No `latest`, `--nodeps`, `--allowerasing`,
@@ -254,8 +272,10 @@ originals and refusing conflicting settings/paths. The entry is:
 ```
 
 `nofail` preserves recovery access if swap cannot activate; that boot still fails
-swap acceptance. Verify active swap with exact byte size and persistence on a
-later explicitly authorized reboot. Do not raise
+swap acceptance. Verify the file is exactly 1 GiB; usable active swap excludes its
+header page (1,073,737,728 bytes on a 4096-byte page host). Check the measured page
+size and initialized header, then verify activation/persistence during the later
+approved host session/reboot. Do not raise
 application concurrency, MemoryMax, overcommit or disable the OOM killer.
 Existing Agent/Store/proxy/metadata MemoryMax values remain 1G/256M/256M/128M;
 they are limits, not guaranteed concurrent reservations or capacity proof.
@@ -287,10 +307,13 @@ recorded; all application services inactive; and final stopped/no-IP custody
 reconciled. Record partial failure honestly and stop; package uninstall is not
 assumed to reverse scriptlets or restore a clean base.
 
-The current design is reviewable, but execution still needs: verified XFS/systemd/
-EBS recovery tooling and rehearsal; complete host RPM inventory and frozen additive
-transaction; missing publisher/signature evidence; and a new exact helper/host/
-disk/IP cost, duration and teardown approval under the Free plan and USD0 cash.
+The owner approved this design and the bounded local preparation now verifies
+systemd252 offline editing, the duplicate-UUID XFS mount transition on WSL6.6,
+1-GiB XFS swap-file preparation and retained publisher/RPM signatures. Execution
+still needs complete actual host RPM inventory and a frozen additive transaction,
+actual helper-tool compatibility, and a new exact helper/host/disk/IP cost,
+duration and teardown approval under the Free plan and USD0 cash. Local proof is
+not actual EC2/kernel6.18 boot, swap activation or deployed capacity evidence.
 No cloud operation, signature download or test boot is authorized by this document.
 No change to `production_interpreter_approved=false` follows from writing it.
 
