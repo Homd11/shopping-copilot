@@ -13,6 +13,12 @@ The [new resource proposal](../../cap06-private-provisioning-proposal.md) still
 requires separate approval. The opening historical wording describes the original
 25 October design work, not these later approved checks.
 
+**Later26October execution:** the separately approved resource stage also completed;
+see [actual results and remaining acceptance](../../cap06-private-provisioning-results.md).
+The original is provisioned/stopped, helper disposed and EIP released. Earlier
+pending-approval/preparation wording in this design is historical; it is not the
+current checkpoint or permission for an additional boot.
+
 ## Goal and chosen approach
 
 Prepare the existing Controlled Storefront host for native Linux execution:
