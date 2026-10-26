@@ -2,6 +2,38 @@
 
 **Last updated:** 2026-10-26
 
+## Owner-approved AWS stage paused safely before helper launch - 2026-10-26
+
+Owner explicitly approved docs/cap06-private-provisioning-proposal.md with up to
+USD0.25existingeligiblecredits/USD0cash/mandatoryFreeplan, and replacement of a
+rotated SSHoperatorIPv4/32without another review. Renewed existing CLI login and
+read-only preflight verified same account, active Free plan, credit coverage,
+original stopped/encrypted retained root, SSH-only SG and stop/detach permissions.
+OperatorIP was unchanged; no rule modification was needed. Approval/operation
+records: .scratch/cap06-private-provisioning-execution/run-b92b98ec-3f8.
+
+Owner then requested stopping for low Codex usage and shutting down credit-consuming
+compute/IP resources. Fresh26October18:18:06UTCchecks prove original stopped/no
+publicIP, original encrypted root still attached/retained, no helper instance,
+no allocated EIPs in Stockholm and no project pending/running/stopping instances.
+There were zero actual resource mutations in this operation. Helper launch,
+root detach/repair, runtime installation, swap creation and app activation never
+started. The retained20GiB original EBS disk still accrues storage credits and
+was deliberately preserved for resumption; no data deletion was inferred.
+Sanitized receipt: eval/evidence/cap06-private-provisioning-paused-20261026.json.
+
+Local reviewed payload/bundle/operator preparation remains saved in ignored
+.scratch/cap06-private-provisioning-{recovery,bundle,execution}. The finite local
+stop/release watchdog had already exited its no-launch startup window; no
+resources had been created. The later safe-state completion marker is recorded. On resume, verify fresh custody/Freeplan/credit/IP and rearm a
+new finite watchdog before any launch; reconcile rather than rerun old mutations.
+The original expired persistent timer remains unchanged: NEVER start the original
+before approved offline recovery. Existing resource/start approval is time-bound
+through27October18:00Cairo(15:00UTC); if resuming later, obtain a revised time
+window rather than silently carrying this grant forward. No new model/key/ledger
+custody spending, generalisation, PDF, push or merge. This section supersedes older
+"resource approval pending" wording while preserving the approved scope/history.
+
 ## Provisioning design approved; local preparation passes, exact AWS stage awaits approval - 2026-10-26
 
 Owner approved the complete25Octoberdesign/plan. Local preparation then retrieved

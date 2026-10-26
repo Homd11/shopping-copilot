@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## AWS scope approved, then paused before any resource creation - 2026-10-26
+
+Owner granted exact USD0.25existing-credit/Freeplan/USD0cash provisioning scope
+and automatic SSHoperatorIPv4/32replacement if rotated. Existing CLI login was
+renewed; fresh account/plan/credit/custody/permission preflight passed. IP unchanged.
+Owner then requested pause/credit cleanup due low Codex usage. Fresh18:18:06UTC
+checks confirm original stopped/no publicIP, encrypted root attached/retained,
+no helper created, no EIPs and no project pending/running/stopping EC2. No actual
+resource mutation, timer repair, runtime/swap installation or app activation ran.
+Original EBS storage still consumes credits; it was preserved for resumption.
+
+Read newest checkpoint and eval/evidence/cap06-private-provisioning-paused-20261026.json.
+Private operation: .scratch/cap06-private-provisioning-execution/run-b92b98ec-3f8;
+reviewed recovery/bundle/operator scripts remain saved. The watchdog already exited its no-launch startup window; the later completion
+marker records safe custody. Resume with fresh preflight and a newly armed
+finite watchdog, not by booting the original: its expired timer is still unchanged.
+Approved start window ends27October18:00Cairo; a later resume needs a new time
+window. Original disk retention deadline/accounting/model/activation gates persist.
+
 ## Local provisioning preparation verified; separate AWS approval pending - 2026-10-26
 
 Owner approved the25Octoberdesign/plan; public research/acquisition and bounded
