@@ -2,6 +2,74 @@
 
 **Last updated:** 2026-10-26
 
+## Private host recovered and provisioned; stopped with no EIP - 2026-10-26
+
+Owner resumed after the usage pause under the exact USD0.25eligible-credit /
+USD0cash / mandatoryFreeplan approval, including optional SSHoperator/32rotation.
+Fresh preflight passed; IP unchanged/noSGedit. The resumed operation completed
+all five tasks in docs/superpowers/plans/2026-10-25-cap06-offline-provisioning.md.
+Result: docs/cap06-private-provisioning-results.md. Sanitized receipt:
+eval/evidence/cap06-private-provisioning-20261026.json. Private operation remains
+.scratch/cap06-private-provisioning-execution/run-b92b98ec-3f8; final606-file
+receipt manifest and immutable pause snapshots preserve the prior frontier.
+
+One same-AZ t3.small helper/Standard/encrypted20GiB gp3/noIAM/SSH-only/no autoIPv4
+was created and its relative90minute guard verified. Original root was detached
+only from the stopped original, identified by EBS/Nitroserial, mounted readonly
+with norecovery/nouuid and canonical RPMdb copied before queries.494packages
+were inventoried. Unmount/cleanXFSdiagnostic/newRWmount preceded exact oldtimer/
+service/link/stamp backup, old-name masks and new OnBootSec90min/Persistentfalse
+guard. Backup retrieved; UUID/PARTUUID unchanged; original root restored to its
+same original mapping with DeleteOnTermination=false. Helper stopped/terminated,
+its exact root and ENI deleted, before original runtime provisioning. No forced
+detach, log discard/modifying repair, UUID rewrite or cloud-init reset.
+
+Original booted once after recovery: new guard active/waiting/enabled, both old
+units masked, original SSHkey matches retained console trust. Native9RPMadditive
+transaction, no upgrades/downgrades/erases; every signature/hash verified and
+repositories disabled. Parallel Python3.12.14 plus final-path copied venv,
+28locked distributions/nativeimports/pipcheck, Node24.22.1/Caddy2.11.7/nft1.0.4
+pass. System Python3.9.25resolvedbinary/owningRPMunchanged. Native release remains
+source023d9f621bc9432b871e519d51e6ce57bb7dc204/archive5e5e3843160225b81b81f3dd79bb960fc82507134ae7a7f58896020d5cd28a23.
+Three service users execute their respective runtimes; six units pass native
+static verification and stay inactive/unenabled; vendor nftables masked/inactive,
+no metadata rules loaded, Caddy no file capability. Protected key/config/state
+directories remain empty; no actual modelkey/ledger/allowance/catalogue/invitation
+initialization or migration, model request, app serving, DNS or publicTLS.
+
+Root0600fully allocated1GiB swap was active before shutdown,1073737728usablebytes
+at4096page size; swappiness10live/configured and fstab entry present. Reboot
+persistence NOT tested. Free disk17889599488bytes before final bundle removal.
+Original host systemd-managed sandbox/UID/metadata/capability/readiness/capacity
+acceptance remains open; static/runtime access checks do not close those gates.
+production_interpreter_approved=false remains unchanged. Do not treat this as
+public deployment completion or permission to install real custody/enable units.
+
+Final18:57:44UTC AWS observations: original stopped/no publicIP/encrypted root
+attached/retained; helper terminated/rootdeleted/ENIdeleted; zero allocated EIPs;
+active Free plan. Conservative running bounds helper1009.048seconds, original
+738.773seconds, soleEIP1890.386seconds, inside90minutes/host and3hours/IP.109
+recorded wrapperCLIinvocations,15successful actual writes, zero failed/unknown
+resource mutations; no launch/original-start retry. Finite watchdog disarmed after
+verified custody. Billing is not finalized; existing original disk storage still
+accrues and its23December18:00UTCreview deadline does not authorize deletion.
+
+Recorded operator corrections preserved refusals without broader access: Windows
+CRLFreceiptcomparison, optionalBOOLhelp flags, noexecguest executable validation
+resolved using trustedhelper+originalELFhash/mode then actualboot/staticchecks,
+verified-prefixSFTPresume and native swapon byte/proc output instead of unsupported
+JSON. No guest binary executed during detached-root recovery. The old pause
+evidence now points to frozen private snapshots rather than mutable state paths.
+
+Next: design the bounded controlled-host acceptance/custody/qualification-binding
+stage and obtain its applicable exact resource/cost/model/custody approvals before
+another start. This completed stage does not authorize extra boots or public
+activation. Keep the relative provisioning stop guard until explicitly replaced
+by the later approved lifecycle controls; never carry it silently into public
+service. Preserve OpenRouter's non-resettingUSD2cap/228settled/19held accounting
+history and original project safety invariants. No generalisation/Step25, PDF,
+push or merge. This section supersedes the older pause/preparation frontier below.
+
 ## Owner-approved AWS stage paused safely before helper launch - 2026-10-26
 
 Owner explicitly approved docs/cap06-private-provisioning-proposal.md with up to

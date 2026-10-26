@@ -1,5 +1,40 @@
 # Shopping Copilot — project handoff
 
+## Actual host recovery/provisioning complete; safely stopped - 2026-10-26
+
+Owner resumed the approved USD0.25credit/FREE/USD0cash stage. Actual helper
+recovery and original-host runtime/swap provisioning completed; see newest
+checkpoint, docs/cap06-private-provisioning-results.md and
+eval/evidence/cap06-private-provisioning-20261026.json. Private operation:
+.scratch/cap06-private-provisioning-execution/run-b92b98ec-3f8. Historical pause
+receipt paths were frozen before resuming, preserving their exact hashes.
+
+Offline repair archived/masked old units and enabled a calendar-free90minute /
+Persistentfalse replacement, preserving rootUUID/PARTUUID/mapping/retention.
+Original boot confirmed newtimeractive/waiting and oldmaskstates. Actual494RPM
+inventory produced9additive/no-replacement packages, native signatures verified,
+repositories disabled. Parallel Python3.12.14/28lockedwheels/nativeimports/pipcheck,
+Node24.22.1/Caddy2.11.7/nft1.0.4pass; systemPython3.9binary/RPMunchanged.
+Three serviceUIDruntimechecks/sixnativestaticunits pass; apps inactive/unenabled,
+nftvendor masked, no metadata-rule activation, no Caddy filecap. Empty protected
+custody directories; no realkey/ledger/allowance migration, SDK/model call, app
+serving, DNS/publicTLS. Source023d9f6nativeartifactunchanged; interpreterapproval
+flag staysfalse.1GiBroot0600swapactive/swappiness10/fstabconfigured beforestop;
+rebootpersistence/managedsandbox/readiness/capacityacceptance NOT yet proven.
+
+Fresh18:57:44UTC finalAWSstate: originalstopped/noIP/originalencryptedrootretained;
+helperterminated/root+ENIdeleted; no EIPs; activeFreeplan. Boundshelper<17min,
+original<13min,EIP<32min;15successfulAWSwrites/nounknownwriteoutcomes. Watchdog
+disarmed. ExistingoriginalEBSstoragecontinues; billingnotfinalized. No diskdelete
+permission follows from23Decemberretentionreview.
+
+Next prepare the bounded actualhostacceptance/custodybinding stage. Do not restart
+or migrate keys on this completed operation's approval; additional boots/public
+activation/custody/model spending keep their separate gates. Explicitly replace
+the provisioning-only90minute guard before eventual public service. Preserve
+all OpenRoutercaps/settlements/holds and product safety invariants. No Step25,
+PDF, push or merge. Older pause/preparation sections below are historical.
+
 ## AWS scope approved, then paused before any resource creation - 2026-10-26
 
 Owner granted exact USD0.25existing-credit/Freeplan/USD0cash provisioning scope

@@ -1,6 +1,6 @@
 # CAP-06 Offline Provisioning Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Prepare the retained AL2023 host's runtimes and swap with safe timer recovery, leaving the application disabled and the host stopped.
 
@@ -10,11 +10,12 @@
 
 **Spec:** [Offline provisioning design](../specs/2026-10-25-cap06-offline-provisioning-design.md). Read it alongside this procedure, including its exact input hashes and acceptance limits.
 
-**Status, 26 October:** owner-approved design; local preparation below has executed.
-See [its evidence](../../cap06-offline-provisioning-preparation.md). Tasks 2–5 remain
-unexecuted pending the exact new resource/cost approval and their checks. No AWS
-host boot, package install, real swap file or timer repair has occurred. Synthetic
-files created during rehearsal were removed with their private test filesystems.
+**Status, 26 October:** all five owner-approved recovery/provisioning tasks
+completed. See [actual execution and limits](../../cap06-private-provisioning-results.md).
+The original is stopped, helper disposed and EIP released. Checked items record
+this completed stage; they do not authorize another boot, app activation or model
+custody/spending. Later acceptance includes swap persistence and actual managed
+service/isolation/readiness/capacity checks.
 
 ## Global constraints
 
@@ -83,8 +84,8 @@ acceptance flag changed.
 
 - [x] Prepare the exact public-price worksheet in `docs/cap06-private-provisioning-proposal.md`: USD0.14078071 estimate, USD0.16893685 with20%buffer, proposed USD0.25 incremental eligible-credit allocation. Actual account/credit coverage still requires the separately approved preflight; the earlier USD4.50 grant is not reused.
 - [x] Bound the proposal (not an executed operation) to one same-AZ instance with its own encrypted root, no IAM profile/auto public IP, existing revalidated key/SSH-only SG if compatible, and one EIP reused sequentially between helper and original. State exact total running/allocation deadlines and API cleanup authority; helper and original guest guards are 90 minutes and do not extend those limits. No concurrent extra EIP, NAT, snapshot, DNS or application ingress.
-- [ ] Explicitly approve only helper-instance termination and deletion of its exact temporary root after backup retrieval. Protect the original host/root/ENI/SG/key; ambiguity means stop/release and retain, never delete by name. Specify cleanup if root detach/attach or final verification fails.
-- [ ] Establish original/helper stop permissions and external stop/IP-release fallback before launch. Confirm root encryption/retention/AZ ownership afresh during the authorized stage. Sign-in or Paid-plan requests must not silently widen scope.
+- [x] Explicitly approve only helper-instance termination and deletion of its exact temporary root after backup retrieval. Protect the original host/root/ENI/SG/key; ambiguity means stop/release and retain, never delete by name. Specify cleanup if root detach/attach or final verification fails.
+- [x] Establish original/helper stop permissions and external stop/IP-release fallback before launch. Confirm root encryption/retention/AZ ownership afresh during the authorized stage. Sign-in or Paid-plan requests must not silently widen scope.
 
 **Exit check:** human approval applies to exact future quantities, credit ceiling, time window, writes and helper-only disposal. Until then, keep everything offline.
 
@@ -93,13 +94,13 @@ acceptance flag changed.
 **Consumes:** Task 2's explicit approval, compatible rescue tooling and the design's recovery sequence.
 **Produces:** reattached original root with replacement timer; frozen host-specific input closure; private recovery record.
 
-- [ ] Launch/verify the bounded helper, establish SSH host trust and reconcile the original stopped root identity before detach. Attach the original as secondary and identify it by AWS-volume-to-Nitro mapping, partition and OS contents. Wrong/ambiguous device fails before writes.
-- [ ] Mount/read first using the rehearsed XFS procedure. Capture UUID/PARTUUID and prove the helper root is excluded. Discover the canonical RPM database inside the original root, copy it to a protected helper workspace and query the copy with compatible RPM tooling; capture complete NEVRA and providers without executing target binaries or writing its database.
-- [ ] Resolve a minimal additive closure from that inventory and fixed repository metadata. If reliable inventory/closure cannot be completed here, perform only timer recovery; the next approved original boot is inventory-only, followed by stop/review before any package install.
-- [ ] Preview every package and scriptlet. Refuse erasure, downgrade, library/system-Python/kernel replacement or unapproved dependency. Freeze exact missing RPMs, byte lengths, hashes, signatures and approved transaction into `inputs.json` before installing; any later mismatch stops the operation.
-- [ ] Save exact timer files/metadata/link/stamp, then perform the design's clean writable-root repair: old regular files moved aside, exact enable link removed, old timer/service names masked, exact old stamp archived if present, new relative timer/service written root `0644`, new timer enabled. Keep backup directory root `0700`. No global timer cleanup or helper `--now` action.
-- [ ] Verify final guest paths/links and unit syntax; copy the small recovery backup to owner-held storage. Cleanly unmount, detach only after the filesystem is no longer mounted, and reattach the original root at its recorded original mapping with retention preserved. Reconcile API state before permitting original boot.
-- [ ] Stop the helper, move/release the sole temporary IP under the approved sequence and complete approved helper-only disposal after backup retrieval and original-root detachment are confirmed. Record partial outcomes rather than retrying ambiguous detach/delete operations.
+- [x] Launch/verify the bounded helper, establish SSH host trust and reconcile the original stopped root identity before detach. Attach the original as secondary and identify it by AWS-volume-to-Nitro mapping, partition and OS contents. Wrong/ambiguous device fails before writes.
+- [x] Mount/read first using the rehearsed XFS procedure. Capture UUID/PARTUUID and prove the helper root is excluded. Discover the canonical RPM database inside the original root, copy it to a protected helper workspace and query the copy with compatible RPM tooling; capture complete NEVRA and providers without executing target binaries or writing its database.
+- [x] Resolve a minimal additive closure from that inventory and fixed repository metadata. If reliable inventory/closure cannot be completed here, perform only timer recovery; the next approved original boot is inventory-only, followed by stop/review before any package install.
+- [x] Preview every package and scriptlet. Refuse erasure, downgrade, library/system-Python/kernel replacement or unapproved dependency. Freeze exact missing RPMs, byte lengths, hashes, signatures and approved transaction into `inputs.json` before installing; any later mismatch stops the operation.
+- [x] Save exact timer files/metadata/link/stamp, then perform the design's clean writable-root repair: old regular files moved aside, exact enable link removed, old timer/service names masked, exact old stamp archived if present, new relative timer/service written root `0644`, new timer enabled. Keep backup directory root `0700`. No global timer cleanup or helper `--now` action.
+- [x] Verify final guest paths/links and unit syntax; copy the small recovery backup to owner-held storage. Cleanly unmount, detach only after the filesystem is no longer mounted, and reattach the original root at its recorded original mapping with retention preserved. Reconcile API state before permitting original boot.
+- [x] Stop the helper, move/release the sole temporary IP under the approved sequence and complete approved helper-only disposal after backup retrieval and original-root detachment are confirmed. Record partial outcomes rather than retrying ambiguous detach/delete operations.
 
 **Exit check:** root attached to its original stopped instance; old timer masked/new guard enabled; immutable package inputs ready or installation explicitly blocked. Original volume identity/UUID unchanged. Stop and release the IP if this task exhausts the approved window.
 
@@ -108,10 +109,10 @@ acceptance flag changed.
 **Consumes:** approved original-host writes, successful Task 3, frozen input manifest/closure and sufficient remaining time.
 **Produces:** native runtimes and final-path venv, application still inactive.
 
-- [ ] Verify at most 128-MiB bundle size, exact manifest/archive/wheel hashes, safe archive members and licenses before transfer/extraction. Use root-only staging, no traversal/escaping links or extracted ownership overrides. Existing native release must match the spec; any source change needs a new artifact review.
-- [ ] Boot only with the approved external deadline and verified root repair. Immediately verify old timer/service masked and the new timer active/enabled with a future trigger, no calendar catch-up/drop-ins. Otherwise stop by API; do not try a second racing boot.
-- [ ] Record system Python path/target/RPM/version, complete RPM inventory, free disk, swap and inactive application/vendor units. Recheck against the frozen inventory. Require at least 1-GiB staging headroom beyond planned final consumption and 4-GiB final free space.
-- [ ] Persistently mask the verified vendor `nftables.service` before its RPM scriptlet runs; refuse unexpected existing unit/configuration. Preview the exact local RPM arguments with the following constraints, then inspect the result before the approved transaction. `EXACT_RPM_PATHS` below means an explicit validated argument list from `inputs.json`, never a wildcard or evaluated shell string.
+- [x] Verify at most 128-MiB bundle size, exact manifest/archive/wheel hashes, safe archive members and licenses before transfer/extraction. Use root-only staging, no traversal/escaping links or extracted ownership overrides. Existing native release must match the spec; any source change needs a new artifact review.
+- [x] Boot only with the approved external deadline and verified root repair. Immediately verify old timer/service masked and the new timer active/enabled with a future trigger, no calendar catch-up/drop-ins. Otherwise stop by API; do not try a second racing boot.
+- [x] Record system Python path/target/RPM/version, complete RPM inventory, free disk, swap and inactive application/vendor units. Recheck against the frozen inventory. Require at least 1-GiB staging headroom beyond planned final consumption and 4-GiB final free space.
+- [x] Persistently mask the verified vendor `nftables.service` before its RPM scriptlet runs; refuse unexpected existing unit/configuration. Preview the exact local RPM arguments with the following constraints, then inspect the result before the approved transaction. `EXACT_RPM_PATHS` below means an explicit validated argument list from `inputs.json`, never a wildcard or evaluated shell string.
 
 ```text
 dnf --disablerepo='*' --releasever=2023.12.20261021 \
@@ -119,9 +120,9 @@ dnf --disablerepo='*' --releasever=2023.12.20261021 \
   --assumeno install EXACT_RPM_PATHS
 ```
 
-- [ ] Apply that same checked transaction with the preview-only flag removed. Reconcile installed NEVRA, scriptlet result, vendor unit still masked/inactive and unchanged system Python. On any partial failure, record/stop; do not automatically uninstall or retry with skipped dependencies.
-- [ ] Install pinned Node/Caddy executable/license pairs into the spec's root-owned version directories; check complete bytes/modes before publishing the two `/usr/bin` bindings. Refuse foreign/RPM-owned destinations and unsafe ancestors. Keep Caddy without file capabilities.
-- [ ] Create the venv **at its final path** using native `/usr/bin/python3.12`, then install only the locked 28 application wheels. The following are future commands after all path/ownership/input checks, not commands to run now:
+- [x] Apply that same checked transaction with the preview-only flag removed. Reconcile installed NEVRA, scriptlet result, vendor unit still masked/inactive and unchanged system Python. On any partial failure, record/stop; do not automatically uninstall or retry with skipped dependencies.
+- [x] Install pinned Node/Caddy executable/license pairs into the spec's root-owned version directories; check complete bytes/modes before publishing the two `/usr/bin` bindings. Refuse foreign/RPM-owned destinations and unsafe ancestors. Keep Caddy without file capabilities.
+- [x] Create the venv **at its final path** using native `/usr/bin/python3.12`, then install only the locked 28 application wheels. The following are future commands after all path/ownership/input checks, not commands to run now:
 
 ```sh
 /usr/bin/python3.12 -m venv --copies /opt/shopping-copilot/python
@@ -137,8 +138,8 @@ scopes (verify the retained pip version's behavior first); `--isolated` alone
 does not establish that system configuration was ignored. Assert the install
 target is this venv and no index/version check is attempted.
 
-- [ ] Check exact Python/Node/Caddy/nft versions and executable hashes, `pip check`, wheel inventory and native imports (SSL, SQLite, uvloop, httptools, pydantic_core, YAML). Native ensurepip tooling is separate from the 28 application distributions. No app lifespan, SDK/client construction, HTTP readiness, ACME or model call.
-- [ ] Stage only root-owned release/code, no-login accounts, empty state/log directories and disabled prepared units according to `docs/cap06-host-isolation.md`. Verify no unexpected account membership, writable code or unit enable links. Keep private configuration/key-dependent services closed; metadata rules are not applied in this stage.
+- [x] Check exact Python/Node/Caddy/nft versions and executable hashes, `pip check`, wheel inventory and native imports (SSL, SQLite, uvloop, httptools, pydantic_core, YAML). Native ensurepip tooling is separate from the 28 application distributions. No app lifespan, SDK/client construction, HTTP readiness, ACME or model call.
+- [x] Stage only root-owned release/code, no-login accounts, empty state/log directories and disabled prepared units according to `docs/cap06-host-isolation.md`. Verify no unexpected account membership, writable code or unit enable links. Keep private configuration/key-dependent services closed; metadata rules are not applied in this stage.
 
 **Exit check:** exact installed inputs, unchanged system Python, inert application/vendor units, original retention intact. Version/import checks are runtime-install evidence, not production or model qualification.
 
@@ -147,11 +148,25 @@ target is this venv and no index/version check is attempted.
 **Consumes:** approved swap write and successful runtime checks, with disk and time remaining.
 **Produces:** bounded swap evidence, stopped host/no temporary IP, reconciled partial failures.
 
-- [ ] Check `/swapfile.scpilot` and the proposed fstab/sysctl marker paths are absent or exactly owned by this operation. Under root-only creation, write exactly 1,073,741,824 zero bytes into a regular single-link `0600` file without holes; verify size/allocated blocks before `mkswap`/`swapon`. On conflict or insufficient disk, stop rather than resize or reuse a foreign file.
-- [ ] Preserve `/etc/fstab` and relevant sysctl originals. Add one marked swap entry and `vm.swappiness=10` in `/etc/sysctl.d/90-scpilot-swap.conf`; reject duplicate/conflicting effective settings. Verify `swapon --show --bytes`, file mode/blocks, active swappiness and remaining free space. Keep existing unit limits/concurrency and OOM handling.
-- [ ] Capture package diff, ownership/path checks, all application units disabled/inactive, nftables vendor mask and the new timer state. Record swap persistence as **unverified** until an explicitly approved reboot proves it. No extra boot or capacity load is implicit in this task.
-- [ ] Stop the original within the approved deadline and release the sole temporary EIP; reconcile stopped state, no public IP/allocation and encrypted original root still attached/retained. Retrieve bounded private install/recovery records before destroying any temporary helper storage.
-- [ ] On failure, preserve named backups and record the exact incomplete stage. Disable no safeguards, delete no active swap and attempt no broad package rollback. If safe live `swapoff` is impossible, defer removal to a bounded maintenance/offline-root operation. Stop/release remains mandatory even when acceptance fails.
-- [ ] Produce a sanitized result and update checkpoint/handoff with passed/failed/unverified checks. Do not set `production_interpreter_approved`, activate the host target, migrate real provider custody, clear reservations or merge/deploy as a side effect.
+- [x] Check `/swapfile.scpilot` and the proposed fstab/sysctl marker paths are absent or exactly owned by this operation. Under root-only creation, write exactly 1,073,741,824 zero bytes into a regular single-link `0600` file without holes; verify size/allocated blocks before `mkswap`/`swapon`. On conflict or insufficient disk, stop rather than resize or reuse a foreign file.
+- [x] Preserve `/etc/fstab` and relevant sysctl originals. Add one marked swap entry and `vm.swappiness=10` in `/etc/sysctl.d/90-scpilot-swap.conf`; reject duplicate/conflicting effective settings. Verify `swapon --show --bytes`, file mode/blocks, active swappiness and remaining free space. Keep existing unit limits/concurrency and OOM handling.
+- [x] Capture package diff, ownership/path checks, all application units disabled/inactive, nftables vendor mask and the new timer state. Record swap persistence as **unverified** until an explicitly approved reboot proves it. No extra boot or capacity load is implicit in this task.
+- [x] Stop the original within the approved deadline and release the sole temporary EIP; reconcile stopped state, no public IP/allocation and encrypted original root still attached/retained. Retrieve bounded private install/recovery records before destroying any temporary helper storage.
+- [x] On failure, preserve named backups and record the exact incomplete stage. Disable no safeguards, delete no active swap and attempt no broad package rollback. If safe live `swapoff` is impossible, defer removal to a bounded maintenance/offline-root operation. Stop/release remains mandatory even when acceptance fails.
+- [x] Produce a sanitized result and update checkpoint/handoff with passed/failed/unverified checks. Do not set `production_interpreter_approved`, activate the host target, migrate real provider custody, clear reservations or merge/deploy as a side effect.
 
 **Exit check:** stopped/no-IP custody is freshly reconciled for this future operation. Next separate acceptance work is controlled reboot/persistence, systemd252 UID/capability/metadata isolation, signed readiness and bounded capacity before actual application/public activation. Public service must explicitly replace the provisioning-only shutdown guard.
+
+## Actual execution rulings — 26 October
+
+All five tasks completed within the approved resource/time bounds. See the result
+and evidence above. Executed deviations: native optional-BOOL help spelling was
+recognized correctly; `noexec` remained enforced while exact new units were
+verified against trusted helper executables and original executable hash/mode,
+then actual original boot/native static verification passed; compatible native
+swap byte output plus `/proc/swaps` replaced unsupported JSON output. A verified
+partial bundle prefix was resumed rather than creating resources/restarting the
+host. Native28wheel/9RPM installs, account runtime execution, inactive units,
+active1GiB swap and stop/release/retained custody all passed. Controlled reboot,
+swap persistence and actual application/isolation/capacity gates remain later
+work; checked steps record completion of this bounded provisioning stage only.
