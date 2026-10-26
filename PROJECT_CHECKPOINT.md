@@ -2,6 +2,41 @@
 
 **Last updated:** 2026-10-26
 
+## Consolidated private-host acceptance drafted offline - 2026-10-26
+
+Owner requests one Controlled Host & Application Acceptance session covering all
+remaining private-host isolation/custody/readiness/reboot/capacity gates, followed
+by stop and EIP release. Draft approval surface:
+docs/cap07-controlled-host-acceptance-proposal.md. Design and ordered plan:
+docs/superpowers/specs/2026-10-26-cap07-controlled-host-acceptance-design.md and
+docs/superpowers/plans/2026-10-26-cap07-controlled-host-acceptance.md.
+
+Proposed envelope: existingStockholmt3.small only, oneStart/onecontrolledreboot,
+oneEIP, four-hour absolute session across bothboots/teardown, incremental
+USD0.25eligibleAWScredits/Freeplan/USD0cash. Includes the otherwise missing
+minimumDynamoDBtable+namespace and narrowEC2role/profile needed by actual host
+admission/lifecycle. Retain those identities with the stopped encryptedroot
+through the existing23December18:00UTCreview; no extra compute/poller. Private
+loopback443/explicitCA proxy override leaves publicports/DNS/ACME untouched.
+
+Actualcustody proposal preserves the shared156attemptledgerUUID, imports only
+verified missing72settlements/19olderholds and conservatively covers the provider
+aggregate gap. An explicitUSD0.10readiness allocation within the unchanged
+non-resettingUSD2keycap is proposed; neither old qualification remainder is a
+runtimegrant. Zero live modelPOSTs, enforced by temporaryAgentHTTPSegress only
+to verified StockholmDynamoDB addresses. One bounded futurekeystatusGET. Startup
+binding semantics remain startup-onlyhashes/capturedruntimeverification, no
+20sourcefilebytepinning. Realcustody signedreadiness and synthetic captured
+HTTP/SSEcapacity are separately labelled results within the same cloudsession.
+
+Today's work is documents only: no AWS/account/modelnetwork request, SSH,
+download, realkey/ledger access, allowance mutation, resource or host change.
+The preceding provisioning approval is complete; these new resource/cost/custody
+and reserve proposals are NOT approved by drafting. Next is owner review, then
+local synthetic preparation before the one bounded AWS session. No public
+deployment, generalisation/Step25, PDF, push or merge. The observed stopped/noEIP
+state remains the retained26October18:57:44UTCreceipt below, not a fresh check.
+
 ## Private host recovered and provisioned; stopped with no EIP - 2026-10-26
 
 Owner resumed after the usage pause under the exact USD0.25eligible-credit /

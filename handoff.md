@@ -1,5 +1,30 @@
 # Shopping Copilot — project handoff
 
+## Consolidated acceptance proposal drafted offline - 2026-10-26
+
+Owner wants all remaining private-host gates in one bounded session. Review
+docs/cap07-controlled-host-acceptance-proposal.md and its linked design/plan.
+They propose oneStart/onecontrolledreboot of the existingStockholmt3.small,
+oneEIP, absolute4hours includingteardown, <=USD0.25additionaleligibleAWScredits,
+Freeplan/USD0cash. Realhostreadiness needs oneDynamoDBauthoritytable/namespace
+and narrowEC2role/profile; these minimum dependencies are included in that same
+session, not separate cloudmicro-stages. Retention review stays23December18:00UTC.
+
+Preserve existingkey/sharedledgerUUID and exact228settled/19held history; import
+only verified missing receipts and reserve unattributedproviderusage. Proposed
+USD0.10readiness allocation stays inside unchangednon-resettingUSD2cap; zero
+livePOSTs are enforced by an AgentDynamoDB-onlyHTTPSbarrier. Realcustody/binding/
+signedreadiness and capturedHTTP/SSEcapacity are distinct privateacceptance
+results. One reboot proves actualswap/rule/unit persistence; externaldeadline
+does not reset. Then disableledger/apps, stophost, releaseEIP, preservecustody.
+
+No AWS/API/SSH/download/realkeyorledgerread/hostchange occurred while drafting.
+No new approval follows from these documents or the completed preceding grant.
+Next is ownerreview and local syntheticpreparation, then exactly one bounded
+cloudsession if approved. Publicwake/DNS/ACME/browser/liveprovider gates stay
+open. Original stopped/noEIP observation below is historical18:57:44UTC, not a
+newcheck. NoStep25/PDF/push/merge.
+
 ## Actual host recovery/provisioning complete; safely stopped - 2026-10-26
 
 Owner resumed the approved USD0.25credit/FREE/USD0cash stage. Actual helper
