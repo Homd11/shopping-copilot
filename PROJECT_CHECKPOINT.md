@@ -2,6 +2,51 @@
 
 **Last updated:** 2026-10-27
 
+## Owner pause; CAP-07 retry safely stopped - 2026-10-27
+
+Owner explicitly requested stop for usage limit and continuation tomorrow.
+**Do not run further project/cloud work until resumed.** Original host is stopped,
+public IP absent and retry EIP released (see owner-pause-safe.json once written).
+Retain encrypted20GiBroot and smallDynamoDBtable; storage credits continue. IAM
+role/profile have no idle compute charge. No deletion was authorized.
+
+Retry used its singleStart; no controlledreboot. Guest acceptance assets were
+verified/archived/reconciled successfully and base installed. All actual log
+rotation/quota/lock fixtures and metadata dependency-failure/restore passed.
+Actual role/network barrier probe then failed before provider custody transfer.
+The precise underlying subprocess error is retained on the stopped host in
+/var/lib/shopping-copilot/acceptance-operator/command-error-\*.json; SSH diagnostic
+retrieval could not complete before stop. Do not guess its cause or call it an
+account/provider failure. Local ssh-barrier_probe.stderr and retry-failure.json
+also remain in the protected retry operation. App activation/readiness/reboot/
+capacity remain unverified. Zero live modelPOSTs; no new providerGET; real key/
+ledger never uploaded to host. PCcanonical remains disabled/history preserved.
+
+Protected retry pointer:
+`.scratch/cap07-controlled-host-preparation/retry-operation.txt`.
+First operation pointer remains current-operation.txt; keep both grants/receipts
+unchanged. Retry is now closed/owner_paused, its Start/EIP flags consumed. Do not
+reuse or extend its four-hour clock or automatically start a third session.
+Resume by reading private receipts, inspect the failed probe offline as far as
+possible, then reconcile remaining authorization before any cloud boot. Current
+retry approval reused the existing table/profile/authority identities; no new
+control resources were created. Explicit renewed authorization may be needed for
+anotherStart after the consumed retry. Respect owner pause until tomorrow/resume.
+
+Local code: retry_session.py, retry_reset.py in protected preparation folder.
+Thirty private regressions pass. Fresh retry review fixed cleanup-only SSH guard
+and automatic-start observation races; production app artifact remains unchanged.
+No push/merge/publicactivation. See eval/evidence/cap07-retry-pause-20261027.json.
+
+## CAP-07 retry explicitly authorized - 2026-10-27
+
+Owner authorizes one new bounded retry reusing retained resources and USD0.10
+reserve, nonresettingUSD2/zeroPOST, USD0.25credits/Free0cash, oneStart/onereboot/
+fourhours and verifiedIPv4/32rotation. Prior operation stays closed. New protected
+pointer: `.scratch/cap07-controlled-host-preparation/retry-operation.txt`.
+Local exact-asset reconciler and30regressions pass. Fresh retry review is underway;
+Retry T0=2026-10-27T20:37:30UTC; hardend2026-10-28T00:37:30UTC. OneStart requested; boot/reconciliation in progress. Do not repeatStart or EIP allocation. Table/profile/custody verified/reused; no extra providerGET/POST. Do not recreate control resources or reset authority.
+
 ## CAP-07 session closed safely; acceptance incomplete - 2026-10-27
 
 **Do not start the host again under b898b12.** Its one-Start scope was consumed.
