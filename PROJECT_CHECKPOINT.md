@@ -1,6 +1,47 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-26
+**Last updated:** 2026-10-27
+
+## CAP-07 approved; local preparation verified - 2026-10-27
+
+Owner approved proposal `b898b12`: up to USD 0.25 existing AWS credits, mandatory
+Free plan/USD 0 cash, USD 0.10 readiness reserve inside the unchanged non-resetting
+USD 2 key cap, zero live model POSTs, and verified fresh operator IPv4/32 rotation
+on the dedicated SSH group with 80/443 closed. This approval covers the single
+four-hour session, one original-host Start, one controlled reboot and final stop/
+EIP release. Do not ask for this same approval again; the previous grant is closed.
+
+Local preparation is complete on `codex/cap06-linux-production-host`: full Python
+regression **1,597 passed**, two upstream warnings, 1,008.45 seconds; focused
+binding/custody/driver checks 107 passed; 19 private operator regressions passed.
+One fresh whole-preparation GPT-6 Astra review's eight important findings were
+fixed. Native synthetic TLS/HTTP/SSE lanes pass 1/5/8, with captured8 giving five
+completions and three expected busy refusals; 126+140 ingress requests, 22 fake
+POSTs and zero actual AWS/provider requests. Conservative SDK bounds are 2,344
+WRU/16,523 RRU/79,308 table bytes, with a separate 16-MiB internet envelope.
+Systemd252 static unit validation/four unsafe-input refusals and ten offline
+botocore request shapes pass. Application source lint and edited-document format
+pass. Root lint/format also scan ignored scratch downloads and older ignored
+working notes; those pre-existing failures are separately recorded. The earlier
+single browser timeout and successful focused/group retries remain historical.
+
+See [local preparation](docs/cap07-local-preparation.md) and dated synthetic
+[evidence](eval/evidence/cap07-local-preparation-20261027.json). Official27October
+Stockholm rates are unchanged; USD0.142404 planning bound remains below USD0.25.
+No AWS account request, real key/ledger access, key-status GET or resource mutation
+has occurred during preparation. T0 has not begun. A new owner/SYSTEM-only private
+operation is prepared; its pointer is `.scratch/cap07-controlled-host-preparation/current-operation.txt`.
+Do not reuse old operation state/mutators/watchdogs. The frozen private payload
+manifest is in that preparation folder, and the durable plan ledger is
+`.superpowers/sdd/2026-10-26-cap07-controlled-host-acceptance/progress.md`.
+
+Next: renew the existing AWS profile if necessary, verify fresh account/FREE/
+credits/host/root/IP/permissions, establish sole local key custody, then execute
+this approved single bounded session. Startup enablement requires a recent
+current-boot barrier proof and actual repeated role/network probes. Cleanup marks
+lifecycle non-admitting, attempts authority/guest/API cleanup independently,
+preserves actual activity for off-host3600s idle/5s draining, and never resets the
+clock/generation. Public deployment, Step25, PDF, push and merge stay outside scope.
 
 ## Consolidated private-host acceptance drafted offline - 2026-10-26
 

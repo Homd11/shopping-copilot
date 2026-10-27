@@ -76,15 +76,15 @@ After design approval, create focused operator-only preparation code:
 
 ### Task 1: Freeze local operator preparation before any AWS session
 
-- [ ] Write failing synthetic tests for228 deduplicated settled rows,19uncertain
+- [x] Write failing synthetic tests for228 deduplicated settled rows,19uncertain
       holds, unchanged shared UUID and per-row values, provider-gap hold,
       `B+0.10<=2`, insufficient remaining, changed cap, duplicate conflict,
       untrusted/missing source, existing target mismatch, interrupted copy and
       disabled source/canonical single-writer transition. No live key/database.
-- [ ] Run `python -m pytest eval/tests/test_custody_handoff.py -q`; verify the new
+- [x] Run `python -m pytest eval/tests/test_custody_handoff.py -q`; verify the new
       tests fail because the operator helper is absent, then implement only its
       specified migration contract and rerun to pass. No new runtime grant API.
-- [ ] Write/run failing driver tests for no model endpoint in control mode,
+- [x] Write/run failing driver tests for no model endpoint in control mode,
       capture key/ledger isolation, exact1/5/8 queue outcomes, unknown mutation
       reconciliation, deadline across reboot, expired startup, missing watchdog,
       metadata/barrier failure, TLS verification and stop/release on pause/OOM.
@@ -92,20 +92,20 @@ After design approval, create focused operator-only preparation code:
       and a real-clock3600-second idle/5-second drain after off-host stop, simulated
       with an injected test clock only in local fixtures, never production.
       Implement the bounded driver and freeze guest/operator payloads; rerun green.
-- [ ] Rehearse real TLS and HTTP/SSE with synthetic custody/SDK, identical unit
+- [x] Rehearse real TLS and HTTP/SSE with synthetic custody/SDK, identical unit
       constraints and the fixed 0.4-second captured response. Prove <=300 requests,
       <=10 minutes/lane, <=10 seconds/cohort, zero real SDK/model calls, no leaked
       tasks/leases and no canonical file reads by capture. Confirm estimated
       DDBunits/transfer fit proposal bounds using conservative size rounding.
-- [ ] Review startup-only binding behavior against existing provider-binding
+- [x] Review startup-only binding behavior against existing provider-binding
       tests. Render/verify systemd 252 units, fixed-deadline guards, narrow IAM,
       metadata and endpoint-only egress batches offline. Preserve negative tests
       for off-origin/sensitive-field/Confirmation/stale/duplicate/refresh safety.
-- [ ] Run relevant focused pytest, Ruff, repository format/lint/tests/build for
+- [x] Run relevant focused pytest, Ruff, repository format/lint/tests/build for
       changed code. Freeze hashes and receipt schema; leave app runtime/release
       unchanged. If a runtime bug is found, resolve/review locally and update the
       artifact proposal before AWS, not through another exploratory cloud boot.
-- [ ] Confirm the owner has approved the consolidated design and exact resource/
+- [x] Confirm the owner has approved the consolidated design and exact resource/
       cost/custody/readiness reserve scope. Do not infer an allocation from this
       document or reuse the preceding completed grant.
 

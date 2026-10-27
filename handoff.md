@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## CAP-07 preparation verified; approved execution next - 2026-10-27
+
+Owner approved `b898b12`: USD0.25 AWS credits/USD0cash/Freeplan, USD0.10 readiness
+inside unchanged non-resettingUSD2, zero modelPOSTs and fresh operatorIPv4/32
+rotation with80/443closed. No repeat approval needed. Local preparation now
+passes full1597Python tests/two upstreamwarnings,107focused checks and19private
+operator regressions. Fresh whole-preparation review findings were fixed;
+nativeTLS/HTTP/SSE1/5/8lanes and systemd252 static units pass. See newest checkpoint
+and docs/cap07-local-preparation.md for exact evidence and historical root lint/
+format noise from ignored scratch/notes; no production code change was needed.
+
+No account/realcustody/provider request or resource mutation yet; T0 notbegun.
+The new protected operation pointer is
+.scratch/cap07-controlled-host-preparation/current-operation.txt. Continue fresh
+account/FREE/credits/IP/permission checks, then the approved single4h session,
+oneStart/onereboot/capacity/stop/EIPrelease and off-host realidle completion.
+Never run the old operation watchdog/mutator. Preserve exact ledger history,
+19holds/providergap and zeroPOST barrier. No publicactivation,Step25,PDF,push/merge.
+
 ## Consolidated acceptance proposal drafted offline - 2026-10-26
 
 Owner wants all remaining private-host gates in one bounded session. Review
