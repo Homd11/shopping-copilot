@@ -2,6 +2,48 @@
 
 **Last updated:** 2026-10-27
 
+## CAP-07 session closed safely; acceptance incomplete - 2026-10-27
+
+**Do not start the host again under b898b12.** Its one-Start scope was consumed.
+The original host is verified stopped, the temporary EIP is released, no public
+IP remains, and the Free plan remains active. Actual authority is stopped at
+generation0 with no leases/command/invitations. Application activation, provider
+custody on the host, signed readiness, controlled reboot and capacity were not
+completed. Production-interpreter approval stays false; public activation closed.
+
+See [actual results](docs/cap07-controlled-host-acceptance-results.md) and dated
+[execution evidence](eval/evidence/cap07-controlled-host-acceptance-20261027.json).
+T0 was27October20:07:32UTC; fixed end28October00:07:32UTC, never reset. Safe-state
+observations are around20:16UTC. Conservative incremental boundUSD0.015806credits,
+not final billing; USD0cash/Freeplan preserved. Existing root storage is separate.
+One table/namespace, narrow role/profile and existing encrypted root remain under
+the same23December18:00UTC review deadline. No deletion/retention extension grant.
+
+The operator quota fixture rejected the production logger's valid short-write
+OSError without errno. It failed before the application target started. Frozen
+Linux reproduction confirmed it; the corrected rotation/quota/lock fixtures all
+pass. Decimal activity-receipt serialization and private bounded error retention
+are fixed offline.29private operator regressions pass; full application1597tests
+passed earlier and application/runtime bytes remain unchanged. The first two
+preboot adapter/profile seams and their exact recoveries are recorded in results.
+
+One provider statusGET only, zero livePOSTs. PC canonical custody remains disabled
+with the original sharedUUID/history/228settlements/19holds/providergap andUSD0.10
+readiness reserve. ExistingUSD2nonresetting cap unchanged. Old active local key
+paths are retired; protected backups remain. No real key/ledger was uploaded to
+host. Do not reset/reinitialize or automatically restore active local key paths.
+
+Private operation pointer:
+`.scratch/cap07-controlled-host-preparation/current-operation.txt`.
+Its state is explicitly operation_closed=true; compute-safe and fresh authority
+receipts exist. Its watchdog exited after verified safety. Do not reuse its grant,
+Start/EIP flags, deadline, state or watchdog. Residual acceptance assets remain on
+the stopped host; any future approved retry must verify exact prior ownership/
+hashes and archive/adopt/remove them before the base installer, rather than blindly
+rerunning it. Prepare that single consolidated retry offline, then obtain renewed
+one-Start authorization. No new AWS session, public activation, Step25, PDF, push
+or merge is authorized by this completion record.
+
 ## CAP-07 approved; local preparation verified - 2026-10-27
 
 Owner approved proposal `b898b12`: up to USD 0.25 existing AWS credits, mandatory

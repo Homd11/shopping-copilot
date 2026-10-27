@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## CAP-07 failed fixture; session safely closed - 2026-10-27
+
+Newest checkpoint/results take precedence. One authorizedStart/EIP was used;
+original is stopped/noIP/EIPreleased, accountFree/USD0cash, authoritystopped/gen0/
+no leases/commands/invites. No provider key/ledger onhost, no realmodelPOSTs.
+Quota fixture rejected a valid production short-write refusal; fixed offline and
+all three frozenLinux logfixtures pass.29private operator tests pass; application
+artifact unchanged/full1597tests passed. Readiness/reboot/capacity remain unverified.
+Estimated conservativeAWScredit boundUSD0.015806; originalrootstorage separate.
+
+Read docs/cap07-controlled-host-acceptance-results.md and datedJSONevidence.
+Private operation is explicitlyclosed; watchdogexit/compute-safe receipts exist.
+PCcanonical ledger staysdisabled, active local key pathsretired, history/19holds/
+providergap/nonresettingUSD2cap andUSD0.10reserve preserved. Do not restore/reset.
+Retained table/profile/guestassets require exact verification in a future retry;
+no blindbase rerun or state/clock/grant reuse. AnotherStart needs renewed owner
+approval. Prepare the single consolidated retry offline first. No publicactivation,
+Step25,PDF,push/merge.
+
 ## CAP-07 preparation verified; approved execution next - 2026-10-27
 
 Owner approved `b898b12`: USD0.25 AWS credits/USD0cash/Freeplan, USD0.10 readiness

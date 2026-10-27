@@ -111,18 +111,18 @@ After design approval, create focused operator-only preparation code:
 
 ### Task 2: Enter the single session and establish isolation (T0 to75 minutes)
 
-- [ ] Refresh official public rates and read account/Freeplan/credits/current
+- [x] Refresh official public rates and read account/Freeplan/credits/current
       resource state. Confirm stopped exact host/root, CPUStandard, SG22only,
       current operator IPv4/32, key cap/history and sole writer; no upgrade.
       Quiesce local key consumers and capture the one approved key-status GET
       now; retain its protected snapshot without another GET at handoff.
       Preflight expiry is48 hours from approval. Freeze exact names/IDs in a new
       operation; arm detached durable stop/release watchdog before resource writes.
-- [ ] Record T0 and fixed end/teardown/reboot deadlines. Create/verify the one
+- [x] Record T0 and fixed end/teardown/reboot deadlines. Create/verify the one
       table/namespace and narrow role/profile, associate it, initialize authority
       once under operator identity and record private identities. Reconcile any
       unknown write before progressing; no blind create or Start retry.
-- [ ] Start the original once, allocate/associate one EIP, verify retained SSH
+- [x] Start the original once, allocate/associate one EIP, verify retained SSH
       trust. Install/verify the fixed acceptance timer and startup deadline guard
       before retiring the 90 minute timer; old expired units stay masked.
 - [ ] Install protected configuration, catalogue and service identities; enable
