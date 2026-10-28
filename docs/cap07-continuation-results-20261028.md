@@ -2,6 +2,12 @@
 
 **Private acceptance remains incomplete. Compute teardown is verified safe.**
 
+Update: the normal off-host bookkeeping subsequently completed cleanly at
+14:40:46UTC on28October, stopped/generation1. The owner-authorized focused
+continuation is recorded separately in
+[the focused results](cap07-focused-results-20261028.md). Later references below
+to pending bookkeeping describe the original report time.
+
 The owner explicitly renewed the bounded session in
 [the continuation proposal](cap07-continuation-20261028.md). It reused the original
 Stockholm host, root, role/profile and DynamoDB identities. No new control resource,
