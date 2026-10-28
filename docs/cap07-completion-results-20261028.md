@@ -70,11 +70,11 @@ existing credits**, rounding compute/IP to 15 minutes and retaining the full
 original request/transfer/table/KMS envelope plus contingency. This is not final
 billing. Existing retained root/table storage continues under its prior allocation.
 
-Normal lifecycle authority is non-admitting at generation 3. A finite local
-worker waits until approximately 20:42:54 UTC for actual idle/drain bookkeeping,
-inside the fixed 23:29:28 UTC end. It keeps no EC2 running and does not poll AWS
-while waiting. Verify its complete/error receipt before claiming authority is
-closed. The previous generation-2 worker completed cleanly before this Start.
+Normal lifecycle bookkeeping completed at20:44:19UTC, inside the fixed23:29:28UTC
+end. The verified final receipt reports authority stopped/generation3/recoverable,
+stop intent settled, finish_done and operation_closed. The finite local worker
+finished without keeping EC2 running. The previous generation-2 worker also
+completed cleanly before this Start.
 
 Local verification: 57 private operator regressions and 27 driver tests pass.
 The full Python suite passed 1,599 tests in 1,010.10 seconds, with two existing

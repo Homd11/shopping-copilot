@@ -2,6 +2,32 @@
 
 **Last updated:** 2026-10-28
 
+## Owner pause; AWS rewards safely collected/closed — 2026-10-28
+
+Owner explicitly requests stop for usage limit and resume tomorrow. **No further
+project/reward/cloud/model work until resumed.** Read docs/aws-credit-rewards-results-20261028.md.
+Owner approved a separate USD1-credit/Free/USD0cash disposable reward proposal;
+Budgets and Lambda both completed, earnedUSD40today, then trial resources were
+deleted. EC2reward20alreadyearned; totalextra60/100, USD40stillunearned (RDS20,
+Bedrock20). FinalobservedFreecreditbalanceUSD159.79; notfinalbilling.
+
+Freshpauseinventory: zerotrialbudget/function/URL/DB/schedule/SG/role/loggroup,
+zeroactiveStockholmEC2/zeroEIP. RDSwasnevercreated; noBedrockprompt/subscription/
+batch/provisionedmodel. LambdaHTTP200throughIAM-onlyURL, onesignedinvocation.
+Originalprojectencrypted20GiBroot/DynamoDBretained; storageusagecontinues. Provider,
+nonresetUSD2cap/reserve/canonical/projectservices/publicDNS unchanged.
+
+Rewardoperation closed/owner_paused; localcleanupworker exits onclosedstate.
+Protectedpointer: .scratch/aws-credit-rewards/current-operation.txt.10private
+safetytests passed; RDS-only revisedhelpers NOT cloud-executed. Do not reuse the
+closedthreehourclock/USD1grant tomorrow. Read remainingproposal and renew exact
+RDSexecution scope afterresume. NovaMicroon-demand/daily/crossregionquotas0;
+availabilityAUTHORIZED is not usable invocation capacity. Keep Bedrock blocked.
+
+CAP07offhost bookkeeping completed20:44:19UTC: authoritystopped/generation3,
+recoverable/no pendingstopintent, operationclosed/finishdone. Complete receipt
+verified; finiteworker finished with noEC2running. Userpause remains in force.
+
 ## CAP-07 private acceptance passed; compute safe — 2026-10-28
 
 Read docs/cap07-completion-results-20261028.md and dated completion evidence.

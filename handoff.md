@@ -1,5 +1,18 @@
 # Shopping Copilot — project handoff
 
+## Owner pause; rewards safely closed — 2026-10-28
+
+Stopuntilownerresumes. Newestcheckpoint and docs/aws-credit-rewards-results-20261028.md
+are authoritative. ApprovedseparateUSD1Free/0cashtrial: Budgets+Lambdaearned40today
+anddeleted; EC2previous20 means60/100extraearned, remainingbalance159.79observed.
+RDSnevercreated; BedrockNovaMicroinvocationquotas0, no modelcall. Freshinventory
+zerotrials/activeEC2/EIPs; originalroot/DDB retained with storageusage. Realprovider/
+canonical/reserve unchanged. Rewardoperationclosed/owner_paused, pointer at
+.scratch/aws-credit-rewards/current-operation.txt; worker exits.10safetytests pass;
+RDShelperchangesunexecuted. Closedthreehourgrant cannotbe reusedtomorrow.
+CAP07offhostworker completed20:44:19UTC, authoritystopped/gen3/recoverable,
+operationclosed/finishdone; complete receipt verified, noEC2running.
+
 ## CAP-07 private acceptance passed; compute safe — 2026-10-28
 
 Read newest PROJECT_CHECKPOINT.md and docs/cap07-completion-results-20261028.md.

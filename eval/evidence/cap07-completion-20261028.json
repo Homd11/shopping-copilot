@@ -1,6 +1,6 @@
 {
   "date": "2026-10-28",
-  "status": "private_application_acceptance_passed_compute_safe_bookkeeping_pending",
+  "status": "private_application_acceptance_passed_closed_compute_safe",
   "aws_credit_ceiling_usd": "0.15",
   "cash_usd": "0",
   "free_plan_verified": true,
@@ -218,14 +218,21 @@
     "checked_epoch": 1793217114.6621418
   },
   "authority_finish": {
-    "pending": true,
+    "pending": false,
     "wait": {
       "not_before": 1793220173.7503324,
       "absolute_end": 1793230168,
       "cloud_compute_running": false
     },
     "finite_local_worker": true,
-    "no_cloud_compute": true
+    "no_cloud_compute": true,
+    "complete_receipt": {
+      "finished": true,
+      "generation": 3,
+      "authority_state": "stopped",
+      "epoch": 1793220259.3383248
+    },
+    "operation_closed": true
   },
   "private_operator_tests": 57,
   "driver_tests": 27,
