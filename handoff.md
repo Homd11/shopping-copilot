@@ -1,5 +1,16 @@
 # Shopping Copilot — project handoff
 
+## Focused CAP-07 completion approved — 2026-10-28
+
+Owner authorizes one focused session only after prior idle bookkeeping is clean.
+Read newest checkpoint and docs/cap07-focused-completion-20261028.md. USD0.15,
+Free0cash, existingresources/reserve, zeroPOST/GET, no reboot planned; captured
+1/5/8 plus preservedgates, immediately stop/release afterpass.48private tests and
+fullnativegeneration2TLS/SSE/capture pass, generation1refused. Resident realcustody
+must be verified/adopted, never overwritten. Review recoverygaps fixed/actual
+synthetic lifecycle tested. New focused-operation pointer only after priorcomplete;
+actualstoppedgen1 also required. No new cloud action yet at this entry.
+
 ## CAP-07 renewal stopped safely; captured host lane remains — 2026-10-28
 
 Newest checkpoint and docs/cap07-continuation-results-20261028.md take precedence.

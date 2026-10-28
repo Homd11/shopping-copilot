@@ -2,6 +2,35 @@
 
 **Last updated:** 2026-10-28
 
+## Focused completion authorized, local preparation ready — 2026-10-28
+
+Owner explicitly authorizes one focused CAP-07 completion AFTER the prior normal
+off-host bookkeeping finishes cleanly: existing host/root/table/profile/reserve,
+USD0.15 eligible credits, Free/USD0cash, zero livePOST/newproviderGET, current
+IPv4/32rotation, captured1/5/8 and confirmation of passed gates, immediate stop/
+EIPrelease on success. No reboot is planned or enabled. Four-hour maximum and
+original request/transfer/retention bounds remain; no creation/reset/top-up.
+Scope record: docs/cap07-focused-completion-20261028.md. No repeat approval needed.
+
+Local focused_session.py/guest/reset adapt actual lifecycle to generation2 and
+adopt verified resident disabled custody without uploading/overwriting key or
+ledger. Old final backup/history/capture assets must be verified and archived
+before acceptance updates. A failed reconciliation permits API-only teardown;
+it cannot overwrite the preserved backup. Partial startup cleanup uses actual
+authority, settles normal stop intents and reports failed/recoverable honestly.
+One fresh source review found those two recovery gaps; both fixed with RED→GREEN
+regressions, including actual synthetic DynamoLifecycle transactions.
+
+48private operator tests pass. Native Linux/Python3.12.14 fullTLS/SSE/control and
+captured1/5/8 pass at generation2 with generation1 refused;22fakePOST,zero real
+AWS/model calls. Capture binding explicitly0400; signed fixture readiness required
+before load; journal bounded by existing limits. Production bytes unchanged.
+Fresh official price gate matches prior rates, conservative4hboundUSD0.142404
+below0.15; first mutation refuses stale/missing price receipt. Account/Free/credit
+eligibility checks still precede writes. Prior normal completion receipt remains
+pending at this entry; do not start until complete AND actual authority stopped1.
+New operation pointer will be focused-operation.txt after that entry gate passes.
+
 ## CAP-07 continuation: reboot/readiness pass; captured lane incomplete — 2026-10-28
 
 Newest results: docs/cap07-continuation-results-20261028.md and
