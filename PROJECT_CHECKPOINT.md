@@ -1,6 +1,33 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-27
+**Last updated:** 2026-10-28
+
+## Local continuation resumed; new cloud grant pending — 2026-10-28
+
+**Update:** Owner explicitly approved docs/cap07-continuation-20261028.md in chat.
+New protected pointer: .scratch/cap07-controlled-host-preparation/continuation-operation.txt.
+Same USD0.25/Free/USD0cash/oneStart/atmostoneReboot/fourhours, existing reserve,
+zero modelPOST/newproviderGET. Thirty-five private operator tests pass. Original
+policy comparison now follows its original creation receipt across both retries;
+retained diagnostics must be retrieved before reconciling guest assets. Fresh
+official EC2/gp3/IPv4/DynamoDB rates on28October match the prior planning bound.
+AWS login was renewed after expired-session preflight; fresh read-only preflight
+is underway, no resource write yet. Both old operations remain closed/unchanged.
+
+Owner resumed project work. Local private traceback review narrows the failed
+barrier probe to guest.py:583: the DynamoDB SDK permitted-read/wrong-namespace
+denial block, before the separate OpenRouter TCP-denial probe. Exact underlying
+error remains in root-only command-error JSON on the stopped host; no cause is
+established. Do not guess or weaken the boundary. No AWS/provider request or
+application code change was made during this local investigation.
+
+Renewal proposal: docs/cap07-continuation-20261028.md. It retains the consolidated
+acceptance scope and USD0.25/Free/USD0cash/zeroPOST constraints, reuses existing
+resources and reserve, and retrieves retained diagnostics before changing guest
+assets. Both prior single-Start grants are consumed and closed. The general
+resume instruction lifts the pause but does not grant another bounded cloud
+Start. Obtain explicit renewal before creating/running a new cloud operation.
+Last recorded stopped/no-IP/no-EIP state remains historical, not freshly queried.
 
 ## Owner pause; CAP-07 retry safely stopped - 2026-10-27
 

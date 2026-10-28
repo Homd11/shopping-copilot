@@ -1,5 +1,15 @@
 # Shopping Copilot — project handoff
 
+## Local continuation resumed — 2026-10-28
+
+Read newest checkpoint and docs/cap07-continuation-20261028.md. Owner lifted the
+pause; local traceback review narrows the failure to the actual DynamoDB SDK
+allow/deny block before OpenRouter TCP denial. Exact error is still on the stopped
+host. No fresh AWS/provider request or production change. Both prior operations
+remain closed with Start consumed; renewed explicit cloud authorization is
+pending. Retrieve root diagnostics before next asset reconciliation. Preserve
+all existing custody/accounting, grant clocks and retained resource identities.
+
 ## Owner pause; CAP-07 retry safely stopped - 2026-10-27
 
 Owner explicitly requested stop for usage limit and continuation tomorrow.
