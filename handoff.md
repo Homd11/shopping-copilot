@@ -1,5 +1,22 @@
 # Shopping Copilot — project handoff
 
+## CAP-07 renewal stopped safely; captured host lane remains — 2026-10-28
+
+Newest checkpoint and docs/cap07-continuation-results-20261028.md take precedence.
+Actual isolation, protectedbinding/signedreadiness, automaticcontrolledreboot and
+control1/5/8 capacitypassed. Captured lane aborted on missingfixturecgroup; noOOM.
+Exactbindingconstruction0644→privatefilerefusal reproducedoffline;0400correction
+and fullnativecapture passed.37private tests; no productionbyteschange/realPOST/GET.
+No actualhostcapturedpass yet. Hoststopped/noIP/EIPreleased; cleanupnoerrors.
+
+OneStart/reboot consumed, T0=13:32:01UTC/end17:32:01UTC. Protectedcontinuation pointer
+in preparationfolder. Realhostledgerdisabled/finalbackup retained, PCdisabled;
+do not overwriteguest fromoldPCcopy. Previous emptycustody/gen0retryassumptions
+are stale. Authorityunhealthy/nonadmitting/gen1 atstop. Finite localfinisher waits
+until~14:39:40UTC then normaloffhostidle/drain; no cloudcompute/polling meanwhile.
+Verify authority-finish-complete/error receipt before claimingstoppedauthority.
+Do not openanothercloudsession without renewedgrant. Root/table storagecontinues.
+
 ## Local continuation resumed — 2026-10-28
 
 Read newest checkpoint and docs/cap07-continuation-20261028.md. Owner lifted the

@@ -2,6 +2,46 @@
 
 **Last updated:** 2026-10-28
 
+## CAP-07 continuation: reboot/readiness pass; captured lane incomplete — 2026-10-28
+
+Newest results: docs/cap07-continuation-results-20261028.md and
+eval/evidence/cap07-continuation-20261028.json. One renewed Start/EIP and the one
+controlled reboot were used. T0=13:32:01UTC, fixedend17:32:01UTC. Host verified
+stopped/no-public-IP/EIPreleased at13:41:08UTC and freshly checked afterward;
+guest/API teardown had no errors. Zero live modelPOSTs/newproviderGETs. No extra
+control resources, public activation, push or merge. USD0.020044 conservative
+incremental bound, not final billing; Free/USD0cash verified, root storage separate.
+
+Retained error showed DynamoDB connection refused: allowed endpoint IP rotated
+between lookups. Acceptance-only hosts pin now shares the exact verified nft IP
+set and is removed by exact-owned-block cleanup. TLS/IAM unchanged. Actual
+isolation/negativefixtures, protected real custody/binding, signedready/refusals,
+firstboot isolation and automatic persistence/readiness after reboot all passed.
+Actualcontrol capacity1/5/8 passed126ingress; swap0/OOM0. Captured service could
+not open realcustody, then captured lane aborted on missing capture cgroup before
+shopping results. It had ~1.5GiB memoryavailable/noOOM, not a proved capacitylimit.
+
+Offline exact capture binding generation under Linuxumask022 produced0644 and
+the frozen protected reader correctly refused it. Explicit0400 fix passes that
+probe and the full native TLS/HTTP/SSE rehearsal (control126/captured140ingress,
+22fakePOST/zero real calls; captured1/5/8→1/5/5done+3busy).37private regressions pass.
+Actual failed guest startup traceback/mode was not recovered; host captured lane
+must still be retested. Production application bytes/validation unchanged.
+
+Protected pointer: .scratch/cap07-controlled-host-preparation/continuation-operation.txt.
+Real host ledger was disabled/backed up during cleanup; PCcanonical remains
+disabled. Preserve hostbackup and reconcile before any future custody overwrite.
+The prior empty-custody reset helper/generation0 assumptions no longer apply.
+
+Authority is non-admitting unhealthy/generation1 after teardown. A finite local
+worker, finish_continuation.py, waits for real idle expiry (~14:39:40UTC), then
+attempts normal off-host idle/drain completion inside17:32:01UTC; no cloud compute
+or polling while waiting. It stops on pause marker. Check protected
+authority-finish-complete.json or authority-finish-error.json before claiming
+authoritystopped. Pending at this checkpoint. Do not reuse Start/reboot or
+automatically open another cloud session. Next: verify finishreceipt, prepare a
+custody/generation-aware retest offline and obtain its exact renewed cloud grant.
+
 ## Local continuation resumed; new cloud grant pending — 2026-10-28
 
 **Update:** Owner explicitly approved docs/cap07-continuation-20261028.md in chat.
