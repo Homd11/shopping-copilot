@@ -83,6 +83,7 @@ class RequestBudget:
         self.mode, self.clock, self.count = mode, clock, 0
         self.started = clock()
         self.end = min(end_epoch, self.started + 600)
+        self.diagnostic = {"stage": "prepare"}
 
     def check(self, method, url):
         parsed = urlsplit(url)
@@ -168,6 +169,31 @@ async def close_task(client, sid, headers, budget):
         raise ValueError("Acceptance cleanup refused")
 
 
+async def captured_outcome(client, url, headers, budget):
+    budget.check("GET", url)
+    async with client.stream("GET", url, headers=headers) as response:
+        if response.status_code != 200:
+            raise ValueError("Acceptance stream refused")
+        text = ""
+        size = 0
+        async for chunk in response.aiter_text():
+            size += len(chunk.encode())
+            if size > 1048576:
+                raise ValueError("Acceptance stream bound exceeded")
+            text += chunk
+            if not text.replace("\r\n", "\n").endswith("\n\n"):
+                continue
+            outcome = classify_events(text)
+            if outcome != "failed":
+                return outcome
+            if any(
+                "event: " + event + "\n" in text.replace("\r\n", "\n")
+                for event in ("error", "interpretation_paused", "action", "done", "shopper_reset")
+            ):
+                return "failed"
+    return "failed"
+
+
 async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
     results = []
 
@@ -175,10 +201,16 @@ async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
         budget.check(method, url)
         response = await client.request(method, url, **options)
         if response.status_code != expected or len(response.content) > 1048576:
+            budget.diagnostic.update(
+                http_status=response.status_code,
+                expected_status=expected,
+                route=re.sub(r"/sessions/[^/]+/", "/sessions/:id/", urlsplit(url).path),
+            )
             raise ValueError("Acceptance HTTP refused")
         return response
 
     for count in (1, 5, 8):
+        budget.diagnostic = {"stage": "setup", "requested": count}
         async with AsyncExitStack() as stack:
             actors = []
             for _ in range(count):
@@ -232,6 +264,7 @@ async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
             if cohort_file is not None:
                 cohort_file.write_text(json.dumps({"requested": count}), encoding="utf-8")
             start = time.monotonic()
+            budget.diagnostic["stage"] = "consume"
 
             async def consume(actor):
                 client, headers, sid = actor
@@ -244,12 +277,12 @@ async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
                         headers=headers,
                         json={"text": "Show me shoes", "snapshot": snapshot},
                     )
-                    event = await send(
+                    outcome = await captured_outcome(
                         client,
-                        "GET",
-                        PANEL + f"/sessions/{sid}/events?once=true&tab_id={headers['x-tab-id']}",
+                        PANEL + f"/sessions/{sid}/events?tab_id={headers['x-tab-id']}",
+                        headers,
+                        budget,
                     )
-                    outcome = classify_events(event.text)
                 else:
                     url = PANEL + f"/sessions/{sid}/events?tab_id={headers['x-tab-id']}"
                     budget.check("GET", url)
@@ -261,14 +294,18 @@ async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
                     outcome = "completed"
                 return outcome
 
-            async with asyncio.timeout(10):
+            # Real DynamoDB authorization/lease checks are part of this host lane.
+            # Keep the operator cohort wait bounded without changing inference queue waits.
+            async with asyncio.timeout(30):
                 outcomes = await asyncio.gather(*(consume(a) for a in actors))
             if mode == "captured":
+                budget.diagnostic["stage"] = "cleanup"
                 # The control lane creates no Shopping Task. Captured cleanup is
                 # sequential to respect the reserved owner-stop concurrency limit.
                 for client, headers, sid in actors:
                     await close_task(client, sid, headers, budget)
             completed, busy = outcomes.count("completed"), outcomes.count("inference_busy")
+            budget.diagnostic.update(stage="cohort", outcomes=outcomes)
             expected = (5, 3) if mode == "captured" and count == 8 else (count, 0)
             if (completed, busy) != expected:
                 raise ValueError("Acceptance cohort refused")
@@ -285,6 +322,7 @@ async def exercise(mode, code, snapshot, budget, factory, *, cohort_file=None):
 
 def run(profile: Path, receipt: Path) -> int:
     result = {"passed": False, "real_model_posts": 0}
+    budget = None
     try:
         data = json.loads(profile.read_bytes())
         if set(data) != {
@@ -312,7 +350,7 @@ def run(profile: Path, receipt: Path) -> int:
                 verify=context,
                 trust_env=False,
                 follow_redirects=False,
-                timeout=10,
+                timeout=httpx.Timeout(30, connect=5),
                 limits=httpx.Limits(max_connections=2, max_keepalive_connections=2),
             )
 
@@ -321,8 +359,12 @@ def run(profile: Path, receipt: Path) -> int:
                 return await exercise(mode, code, snapshot, budget, factory, cohort_file=cohort)
 
         result.update(mode=mode, cohorts=asyncio.run(work()), requests=budget.count, passed=True)
-    except Exception:
+    except Exception as error:
         result["category"] = "acceptance_refused"
+        result["failure"] = {"exception": type(error).__name__}
+        if budget is not None:
+            result["requests"] = budget.count
+            result["failure"].update(budget.diagnostic)
     receipt.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return 0 if result["passed"] else 1
 

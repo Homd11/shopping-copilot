@@ -235,3 +235,72 @@ def test_actual_shopping_suggestions_and_wire_busy_error_are_recognized():
         )
         == "inference_busy"
     )
+
+
+def test_driver_failure_receipt_retains_safe_stage_count_without_exception_secrets(
+    tmp_path, monkeypatch
+):
+    import json
+
+    import eval.cap07_host_acceptance as driver
+
+    code = tmp_path / "code"
+    code.write_text("synthetic")
+    profile = tmp_path / "profile.json"
+    profile.write_text(
+        json.dumps(
+            dict(
+                mode="control",
+                ca_file="synthetic",
+                invitation_file=str(code),
+                snapshot_file="unused",
+                deadline_epoch=10**12,
+                cohort_file=None,
+            )
+        )
+    )
+    monkeypatch.setattr(driver.ssl, "create_default_context", lambda **kw: type("TLS", (), {})())
+
+    async def refused(mode, code, snapshot, budget, factory, **kw):
+        budget.count = 17
+        budget.diagnostic = {"stage": "cohort", "requested": 5, "outcomes": ["failed"]}
+        raise ValueError("private-token-never-print")
+
+    monkeypatch.setattr(driver, "exercise", refused)
+    receipt = tmp_path / "result.json"
+    assert driver.run(profile, receipt) == 1
+    result = json.loads(receipt.read_bytes())
+    assert result["requests"] == 17
+    assert result["failure"]["exception"] == "ValueError"
+    assert result["failure"]["stage"] == "cohort"
+    assert "private-token" not in receipt.read_text()
+
+
+def test_captured_driver_waits_for_delayed_terminal_event_in_single_stream():
+    import asyncio
+
+    from eval.cap07_host_acceptance import RequestBudget, captured_outcome
+
+    class Delayed(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            yield b'event: status\ndata: {"state":"interpreting"}\n\n'
+            await asyncio.sleep(0.01)
+            yield b'event: action\ndata: {"action":{"type":"navigate"}}\n\n'
+
+    async def check():
+        requests = []
+
+        def respond(request):
+            requests.append(request)
+            assert "once" not in request.url.params
+            return httpx.Response(200, stream=Delayed())
+
+        budget = RequestBudget("captured", 2000, clock=lambda: 1000)
+        async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
+            result = await captured_outcome(
+                client, "https://app.scpilot.tech/sessions/synthetic/events?tab_id=tab", {}, budget
+            )
+        assert result == "completed"
+        assert budget.count == len(requests) == 1
+
+    asyncio.run(check())
