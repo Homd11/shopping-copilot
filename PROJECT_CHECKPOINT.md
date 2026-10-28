@@ -2,6 +2,45 @@
 
 **Last updated:** 2026-10-28
 
+## CAP-07 private acceptance passed; compute safe — 2026-10-28
+
+Read docs/cap07-completion-results-20261028.md and dated completion evidence.
+Owner authorized one inspect-first USD0.15 session after the prior worker closed
+cleanly at stopped generation2. Retained driver logs/metrics/journal were copied
+and inspected immediately after SSH, before reconciliation or load. Existing
+real custody/history/key were verified and adopted in place without upload/reset.
+Normal lifecycle startup advanced to generation3. No reboot or live POST/new GET.
+
+Captured shopping now passes actual1/5/8→1/5/5completed, plus3expected busy at8;
+cohort times2.928485/9.825428/11.319521seconds. Passing run140HTTP/22fakePOST,
+minavailable1541951488bytes, swap0, resource/OOM/CPUguards passed. Restored real
+application signedready/refusals, UID/caps/metadata/nft/swap/resource inspection
+passed; canonical accounting/248attempts unchanged. Earlier actual reboot/control
+proof retained. This is private captured-host acceptance, not public/live readiness.
+
+Driver repairs: replace once=true event snapshot with bounded terminal SSE;
+retain safe failure stage/type/count; bound BOTH cohort and HTTPread to30seconds,
+connect5seconds. Firstcurrent run130requests hit outer10s at8; second130 hit HTTP
+ReadTimeout at8. Full diagnostics retrieved locally and fixtures archived separately.
+Owner explicitly approved finalattempt and raised only totalHTTPceiling300→450;
+actual400, fakePOST66across3separate fixtures, realPOST0. Queuewait8s and resource
+thresholds unchanged. Explicit repair phases preserve start/custody replay guards.
+
+Hostverifiedstopped/noIP/EIPreleased19:44:19UTC; freshAWSreads confirmed, cleanup
+errors0, apps/canonicaldisabled, backupretained, safe90minguardrestored. All3
+acceptance invitations revoked offhost. OneStart/EIP consumed; no extraautomatic
+boot under unusedcredit. T0=19:29:28UTC/fixedend23:29:28UTC. Conservativecredits
+USD0.022704 (notbilling), Free/USD0cash verified, retainedstorage separate.
+
+Generation3 authority is nonadmitting after teardown. Finite localworker waits
+until~20:42:54UTC for realidle/drain with no cloudcompute/polling; verify protected
+authority-finish-complete/error receipt later before saying authorityclosed.
+Pointer: .scratch/cap07-controlled-host-preparation/completion-operation.txt.
+57private regressions/27driver tests pass; fullPython1599passed/2existingwarnings,
+lint/format clean. Productionapplicationbytes unchanged. Next: finishreceipt, then separate
+publicactivation/startup-link design and exact deployment approval. No new Start,
+DNS/publicactivation/modelspending/merge/push authorized by this completion.
+
 ## Focused captured service ready; load abort unresolved; compute safe — 2026-10-28
 
 Read docs/cap07-focused-results-20261028.md and dated focused evidence. Previous

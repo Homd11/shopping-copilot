@@ -62,10 +62,16 @@
   "postabort_diagnostic_tests": 50,
   "postabort_diagnostic_change_deployed": false,
   "authority_finish": {
-    "pending": true,
+    "pending": false,
     "not_before": 1793202570.6503828,
     "finite_local_worker": true,
-    "no_cloud_compute": true
+    "no_cloud_compute": true,
+    "complete_receipt": {
+      "finished": true,
+      "generation": 2,
+      "authority_state": "stopped",
+      "epoch": 1793202646.3866498
+    }
   },
   "protected_pointer": ".scratch/cap07-controlled-host-preparation/focused-operation.txt",
   "deployed_operator_source_sha256": {

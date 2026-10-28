@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## CAP-07 private acceptance passed; compute safe — 2026-10-28
+
+Read newest PROJECT_CHECKPOINT.md and docs/cap07-completion-results-20261028.md.
+One explicit inspect-first USD0.15 session used oneStart/EIP, no reboot/livePOST/
+newproviderGET. Oldlogs retrieved before guestchanges. Driver once=true snapshot
+race and both10s observation/readtimeouts repaired within same SSHwindow. Owner
+explicitly amended totalHTTP300→450 for finalattempt; actual400. Finalactual
+captured1/5/8passed1/5/5done+3busy;8cohort11.32seconds. Restoredreal signedready3,
+isolation/metadata/resource checks passed; canonical248attempts unchanged.
+
+Hoststopped/noIP/EIPreleased19:44:19UTC+freshAWSproof; cleanup0errors, realledger/
+appsdisabled, backup/safe90minguard retained. All3invitations revoked offhost.
+Conservativecreditestimate0.022704, Free/USD0cash, rootstorage separate. No extra
+Start authorized. T0=19:29:28/end23:29:28UTC. Gen3nonadmitting authority bookkeeping
+waits realidle until~20:42:54UTC in finite localworker, no EC2/polling. Protected
+completion-operation.txt points to currentreceipts; check complete/error before
+claiming authorityclosed. 57private/27driver tests pass; fullPython1599passed/
+2existingwarnings, lint/formatclean. Nextfinishreceipt then separately gated publicactivation design.
+
 ## Focused captured startup passed; load abort unresolved — 2026-10-28
 
 Newest checkpoint/results: docs/cap07-focused-results-20261028.md. Priorworker
