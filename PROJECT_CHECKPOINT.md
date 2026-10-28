@@ -2,6 +2,40 @@
 
 **Last updated:** 2026-10-28
 
+## Focused captured service ready; load abort unresolved; compute safe — 2026-10-28
+
+Read docs/cap07-focused-results-20261028.md and dated focused evidence. Previous
+normal bookkeeping completed14:40:46UTC/stoppedgen1. The explicitly approved
+USD0.15 focused session then used oneStart/EIP, zero reboots, T0=14:45:58UTC and
+fixedend18:45:58UTC. FreshFree/credits/retainedresources/prices passed. Actual
+disabled residentcanonical+backup/history/key were verified and preserved;
+prioracceptance/capture assets archived. No key/ledger upload/overwrite/reset.
+
+Actual isolation, in-placebinding, normalgen2startup, signedreadiness/refusals and
+UID/caps/resource/metadata/swap inspection passed again. Corrected capture also
+passed actual signedready/gen2 and inability to read realcustody. Its subsequent
+shoppingload aborted; only generic wrapperassertion retained locally. Driver
+stderr/samples/result remain on root; late retrieval missed SSH duringteardown.
+Exactcause unknown: do not infer OOM, queue, hardware or furtherfixturefailure.
+CAP-07 remains incomplete; do not loosen limits or claim capturedhostpass.
+
+Host verifiedstopped/noIP/zeroEIP at14:50:42UTC and freshlaterreads; guest/APIcleanup
+errors0, canonical/appsdisabled and backupretained. Zero livePOST/newproviderGET;
+existingreserve/nonresetUSD2unchanged. Conservativecreditestimate0.017384 (not
+finalbilling), rootstorage separate. Protected focused-operation.txt pointer in
+preparationfolder. Normal authority nonadmitting/unhealthy/gen2; finite local
+finisher waits until~15:49:31UTC for realidle/drain under18:45:58deadline, without
+cloudcompute/polling. Verify complete/errorreceipt later; pendingatthischeckpoint.
+
+BeforepaidStart, frozenimport compatibility gap fixed with stdlibledgerdigest
+(sameexpectedhash),49private tests passed. Afterabort, bounded driverstderr and
+lastsample context are now emitted inside failing SSH beforeteardown, tested
+RED→GREEN;50private tests pass. This diagnostics change is OFFLINE/undeployed,
+not a claimed loadfix. Productionapplicationbytes unchanged. Next: verify final
+authorityreceipt; prepare reviewed bounded extraction of retained load context.
+OneStartconsumed, no automatic furtherboot underunusedcredit. Newcloudgrant
+required for any additionalStart. Preserve residentledger/backup/gen2/history.
+
 ## Focused completion authorized, local preparation ready — 2026-10-28
 
 Owner explicitly authorizes one focused CAP-07 completion AFTER the prior normal

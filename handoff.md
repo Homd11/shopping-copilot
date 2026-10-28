@@ -1,5 +1,21 @@
 # Shopping Copilot — project handoff
 
+## Focused captured startup passed; load abort unresolved — 2026-10-28
+
+Newest checkpoint/results: docs/cap07-focused-results-20261028.md. Priorworker
+closedcleanstoppedgen1 at14:40:46UTC. FocusedUSD0.15session Start1/EIP1/reboot0,
+T0=14:45:58/end18:45:58UTC. Actualretainedcustodyverified/preserved/adopted; actual
+gen2signedready/isolation/inspectionpassed; capturedsignedready+realcustodydenial
+also passed. Shoppingload then aborted; exact driver/samplecontext remains on
+retainedroot, lateSSHretrieval missedstop. Do not speculate/markCAP07passed.
+
+Hoststopped/noIP/EIPreleased14:50:42+freshconfirmation; cleanup0errors, realledger
+disabled/backedup, PCdisabled, no realPOST/newGET. Gen2nonadmittingunhealthy;
+finiteoffhostfinisher waiting realidle until~15:49:31UTC, no runningEC2. Check
+complete/errorreceipt. Startgrantconsumed; no extraautomaticboot. Nextbounded
+diagnosticextraction mustbe prepared/reviewed and separatelyauthorized. Offline
+errorcontext emission fixed/tested afterabort;50privatepass, appbytesunchanged.
+
 ## Focused CAP-07 completion approved — 2026-10-28
 
 Owner authorizes one focused session only after prior idle bookkeeping is clean.

@@ -171,10 +171,16 @@
   "actual_live_model_posts": 0,
   "new_provider_status_gets": 0,
   "authority_finish": {
-    "pending": true,
+    "pending": false,
     "not_before": 1793198379.1700122,
     "finite_local_worker": true,
-    "no_running_cloud_compute": true
+    "no_running_cloud_compute": true,
+    "complete_receipt": {
+      "finished": true,
+      "generation": 1,
+      "authority_state": "stopped",
+      "epoch": 1793198446.3494473
+    }
   },
   "protected_operation_pointer": ".scratch/cap07-controlled-host-preparation/continuation-operation.txt",
   "operator_source_sha256_offline_audit_only": {
