@@ -1,6 +1,49 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-28
+**Last updated:** 2026-10-29
+
+## RDS reward completed; trial deleted — 2026-10-29
+
+Owner-approved renewed RDS-only session completed. Read
+`docs/aws-rds-reward-results-20261029.md` and sanitized evidence
+`eval/evidence/aws-rds-reward-20261029.json`. USD20 newly earned; extra rewards
+now USD80/100. Fresh Free-plan balance179.74 observed, not final billing. One
+private encrypted PostgreSQL17.11/t4g.micro/20GiB trial; no workload/model calls.
+Initial Scheduler input casing refusal inspected/repaired before DB creation;
+all14 local tests pass. Native guard and zero-ingress/egress verified first.
+
+Operation closed after ~7m9s; independent final inventory confirms zero trial
+DB/snapshot/backup/network/schedule/cleanup-role/new-RDS-service-role, zero active
+Stockholm EC2 and EIPs. Project host stopped/no public IP. Retained original
+root/table storage unchanged, still incurs usage. Custody/cap/reserve/DNS unchanged.
+Protected renewal-operation.txt points to final-safe.json and executed snapshots;
+yesterday's closed grant/pointer preserved. No pending teardown/bookkeeping.
+
+Bedrock activity remains NOT_STARTED; prior invocation quotas zero, no new prompt
+or quota changes. Next: separately reviewed public activation/startup-link plan.
+No further resource creation/host start/model spend/DNS authority from this grant.
+
+## RDS reward renewal active — 2026-10-29
+
+Owner resumed and explicitly approved docs/aws-rds-reward-renewal-20261029.md:
+one RDS-only trial, up to USD1 additional existing credits, Free/USD0cash,
+three-hour fixed session. No project Start/EIP/DNS/provider/model calls.
+Fresh preflight: Free active, credits159.74, exact PostgreSQL17.11/t4g.micro/gp3
+offering eligible; compute0.016/hr/storage0.12/GB-month, conservative bound0.8136.
+New protected pointer .scratch/aws-credit-rewards/renewal-operation.txt, separate
+from yesterday's closed operation. T0 epoch1793275083.8735125; native deletion
+T0+7200, absolute end T0+10800. Original project host stopped/no EIP at preflight.
+
+Scheduler initially rejected DBInstanceIdentifier (expects DbInstanceIdentifier).
+No database existed at that refusal. Exact retained error inspected; casing
+regression RED→GREEN, all14 local tests pass. Reconciled existing owned cleanup
+role/policy rather than recreating. Corrected native guard readback passed;
+dedicated SG verified zero ingress/egress. One private encrypted database created,
+currently creating; reward NOT_STARTED at first observation. Independent local
+supervisor and bounded observe-and-cleanup worker active. Do NOT claim teardown
+or reward complete until receipts confirm. Inspect before rerun; no second DB.
+Finish by deleting DB/backups/snapshots/owned network/guard/role, and newly created
+unused RDS service-linked role. Preserve all original project resources/custody.
 
 ## Owner pause; AWS rewards safely collected/closed — 2026-10-28
 

@@ -1,5 +1,26 @@
 # Shopping Copilot — project handoff
 
+## RDS reward completed; trial deleted — 2026-10-29
+
+Owner-approved renewed RDS-only session completed. Read
+`docs/aws-rds-reward-results-20261029.md` and sanitized evidence
+`eval/evidence/aws-rds-reward-20261029.json`. USD20 newly earned; extra rewards
+now USD80/100. Fresh Free-plan balance179.74 observed, not final billing. One
+private encrypted PostgreSQL17.11/t4g.micro/20GiB trial; no workload/model calls.
+Initial Scheduler input casing refusal inspected/repaired before DB creation;
+all14 local tests pass. Native guard and zero-ingress/egress verified first.
+
+Operation closed after ~7m9s; independent final inventory confirms zero trial
+DB/snapshot/backup/network/schedule/cleanup-role/new-RDS-service-role, zero active
+Stockholm EC2 and EIPs. Project host stopped/no public IP. Retained original
+root/table storage unchanged, still incurs usage. Custody/cap/reserve/DNS unchanged.
+Protected renewal-operation.txt points to final-safe.json and executed snapshots;
+yesterday's closed grant/pointer preserved. No pending teardown/bookkeeping.
+
+Bedrock activity remains NOT_STARTED; prior invocation quotas zero, no new prompt
+or quota changes. Next: separately reviewed public activation/startup-link plan.
+No further resource creation/host start/model spend/DNS authority from this grant.
+
 ## Owner pause; rewards safely closed — 2026-10-28
 
 Stopuntilownerresumes. Newestcheckpoint and docs/aws-credit-rewards-results-20261028.md
