@@ -61,8 +61,13 @@ def main(argv=None):
         parser.add_argument("--config", type=Path, required=True)
         parser.add_argument("--qualification", type=Path)
         parser.add_argument("--qualification-sha256")
+        parser.add_argument("--maximum-attempts", type=int)
         args = parser.parse_args(argv)
         if (args.qualification is None) != (args.qualification_sha256 is None):
+            raise ValueError()
+        if args.maximum_attempts is not None and (
+            args.qualification is None or not 1 <= args.maximum_attempts <= 1_000_000
+        ):
             raise ValueError()
         settings = load_host_settings(args.config)
         if args.qualification is None:
@@ -71,7 +76,15 @@ def main(argv=None):
             qualification = load_provider_binding(
                 settings, args.qualification, args.qualification_sha256
             )
-            app = create_host_app(settings, qualification=qualification)
+            app = create_host_app(
+                settings,
+                qualification=qualification,
+                **(
+                    {"maximum_attempts": args.maximum_attempts}
+                    if args.maximum_attempts is not None
+                    else {}
+                ),
+            )
         asyncio.run(_serve(app))
         return 0
     except KeyboardInterrupt:

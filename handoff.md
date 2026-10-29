@@ -1,5 +1,67 @@
 # Shopping Copilot — project handoff
 
+## Full regression passed; public launch review held — 2026-10-29
+
+Latest owner instruction: DO NOT use Computer Use or access Brave. Owner handles
+all DNS A-record creation/restoration/deletion manually at EIP binding/teardown.
+Owner asks to review and approve Public Activation & Deployed Acceptance Proposal
+AFTER full regression. This is a launch hold even though the earlier consolidated
+scope grant is recorded; do not launch under it until the requested review closes.
+
+Full `python -m pytest agent/tests eval/tests -q` completed exit0:1617passed,
+2existing websockets/uvicorn deprecation warnings,1002.22seconds (16m42s).
+Ruff lint/format across agent/eval/deploy pass. Independent runtime review found
+no material issues; noted nonblocking seam-composition proof gap, not a failure.
+Evidence: `eval/evidence/public-attempt-ceiling-20261029.json`; original full log
+in `.scratch/cap08-public-preparation/full-pytest.txt`. No full test worker pending.
+The optional absolute attempt ceiling is locally implemented and tested, not
+installed on the host. Native release rebuild, bounded operator/failure tests
+and deployed gates remain required before any cloud write. Do not claim ready
+public deployment or physical-phone acceptance from local regression.
+
+Review packet: `docs/public-activation-deployed-acceptance-proposal-20261029.md`.
+Same proposed USD2AWS/Free/0cash,4h/max2starts/oneEIP, max4POSTs/USD0.10 inside
+nonresetUSD2, reserve unchanged, max5GETs, full teardown and disabled-edge-only
+24hcleanup tail. No ongoing public window. Manual UI steps remain owner-operated.
+Owner confirms no A records; supplied registrar screenshot shows empty A list.
+Read-only DNS resolver checks A/AAAA/CNAME return NXDOMAIN for app/store; refresh
+authoritative results before execution. No browser/DNS write, AWS mutation,
+providerGET or modelPOST this turn; original host remains stopped, no clock used.
+
+## Public acceptance approved; local attempt fence implemented, not deployed — 2026-10-29
+
+Owner approved the consolidated proposal at e98b2e9. Exact protected grant and
+proposal hash saved in `.scratch/cap08-public-preparation/public-approval.json`.
+Do not ask again for unchanged approved scope. AWS4h clock has NOT begun: zero
+AWS mutations, starts, EIPs, DNS edits, providerGETs or modelPOSTs. Owner confirms
+registrar page and Android Chrome available. Main host remains stopped.
+
+Implementation plan: docs/superpowers/plans/2026-10-29-public-acceptance.md.
+WIP code is uncommitted: optional absolute maximum_attempts passes GuardedClient
+-> existing ledger.reserve transaction; configured_guard refuses an unguarded
+limit. Trusted app/host factories carry the number; host CLI --maximum-attempts
+requires qualification flags and pins a literal (never recount+4 on restart).
+ProviderQualification captures the ceiling in its in-memory signature. No new
+HostSettings schema or model fingerprint input. Real SQLite concurrent clients /
+reconstruction prove exactly four additional entries after historical attempts;
+invalid types, host propagation and mutation refusal covered RED->GREEN.
+Focused88tests pass, two existing dependencywarnings; affected Ruff lint/format
+pass. Full agent/tests+eval/tests running in exec session88018 with output at
+`.scratch/cap08-public-preparation/full-pytest.txt`; last observed26%, NO full-pass
+claim yet. Wait/check its final result before more code changes or declaration.
+No native release rebuild/operator runner/cloud execution has occurred yet.
+
+Computer Use HARD STOP this turn: native Brave selection via cua.getApp returned
+'could not determine the current browser URL on Windows with enough confidence
+to enforce policy', instructing stop and final. No DNS page content or record
+was read/edited. Do not work around this UI restriction in this turn. Next turn,
+continue permitted local/CLI work; use owner-assisted DNS if needed. No new
+resource approval required merely for this UI failure; the cloud grant is unused.
+Next: inspect full regression result, finish/review local fence and bounded
+operator, rebuild verified native artifacts, then execute approved gates only
+when DNS/manual-assistance path is established. Keep protected custody/ledger,
+old generation3 and metadata/safety invariants; no phase resets or fresh cap.
+
 ## Main project resumed; public acceptance proposed — 2026-10-29
 
 Owner says the current ~USD180 credit is enough and explicitly returns to main

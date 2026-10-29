@@ -220,6 +220,7 @@ def create_host_app(
     http_transport=None,
     clock=time,
     qualification=None,
+    maximum_attempts=None,
 ):
     try:
         asyncio.get_running_loop()
@@ -289,6 +290,7 @@ def create_host_app(
 
         app = create_app(
             environment=values,
+            inference_maximum_attempts=maximum_attempts,
             llm_client=model_client,
             admission=admission,
             lifecycle=lifecycle,

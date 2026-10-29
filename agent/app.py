@@ -125,6 +125,7 @@ def create_app(
     admission: AdmissionPolicy | None = None,
     lifecycle=None,
     inference_queue_observer=None,
+    inference_maximum_attempts=None,
     lifecycle_work_factory=None,
     readiness_factory=None,
     environment=None,
@@ -137,6 +138,7 @@ def create_app(
         settings,
         environment,
         queue_observer=inference_queue_observer,
+        maximum_attempts=inference_maximum_attempts,
     )
     admission = admission or configured_admission(environment)
     lifecycle = lifecycle or configured_lifecycle(values, admission)
