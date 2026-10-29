@@ -89,6 +89,7 @@ def test_runtime_verifier_never_reenters_file_validation(qualified_world, monkey
         "lock",
         "transport",
         "ceiling",
+        "attempt_limit",
     ],
 )
 def test_changed_actual_client_or_authority_is_rejected_in_memory(qualified_world, mutation):
@@ -139,6 +140,8 @@ def test_changed_actual_client_or_authority_is_rejected_in_memory(qualified_worl
             guard.client._transport = httpx.MockTransport(lambda _: None)
         elif mutation == "ceiling":
             guard.client.price_ceiling = ("0.4", "2.5")
+        elif mutation == "attempt_limit":
+            guard._maximum_attempts = 999
         assert await verifier.recheck(proof) is False
         assert await verifier.observe() is None
         await verifier.close()

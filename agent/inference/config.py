@@ -39,11 +39,15 @@ def openrouter_receipt(client, attempt):
     return None
 
 
-def configured_guard(client, settings, environment=None, *, queue_observer=None):
+def configured_guard(
+    client, settings, environment=None, *, queue_observer=None, maximum_attempts=None
+):
     values = os.environ if environment is None else environment
     selected = any(name in values for name in REQUIRED)
     required = values.get("COPILOT_ENV") == "production" and settings.provider != "scripted"
     if not selected and not required:
+        if maximum_attempts is not None:
+            raise ValueError("Attempt ceiling requires a durable inference allowance")
         return client
     if not all(values.get(name, "").strip() for name in REQUIRED):
         raise ValueError("Explicit durable inference allowance configuration is required")
@@ -81,6 +85,7 @@ def configured_guard(client, settings, environment=None, *, queue_observer=None)
             maximum_waiting=int(values["INFERENCE_MAX_WAITING"]),
             wait_seconds=float(values["INFERENCE_WAIT_SECONDS"]),
             queue_observer=queue_observer,
+            maximum_attempts=maximum_attempts,
         )
     except (ValueError, InvalidOperation) as error:
         raise ValueError("Invalid durable inference allowance configuration") from error

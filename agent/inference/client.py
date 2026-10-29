@@ -58,6 +58,7 @@ class GuardedClient:
         maximum_waiting: int,
         wait_seconds: float,
         queue_observer=None,
+        maximum_attempts: int | None = None,
     ):
         if (
             isinstance(maximum_active, bool)
@@ -70,6 +71,10 @@ class GuardedClient:
             or not 0 < wait_seconds <= 30
         ):
             raise ValueError("Finite inference concurrency and queue bounds are required")
+        if maximum_attempts is not None and (
+            type(maximum_attempts) is not int or not 1 <= maximum_attempts <= 1_000_000
+        ):
+            raise ValueError("Absolute finite inference attempt ceiling required")
         self.client, self.ledger, self.prices = client, ledger, prices
         self.receipt = receipt or (lambda _client, _attempt: None)
         self._semaphore = asyncio.Semaphore(maximum_active)
@@ -78,6 +83,7 @@ class GuardedClient:
         self._capacity = maximum_active + maximum_waiting
         self._wait_seconds = wait_seconds
         self._queue_observer = queue_observer
+        self._maximum_attempts = maximum_attempts
 
     def _observe_queue(self, outcome, started):
         if self._queue_observer is not None:
@@ -104,7 +110,9 @@ class GuardedClient:
             await request.authorize()
             attempt = request.attempt_id or str(uuid4())
             bound = self.prices.reservation(request)
-            await asyncio.to_thread(self.ledger.reserve, attempt, bound)
+            await asyncio.to_thread(
+                self.ledger.reserve, attempt, bound, maximum_attempts=self._maximum_attempts
+            )
             chunks = []
             try:
                 await request.authorize()

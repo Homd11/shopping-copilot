@@ -283,3 +283,57 @@ def test_prepared_unit_and_release():
         assert value in unit
     assert "Conflicts=shopping-copilot.service" in unit
     assert "-m deploy run" in (root / "deploy/shopping-copilot.service").read_text()
+
+
+def test_pinned_attempt_ceiling_reaches_qualified_factory(launcher, monkeypatch):
+    settings, binding, app = object(), object(), object()
+    observed = []
+    monkeypatch.setattr(launcher, "load_host_settings", lambda _: settings)
+    monkeypatch.setattr(launcher, "load_provider_binding", lambda *_: binding)
+
+    def factory(value, **kwargs):
+        assert value is settings
+        observed.append(kwargs)
+        return app
+
+    async def serve(value):
+        assert value is app
+
+    monkeypatch.setattr(launcher, "create_host_app", factory)
+    monkeypatch.setattr(launcher, "_serve", serve)
+    assert (
+        launcher.main(
+            [
+                "--config",
+                "/protected/host.json",
+                "--qualification",
+                "/protected/binding.json",
+                "--qualification-sha256",
+                "a" * 64,
+                "--maximum-attempts",
+                "252",
+            ]
+        )
+        == 0
+    )
+    assert observed == [{"qualification": binding, "maximum_attempts": 252}]
+
+
+@pytest.mark.parametrize("limit", ["0", "-1", "1000001", "four", "4.0", "252"])
+def test_ceiling_without_qualified_custody_is_refused_before_settings(launcher, monkeypatch, limit):
+    monkeypatch.setattr(launcher, "load_host_settings", lambda _: pytest.fail("Unsafe CLI loaded"))
+    assert launcher.main(["--config", "/protected/host.json", "--maximum-attempts", limit]) == 1
+
+
+def test_actual_host_factory_preserves_absolute_attempt_ceiling(
+    config_file, world, prepared, monkeypatch
+):
+    import deploy.host_bootstrap as bootstrap
+
+    monkeypatch.setattr(bootstrap, "_runtime_root", lambda: prepared["release"])
+    settings = load_host_settings(config_file[0], read_private=fixture_reader)
+    app = create_host_app(
+        settings, sdk_factory=lambda _: world[5], model_client=Model(), maximum_attempts=252
+    )
+    assert app.state.llm_client._maximum_attempts == 252
+    asyncio.run(app.state.host_cleanup())

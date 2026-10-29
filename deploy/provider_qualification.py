@@ -128,6 +128,7 @@ class ProviderQualification:
                 guard.prices.output_per_million,
                 guard._capacity,
                 guard._wait_seconds,
+                guard._maximum_attempts,
             ),
             (
                 settings.provider,
