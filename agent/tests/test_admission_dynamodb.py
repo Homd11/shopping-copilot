@@ -2,6 +2,7 @@
 
 import json
 from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier, Lock
 from uuid import uuid4
 
 import boto3
@@ -17,7 +18,7 @@ TABLE, NAMESPACE = "copilot-control-test", "demo"
 
 
 @pytest.fixture
-def authority():
+def authority(monkeypatch):
     with moto.mock_aws():
         client = boto3.client(
             "dynamodb",
@@ -42,6 +43,18 @@ def authority():
             ],
             BillingMode="PAY_PER_REQUEST",
         )
+        # Moto 5.2.4 snapshots/restores whole tables without transaction isolation.
+        # A losing concurrent transaction can otherwise erase a successful write.
+        # Serialize only the emulated service transaction, never the store caller
+        # or its reads; DynamoDB itself supplies this isolation in production.
+        transaction_lock = Lock()
+        transact = client.transact_write_items
+
+        def isolated_transaction(**request):
+            with transaction_lock:
+                return transact(**request)
+
+        monkeypatch.setattr(client, "transact_write_items", isolated_transaction)
         identity = DynamoInvitationStore.initialize(client, TABLE, NAMESPACE)
         now = [100.0]
         store = DynamoInvitationStore(client, TABLE, NAMESPACE, identity, clock=lambda: now[0])
@@ -59,6 +72,18 @@ def raw_key(sk):
 
 def reopen(store, client, now):
     return DynamoInvitationStore(client, TABLE, NAMESPACE, store.identity, clock=lambda: now[0])
+
+
+def synchronize_transactions(client, monkeypatch):
+    """Both callers must finish their reads before either transaction commits."""
+    barrier = Barrier(2, timeout=10)
+    transact = client.transact_write_items
+
+    def concurrent_transaction(**request):
+        barrier.wait()
+        return transact(**request)
+
+    monkeypatch.setattr(client, "transact_write_items", concurrent_transaction)
 
 
 def test_remote_window_quota_revocation_and_reopen(authority):
@@ -177,9 +202,10 @@ def test_remote_invalid_issue_input_never_writes(authority, starts, ends, redemp
     assert store.status() == []
 
 
-def test_remote_concurrent_final_redemption_is_atomic(authority):
+def test_remote_concurrent_final_redemption_is_atomic(authority, monkeypatch):
     store, client, now = authority
     invitation, code = store.issue(90, 120, redemptions=1, sessions=2)
+    synchronize_transactions(client, monkeypatch)
 
     def redeem(subject):
         try:
@@ -250,10 +276,11 @@ def test_remote_changed_invitation_limit_cannot_bypass_validated_authority(autho
     assert rows(store)[invitation]["used_redemptions"] == 0
 
 
-def test_remote_final_session_slot_is_atomic(authority):
+def test_remote_final_session_slot_is_atomic(authority, monkeypatch):
     store, client, now = authority
     invitation, code = store.issue(90, 120, redemptions=1, sessions=1)
     store.redeem(code, "browser")
+    synchronize_transactions(client, monkeypatch)
 
     def allocate(_):
         try:
