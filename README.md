@@ -9,7 +9,7 @@ using Egyptian Arabic, English, Franco-Arabic, or mixed-language requests. The
 engineering focus is the full interaction: interpreting a request, grounding it in
 store facts, checking each action, and giving the shopper clear control over changes.
 
-This is a **graduation-project MVP under development**, built around one local
+This is a **This is an active R&D MVP under development, built around a local Controlled Storefront**, built around one local
 Controlled Storefront. It is a working test environment for the assistant, with
 fictional products, accounts, orders, and checkout. Compatibility with independent
 retailers and production readiness have not been demonstrated.
