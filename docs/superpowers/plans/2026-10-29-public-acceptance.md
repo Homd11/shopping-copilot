@@ -42,7 +42,7 @@ Files: `agent/app.py`, `deploy/host_bootstrap.py`, `deploy/host_agent.py`, `depl
 - [x] Add explicit trusted factory arguments and `--maximum-attempts`; require the existing qualification flags when the CLI limit is supplied. Never read a browser value or calculate count+4 at boot.
 - [x] Capture the limit in ProviderQualification's in-memory signature.
 - [x] Run affected host/provider/inference checks and lint/format:88 focused tests pass; full regression1617passed/2existing warnings, exit0.
-- [ ] Rebuild native release and affected Lambda ZIPs before cloud use (Task3).
+- [x] Rebuild native release and affected Lambda ZIPs before cloud use: clean source44e4952, native release and both isolated Linux Lambda smoke checks passed. See docs/public-preparation-pause-20261029.md for proof limits.
 
 Ruling: use the root-owned unit's literal absolute ceiling rather than another runtime configuration schema/file. This is an operator setting, not a secret. Record the baseline and ceiling once in the protected operation; install the same literal for both starts/restarts. HostSettings/model configuration fingerprint remains unchanged. The approved local code change necessarily creates a new immutable release; bind its independently verified release fingerprint while retaining the same accepted qualification report, model configuration, key and ledger. Never patch an old release or claim its old digest covers new bytes.
 
@@ -50,9 +50,9 @@ Ruling: use the root-owned unit's literal absolute ceiling rather than another r
 
 Files: protected `.scratch/cap08-public-preparation/` operator and synthetic tests; public sanitized evidence/results/checkpoint only.
 
-- [ ] Recover exact existing resources and receipts; record the actual approval/proposal digest and new artifacts without moving live secrets to the PC.
+- [x] Recover exact existing resources and receipts; record the actual approval/proposal digest and new artifacts without moving live secrets to the PC.
 - [ ] Prepare/test write allowlists, partial-create reconciliation, start/EIP/request ceilings, DNS baseline/TTL checks and independent deadline cleanup. Refresh official prices and Free eligibility; bind generated identifiers only after receipt.
 - [ ] Run the approved ordered gates from the spec: disabled/private control provisioning, inspect-first maintenance, public TLS/OAC, genuine invitation cold wake, desktop/Android checks, real idle shutdown and teardown. No extra approval round within the approved exact bounds.
 - [ ] Retrieve diagnostics before shutdown, preserve canonical accounting, independently verify all new resources deleted and original host stopped/no EIP, then publish evidence and final limitations.
 
-Execution ledger: owner latest instruction holds launch for review of `docs/public-activation-deployed-acceptance-proposal-20261029.md`. No Computer Use or Brave access. DNS edits are owner-only; owner confirms no A records. Local fence is tested/reviewed, but Task3/operator and rebuilt native artifacts remain unexecuted. No cloud mutation/session clock has begun.
+Execution ledger: owner subsequently said “lets finish this project,” then explicitly paused for usage limits and requested a checkpoint, intending to return in about three hours. Resume only on owner input. See `docs/public-preparation-pause-20261029.md`. No Computer Use or Brave access; DNS edits remain owner-only. Native and Lambda artifacts are rebuilt, but Task3/operator, deadline worker, partial-create failure coverage and deployed acceptance remain incomplete. No cloud mutation/session clock has begun; host stopped, no EIP, no provider/model calls. Docker is stopped. No automatic resumption was scheduled.

@@ -2,6 +2,45 @@
 
 **Last updated:** 2026-10-29
 
+## Owner pause; native artifacts prepared, cloud session unused — 2026-10-29
+
+Owner requests stop for usage limits, checkpoint and return in about three hours.
+**No more implementation/cloud/model work until the owner resumes.** No automatic
+resumption was scheduled. Read docs/public-preparation-pause-20261029.md and the
+protected operation's resume-frontier.md before continuing. This supersedes the
+historical launch-review hold: owner said “lets finish this project,” then paused
+during local preparation. Existing unchanged grant is unused; do not duplicate
+approval solely because of this pause.
+
+Fresh read-only pause receipt: original host stopped/no public IP; Stockholm EIPs0,
+Lambda functions0; new AWS mutations0, starts0, EIP requests0, provider GETs0 and
+model POSTs0. Four-hour clock has NOT begun. Retained encrypted root/table storage
+continues to incur usage. No DNS changes. Docker Desktop stopped; no Docker/Python
+build/test or public-operation worker remains. No watchdog/runner was launched.
+
+Native release rebuilt offline from clean source44e4952: Python3.12.14/Node24.22.1,
+archive0144cbd43a156804f221797bd0d733d63d8130f0aae831d1ba7583b5b76d1127,
+manifest fd45e5d183b2c585b4974f0ee3650303f779a2e853750415e7f7f68a5ce073a7.
+Native imports/store restarts/custody refusal checks passed; full qualified Agent
+startup NOT tested, Caddy adaptation only. Both new Lambda ZIPs pass package and
+actual isolated Linux smoke. Earlier full1617pass/2existingwarnings remains valid
+for unchanged production source. Thirteen draft operator tests passed earlier.
+
+Protected .scratch/cap08-public-preparation/public-operation.txt points to paused
+state, owner-pause-safe.json, pause-source-manifest.json/source snapshot and
+resume-frontier.md. Native/Lambda pointers and artifacts preserved there. State
+owner_paused=true, starts0/eip_requests0; local-ready/watchdog-ready sentinels absent.
+Operator/helper drafts are INCOMPLETE: finish partial-create/rollback failure
+coverage, guest finalization proof, independent deadline worker/execution runner
+and independent inventory locally before any AWS write. Inspect retained logs
+before rerunning. No deployed/public/physical Android acceptance claimed.
+
+Working price estimate USD1.777944961 within unchanged USD2 grant with tighter
+500-invocation-per-Lambda working bounds; refresh eligibility/prices/credentials,
+DNS/IPv4, and human DNS/Android availability on resume. Keep Free/USD0cash,4h,
+max2totalstarts/oneEIP/max4POSTsUSD0.10/nonresetUSD2/reserve and max5GETs unchanged.
+No Computer Use or Brave access; all DNS edits/restoration remain human-only.
+
 ## Full regression passed; public launch review held — 2026-10-29
 
 Latest owner instruction: DO NOT use Computer Use or access Brave. Owner handles
