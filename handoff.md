@@ -1,5 +1,39 @@
 # Shopping Copilot — project handoff
 
+## Quota hold; public operator safeguards implemented — 2026-10-30
+
+Owner resumed and confirmed DNS/Android availability, then reported21% quota.
+Cloud launch held to avoid quota exhaustion inside the bounded session; this is
+not an owner-requested pause or an additional approval requirement. Existing grant
+unchanged/unused. Read docs/public-operator-preparation-20261030.md and latest
+protected resume-frontier.md. No AWS session/watchdog started. Fresh read-only
+checks: original host stopped/no public IP, EIPs0, Lambda functions0; resource
+mutations0/starts0/modelPOSTs0/keyGETs0. Retained storage still incurs usage.
+
+Merged origin/main72dfce2 into deployment branch7ffb62a, preserving owner docs and
+CI fixes. Runtime44e4952 unchanged; selected verified native/Lambda artifacts
+remain those exact artifacts. All55 private operator tests pass;84admission/
+lifecycle pass after merge. Independent review3Important findings fixed with
+regressions: initialSTOP-only +single absolute<=120s START grant (no renewal),
+pre-disclosureDNSintent/TTL protects partial-verification rollback, observed log
+threshold triggers cleanup. Guest/failure/ownership/deadline/accounting safeguards
+and read-only inventory/CloudTrail/closure helpers implemented. Actual deployed
+acceptance remains unexecuted; do not equate local tests with cloud/systemd/phone.
+
+Canonical allowance had readiness.10 only. Root-only helper separately grants
+already-approvedlive.10 within unchangednonresetkey2; preserves UUID/schema/all
+legacy charges/holds, prevents duplicate grant after lost receipt, withdraws unused
+live allowance on finalization and preserves readiness. One independent provider
+statusGET reserved within existing5GET maximum, not executed. Host inference fence
+remains baseline+4, never recomputed/replenished at restart. No provider key moved.
+
+Protected public-operation.txt -> quota-hold.json/latest verified-preparation
+snapshot/hashmanifest/resume-frontier. owner_pausedFalse, launch_heldTrue;
+local-ready/watchdog-ready absent. Next: final joined driver/failure rehearsal,
+refresh account/prices/DNS and owner availability, then verified watchdog/approved
+4hcloud session (roughly2–3h including actual60minidle). No ComputerUse/Brave;
+owner-onlyDNS. Keep all original budget/start/call/rollback bounds unchanged.
+
 ## Owner pause; native artifacts prepared, cloud session unused — 2026-10-29
 
 Owner requests stop for usage limits, checkpoint and return in about three hours.
