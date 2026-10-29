@@ -1,5 +1,37 @@
 # Shopping Copilot — project handoff
 
+## Main project resumed; public acceptance proposed — 2026-10-29
+
+Owner says the current ~USD180 credit is enough and explicitly returns to main
+project work. Stop reward pursuit; do not retry the remaining Bedrock activity.
+Read `docs/cap-public-acceptance-proposal-20261029.md`: one consolidated public
+acceptance design, PENDING exact resource/model/DNS approval. Proposed AWS USD2,
+Free/USD0cash,4-hour session (disabled-edge cleanup-only tail up to24h), existing
+host maximum2starts, one temporary EIP, new private S3/CloudFront/OAC/control
+Lambdas/observation resources, two DNS records; teardown after acceptance.
+Proposed at most4 live OpenRouter POSTs/USD0.10 inside unchanged nonresetUSD2,
+existing readiness reserve preserved, up to5 statusGETs including per-POST checks.
+No grant yet; no AWS writes, host starts, DNS changes or model requests this turn.
+
+Fresh preparation:72focused public HTTPS/cloud-access/observation/packaging tests
+pass. Current-source startup/controller ZIPs rebuilt/verified/isolated smoke pass;
+receipt `eval/evidence/public-acceptance-preparation-20261029.json`. Read-only
+Lambda quota400/unreserved400/functions0 supports reserved1each. CloudFront list
+API succeeds but count=null: resource inventory/create eligibility NOT established.
+Protected artifacts in `.scratch/cap08-public-preparation` (directory label only,
+not an academic CAP-08 renumbering). No new runtime source or product behavior.
+
+Fresh builder review resolved three design gaps: explicitly time-only renew the
+expired private binding against same accepted report/config/key/ledger; retain
+mandatory pre-POST statusGETs; require an atomic four-attempt session fence before
+network across concurrency/restart. Current GuardedClient does not yet pass the
+ledger's optional maximum_attempts; this local implementation is still required
+before paid activation. Inspect prior CAP07 cleanup for removed test overrides/
+hosts/private TLS and retain permanent metadata/UID/custody protection. Revised
+focused builder check found no material mismatch. Next: owner approval of the
+concrete combined scope, then local TDD/operator proof before any cloud write.
+Original host remains stopped; prior RDS trial closed, no background cloud worker.
+
 ## RDS reward completed; trial deleted — 2026-10-29
 
 Owner-approved renewed RDS-only session completed. Read
