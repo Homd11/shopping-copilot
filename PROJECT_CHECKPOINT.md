@@ -1,6 +1,610 @@
 # Project checkpoint
 
-**Last updated:** 2026-10-30
+**Last updated:** 2026-11-03
+
+## Desktop public acceptance CLOSED; full teardown independently verified
+
+Current recovery5c467f97 final-acceptance.json passedTrue at11:38:04Cairo
+(1793698684.3232713): desktop_only, actual cloudcomputeoff/alltemporaryresources
+deleted. Android remains owner-excluded, never claimed tested. Independent final
+inventory11:37:44Cairo verifies originalhostSTOPPED, no publicIP/EIP, public
+ingressclosed, alltemporaryresourcesabsent and retainedstorage. Separate root
+AWS confirmation11:39:51Cairo rechecks stopped/no publicIP/no ownedEIPs and active
+FREE plan. Original host/root/table retention remains; storage still uses credits.
+
+Actual inheritedIP release verified11:36:31Cairo after7229.285seconds from the
+09:36:02 authoritative absence proof. Full24query/fourNS A/AAAA/CNAME pre-release
+recheck passed without resetting that epoch. Original07:38:50Cairo EIP cutoff
+was exceeded during the interruption/PC restart; cleanup-only continuation was
+chosen under renewed owner delegation, zero extra budget/starts/allocations/
+modelcalls. Old deadlines remain unchanged. final-operational-timing.json and
+cleanup-resume-ruling.json explicitly preserve the exception; no false original
+timing-compliance claim. All functional and cache-safety gates actually pass.
+
+Real public Chromium147requests/1message, invitedcoldwake5, signed readiness,
+cart isolation/Sensitive Field exclusion/bound Confirmation/refresh without replay/
+SSE recovery pass. Healthy idle stopped naturally after3755.376seconds. Actual
+CloudTrail verifies2Starts and the current natural controller STOP. Signed final
+accounting249from248:one new settled attempt/USD0.0011298, zero new uncertain,
+ledgerdisabled/USD0.0988702 unused withdrawn/USD0.10reserve preserved, alllegacy
+holds intact, original nonresetUSD2keycap unchanged. No further provider calls.
+
+Cleanup supervisor, closure observer and temporary-awake completion/exit receipts
+are present; fresh process inspection confirms all workers exited. No local demo
+listeners4000/4100/8000 at final check.
+Production header correction/regression cases saved in local commit9c1902a;
+55focused tests pass18.57s, earlier full1622Python/199TS/build and117operator proof
+retained. No remote push/merge. Unrelated user Markdown/PDF files preserved.
+
+Handover: docs/desktop-public-acceptance-result-20261103.md. Graduation desktop
+deployment acceptance gate is closed under the recorded cleanup continuation.
+Do not start another cloud session or generalisation step automatically. Future
+public demonstrations need a new bounded activation/allowance; the site is off.
+
+## Morning cleanup resumed after PC restart; functional gates all verified
+
+Owner returned with continue, completed fresh AWS CLI sign-in, then explicitly
+said to finish while they sleep with full PC access. Independent current AWS
+inventory confirms original host remains STOPPED, same EIP still owned/associated.
+No new Start, resources, provider POSTs or allowance reset. Signed final receipt
+verified at01:32:25UTC:249total/248baseline, one new SETTLED attempt, zero new
+uncertain attempts, USD0.0011298 live spend, USD0.0988702 unused live allocation
+withdrawn, ledger disabled, USD0.10 readiness reserve and20legacy holds intact.
+Actual CloudTrail verifies exactly2Starts, invitedcoldwake5 and natural current
+controller STOP01:22:46UTC. CF and other temporary controls are already deleted;
+only inherited EIP release/cache safety remains before independent final closure.
+
+IMPORTANT TIMING EXCEPTION: prior supervisors last updated around03:48UTC;
+all their processes were absent on resume. Windows LastBootUpTime independently
+reports09:29:48Cairo/07:29:48UTC. AWS session expired. Original EIP deadline
+05:38:50UTC was exceeded; do NOT claim original timing compliance or reset the
+original state timestamps. Full authoritative A/AAAA/CNAME absence was first
+verified07:36:02.491789UTC/09:36:02Cairo. Existing strict7200s cache gate therefore
+permits release09:36:02UTC/11:36:02Cairo, not from the earlier registrar click.
+
+Cleanup-only continuation chosen under renewed owner instruction/standing
+best-choice delegation: no additional budget beyond existingUSD2, Free/USD0cash,
+zero starts/newallocations/modelcalls, hold only the same EIP through actual TTL,
+then release immediately. Actual ruling cleanup-resume-ruling.json preserves old
+deadlines and explicitly records the overrun; no retroactive timing pass.
+Fresh supervisor actualPID4228, read-only closure observer actualPID29720; launch
+parents26280/29732. Finite system execution request refreshed through11:51:02Cairo
+or earlier verified cleanup; no permanent power/security changes. They are live.
+Old observer31772(parent)/22344(actual), supervisor10880 and awake processes no
+longer exist. Existing verified receipts retained; DNS proof epoch never refreshed.
+
+Finish after real TTL: supervisor disassociates/releases sameIP, proves compute
+safe/alltemporaryresourcesdeleted; closure observer rechecks signed accounting,
+CloudTrail, generation5 authority and independent inventory before final acceptance.
+Root must inspect fresh actual exit/results, then write final checkpoint/report.
+No additional testing or public activation needed. Android remains owner-excluded.
+
+During the remaining cache wait, persisted only the already-tested production
+header fix and its regression cases as local commit9c1902a (two files, no remote
+push/merge). Fresh focused startup verification before that commit:55passed in
+18.57s; diff whitespace check clean. Native deployed archive/artifact pins remain
+unchanged. Other user documents/PDFs and immutable proposal bytes are preserved.
+
+## Genuine idle shutdown passes; registrar cleanup done; DNS/accounting tail active
+
+Generation5 genuine-idle VERIFIED at1793669043.1113 (01:24:03UTC/03:24:03Cairo):
+3755.376actual seconds after last meaningful activity, lifecycle stopped with no
+leases/command/recoverable and independent EC2 stopped observation. No manual
+stop was used to manufacture acceptance. Desktop public check already passes
+(147requests/1message); protected ledger249from248baseline, legacy20uncertain
+holds unchanged. CF globally reached Deployed, EnabledTrue, read-only confirmed
+at1793665878.0028968. Current recovery used its two actual starts, no new EIP.
+
+Owner-delegated Computer Use cleanup SUCCESSFULLY deleted only store/app A records
+13.62.211.240 TTL7200. Fresh Namify UI shows A Records: No records available.
+Truthful owner-dns-rollback and registrar-dns-cleanup-ui-verified receipts record
+performed_by agent_under_owner_delegation, owner_direct_replyFalse; no fabricated
+owner message. Actual UI verification epoch1793669176.5228858. Initial authoritative
+check still had the old address; do NOT start TTL clock from the UI click. Initial
+post-stop console call had no current signed accounting yet (retained exact
+failure), not a fabricated verification. Both are expected propagation waits.
+
+New finite READ-ONLY closure observer actualPID31772 retries DNS absence, signed
+console accounting and actual CloudTrail, then strict existing final close after
+supervisor confirms resources_deleted. It never starts/stops a host, touches a
+provider or repairs lifecycle state. It never overwrites an existing DNS absence
+receipt/TTL epoch. Source observe_public_closure.py compiles; original strict
+verification functions retained. Supervisor10880 owns actual teardown and is live.
+Idle observer9444 completed; finite execution request helper stays active.
+
+Next: monitor closure-observer-heartbeat/pending/error and cleanup receipts;
+verify authoritative absence+7200s, signed final accounting/new settled attempt,
+actual two Starts/current natural controller Stop and final independent inventory.
+Compute/control end03:38:50UTC; EIP-only end05:38:50UTC unchanged. Disabled CF-only
+deletion tail can extend24h. No further shopping/model calls. Android excluded.
+Focused production startup regression freshly rerun:55passed in18.25s. Full
+earlier1622Python/199TS/build evidence unchanged. Final acceptance NOT yet claimed.
+
+## Public desktop case passes; genuine generation-5 idle observation active
+
+Current recovery5c467f97 completed maintenance, authoritative DNS/trusted HTTPS,
+all five real edge checks, invited cold wake to generation5 and signed readiness.
+Actual public Chromium driver EXIT0: isolated cart identities, Sensitive Field
+exclusion, no cart mutation before bound Confirmation, cart cleared afterward,
+refresh without replay, SSE recovery and invitation not persisted. One submitted
+shopping message,147application requests; canonical protected ledger249attempts
+from248baseline (one new real provider attempt), same original key/ledger/cap.
+No further model requests needed. Desktop closed and invitation revoked.
+
+Real idle observation is active, PID9444; cleanup supervisor10880 remains live.
+Latest generation5 is ready/healthy with zero leases/no command. Last meaningful
+activity1793665287.7352927 (~00:21:27.735UTC3November); earliest3605-second proof
+01:21:32.735UTC plus actual controller drain/EC2 stop. Do not manually stop early,
+shorten the clock or interact with app/store. Observer only reads lifecycle and
+requests cleanup after strict genuine-idle proof. Check idle-observation-progress,
+idle-observer-complete/error and genuine-idle receipts. Compute/control deadline
+03:38:50UTC, earlier cleanup02:18:50UTC; inherited EIP end05:38:50UTC unchanged.
+
+CF global StatusInProgress outlasted two read-only waits; enable applied once.
+Controlled-edge-availability ruling records actual TLS/OAC/IAM route checks and
+permits this bounded desktop check without inventing global Deployed metadata.
+Actual cold wake and public shopping passed afterward. Recheck metadata read-only;
+do not replay enable. All117current private operator tests pass. Production
+regression evidence remains1622Python/199TypeScript/builds, unchanged source.
+
+Owner is asleep and explicitly delegates bounded completion/registrar cleanup.
+Only app/store A13.62.211.240 TTL7200 may be deleted after actual idle shutdown.
+Fresh Sky observation required; registrar window3083448 was URL-policy verified,
+but handles/indices must be refreshed. Record agent-performed delegated deletion
+truthfully, verify authoritative absence, then wait the full7200s before release.
+Retrieve new signed final accounting, audit both Starts and genuine controller
+Stop, independently inventory and close only after real cleanup. Android remains
+owner-excluded. Temporary finite execution request keeps supervised cleanup awake.
+
+## Recovery private gates pass; maintenance stopped; enabled-edge propagation pending
+
+Current recovery5c467f97 firstwrite23:38:50.497831UTC2November. Compute/control end
+03:38:50UTC3November/05:38:50Cairo; earlier160minute cleanup02:18:50UTC; inherited
+EIP-only end05:38:50UTC/07:38:50Cairo. New supervisor actualPID10880 is advancing.
+Exactly1newmaintenanceStart,0newEIPallocations,0modelPOSTs. Canonical baseline248,
+max252; fresh provider status checked under new allowance. Fixed startup and
+original controller CodeSha256 both VERIFIED from AWS. Disabled provisioning,
+private inspect/stage, authoritative DNS and trustedTLS all pass; maintenance
+is physically stopped. Do not consume remaining cold-start grant before gates.
+
+Owner is going to sleep, requests autonomous good news. Owner restored both
+app/store A13.62.211.240/TTL7200 and left Namify DNS page open. Rollback obligation
+recorded immediately before actual staging/DNSverification (owner prebinding
+ruling, same already-owned IP, no public app then). Actual Windows Computer Use
+retry after registrar page became visible PASSED URL-confidence policy. Read-only
+UI confirmed exact two records at https://namify.get.tech/dashboard/manage-domain.
+Browser access/cleanup is owner-delegated; ignore prior stale no-Brave prohibition,
+but never bypass policy/auth/security barriers. sky session bindings dnsWindow/
+dnsState and appBrave/window3083448; reobserve fresh before any action. Read skill
+C:/Users/pc/.codex/plugins/cache/openai-bundled/computer-use/26.1027.30824/skills/computer-use/SKILL.md
+and guidance/api/confirmations already done this run. No unrelated DNS changes.
+
+Integrated maintenance-stop ordering repair is strictly approved-recovery only:
+may stop base4 ready/unhealthy authority ONLY with no leases/command and actual
+guest-staged.json proof inference_enabledFalse; defaultbase3 and cold gates retain
+stopped requirement. All108current private tests pass. Real Decimal clock seam
+in old off-host finisher was reproduced/fixed offline;24focused tests pass. New
+private source changes do not change native release/provider qualification.
+
+Old generation4 real-clock bookkeeping is COMPLETE and actual authority stopped/
+no leases/no command/recoverable. prior-generation-stopped-proof.json saved to
+newoperation; old bookkeeping worker10688 retired after proof. Old manual shutdown
+is explicitly not a healthy-idle acceptance. Newcoldwake must be generation5.
+
+Enable update applied once at23:54:44UTC. CF EnabledTrue/StatusInProgress exceeded
+initial600s read wait; no mutation replay. Read-only await_edge tail is active
+(unified exec session from latest tool, receipt enable-propagation-readonly-ruling).
+Inspect enable-propagation-verified.json/phase receipt and live status. Next once
+Deployed: edge_checks, invitations (default65/90min from freshfirstwrite), wake
+exactlyonce, signed5, private tested public_desktop once, then browser closure/
+invitation revoke and actualhealthy60minidle. Namespace signedaccounting/CLI
+must use newgeneration5; do not accept oldgen4 receipts.
+
+Credential cache has refreshToken and expiration advanced automatically, so no
+credential was printed or new login asked. Temporary system-execution request
+helper is finite until cleanup/EIPdeadline+300s (temporary-awake\*.json); no permanent
+settings/security/privacy change. Keep newcleanup supervisor active. After idle
+and accounting, delete ONLY owned app/store A13.62.211.240 via authorized registrar
+UI if URL policy permits, verify authoritative absence, wait real7200s thenrelease
+the inheritedIP and independently inventory. No user questions/extra budget needed
+inside this chosen bounded scope; if any action is blocked, retain exact evidence.
+
+## Owner delegates bounded retry; recovery handoff verified; provisioning active
+
+Owner explicitly delegates approval selection while away (“if you need any
+approves just approve the best choice”), then directs retry/finish rather than
+stopping. Selected and announced exactly one fresh bounded recovery under
+docs/public-acceptance-recovery-20261103.md: up toUSD2 additionalAWScredits,
+Free/USD0cash, same original host/table/key/ledger,2newStarts, zero newEIPallocations,
+4POSTs/USD0.10 and5statusGETs, unchanged nonresetUSD2 key cap/readiness reserve.
+Old operation history/counters and failed acceptance remain intact. Native source
+44e4952/controller unchanged; startup uses approved64header ZIP SHA265df9d25f72fa0271eff26594eba6fc9afe307282c1bd3298d76b7cf6522537.
+
+Fresh recovery operation recovery-5c467f97-9f29-4a79-a6fa-d95cdcb2c422 now owns
+current AND next pointers. Separate owner-standing-authorization receipt pins the
+exact proposal, not an invented approval-tool reply. Source/test review executed
+in two independent offline domains then integrated:105private checks pass,
+including the full deliberately delayed browser workflow. Recovery strictly uses
+basegeneration4/target5; oldgen4 readiness/idle/bookkeeping cannot satisfy new5.
+No independent-storefront work, provider switch, key migration or qualification
+rerun. Host/model ledger remain as previously verified until private staging.
+
+Supervised same-IP custody handoff is COMPLETE. Fresh supervisor armed/heartbeat
+verified before the single exact EIP owner-tag transfer. Address/allocation/
+association/originalhost/oldowner were independently checked, newowner rechecked;
+old resource supervisor26788 retired before any new host/service start. Old
+operation closed as resource_custody_delegated, acceptanceFalse, not a fabricated
+resource-deletion or idle pass. Its finite off-host gen4 bookkeeping helper remains
+until actual old activity+3605s; do not let newcoldwake proceed until gen4stopped.
+
+New operation first write/deadlines are in protected state.json; do not reset.
+Four-hour compute/control, earlier160minute cleanup,6hEIPtail plus original10h
+cumulative IP bound. Same13.62.211.240 EIP, zero newallocation; priorA records owner
+deleted/reconfirmed absent in registrar but old DNS answers still propagated.
+Provide sameIP for fresh owner A-record binding ONLY after new private staging.
+Browser control was stopped by URL-confidence policy; no browser bypass.
+
+At handoff:0newStarts/0newEIPallocations/0modelPOST. Disabled/private provision is
+now executing; inspect phase-provision receipts and live state. New helper APIs
+verify inheritedIP and exact startup/controller CodeSha256 before any wake. Next:
+private resources/maintenance inspect+stage, owner DNS/TLS, stopmaintenance,
+complete oldgen4 bookkeeping, edgecheck, one invitedcoldwake5, testeddesktop,
+actualhealthy60minidle and full signedaccounting/DNS7200s/EIPteardown. Owner back
+asked status; reported105green, oldhostoff and preparedhandoff, no extra approval
+requested for the already selected bounded standing-authority scope.
+
+## Desktop attempt exhausted; host stopped; offline full workflow repaired
+
+Owner approved timing amendment and confirmed app/store tabs closed. Actual
+invitation/cold wake succeeded through CloudFront/OAC; signed generation4 readiness
+passed and controller IAM returned STOP-only. Public TLS, edge denial and cold
+wake gates therefore have real receipts. Desktop public acceptance did NOT pass.
+
+Three setup attempts sent zero model messages. First raced asynchronous cart
+setup; the second revealed the earlier missing cart JavaScript hydration wait
+(plain native form409 invalid_or_stale_cart_edit). Owner then explicitly approved
+one final setup recovery/replacement invitation and no further retry under
+docs/public-final-desktop-setup-20261103.md. Exhausted invitation revoked/history
+preserved; exactly one replacement issued after a stale preflight guard blocked
+the first revoke before an AWS write (strong-read reconciliation preserved).
+Final driver began within the approved deadline, seeded the cart and proved
+independent cart identities, then read window.\_\_copilot before Bridge init.
+No model POST or extra host Start. This final grant is consumed; no more cloud
+setup retry, invitation replacement, clock/counter reset or automatic new launch.
+
+All failure receipts/screenshots and guest logs were retrieved before shutdown.
+Owner deleted both app/store A records for13.62.211.240. Original EC2 host is
+stopped. Existing cleanup supervisor26788 remains; temporary functions/roles/
+schedule/edge cleanup proceeds and edge_pendingFalse. Temporary EIP is held for
+DNS propagation plus real7200s cache expiry, not released yet. Some authoritative
+servers still returned oldA while others were absent; no absence/timer invented.
+Latest protected owner-dns-rollback and dns-rollback-propagation-observed receipts
+are current. Original absolute EIP end03:29:17UTC3November/05:29:17Cairo remains.
+
+Signed guest shutdown accounting is now VERIFIED: ledger disabled, attempts248
+equal baseline248/max252, zero live spend, unusedUSD0.10 allocation withdrawn,
+original history/key/ledger/readiness reserve preserved. EC2 console transport
+inserted timestamp overlays inside signedJSON. Minimal private parser normalization
+restores the ORIGINAL HMAC; wrong values still fail authentication. Production
+logger/guest unchanged. verified-final-accounting.json is authoritative.
+
+Finite cleanup-only follow-up public_abort_tail.py launched parent24600/actual
+heartbeatPID10688 (see abort-tail-heartbeat.json). It confirms DNS absence to
+start the TTL clock, verifies accounting, reconciles aborted generation4 lifecycle
+bookkeeping after actual last activity+3605s, and performs independent final
+inventory/cleanup-only closure. This is NOT a genuine healthy idle acceptance
+pass: host was manually stopped, and acceptance remainsFalse. Bookkeeping due
+epoch1793663812.2920187 (~23:56:52UTC/01:56:52Cairo). Original supervisor handles
+all resource deletions/IP release. Tail ends by EIP deadline+300s; inspect its
+heartbeat/error/deadline receipts, never infer completion from a launched process.
+
+Offline repair extracted the same browser workflow and added bounded cart/Bridge
+readiness waits at each navigation, with one actual scripted local end-to-end
+case delaying cartJS500ms and Bridge700ms. It first reproduced the exact undefined
+Snapshot failure, then passed the entire isolation/SensitiveField/confirmation/
+mutation/refresh/SSE case.16focused tests pass; all82current operator checks now
+pass (39.06s) in outputs/cap08-resume-20261102/desktop-offline-all-operator.log.
+Python lint/format remain clean; production source unchanged since the earlier
+full1622Python/199TS regression/build. This is explicitly
+offline/scripted evidence, not a provider/publicTLS/deployment pass. Native release
+and controller remain44e4952; only earlier approved startupZIP header patch differs.
+No new resources/model spending/launch approval inferred from owner 'continue'.
+
+Direct IPv4-authoritative DNS diagnostic subsequently mapped all16NS addresses;
+one direct IP per each of the4NS names showed store absent but app stilloldA.
+Owner asked to check app A record in registrar manually; response pending. This
+does not alter the absence/TTL gate. Retain EIP until actual evidence permits
+release. Latest dns-rollback-literal-server-diagnostic.json is current.
+
+## Fixed startup deployed; edge checks pass; timing amendment pending
+
+Owner approved single pinned update. First helper invocation refused before any
+cloud write because its invitation-only65minute check had elapsed. Separated that
+precondition from the still-valid original160minute code mutation cutoff. Actual
+approved fixed ZIP deployed once, exact CodeSha256 Active/Successful verified;
+startup-fix-code-verified.json retained. Diagnostic two-update counter preserved;
+separate startup_fix_updates1/startup_fix_verifiedTrue. All five public edge
+checks now pass, edge-acceptance.json. Original host still stopped,1Start/1EIP,
+no invitation/cold-start permission/modelPOST. Same original absolute deadlines.
+
+Prepared docs/public-invitation-timing-amendment-20261103.md: owner must approve
+one absolute late invitation window (issue before22:54:17UTC2November, expire
+23:09:17UTC; desktop start before22:59:17UTC and close before23:04:17UTC). No
+clock reset, new session, financial/resource/start/model bound increase. Keep
+160minute cleanup cutoff00:09:17UTC/4hcompute/6hEIP unchanged and real60minidle.
+The79current private checks pass; production full1622Python/199TS results retained.
+Default65/90 window remains without separately pinned owner timing receipt.
+Owner must also explicitly confirm app/store tabs closed/kept closed for idle;
+DNS registrar page can remain open. No timing approval/confirmation inferred yet.
+Current supervisor26788 advancing; original operation pointer unchanged. On
+approval verify actual time before issuing; never replay/extend if already late.
+
+## Live startup diagnostic complete; bounded header fix prepared - 3 November 2026
+
+Current desktop session remains active (first write21:29:17UTC2November;
+compute end01:29:17UTC3November, earlier supervisor cutoff00:09:17UTC;
+EIP-only end03:29:17UTC). Host stopped, one maintenance Start/one EIP consumed,
+no cold-start grant/invitation/modelPOST. Owner saved app/store A records to
+13.62.211.240, TTL7200. Authoritative DNS and trusted public HTTPS pass. Control
+delivery/schedule enabled; no acceptance pass yet. SupervisorPID26788 heartbeat
+verified. Private DNS TCP and schedule StartDate repairs preserve original bounds.
+
+Owner-approved metadata-only startup diagnostic completed exactly two code
+updates and two HTTP probes. Original startup CodeSha256 restored and verified;
+startup-original-code-restored.json is the receipt. Actual valid CloudFront/OAC
+HTTP-v2 events have36/39headers,2150/2240bytes; production caps32. Safe metadata
+proves this is the transport rejection. No raw event/credential output retained.
+
+Prepared one-line startup header-count bound32to64, retaining4096bytes and all
+other transport/auth/rate/invitation checks. Regression reproduced400 first;
+55startup and78current operator checks pass, Python format/lint pass. Full
+regression completed22:26UTC:1622Python tests pass/two dependency warnings,
+199TypeScript tests and all three builds pass. Product lint/format pass. Broad
+local scans flag unrelated historical scratch JS/progress/frozen documents;
+preserved and disclosed in the amendment. Inspect
+outputs/cap08-resume-20261102/startup-header-\* logs.
+Fixed startup ZIP SHA265df9d25f72fa0271eff26594eba6fc9afe307282c1bd3298d76b7cf6522537,
+only agent/lifecycle/startup.py content differs from original44e4952 ZIP. Native
+release/controller/provider binding unchanged. Separate one-update pinned grant
+and unverified-fix wake block are prepared in private operator. No fixed-code
+cloud update authorized or executed yet. Concrete amendment:
+docs/public-startup-header-fix-amendment-20261103.md. Do not reset the two consumed
+probe updates. Complete verification, obtain exact-artifact amendment approval,
+then apply once, verify exact hash, repeat edge checks and continue existing
+cold-wake/desktop/genuine-idle/teardown gates before original deadlines. Invitation
+issuance cutoff remains22:34:17UTC2November. Owner-only DNS/no CUA or Brave.
+
+## Desktop-only renewal approved and prepared - 2 November 2026
+
+Owner resumes and explicitly excludes the phone test; DNS access is already
+confirmed. Owner approves docs/public-acceptance-desktop-renewal-20261102.md:
+USD2 additional existing AWS credits, Free/USD0cash, same retained host/table,
+at most2Starts/1EIP,4hcompute/6hEIP-only, up to4OpenRouter POSTs/USD0.10 plus5GETs
+inside the unchanged original non-resettingUSD2 cap/readiness reserve. No phone
+invitation/test/pass receipt; require the actual desktop guarded-mutation case
+and at least one settled model attempt. All other public/readiness/safety/idle/
+accounting/teardown gates remain. Record scope desktop_only with physical Android
+not_tested_owner_excluded; never imply mobile verification.
+
+The prior interrupted renewal remains closed and intact. Current/next pointers
+now select fresh desktop-89823d3e-91d2-4f91-a872-e7b6ee82fbee. At preparation,
+zeroStarts/EIPs/model calls and no first-write clock. Fresh prelaunch confirms
+active Free/USD179.48credit, original host stopped, required fixed names absent,
+authority generation3 stopped/no leases/command, all4authoritative DNS servers
+empty for app/store, immutable release/ZIP hashes, and USD1.790445 conservative
+bound.70 current operator checks pass, including explicit desktop-only closure
+and preserved default Android requirement. Only private operator scope helpers
+changed; production application and source44e4952 artifacts are unchanged.
+
+Actual desktop-only first write:21:29:17UTC on2November2026. Compute/public
+absolute end01:29:17UTC on3November; EIP-only end03:29:17UTC. Supervisor advancing
+heartbeat verified before launch. Disabled control provisioning, first maintenance
+Start and private guest staging now pass. Exactly1EIP/1Start; original248attempt
+baseline preserved and inference disabled. DNS-change intent disclosed13.62.211.240
+for app/store A records with explicit7200s TTL. Await owner saved-record receipt
+before authoritative verification/TLS. No public/desktop/idle acceptance yet. Private disabled-first provisioning in progress;
+inspect protected state and retained phase receipts. No public/desktop pass is
+claimed by this launch note. Inspect/stage before disclosing a new address. No CUA or
+Brave access. Check protected state/receipts for actual phase progress and
+absolute deadlines rather than treating this preparation note as cloud success.
+
+## Owner quota stop; partial renewal fully cleaned up - 2 November 2026
+
+Owner resumed the main project, confirmed manual DNS/Android availability and
+completed renewed AWS sign-in. Fresh read-only checks verified active Free plan,
+USD179.50 remaining credit, stopped generation3 authority, no old temporary
+resources, valid original signed accounting and immutable release/ZIP hashes.
+All65 current operator tests pass; an initial recursive collection included
+archived source snapshots and was corrected to the65 current top-level tests.
+Reviewed helper hashes are unchanged. Refreshed4hcompute/6hEIP conservative bound
+USD1.790445 remained below the already-approved USD2 renewal ceiling.
+
+The approved renewal began its first resource write at17:21:56UTC on2November.
+Owner then explicitly requested stop/save with10% quota remaining. Provisioning
+was blocked by owner pause and exited. Zero host Starts, zero EIP allocations,
+zero DNS edits, no guest staging/custody changes, zero provider-status GETs and
+zero model POSTs occurred. Partial control resources were removed by the detached
+cleanup supervisor. Cleanup completeTrue/errors{} and fresh independent full AWS
+inventory both pass: original host stopped/no public IP, every temporary resource
+absent, original encrypted20GiB root and DynamoDB table retained. The supervisor
+exited; no public provisioning/cleanup process or local4000/4100/8000 listener
+remains. Retained storage still has its previously approved small credit cost.
+
+Current public-operation.txt AND next-public-operation.txt point to the now-closed
+renewal-0fd8a0f1-606a-496a-949c-83420f4c90ae. State is owner_paused/closed with
+acceptance_passedFalse/interrupted_cleanup_verifiedTrue. Protected receipts:
+owner-stop-cleanup-verified-20261102.json, independent-final-inventory.json and
+owner-stop-20261102.json. The original AWS canonical ledger remains disabled and
+unchanged; the separate instructor allowance remains disabled too. Public
+TLS/cold wake/desktop/physicalAndroid/genuine idle acceptance still has not run.
+
+Do not resume automatically. This resource renewal was consumed by partial
+creation and is closed; a future public session needs an exact renewed bounded
+grant, fresh entry checks and a fresh operation, rather than resetting this
+clock/counters or reusing the old address. Preserve the original key/ledger and
+all Free/USD0cash constraints. No Computer Use/Brave; DNS remains owner-only.
+Prepared65-test/release evidence is reusable after hashes are verified; do not
+repeat long builds or full application qualification without a concrete reason.
+
+## Old cleanup independently complete; renewal unused — 30 October 2026
+
+Owner returned after11:53Cairo and asks whether32% quota is enough. Inspection
+found old cleanup worker no longer running; its last heartbeat was stale and
+stderr empty. Cause unproven. DNS7200-second wait had expired. Completed the
+already-authorized cleanup synchronously: compute_safeTrue, completeTrue,
+edge_pendingFalse, errors{}. Independent full inventory passes: original host
+stopped/no public IP, EIP released, all temporary resources deleted, original
+encrypted root/table retained. Old operation now closed as cleanup-only with
+acceptance_passedFalse/interrupted_cleanup_verifiedTrue. Signed SSH accounting
+and generation3 stopped had already been independently verified. Public acceptance
+itself did NOT pass or run. No automatic new session or resource creation.
+
+Approved renewal remains unused in next-public-operation.txt. No new first-write
+clock/starts/EIP/statusGET/modelPOST.65local checks remain latest. Before any new
+launch refresh account/prices/DNS/human availability and arm a verified supervisor;
+old worker's unexplained exit is a process-continuity concern to inspect, not a
+reason to infer durable cleanup from a stale heartbeat. Existing guest deadline
+and all original spending/custody bounds remain mandatory. User advised to wait
+for fresh quota rather than risk interruption with32%; this is a recommendation,
+not an owner-requested new pause or a consumed/revoked renewal grant. Keep A
+records absent until a fresh actual address is provided.
+
+## Owner ends chat until 11:53 Cairo — 30 October 2026
+
+Owner explicitly says not to wait/poll in-chat; they will message at11:53Cairo.
+Do not launch the approved renewal until that message. Renewal grant remains
+approved/unused, next-public-operation.txt owner_pausedTrue/launch_heldTrue and no
+first-write clock. owner-return-hold.json records instruction. Interactive polling
+cell and separate await_old_cleanup.py verifier stopped. Only the existing finite
+public_watchdog.py remains for required teardown/DNS TTL expiry/EIP release; DO
+NOT stop that cleanup worker. Local services and local allowance remain off.
+
+On owner return, inspect old state/cleanup receipts and independently verify
+inventory, final signed SSH accounting and generation3 stopped; if old cleanup
+finished, record cleanup-only closure and confirm old worker exit before switching
+to the prepared renewal pointer. Do not claim successful public acceptance.
+If EIP wait has not expired or cleanup is incomplete, inspect/finish that first.
+Fresh human availability/account/prices/DNS still gate first write. No duplicate
+resource approval is needed for the unchanged, already-approved renewal scope.
+
+## Renewal approved; waiting for old DNS cleanup — 30 October 2026
+
+Owner approved docs/public-acceptance-renewal-20261030.md exactly: freshUSD2,
+Free/USD0cash, two starts/oneEIP,4hcompute/6hEIP-only, fourPOSTsUSD0.10/fiveGETs
+on the original qualified resident key. Do not ask again for unchanged scope.
+Renewal is prepared OFFLINE under protected next-public-operation.txt; original
+public-operation.txt still points to the interrupted run and its cleanup worker.
+No new first-write clock, resources, starts, keyGETs or modelPOSTs. New local-ready
+and watchdog-ready sentinels absent. Old EIP cannot release before09:52:48UTC /
+11:52:48Cairo. Finish independent old inventory and stop its worker cleanly before
+switching the pointer/arming a new worker or recreating fixed names.
+
+All65 operator tests pass. Two-hour TTL disclosure and separate6hEIP vs4hcompute
+clock tested RED->GREEN. Existing immutable source44e4952 release is reusable only
+after protected manifest SHA, verifier SHA and complete artifact verification;
+corruption refuses, no overwrite. Isolated-Python rehearsal verifies this under
+-I. This avoids the retained release directory causing another staging abort.
+No new runtime/app functionality or per-request hashing. Refresh account/prices,
+resource absence, DNS and owner Android/DNS availability before first write.
+
+## Instructor demo finished; local services stopped — 30 October 2026
+
+Owner reports successful instructor demo,50% quota remaining, asks to stop local
+services and offers to recreate A records when instructed. All three owned local
+processes stopped; no listeners4000/4100/8000. New local allowance disabled with
+UUID/history intact:10attempts, accountedUSD0.012956500. Do not auto-reenable it.
+
+Original AWS host stopped. Retained SSH finalization receipt independently
+MAC-verified: canonical original ledger disabled248attempts, zero new cloud
+attempts, original readiness reserve preserved; generation3 still stopped. Actual
+Lambda functions0 and CloudFront distributions0. Old watchdog continues remaining
+owned cleanup/EIP TTL wait. Original EIP release NOT BEFORE09:52:48UTC, which is
+11:52:48Cairo (UTC+2 today; earlier12:53Cairo commentary was an offset mistake).
+Do not re-add A records to that old IP or interrupt this cleanup worker.
+
+Fresh public attempt requires a renewed exact grant: old session was interrupted
+and its control resources torn down; do not reset/reuse its clock or recreate its
+resources automatically. Concrete review proposal:
+docs/public-acceptance-renewal-20261030.md. Same original resident qualified key,
+separate from new local instructor key. ProposedUSD2,4hcompute/6hEIP-only,
+two starts/oneEIP/fourPOSTsUSD0.10/fiveGETs, Free/USD0cash; original controls and
+full actual acceptance/cleanup remain mandatory. Approval pending. Finish old
+independent inventory, then refresh human availability/account/prices before any
+new first write. No ongoing public operating window.
+
+## Owner expanded local demo allowance — 30 October 2026
+
+Owner explicitly requests removing the local demo limit during instructor demo.
+Local new-key allowance raised in-place toUSD2; maximum_attempts=None removes
+the four-request fence. Same UUID and all four existing attempt rows/charges
+preserved (accountedUSD0.005194500 at change). New key remains cappedUSD2,
+no top-up or old AWS custody change. Agent alone restarted; healthHTTP200.
+Refresh Panel once; no automatic replay. Protected owner-demo-limit-amendment.json
+and demo-config.json supersede earlier local four-request/USD0.10 settings below.
+AWS teardown/DNS cache-expiry cleanup continues independently; do not kill it.
+
+## Cloud stopped for instructor; local OpenRouter demo running — 30 October 2026
+
+Owner explicitly interrupted public acceptance: “stop and start the services
+local the instructor want to see live.” Do not resume cloud acceptance or use the
+remaining cold-start slot automatically. Original host is verified stopped. The
+owner deleted both newly-added DNS A records; all authoritative servers confirm
+absence. The independent public watchdog remains active for owned resource
+cleanup and the measured7200-second EIP cache-expiry wait. Owner approved the
+two-hour-TTL amendment: compute deadline11:16:43UTC unchanged, EIP-only deadline
+13:16:43UTC. See protected manual-dns-restored.json, local-demo-handoff.json and
+state.json for the exact release time and actual deletion progress. Do not claim
+EIP released/all resources absent before independent inventory. Do not kill the
+cleanup worker. Retained original root/table remain allocated.
+
+Cloud staging passed after inspected repairs: verified ZIPs delivered through
+owned S3, CloudFront rejects explicit hash-header whitelist so its single custom
+origin policy uses allExcept viewer Host with no cookies/query strings and
+always-sign OAC; absent public proxy config is explicitly snapshotted/deleted on
+rollback. Ledger disabled248attempts, fixed ceiling252. One independent statusGET,
+zero cloud model POSTs, one maintenance start, one EIP. Public TLS/cold wake/live
+desktop/phone/idle acceptance NOT executed. Sixty-two operator tests passed.
+
+Owner explicitly chose a NEW local OpenRouter key and approved a separate
+instructor demo (four model requests/USD0.08, up to five statusGETs). Owner then
+explicitly set the new key capUSD2; local allowance remainsUSD0.10, literal
+maximum_attempts4 and same model google/gemini-3.5-flash-lite. Old AWS key/history
+and disabled canonical ledgers unchanged. Separate protected local allowance and
+key-digest pin under .scratch/instructor-local-20261030; new key only in ignored
+.env, never printed. One local independent statusGET was used before owner
+changed its unlimited key toUSD2; ordinary per-POST nonreset-cap checks remain.
+No startup model request. Typed-only transcriber prevents extra audio-key calls.
+
+Agent8000, Storefront4000 and Panel4100 run on loopback from this worktree. All
+HTTP200 and actual headless browser verifies enabled message input and embedded
+Storefront. Open http://localhost:4100/. Local launcher/process/log/config/approval
+receipts are in the protected instructor-local directory. Preserve its counter
+and allowance on restart; do not initialize a fresh ledger or switch providers.
+Owner requested screen sharing for this live local demo. No Computer Use/Brave.
+
+## Public acceptance session active — 30 October 2026, 07:16 UTC
+
+Owner resumed after quota reset and confirmed manual DNS/Android availability.
+Existing consolidated grant is executing, unchanged: USD2 AWS credits, Free/USD0
+cash, four hours; at most two host starts, one EIP, four model POSTs/USD0.10 and
+five status GETs. First write07:16:43UTC; absolute end11:16:43UTC. The protected
+operation and independent watchdog are active. Do not treat the older hold below
+as current. Read public-operation.txt/state.json and recent receipts before action.
+
+Read-only prelaunch passed: active Free/~USD179.70 credit, host stopped/no EIP,
+authority stopped generation3/no command/leases, four authoritative DNS servers
+show app/store A/AAAA/CNAME absent, selected artifact hashes and service-name
+absence verified. Refreshed conservative estimateUSD1.777944961. Sixty operator
+tests pass, including joined real-ledger boot/finalization and DNS rollback;
+independent monitor now checks public traffic as well as Lambda/log thresholds.
+
+Initial inline Lambda ZIP upload lost its connection. Actual GetFunction proves
+absence; owned bucket/startup role/log inspected before targeted recovery. Same
+verified ZIPs now use the already-approved private S3 releases prefix. No blind
+bucket/role/log replay. Recovery/provisioning is in progress; inspect retained
+upload-recovery receipts. At this checkpoint no host start, EIP, provider GET or
+model POST has occurred. No DNS edit requested. Source remains44e4952; helper
+changes are private operator recovery only. No Computer Use/Brave; owner-only DNS.
 
 ## Quota hold; public operator safeguards implemented — 2026-10-30
 
