@@ -2,6 +2,26 @@
 
 **Last updated:** 2026-11-03
 
+## Next frontier: invitation-only public demo covering the December graduation period
+
+Owner explicitly corrects the accidental anyone-with-link answer: invitation-only
+instructors/testers is the selected audience. Owner reminds us that availability
+was intended until December; do not reset this to a7-day trial or ask that choice
+again. Recorded final presentation/testing/report deadline is4December2026 in
+cap01/depi planning. Use that as the proposed initial operating end date, explicitly
+an agent interpretation of the December target until the concrete plan is reviewed.
+The separate23December18:00UTC retained-resource review is not a public-window
+approval or automatic deletion instruction.
+
+Public acceptance is closed and cloud remains off as recorded below. Next work:
+release integration/CI and an ongoing invitation-only operating/cost/rollback plan
+through the graduation period, preserving automatic wake/60minute idle shutdown,
+Free/USD0cash and the original nonresetUSD2 provider key cap. No ongoing resources,
+new provider spending or public activation are authorized by the earlier temporary
+acceptance grants; prepare a concrete reviewable proposal before cloud launch.
+Fresh origin fetch confirms current branch44commits ahead/0behind origin/main;
+no merge/push performed. User Markdown/PDFs and immutable proposal bytes preserved.
+
 ## Desktop public acceptance CLOSED; full teardown independently verified
 
 Current recovery5c467f97 final-acceptance.json passedTrue at11:38:04Cairo

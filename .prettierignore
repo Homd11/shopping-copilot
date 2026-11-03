@@ -5,3 +5,6 @@ pytest-cache-files-*
 pnpm-lock.yaml
 outputs
 work
+
+# Preserve the exact owner-approved bytes referenced by diagnostic SHA256 receipts.
+docs/public-startup-transport-diagnostic-20261103.md

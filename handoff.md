@@ -1,5 +1,16 @@
 # Shopping Copilot — project handoff
 
+## Next: invitation-only public demo through the December graduation period
+
+Owner explicitly corrected anyone-with-link as a mistake: invitation-only.
+Owner says hosting should continue until December as discussed, so the7-day
+question was unnecessary. Recorded final deadline4December2026 is the proposed
+end date (agent interpretation pending concrete-plan review);23Decemberretention
+review is separate. Prepare release integration/CI and the ongoing operating,
+credit/provider and rollback proposal; no new cloud/model activity yet. Preserve
+automatic wake/idle, Free0cash/nonresetUSD2keycap. Fresh fetch:44ahead/0behindmain,
+no push/merge. Prior desktop acceptance/teardown remains verified complete below.
+
 ## Desktop acceptance complete; temporary cloud deployment closed
 
 Newest checkpoint governs. Current recovery5c467f97 final acceptance passed at
