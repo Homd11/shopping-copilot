@@ -2,6 +2,42 @@
 
 **Last updated:** 2026-11-03
 
+## Main release integrated and published; next work is the December operating plan
+
+Owner explicitly requested integration and GitHub push. The45-commit release
+batch was fast-forwarded into local main and pushed normally from72dfce2 to
+f0c3bff7ede5cdb90094fc42cc6d6539732bc302. GitHub API independently confirmed
+that published SHA. No force push, deletion or cloud activation. Standards and
+spec reviews found no blocking findings; their runtime review was pinned to
+9ce8dd2, followed only by reviewed documentation/immutable-evidence preservation.
+
+A separate clean checkout of exactf0c3bff passed full formatting/lint,199TS tests,
+three builds,1619Python tests/3Caddy-binary skips/2dependency warnings in940.96s,
+and scripted Storefront/Agent HTTP200 checks. Owned health-check processes stopped.
+The clean checkout's runtime source, localmain and publishedmain trees matched.
+Actual public HTTPS/coldwake/idle proofs remain the earlier real acceptance below.
+Latest GitHub main Actions run is the authoritative hosted-CI status; verify it
+before any public release: https://github.com/Homd11/shopping-copilot/actions .
+
+Eight frozen acceptance proposals are now tracked byte-for-byte. One diagnostic
+protocol keeps its exact approved CRLF/hash through narrow per-file Git/Prettier
+attributes; no source checks were relaxed. New-history scan235blobs found no
+high-confidence provider/GitHub/AWS key or private-key signatures. README/LICENSE/
+CLAUDE match the previously published main. No credentials, ledgers, operation
+profiles or ignored scratch content were published.
+
+Primary D:/agent depi remains onmain with its unpublished presentation/design
+work preserved: all419original untracked files retained, four modified design
+documents byte-identical, all added presentation-note lines kept alongside the
+new checkpoints. Safety copies/stash and integration receipts are private under
+.scratch/release-push-20261103/. Current-worktree interview PDFs remain local.
+Do not discard these drafts or remove either workspace automatically.
+
+Next frontier is the invitation-only public operating/cost/rollback proposal
+covering the December graduation period (proposed through4December), then its
+reviewed launch. AWS remains stopped/temporaryresourcesabsent, provider disabled;
+this Git integration does not authorize another cloud session or model spend.
+
 ## Next frontier: invitation-only public demo covering the December graduation period
 
 Owner explicitly corrects the accidental anyone-with-link answer: invitation-only

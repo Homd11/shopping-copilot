@@ -1,5 +1,18 @@
 # Shopping Copilot — project handoff
 
+## Main integrated and pushed; prepare the December invitation-only operating plan
+
+Owner authorized integrate/push.45commits fast-forwarded and normally pushed to
+GitHubmain:f0c3bff7ede5cdb90094fc42cc6d6539732bc302, API verified. Clean exact
+checkout: formatting/lint/199TS/threebuilds/1619Python pass;3Caddy-environment skips,
+2dependencywarnings; scriptedHTTP200s and owned-services teardown pass. Both
+reviews clear. Verify latest main GitHub Actions status before public release.
+README/CLAUDE/LICENSE intact, frozenproposals exactbytes, secrets/ledger/scratch
+notpublished. Primarymain's419untrackedfiles/fourmodifieddesign docs/presentation
+notes preserved locally; do not remove drafts/workspaces. Private backups/receipts
+under.scratch/release-push-20261103/. AWS stays off, no new providercalls. Next is
+the invitation-only December operating budget/rollback plan, not generalisation.
+
 ## Next: invitation-only public demo through the December graduation period
 
 Owner explicitly corrected anyone-with-link as a mistake: invitation-only.
