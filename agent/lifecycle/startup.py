@@ -109,7 +109,7 @@ def _transport(event):
         or event.get("queryStringParameters") not in (None, {})
         or event.get("cookies")
         or type(headers) is not dict
-        or len(headers) > 32
+        or len(headers) > 64
     ):
         raise ValueError("Bounded transport required")
     size = 0

@@ -80,6 +80,32 @@ def test_status_does_not_extend_activity_or_expose_private_authority(world):
     assert code not in response["body"]
 
 
+@pytest.mark.parametrize("count", [36, 39, 64])
+def test_startup_accepts_bounded_cloudfront_headers_without_bypassing_invitation(world, count):
+    headers = {"origin": ORIGIN, "content-type": "application/json"}
+    headers.update({f"x-edge-{index}": "synthetic" for index in range(count - 2)})
+    serve = handler(world)
+    assert serve(event("/status", headers=headers), None)["statusCode"] == 200
+    denied = serve(event("/wake", "POST", '{"code":"bad"}', headers=headers), None)
+    assert denied["statusCode"] == 403
+    assert world[4].status()["generation"] == 0
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {f"x-edge-{index}": "a" for index in range(65)},
+        {f"x-edge-{index}": "a" * 110 for index in range(39)},
+    ],
+)
+def test_startup_rejects_excess_header_count_or_bytes_before_waking(world, headers):
+    response = handler(world)(
+        event("/wake", "POST", json.dumps({"code": world[3]}), headers=headers), None
+    )
+    assert response["statusCode"] == 400
+    assert world[4].status()["generation"] == 0
+
+
 @pytest.mark.parametrize(
     "body",
     [
