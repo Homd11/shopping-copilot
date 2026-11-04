@@ -275,6 +275,19 @@ class DynamoLifecycle:
         row, now = self._load()
         return self._view(row, now)
 
+    def request_stop(self, *, generation):
+        """Trusted runtime ceiling, not a public caller-selected shutdown route."""
+        before, row, now = self._snapshot()
+        if type(generation) is not int or generation != row["generation"]:
+            raise LifecycleUnavailable()
+        if row["state"] in {"stopping", "stopped"}:
+            return
+        if row["state"] not in {"ready", "draining", "unhealthy"} or row["command"] is not None:
+            raise LifecycleUnavailable()
+        row.update(state="stopping", healthy=False, changed=now, recoverable=False, leases={})
+        row["command"] = self._intent("stop", generation)
+        self._save(before, row, now)
+
     def observation_token(self):
         row, _ = self._load()
         return {"generation": int(row["generation"]), "revision": int(row["revision"])}

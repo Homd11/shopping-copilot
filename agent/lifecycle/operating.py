@@ -82,6 +82,7 @@ class OperatingAuthority:
                             "schema": 1,
                             "policy": policy.values(),
                             "starts": 0,
+                            "invitations": 0,
                             "observed": now,
                             "closed": False,
                             "reason": None,
@@ -106,7 +107,17 @@ class OperatingAuthority:
                 or meta.get("operating_manifest") != policy.manifest_sha256
                 or row is None
                 or set(row)
-                != {"pk", "sk", "schema", "policy", "starts", "observed", "closed", "reason"}
+                != {
+                    "pk",
+                    "sk",
+                    "schema",
+                    "policy",
+                    "starts",
+                    "invitations",
+                    "observed",
+                    "closed",
+                    "reason",
+                }
                 or row["policy"] != policy.values()
                 or type(row["closed"]) is not bool
                 or (row["reason"] not in REASONS if row["closed"] else row["reason"] is not None)
@@ -114,6 +125,7 @@ class OperatingAuthority:
                 raise ValueError()
             _count(row["schema"], 1, minimum=1)
             _count(row["starts"], MAX_STARTS)
+            _count(row["invitations"], 10)
             _number(row["observed"])
             now = _number(store.clock())
             if now < row["observed"] or now < store._operating_seen:
@@ -155,30 +167,40 @@ class OperatingAuthority:
         )
 
     def reserve_start(self, command_id):
+        if type(command_id) is not str or re.fullmatch(r"[0-9a-f]{32}", command_id) is None:
+            raise LifecycleUnavailable()
+        self._reserve(command_id, "starts", MAX_STARTS, "operating-start#")
+
+    def reserve_invitation(self, invitation):
         try:
-            if type(command_id) is not str or re.fullmatch(r"[0-9a-f]{32}", command_id) is None:
-                raise ValueError()
+            _identifier(invitation)
+        except Exception:
+            raise LifecycleUnavailable() from None
+        self._reserve(invitation, "invitations", 10, "operating-invite#")
+
+    def _reserve(self, command_id, counter, maximum, prefix):
+        try:
             with self.store._operating_lock:
                 row, now = self._load()
                 if (
                     row["closed"]
                     or not self.policy.opens <= now < self.policy.closes
-                    or row["starts"] >= MAX_STARTS
+                    or row[counter] >= maximum
                 ):
                     raise ValueError()
                 guard = self._guard(
                     row,
                     now,
-                    update="SET #observed=:now, #starts=:after",
-                    extra={":before": row["starts"], ":after": row["starts"] + 1},
+                    update=f"SET #observed=:now, #{counter}=:after",
+                    extra={":before": row[counter], ":after": row[counter] + 1},
                 )
-                guard["Update"]["ConditionExpression"] += " AND #starts=:before"
+                guard["Update"]["ConditionExpression"] += f" AND #{counter}=:before"
                 self.store._write(
                     [
                         self.store._meta_condition(),
                         guard,
                         self.store._put(
-                            "operating-start#" + command_id,
+                            prefix + command_id,
                             {
                                 "operation": self.policy.operation,
                                 "manifest": self.policy.manifest_sha256,

@@ -51,6 +51,11 @@ class HostSettings:
             if type(self.operating) is not OperatingPolicy or self.provider != "openrouter":
                 raise ValueError()
             self.operating.__post_init__()
+            if (
+                not isinstance(self.admission_limits, Mapping)
+                or not 1 <= self.admission_limits.get("maximum_sessions", 0) <= 8
+            ):
+                raise ValueError()
         for value, pattern in (
             (self.table, r"[A-Za-z0-9_.-]{3,255}"),
             (self.namespace, r"[A-Za-z0-9_-]{1,64}"),
