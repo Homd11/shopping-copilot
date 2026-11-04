@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## Used operation closed after PC readiness miss — review recovery design first
+
+Newest checkpoint governs. Actual generation6 wake reached cloudready after all
+maintenance/staging/DNS/TLS/edge gates, but the separate PC2s readiness helper
+returnedfalse without a reason. Cold acceptance is incomplete. A prematurely
+dispatched desktop CLI refused its prerequisite; no browser/model work occurred.
+Abort finalized known custody and stopped/fenced the operation. Fresh proof:
+STOPPED, ownerclosedoperating/guard,2starts/1invitation,249attempts/20oldholds,
+zero new model attempts/charges, disabled ledger and protectedUSD0.10reserve.
+IP13.63.108.192 still owned/DNSbound; retained resources consume credits.
+
+Both zero-use exceptions consumed; do not reopen or start under them. Driver's
+terminal-close coupling needs a design correction, not another blind cloud trial.
+Prepared docs/december-used-window-recovery-design-20261104.md: proposed single
+audited used-window/custody restoration, all history/counters unchanged, at most
+2additionalinitialstarts within100, originalUSD45/Free0cash/Dec4/modelcaps. Local
+implementation/tests and explicit owner design/exception review remain. Runtime395
+unchanged;53private checks pass. All runners exited. Owner handles DNS manually.
+
 ## Zero-use setup correction consumed; narrow continuation awaits owner exception
 
 Newest PROJECT_CHECKPOINT.md overrides older cloud-status sections. Operation

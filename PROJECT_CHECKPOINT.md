@@ -2,6 +2,58 @@
 
 **Last updated:** 2026-11-04
 
+## Acceptance stopped after local readiness miss; used-window recovery needs review
+
+Newest actual state supersedes earlier in-progress sections. Context setup
+correction and real guard/schedules passed. Maintenance/staging/DNS/TLS/fiveedge
+checks passed; real invitation woke generation6 and the cloud controller reported
+ready. The independent PC readiness helper returnedfalse; its2second deadline
+and opaque result do not establish the specific cause. Retained timings are
+consistent with deadline exhaustion, not proof. Do not claim local signed-proof
+acceptance or full cold/desktop/idle success. A desktop CLI was dispatched before
+cold completion; its prerequisite refused before browser/shopping work. Await
+dependent phase completion explicitly.
+
+Abort finalized custody and stopped/fenced the launch. Fresh post-abort proof:
+hostSTOPPED, operatingclosedowner/guardclosedowner, starts2/invitations1, signed
+finalcustodyverified, ledgerdisabled,249attempts/20uncertainunchanged, zero new
+modelattempts/charges, reserve100millionnanos unexposed. Existing EIP remains owned
+and DNSstillbound13.63.108.192; address/storage and retained controls use credits.
+No blind reboot/reopen or reuse of either consumed zero-use exception is allowed.
+All current operator runners exited. Runtime395b0b6 is unchanged.
+
+The architectural defect is operator coupling of every local verification miss
+to terminal month-window closure/final custody. Prepared concrete consolidated
+design docs/december-used-window-recovery-design-20261104.md: retain all audits,
+counts/history/manifest/dates/budgets; separate bounded diagnostic pause from real
+security/custody closure; instrument the PC verifier with10s strict signed/TLS
+checks while keeping cloud2s unchanged; one used-window/custody recovery with at
+most2additionalstarts (4initial,total100unchanged), then exact same acceptance.
+This is proposed, not implemented/approved. Obtain owner design/exception review
+before further recovery implementation or cloud writes. Private53checks pass;
+full runtime1693Python/TS/build evidence unchanged. Preserve owner PDFs/drafts.
+
+## Safety verified; maintenance staged; DNS binding in progress
+
+Owner approved the additional audited setup correction. Actual private guard
+returned open; all3independent schedules are enabled and exact verified. The
+second immutable audit is retained alongside the first. Original manifest,
+first-write epoch,45USD/Free0cash/4Decemberdeadline/modelcaps unchanged.
+
+The reserved maintenance Start succeeded at approximately22:40Cairo; guest logs
+were retrieved first. Exact395b0b6 native release and protected custody/binding
+staged successfully, inference ledger remains disabled, baseline249attempts/
+20uncertainholds preserved, publicallowanceB+0.20, attemptceiling349 and separate
+USD0.10reserve intact. One operator provider-statusGET, zero modelPOSTs. Guest
+has approximately1.6GBavailableRAM/1GBswap/18GBfreedisk at initial inspection.
+Owner confirmed app/store A records saved to the independently owned EIP
+13.63.108.192 with7200sTTL. Authoritative verification is in progress; do not
+infer DNS/TLS/cold/desktop/idle acceptance yet. Maintenance host currently running.
+Private operation remains operation1d4a59c9; old provision/safety/recovery apply
+runners are consumed and must not be replayed. Next verifyDNS, TLS, maintenance
+Stop, finite edge control, one actual cold wake/desktop smoke, genuine60minidle,
+signed accounting and handover. Both recovery exceptions have been consumed.
+
 ## Zero-use setup continuation prepared; host stopped, explicit exception pending
 
 Newest frontier at approximately22:36Cairo: operation1d4a59c9 provisioning is
