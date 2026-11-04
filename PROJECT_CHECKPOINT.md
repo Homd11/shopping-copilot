@@ -2,6 +2,25 @@
 
 **Last updated:** 2026-11-04
 
+## Recovery controls and protected custody restored; maintenance3 stopped
+
+Actual controls apply completed successfully: old invitation archived/revoked,
+owner-approved used-window audit retained, real guardopen, schedulesverified,
+normal stop intent/ack reconciled lifecycle6 to STOPPED. Counts2/1 preserved.
+Maintenance Start3 succeeded and retained guest diagnostics first. Protected helper
+verified actual config/binding/key/ledger digests and signed finalized rows, restored
+only original unusedB+0.20 allowance, kept ledger disabled, archived all final/boot/
+stop/signed markers unchanged, and re-enabled existing units/timer. No modelcalls
+or additional providerGETs. Exact prepared code/71tests/review gates unchanged.
+
+All4DNSauthorities still agree; trusted TLS statuses200/502/502 pass. Maintenance3
+is now physically STOPPED. used_recovery.py tls runner (exec7646) is awaiting
+CloudFront enable deployment, then requires successful completion before cold4.
+Do not rerun controls, maintenance or restore. Same original operation/IP13.63.108.192;
+all original time/cost/model caps and preserved history remain. Next cold4 must
+pass the recorded PC signed verifier before desktop, then genuine60minidle and
+signed accounting/handover. Actual model spending remains zero new attempts.
+
 ## Consolidated recovery approved and locally verified; controls apply running
 
 Owner explicitly approved docs/december-used-window-recovery-design-20261104.md.
