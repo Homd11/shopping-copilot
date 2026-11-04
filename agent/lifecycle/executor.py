@@ -1,6 +1,7 @@
 """Injected single-dispatch EC2 worker; no factory, credentials or scheduling."""
 
 import re
+from contextlib import suppress
 
 from agent.lifecycle.store import LifecycleUnavailable
 
@@ -22,10 +23,22 @@ def _state_name(state):
 
 
 class EC2CommandExecutor:
-    def __init__(self, lifecycle, client, instance_id):
+    def __init__(self, lifecycle, client, instance_id, *, operating=None):
         if not isinstance(instance_id, str) or re.fullmatch(r"i-[0-9a-f]{17}", instance_id) is None:
             raise LifecycleUnavailable()
         self.lifecycle, self.client, self.instance_id = lifecycle, client, instance_id
+        self.operating = operating
+        configured = getattr(getattr(lifecycle, "invitations", None), "operating", None)
+        if configured is not None or operating is not None:
+            from agent.lifecycle.operating import OperatingAuthority
+
+            if (
+                type(operating) is not OperatingAuthority
+                or operating.store is not lifecycle.invitations
+                or operating.policy != configured
+                or operating.policy.instance != instance_id
+            ):
+                raise LifecycleUnavailable()
         self._configuration()
 
     def _configuration(self):
@@ -88,6 +101,14 @@ class EC2CommandExecutor:
         # an atomic EC2 generation/revocation fence across the network boundary.
         self.lifecycle.check_command(receipt)
         self._configuration()
+        if receipt["operation"] == "start" and self.operating is not None:
+            try:
+                self.operating.reserve_start(receipt["id"])
+                self.operating.check()
+            except Exception:
+                with suppress(Exception):
+                    self.lifecycle.complete_command(receipt, certain=False)
+                raise LifecycleUnavailable() from None
         certain = False
         try:
             method = (

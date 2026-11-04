@@ -258,7 +258,12 @@ def create_host_app(
             raise ValueError()
         sdk = sdk_factory("dynamodb")
         store = DynamoInvitationStore(
-            sdk, settings.table, settings.namespace, settings.invitation_identity, clock=clock
+            sdk,
+            settings.table,
+            settings.namespace,
+            settings.invitation_identity,
+            clock=clock,
+            operating=settings.operating,
         )
         lifecycle = DynamoLifecycle(store, settings.lifecycle_identity, clock=clock)
         admission = _OwnedAdmission(store, **settings.admission_limits)

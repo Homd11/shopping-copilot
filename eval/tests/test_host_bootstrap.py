@@ -1,5 +1,6 @@
 import asyncio
 import json
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -21,6 +22,68 @@ from eval.tests.test_host_config import config_file as _config_file
 from eval.tests.test_host_config import fixture_reader
 
 catalogue_source, prepared, world, config_file = _catalogue_source, _prepared, _world, _config_file
+
+
+def test_operating_host_admission_expires_without_restart_or_provider_call(config_file, world):
+    from agent.lifecycle.operating import OperatingAuthority, OperatingPolicy
+
+    make_ready(world)
+    policy = OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 900, 40000)
+    OperatingAuthority.initialize(world[1], policy)
+    path, data = config_file
+    key = path.with_name("provider.key")
+    key.write_text("synthetic-provider-key-" + "x" * 64)
+    data.update(
+        version=3,
+        provider="openrouter",
+        model="google/gemini-3.5-flash-lite",
+        provider_key_file=str(key),
+        operating=policy.values(),
+    )
+    data["inference"].update(
+        INFERENCE_PROVIDER="openrouter",
+        INFERENCE_MODEL=data["model"],
+        INFERENCE_INPUT_USD_PER_MILLION="0.3",
+        INFERENCE_OUTPUT_USD_PER_MILLION="2.5",
+    )
+    path.write_text(json.dumps(data))
+    settings = load_host_settings(path, read_private=fixture_reader)
+    model = Model()
+    app = create_host_app(
+        settings,
+        sdk_factory=lambda _: world[-1],
+        model_client=model,
+        http_transport=httpx.MockTransport(lambda _: reply(value=search())),
+        clock=lambda: world[0][0],
+    )
+    before = app.state.llm_client.ledger.status()
+    with TestClient(app, base_url="https://app.scpilot.tech") as client:
+
+        async def validate(_):
+            return True
+
+        app.state.storefront_service.validate = validate
+        bootstrap = client.post(
+            "/shopper/bootstrap", headers={"origin": "https://app.scpilot.tech"}
+        )
+        assert bootstrap.status_code == 200
+        record = next(iter(app.state.shopper_access.records.values()))
+        record.shopper = ShopperBinding("owner", "generation")
+        auth = {"origin": "https://app.scpilot.tech", "x-csrf-token": bootstrap.json()["csrf"]}
+        assert (
+            client.post("/shopper/admission", json={"code": world[3]}, headers=auth).json()[
+                "admitted"
+            ]
+            is True
+        )
+        world[0][0] = policy.closes
+        assert (
+            client.post("/shopper/admission", json={"code": world[3]}, headers=auth).status_code
+            >= 400
+        )
+        assert client.get("/speech/availability", headers=auth).status_code == 403
+        assert app.state.llm_client.ledger.status() == before
+        assert model.calls == 0
 
 
 @pytest.fixture(autouse=True)
