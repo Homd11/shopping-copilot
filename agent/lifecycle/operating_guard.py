@@ -14,6 +14,7 @@ FIELDS = {
     "credits",
     "dns_absent",
     "dns_since",
+    "dns_checked",
     "released",
 }
 
@@ -56,9 +57,13 @@ class OperatingGuard:
             for name in ("observed", "credit_checked"):
                 if _number(record[name]) > now:
                     raise ValueError()
-            for name in ("closed_at", "dns_absent", "dns_since"):
+            for name in ("closed_at", "dns_absent", "dns_since", "dns_checked"):
                 if record[name] is not None and _number(record[name]) > now:
                     raise ValueError()
+            if record["dns_since"] is not None and (
+                record["dns_checked"] is None or record["dns_since"] > record["dns_checked"]
+            ):
+                raise ValueError()
             _money(record["credits"])
             if record["closed_at"] is not None:
                 if record["reason"] not in REASONS:
@@ -114,6 +119,21 @@ class OperatingGuard:
             if not valid_record:
                 record = None
 
+        # Invalidate continuity durably BEFORE any DNS observation or fallible
+        # shutdown work. A lost final write must never restore a previous clock.
+        prior_since = None
+        if record is not None:
+            checked = record["dns_checked"]
+            if checked is not None and 0 <= now - checked <= 360:
+                prior_since = record["dns_since"]
+            if not record["released"]:
+                record["dns_since"] = None
+            record["observed"] = now
+            try:
+                backend.write(record)
+            except Exception:
+                errors.append("dns_checkpoint")
+
         # Each action is independent. An unavailable table never suppresses Stop.
         for name, action in (
             ("fence", backend.fence),
@@ -145,12 +165,15 @@ class OperatingGuard:
             try:
                 if not record["released"]:
                     absent = backend.dns_absent() is True
+                    completed = _number(self.clock())
+                    if not now <= completed <= backend.cleanup_end:
+                        raise ValueError("DNS completion clock unavailable")
+                    record["dns_checked"] = completed
                     if absent:
                         if record["dns_absent"] is None:
-                            record["dns_absent"] = now
-                        if record["dns_since"] is None:
-                            record["dns_since"] = now
-                        if now - record["dns_since"] >= 7200:
+                            record["dns_absent"] = completed
+                        record["dns_since"] = prior_since if prior_since is not None else completed
+                        if completed - record["dns_since"] >= 7200:
                             ready_to_release = True
                     else:
                         # Preserve the first proof for audit, but never release on
@@ -161,6 +184,7 @@ class OperatingGuard:
                 errors.append("cleanup")
             if ready_to_release:
                 try:
+                    backend.write(record)
                     record["released"] = backend.release() is True
                 except Exception:
                     errors.append("release")

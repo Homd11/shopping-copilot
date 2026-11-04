@@ -145,6 +145,8 @@ class DynamoInvitationStore:
                 from agent.lifecycle.operating import OperatingAuthority
 
                 OperatingAuthority(self, self.operating).check(allow_closed=self.operating_control)
+            elif self._read("operating#window") is not None:
+                raise ValueError("Existing finite operation requires explicit configuration")
         except Exception:
             raise AdmissionDenied("access_unavailable") from None
 
@@ -170,6 +172,11 @@ class DynamoInvitationStore:
     def _meta_condition(self, *, issuing=False):
         expression = "#schema=:schema AND #identity=:identity"
         values = {":schema": 1, ":identity": self.identity}
+        if self.operating is None:
+            expression += (
+                " AND attribute_not_exists(#operating_operation)"
+                " AND attribute_not_exists(#operating_manifest)"
+            )
         if issuing:
             expression += " AND #issued<:maximum"
             values.update({":maximum": 1000, ":one": 1})
@@ -188,6 +195,23 @@ class DynamoInvitationStore:
 
     def _write(self, operations, *, refusal="access_required"):
         try:
+            if self.operating is None:
+                operating_key = self._key("operating#window")
+                initializes_operation = any(
+                    operation.get("Put", {}).get("Item", {}).get("sk") == operating_key["sk"]
+                    for operation in operations
+                )
+                if not initializes_operation:
+                    operations = [
+                        *operations,
+                        {
+                            "ConditionCheck": {
+                                "TableName": self.table,
+                                "Key": operating_key,
+                                "ConditionExpression": "attribute_not_exists(pk)",
+                            }
+                        },
+                    ]
             if self.operating is not None and not self.operating_control:
                 from agent.lifecycle.operating import KEY, OperatingAuthority
 

@@ -131,6 +131,41 @@ def test_operating_legacy_configuration_cannot_ignore_bound_marker(world):
         DynamoInvitationStore(store.client, store.table, store.namespace, store.identity)
 
 
+def test_legacy_configuration_refuses_window_when_both_metadata_markers_are_deleted(world):
+    _, authority = initialized(world)
+    authority.close("owner")
+    store = world[1]
+    store.client.update_item(
+        TableName=store.table,
+        Key=store._key("meta"),
+        UpdateExpression="REMOVE operating_operation, operating_manifest",
+    )
+    from agent.admission.dynamodb import DynamoInvitationStore
+
+    with pytest.raises(AdmissionDenied):
+        DynamoInvitationStore(store.client, store.table, store.namespace, store.identity)
+
+
+def test_legacy_transaction_cannot_race_first_operating_binding(world, monkeypatch):
+    from agent.admission.dynamodb import DynamoInvitationStore
+
+    store = world[1]
+    legacy = DynamoInvitationStore(
+        store.client, store.table, store.namespace, store.identity, clock=store.clock
+    )
+    issued_before = store._read("meta")["issued"]
+    original = legacy._write
+
+    def bind_before_commit(operations, **kwargs):
+        initialized(world)
+        return original(operations, **kwargs)
+
+    monkeypatch.setattr(legacy, "_write", bind_before_commit)
+    with pytest.raises(AdmissionDenied):
+        legacy.issue(999, 30000, redemptions=20, sessions=100)
+    assert store._read("meta")["issued"] == issued_before
+
+
 def test_operating_marker_and_record_cannot_be_reinitialized(world):
     policy, _ = initialized(world)
     store = world[1]
