@@ -317,6 +317,12 @@ class DynamoInvitationStore:
         _count(sessions, 100, minimum=1)
         self._metadata()
         invitation, code = str(uuid4()), secrets.token_urlsafe(24)
+        if self.operating is not None:
+            from agent.lifecycle.operating import OperatingAuthority
+
+            if not self.operating.opens <= start < end <= self.operating.closes or redemptions > 2:
+                raise ValueError("Invitation exceeds the finite operating grant")
+            OperatingAuthority(self, self.operating).reserve_invitation(invitation)
         self._write(
             [
                 self._meta_condition(issuing=True),

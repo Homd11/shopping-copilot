@@ -102,3 +102,21 @@ def test_atomic_admission_write_losing_race_with_close_is_denied(world, monkeypa
     with pytest.raises(LifecycleUnavailable):
         world[4].wake(world[3])
     assert authority.status()["closed"] is True
+
+
+def test_runtime_stop_fences_current_work_and_allows_only_fresh_wake_after_stopped(world):
+    _, authority = initialized(world)
+    life = make_ready(world)
+    token = life.begin_work(generation=1)
+    life.request_stop(generation=1)
+    assert life.status()["state"] == "stopping"
+    with pytest.raises(LifecycleUnavailable):
+        life.check_work(generation=1)
+    with pytest.raises(LifecycleUnavailable):
+        life.renew_work(token)
+    receipt = life.claim_command(operation="stop", generation=1)
+    life.complete_command(receipt, certain=True)
+    life.reconcile(life.observation_token(), instance_state="stopped", healthy=False)
+    assert life.status()["state"] == "stopped"
+    assert authority.status()["closed"] is False
+    assert life.wake(world[3])["generation"] == 2

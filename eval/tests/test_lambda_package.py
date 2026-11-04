@@ -16,6 +16,15 @@ from deploy.lambda_package import SOURCES, build, verify
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def test_package_supports_private_guard_role(inputs, tmp_path):
+    source, wheels, _ = inputs
+    output = tmp_path / "guard.zip"
+    manifest = build(source, wheels, output, role="guard")
+    assert manifest["role"] == "guard"
+    with zipfile.ZipFile(output) as archive:
+        assert "deploy.guard_runtime" in archive.read("handler.py").decode()
+
+
 def wheel(path, name, version, *, extra=None, metadata="", wheel_text=None, bad_record=False):
     stem = f"{name.replace('-', '_')}-{version}.dist-info"
     files = {

@@ -32,7 +32,14 @@ SOURCES = (
     "agent/lifecycle/startup.py",
     "agent/lifecycle/lambda_runtime.py",
     "agent/lifecycle/lambda_entry.py",
+    "agent/lifecycle/operating.py",
+    "agent/lifecycle/operating_guard.py",
+    "agent/lifecycle/operating_dns.py",
     "agent/lifecycle/waiting.html",
+    "deploy/__init__.py",
+    "deploy/cloud_access.py",
+    "deploy/operating.py",
+    "deploy/guard_runtime.py",
 )
 DISTRIBUTIONS = {
     "anyio",
@@ -304,6 +311,10 @@ def _closure(inventory, requirements):
 
 
 def _entry(role):
+    if role == "guard":
+        return (
+            b"from deploy.guard_runtime import make_guard_entry\n\nhandler = make_guard_entry()\n"
+        )
     return (
         f'from agent.lifecycle.lambda_entry import make_entry\n\nhandler = make_entry("{role}")\n'
     ).encode("ascii")
@@ -320,7 +331,7 @@ def _directories(files):
 def build(source, wheels, output, *, role):
     """Validate everything before exclusively publishing one local ZIP."""
     try:
-        if type(role) is not str or role not in {"startup", "controller"}:
+        if type(role) is not str or role not in {"startup", "controller", "guard"}:
             _refuse()
         source, wheels, output = (
             Path(source).resolve(strict=True),
@@ -392,7 +403,7 @@ def _verify(data):
             or type(manifest["version"]) is not int
             or manifest["version"] != 1
             or manifest["python"] != "3.12"
-            or manifest["role"] not in {"startup", "controller"}
+            or manifest["role"] not in {"startup", "controller", "guard"}
             or type(manifest["files"]) is not dict
         ):
             _refuse()
@@ -452,7 +463,7 @@ def main():
     package.add_argument("--source", required=True)
     package.add_argument("--wheels", required=True)
     package.add_argument("--output", required=True)
-    package.add_argument("--role", required=True, choices=("startup", "controller"))
+    package.add_argument("--role", required=True, choices=("startup", "controller", "guard"))
     check = commands.add_parser("verify")
     check.add_argument("--archive", required=True)
     check.add_argument("--sha256", required=True)

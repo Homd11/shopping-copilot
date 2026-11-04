@@ -53,6 +53,26 @@ def test_operating_duplicate_command_cannot_dispatch_again(world):
     assert authority.status()["starts"] == 1
 
 
+def test_operating_only_ten_invitation_issues_are_permitted_across_reopen(world):
+    policy, authority = initialized(world)
+    store = world[1]
+    for _ in range(10):
+        store.issue(999, 30000, redemptions=2, sessions=100)
+    assert authority.status()["invitations"] == 10
+    from agent.admission.dynamodb import DynamoInvitationStore
+
+    reopened = DynamoInvitationStore(
+        store.client,
+        store.table,
+        store.namespace,
+        store.identity,
+        clock=store.clock,
+        operating=policy,
+    )
+    with pytest.raises((LifecycleUnavailable, AdmissionDenied)):
+        reopened.issue(999, 30000, redemptions=2, sessions=100)
+
+
 def test_operating_last_reservation_is_atomic_across_concurrent_callers(world):
     policy, authority = initialized(world)
     for index in range(99):

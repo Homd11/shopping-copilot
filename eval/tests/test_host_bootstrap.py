@@ -40,6 +40,7 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
         provider_key_file=str(key),
         operating=policy.values(),
     )
+    data["admission_limits"]["maximum_sessions"] = 8
     data["inference"].update(
         INFERENCE_PROVIDER="openrouter",
         INFERENCE_MODEL=data["model"],
