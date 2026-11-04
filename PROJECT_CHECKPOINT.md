@@ -2,6 +2,29 @@
 
 **Last updated:** 2026-11-04
 
+## Cold7 and desktop acceptance passed; genuine idle observation running
+
+Final approved recovery cold boot4 completed. Actual cloud lifecycle generation7
+ready and independent PC signed proof verified (HTTP200,1.641s, normal TLS/HMAC/
+nonce/release/generation checks). Cold runner exited successfully before desktop.
+Actual public Chromium shopping acceptance passed: confirmation unchanged-before/
+completed-after, Sensitive valueexcluded, independentcart, refreshwithoutreplay,
+SSEreopen.147HTTPrequests/oneShoppermessage/twostreams. Browser closed at epoch
+1793824268.1856472. Protected ledger250attempts/accounted1687169683nanos: exactly
+one new model attempt and USD0.001037300 accounted, no cap/reserve/history reset.
+Accepted-launch marker saved by root; original two-reservation trigger stays until
+clean idle stop and next boot. No further model calls are needed for acceptance.
+
+Read-only real-idle watcher is running in exec58440, log.scratch/december-operation/
+idle-watch.log and operation/idle-progress.json. Do not open app/store with an
+admitted session, change clocks/activity, duplicate watcher or force a stop and
+call it idle. Need actual>=3605seconds meaningful idle, physicalSTOPPED, recoverable
+lifecycle/zero leases/command, then authenticated shutdown accounting and handover.
+At this frontier hostrunning intentionally for the genuine60minute test; EIP/DNS/
+controls remain owned and bounded. Source395b0b6/71privatechecks unchanged. After
+success, revoke QA invite, issue owner/instructor invitations privately, close and
+verify SSH ingress, update result/checkpoint and complete Git integration/CI.
+
 ## Recovery controls and protected custody restored; maintenance3 stopped
 
 Actual controls apply completed successfully: old invitation archived/revoked,
