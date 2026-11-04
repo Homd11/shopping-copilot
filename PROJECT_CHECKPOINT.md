@@ -2,6 +2,35 @@
 
 **Last updated:** 2026-11-04
 
+## Consolidated recovery approved and locally verified; controls apply running
+
+Owner explicitly approved docs/december-used-window-recovery-design-20261104.md.
+Exact receipt is retained as used-recovery-owner-approval.json in operation1d4a59c9.
+Private used_recovery.py/used_guest.py/operator_readiness.py implement one audited
+used-window correction and root-only restoration of known-unused finalized custody.
+All71private tests pass (11.38s), including a real spawned verifier process with
+synthetic signed transport/no network, blocked-process termination, crashed-worker
+classification, preserved ledger/history/audits, fresh schedule dates and phase gates.
+
+One focused independent review of the NEW protocol found old-invitation survival
+and a per-operation-vs-total timeout gap. Both fixed in one RED/GREEN pass: archive
+and revoke old invitation before controls reopen; supervise real PC verifier in
+spawned process with strict10s acceptance deadline/termination. Deployed cloud2s
+verifier/application395b0b6 unchanged. No second review loop. Exact prepared helper
+hashes, test log SHA and review disposition are bound by private gate receipts.
+
+At approximately23:19Cairo the single approved controls apply began (exec31746).
+Do not replay it. It verifies stopped/known final custody, quiesces recurring
+schedules and Lambda queues, audits/restores owner-closed authority without resetting
+2starts/1invitation, restores guard once, proves safety and reconciles the old
+stopped lifecycle through normal Stop intent/ack. No additional host starts yet.
+Next only after success: reserved maintenance3, inspect guest logs, audited custody
+restoration with all249rows/20holds untouched, DNS/TLS, Stop, actual coldwake4,
+signed PC verification, desktop<=2modelattempts, real60minidle/accounting/handover.
+OriginalUSD45/Free0cash/Dec4deadline/originalfirstwrite/100starts/modelcaps remain.
+SameEIP13.63.108.192/DNS retained; owner need not edit DNS again. All old runners
+exited; originalhost was freshly STOPPED before this apply. Preserve user PDFs.
+
 ## Acceptance stopped after local readiness miss; used-window recovery needs review
 
 Newest actual state supersedes earlier in-progress sections. Context setup
