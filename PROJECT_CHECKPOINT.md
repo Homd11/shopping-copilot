@@ -20,20 +20,25 @@ persist; close/EC2 stop independent of table health; DNS first proof is preserve
 but a renewed safe interval is required after positive/unknown DNS. Eight-hour
 runtime ceiling stops one lifecycle cycle, not all December invitations.
 
-Task4 in progress: private operator/custody helpers have 17 synthetic checks
-passing; source also pins the absolute model-attempt ceiling into version3 host
-config/fingerprint and verifies actual GuardedClient. A preliminary clean Linux
-build of3dd8bf4 passed (2CPU/2GiB/networknone, zero SDK/model calls); it is
-SUPERSEDED for launch by the newer ceiling pin and must be rebuilt from final
-source, never relabelled. Source exporter correctly refused the three local PDF
-drafts; clean validation clone preserves them at
+Task4 in progress: private operator/custody/phase helpers have 24 synthetic checks
+passing, including a two-reservation transactional smoke fence and current-ledger
+validation before reusing a shutdown receipt. Source pins the absolute model-attempt
+ceiling into version3 host config/fingerprint and verifies actual GuardedClient.
+Clean ecacf4d regression: format/lint, TypeScript tests and builds pass;
+1,684 Python tests pass, three Windows Caddy-environment skips, two dependency
+warnings. The slow browser-test tail completed; diagnostic stack captures are
+retained privately. Final ecacf4d Linux build passed (2CPU/2GiB/networknone,
+zero SDK/model calls), archive ee849fc28d330d8bec053e390c6bf086fecec01c870c28dc163b2088643a1a5d,
+manifest 2e22c0aab55a6e799fbe8bdb0a05c75ad8fb324f3d002d7d1468c8737a25d530.
+The preliminary 3dd8bf4 artifact is superseded. Source exporter correctly refused
+the three local PDF drafts; clean validation clone preserves them at
 C:/Users/pc/.codex/tmp/shopper-december-validation-20261104.
 Docker Desktop was started only for bounded local build; native container exited.
 
 No AWS writes, host starts, EIP allocations, DNS edits, provider GETs/POSTs yet.
 Original host remains at its last verified stopped state; refresh independent
-inventory before first cloud write. Finish Task4 operator/guest integration,
-full clean regression and fresh whole-branch review before enabling resources.
+inventory before first cloud write. Finish Task4 fresh whole-branch review and
+artifact/phase preparation before enabling resources.
 Approved bounds remain USD45AWS/Free0cash, USD0.20/100 model attempts inside old
 USD2 key cap, unexposed USD0.10 reserve, 4December23:59Cairo close, 48h cleanup.
 

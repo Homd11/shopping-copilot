@@ -206,3 +206,45 @@ Build, install, preflight, backup/restore and safe restart commands are in
 [the release and recovery guide](../docs/cap04-release-recovery.md). Storefront
 production releases run emitted JavaScript with pinned production dependencies;
 the earlier direct `tsx` command above remains a source-checkout rehearsal only.
+
+## Finite invited operation
+
+The December deployment uses an explicitly initialized `OperatingPolicy` in the
+existing DynamoDB namespace. Host configuration version 3 and control configuration
+version 2 bind its operation, immutable manifest, original instance and absolute
+closing time. Missing, changed, deleted or expired authority refuses admission;
+the controller can still observe and stop a closed operation. Every start dispatch,
+including maintenance and uncertain outcomes, consumes one of 100 durable slots.
+Invitations have a separate ten-code ceiling, two redemptions and 100 sessions per
+code. Host admission permits at most eight simultaneous sessions.
+
+The qualified provider remains OpenRouter, `google/gemini-3.5-flash-lite`. The host
+configuration pins the absolute lifetime attempt ceiling into its qualification
+fingerprint. Protected evidence is checked at startup; requests use the existing
+in-memory qualification checks. Root custody preserves the ledger UUID, all charges
+and uncertain holds. Public headroom is baseline accounted spend plus USD0.20;
+USD0.10 remains unexposed inside the unchanged non-resetting USD2 key cap. A temporary
+transactional launch fence permits at most two new smoke-test reservations and is
+removed only on a subsequent clean boot after recorded acceptance.
+
+The normal 60-minute meaningful-idle stop remains active. A private five-minute
+guard checks finite authority, daily Free-plan/credit/traffic observations and the
+eight-hour uninterrupted-run ceiling. A separate Scheduler target directly stops
+the original instance at closing; guest systemd timers provide another stop path.
+The guard cannot start an instance. Shutdown does not rely on this PC remaining on.
+The credit guard uses delayed AWS observations, so it is not a hard billing cap.
+
+At closing, public admission and controller starts are fenced independently of a
+successful DynamoDB write. The owned EIP is released only after all four pinned
+authoritative nameservers prove app/store A, AAAA and CNAME absence, a continuous
+7,200-second interval and a fresh final check. Unknown or renewed DNS references
+restart the safe interval. After the approved 48-hour cleanup tail, unresolved DNS
+requires an incident with the host stopped and ingress closed; it never permits
+releasing an address still referenced by the domain.
+
+The private operator under `.scratch/december-operation/` separates preflight,
+disabled provisioning, verified independent safety, reserved maintenance, custody
+staging, DNS/TLS, maintenance stop, real invited cold wake, desktop acceptance,
+genuine idle observation, signed accounting and handover. It retains intent before
+each exact-owned mutation and does not automatically replay uncertain outcomes.
+Only a passed deployed acceptance establishes a launch; offline tests alone do not.

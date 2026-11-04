@@ -1,5 +1,22 @@
 # Shopping Copilot — project handoff
 
+## Approved December operation: local verification complete, launch gate closed
+
+Owner approved the exact 2e677e8 design and autonomous implementation/deployment
+while away; AWS CLI login succeeded, read-only Free/ACTIVE balance USD179.30.
+Use the newest PROJECT_CHECKPOINT.md and the plan-scoped execution ledger.
+Finite authority, runtime bindings and independent guard are committed. Final
+ecacf4d clean regression passed: 1,684 Python tests, TypeScript tests and builds,
+format/lint; three Caddy-environment skips. Separate bounded offline Linux release
+build passed. Private operator/custody/phase helpers are under
+.scratch/december-operation/. Fresh whole-branch review and current cloud inventory
+remain mandatory before the first write. No cloud writes, host starts, EIP,
+provider calls or DNS changes have occurred in this implementation session.
+The original host is only last-known stopped until fresh inventory. Preserve
+the approved USD45AWS/Free0cash, USD0.20/100 additional attempts inside the original
+non-resetting USD2 key cap, unexposed USD0.10 reserve and 4December23:59Cairo close.
+Brave/DNS control is explicitly delegated by the newest owner instruction.
+
 ## December operating proposal ready for owner review — 4 November 2026
 
 Main publication/CI are complete at 874c9b1, run41619335148 success. Owner resumed
