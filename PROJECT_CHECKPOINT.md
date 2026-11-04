@@ -69,7 +69,6 @@ checks, followed by conditional account reauthentication and reviewed launch.
 AGENTS.md's exact cost/resource/public-activation gate requires this ongoing
 window decision; earlier temporary acceptance grants are consumed and closed.
 
-
 ## Main release integrated and published; next work is the December operating plan
 
 Owner explicitly requested integration and GitHub push. The45-commit release
