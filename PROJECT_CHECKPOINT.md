@@ -2,6 +2,32 @@
 
 **Last updated:** 2026-11-04
 
+## December cloud launch in progress — operation1d4a59c9
+
+Task4 is complete. Full clean runtime395b0b6 verification passed1,693 Python tests,
+TypeScript/build/format/lint;37 private checks and all Linux release/Lambda proofs
+pass. Task5 has begun under the existing explicit December approval. Current
+operation is .scratch/december-operation/operation-1d4a59c9-c990-4589-8b29-d11a4fa9f3e1
+(pointer current-operation.txt). Old5a87a47a preparation is superseded without writes.
+
+First cloud writes have occurred: finite authority initialized, one EIP allocated
+and associated with the stopped original host, private bucket and four roles/logs
+being provisioned. Provision runner is still active in exec session54158; resume
+that session and inspect protected state/receipts, never rerun provision blindly.
+At17:32Cairo it was uploading the three Lambda packages,22 write intents; no host
+Start, provider GET/POST or DNS edit has occurred. Host stays stopped until all
+three independent schedules and the real guard are verified. Owner is available
+for manual app/store A edits once the staged host's actual owned IP is provided.
+Desktop tools remain unavailable; no native UI actions were taken.
+
+Next: finish disabled provisioning, configure/verify safety, reserve one maintenance
+Start, inspect guest logs and stage exact release/custody, then give owner DNS values.
+After verified TLS stop maintenance, enable finite control, perform one real invited
+cold wake and desktop smoke (at most two model reservations), genuine60-minute idle,
+signed accounting and handover. Do not reset counters/holds or reuse old temporary
+grants. Current bound remains USD45AWS/Free0cash, USD0.20/100 new model attempts inside
+old nonresetUSD2 cap with unexposedUSD0.10 reserve, closing4December23:59Cairo.
+
 ## December review and local verification complete; prepare approved launch
 
 Current runtime commit395b0b6. The required fresh review completed after the
