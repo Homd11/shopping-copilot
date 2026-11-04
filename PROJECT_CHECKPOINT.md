@@ -2,6 +2,44 @@
 
 **Last updated:** 2026-11-04
 
+## December review and local verification complete; prepare approved launch
+
+Current runtime commit395b0b6. The required fresh review completed after the
+original reviewer's quota failure: its eight accepted findings plus two remaining
+integration findings were addressed in one fix pass with retained RED/GREEN
+evidence. Legacy configuration cannot evade a remaining operating record or race
+its first binding. Guest custody binds the kernel boot ID and compares every old
+ledger row against the previous MAC-authenticated backup. Maintenance reservations
+are persisted before dispatch and current authority/schedules are checked before
+Start. Handover revokes and verifies absence of SSH ingress. Cleanup is resumable
+even before the guard exists and permits only exact closing actions after expiry.
+DNS continuity is invalidated before probing, starts at proof completion and resets
+after missed proofs; release requires actual address absence. Shutdown checkpoints
+allow bounded slow Lambda runs to reach DNS, and failure logs are retained through
+the exact bounded CLI read seam.
+
+81 focused runtime checks and37 private operator/custody/phase checks pass,
+including joined AWS-model validation of the three-function/four-role/three-schedule
+provisioning path without a host Start. Clean395b0b6 full regression passed at
+.scratch/december-operation/validation-final/. A preceding dfbab53 run exposed four
+obsolete offline fixtures, now corrected without weakening the runtime gates, and
+one mobile10s timeout; the isolated mobile rerun passed all four checks unchanged.
+Current whole suite:1,693 Python tests pass, two dependency warnings, no skips;
+format/lint, TypeScript tests and all builds pass. Final395b0b6 native Linux build passed: archive
+4595e40cac7587cc7217dde9169a03715027531bd3bb0d36282bf7abb0114fbc,
+manifest91d5e0ba54262503151f9e3366a674c22b136e34e487d95cc4a345c9573edd9d,
+zero SDK/model calls. All three final Lambda packages passed isolated Linux smoke
+with network/SDK creation blocked. Earlier ecacf4d/dfbab53 artifacts are superseded.
+
+Fresh read-only AWS proof: Free/ACTIVE, USD179.30, Lambda unreserved
+capacity400. No cloud writes, host starts, EIP allocations, DNS changes or provider
+GETs/POSTs in this session. The local prepared5a87a47a operation is unused and must
+be superseded after final checks, not activated with stale source/manifest. Both
+desktop automation runtimes fail kernel-asset initialization; owner confirmed
+manual DNS A-record edits are available when given the owned new EIP. Preserve all
+user PDFs and original accounting. Complete Task4, prepare a fresh immutable
+operation and current inventory, then execute the already-approved Task5 bounds.
+
 ## Owner approved December operation; local implementation in progress
 
 Owner explicitly approved the 2e677e8 operating proposal and requested autonomous

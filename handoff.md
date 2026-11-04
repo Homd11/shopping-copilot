@@ -1,5 +1,24 @@
 # Shopping Copilot — project handoff
 
+## December launch verification after completed review fix pass
+
+Newest checkpoint is PROJECT_CHECKPOINT.md. Runtime395b0b6 is the final corrected
+source: full clean regression1,693 Python tests (two dependency warnings/no skips),
+TypeScript tests, builds, format/lint pass;81 focused/37 private checks and its
+native Linux release plus all three Lambda smoke checks pass. The previous full run's
+four obsolete authority/cost fixtures were corrected; its unrelated mobile10s
+timeout passed the isolated rerun unchanged. Review is complete; no second review
+loop is needed. Keep all accepted findings in the single recorded fix pass.
+
+No AWS writes/starts/EIP/DNS/provider calls yet. Free/ACTIVE USD179.30 and Lambda
+unreserved400 were freshly observed. Native desktop tooling cannot initialize;
+the owner confirmed manual DNS edits when given the actual new EIP. Prepare fresh
+current inventory and immutable launch intent before opening cloud gates. Old prepared operation5a87a47a
+has no writes and stale source; prepare a new immutable operation after checks.
+Use the existing explicit December approval without asking for another plan choice
+or repeating the audience/duration questions. User PDFs and primary checkout drafts
+remain untouched.
+
 ## Approved December operation: local verification complete, launch gate closed
 
 Owner approved the exact 2e677e8 design and autonomous implementation/deployment
