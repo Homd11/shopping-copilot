@@ -85,6 +85,13 @@ class AWSGuardBackend:
         if self.context is not None and self.context.get_remaining_time_in_millis() < minimum:
             raise ValueError("Guardian invocation budget exhausted")
 
+    def can_work(self, minimum):
+        try:
+            self._budget(minimum)
+            return True
+        except ValueError:
+            return False
+
     def _client(self, name):
         self._budget()
         if name not in self._clients:

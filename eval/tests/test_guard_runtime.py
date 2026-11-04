@@ -57,6 +57,7 @@ def state(bindings, now):
         "dns_since": None,
         "dns_checked": None,
         "released": False,
+        "shutdown": dict.fromkeys(("fence", "authority", "delivery", "ingress"), False),
     }
 
 
@@ -243,3 +244,92 @@ def test_release_acknowledgement_is_not_a_proof_of_address_absence(backend, monk
     monkeypatch.setattr(runtime, "_call", acknowledged_but_present)
     assert runtime.release() is False
     assert calls.count("describe_addresses") == 2
+
+
+def test_slow_successful_cleanup_advances_to_dns_across_bounded_lambda_invocations(monkeypatch):
+    from agent.lifecycle.operating_guard import OperatingGuard
+
+    m = module()
+    bindings = GuardBindings(**fixture())
+    elapsed, epoch, dns_calls = [0.0], [bindings.policy.closes], []
+    record = state(bindings, epoch[0])
+    requests = []
+
+    class Context:
+        def get_remaining_time_in_millis(self):
+            return int(30000 - elapsed[0] * 1000)
+
+    class Authority:
+        def status(self):
+            elapsed[0] += 4.5
+            return {"closed": False}
+
+        def close(self, reason):
+            elapsed[0] += 5.4
+
+    def probe(_):
+        dns_calls.append(epoch[0])
+        elapsed[0] += 0.9
+        return True
+
+    for _ in range(3):
+        elapsed[0] = 0
+        runtime = m.AWSGuardBackend(
+            bindings, clock=lambda: epoch[0] + elapsed[0], context=Context(), dns_probe=probe
+        )
+        monkeypatch.setattr(runtime, "_authority", lambda: Authority())
+
+        def wire(service, method, *, _runtime=runtime, **kwargs):
+            nonlocal record
+            _runtime._budget()
+            elapsed[0] += 0.9
+            requests.append(method)
+            result = {"ResponseMetadata": {"HTTPStatusCode": 200}}
+            if method == "get_object":
+                raw = json.dumps(_runtime._envelope(record)).encode()
+                result.update(
+                    Body=StreamingBody(io.BytesIO(raw), len(raw)), ETag='"' + "a" * 32 + '"'
+                )
+            elif method == "put_object":
+                record = json.loads(kwargs["Body"])["state"]
+                result["ETag"] = '"' + "a" * 32 + '"'
+            elif method == "describe_instances":
+                result["Reservations"] = [
+                    {
+                        "Instances": [
+                            {
+                                "InstanceId": bindings.policy.instance,
+                                "State": {"Name": "stopped", "Code": 80},
+                            }
+                        ]
+                    }
+                ]
+            elif method == "stop_instances":
+                result = reply("stop")
+                result["StoppingInstances"][0]["InstanceId"] = bindings.policy.instance
+            elif method == "get_distribution_config":
+                result.update(
+                    DistributionConfig={
+                        "CallerReference": bindings.policy.operation,
+                        "Enabled": False,
+                    },
+                    ETag='"a"',
+                )
+            elif method == "get_distribution":
+                result["Distribution"] = {
+                    "Status": "Deployed",
+                    "DistributionConfig": {"Enabled": False},
+                }
+            elif method == "describe_security_groups":
+                result["SecurityGroups"] = [
+                    {"GroupId": bindings.security_group, "IpPermissions": []}
+                ]
+            return result
+
+        monkeypatch.setattr(runtime, "_call", wire)
+        result = OperatingGuard(runtime, clock=lambda: epoch[0] + elapsed[0]).handle(
+            {"kind": "guard"}
+        )
+        epoch[0] += 300
+    assert dns_calls, (record, requests, result)
+    assert requests.count("put_role_policy") == 1

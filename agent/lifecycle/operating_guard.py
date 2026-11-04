@@ -16,7 +16,9 @@ FIELDS = {
     "dns_since",
     "dns_checked",
     "released",
+    "shutdown",
 }
+SHUTDOWN = {"fence", "authority", "delivery", "ingress"}
 
 
 def _number(value):
@@ -52,6 +54,9 @@ class OperatingGuard:
                 type(record) is not dict
                 or set(record) != FIELDS
                 or type(record["released"]) is not bool
+                or type(record["shutdown"]) is not dict
+                or set(record["shutdown"]) != SHUTDOWN
+                or any(type(value) is not bool for value in record["shutdown"].values())
             ):
                 raise ValueError()
             for name in ("observed", "credit_checked"):
@@ -74,11 +79,12 @@ class OperatingGuard:
             valid_record = True
             if now >= backend.closes:
                 reason = reason or "expired"
-            authority = backend.authority_status()
-            if type(authority) is not dict or type(authority.get("closed")) is not bool:
-                raise ValueError()
-            if authority["closed"]:
-                reason = reason or "owner"
+            if reason is None:
+                authority = backend.authority_status()
+                if type(authority) is not dict or type(authority.get("closed")) is not bool:
+                    raise ValueError()
+                if authority["closed"]:
+                    reason = "owner"
             if reason is None and now - record["credit_checked"] >= 86400:
                 plan = backend.plan_status()
                 credits = _money(plan["credits"])
@@ -122,6 +128,8 @@ class OperatingGuard:
         # Invalidate continuity durably BEFORE any DNS observation or fallible
         # shutdown work. A lost final write must never restore a previous clock.
         prior_since = None
+        shutdown = record["shutdown"] if record is not None else dict.fromkeys(SHUTDOWN, False)
+        can_work = getattr(backend, "can_work", lambda minimum: True)
         if record is not None:
             checked = record["dns_checked"]
             if checked is not None and 0 <= now - checked <= 360:
@@ -129,38 +137,51 @@ class OperatingGuard:
             if not record["released"]:
                 record["dns_since"] = None
             record["observed"] = now
+            if record["closed_at"] is None:
+                record.update(closed_at=now, reason=reason)
             try:
                 backend.write(record)
             except Exception:
                 errors.append("dns_checkpoint")
 
         # Each action is independent. An unavailable table never suppresses Stop.
-        for name, action in (
-            ("fence", backend.fence),
-            ("stop", backend.stop),
-            ("authority", lambda: backend.close_authority(reason)),
-        ):
+        def checkpoint(name, action, *, confirmed=False):
+            if shutdown[name]:
+                return
+            if not can_work(8000):
+                return
             try:
-                action()
+                outcome = action()
+                if not confirmed or outcome is True:
+                    shutdown[name] = True
+                    if record is not None:
+                        backend.write(record)
             except Exception:
                 errors.append(name)
+
+        checkpoint("fence", backend.fence)
+        # Physical Stop is independent of checkpoint success, including a failed
+        # table, IAM fence or receipt write. Reobserve the host on every tick.
         try:
-            delivery_closed = backend.close_delivery() is True
+            backend.stop()
         except Exception:
-            delivery_closed = False
-            errors.append("delivery")
+            errors.append("stop")
+        checkpoint("authority", lambda: backend.close_authority(reason))
+        checkpoint("delivery", backend.close_delivery, confirmed=True)
+        delivery_closed = shutdown["delivery"]
         if record is None or now < record.get("observed", now + 1):
             return {"state": "unverified", "reason": reason}
         record.update(observed=now)
-        if record["closed_at"] is None:
-            record.update(closed_at=now, reason=reason)
         stopped = host is not None and host["state"] == "stopped"
         if stopped:
-            try:
-                backend.close_ingress()
-            except Exception:
-                errors.append("ingress")
-        if stopped and delivery_closed and not errors:
+            checkpoint("ingress", backend.close_ingress)
+        if (
+            stopped
+            and delivery_closed
+            and all(shutdown.values())
+            and not errors
+            and can_work(22000)
+        ):
             ready_to_release = False
             try:
                 if not record["released"]:
