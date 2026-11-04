@@ -29,6 +29,7 @@ class Backend:
             "dns_since": None,
             "dns_checked": None,
             "released": False,
+            "shutdown": dict.fromkeys(("fence", "authority", "delivery", "ingress"), False),
         }
         self.authority = {"closed": False}
         self.host = {"state": "stopped", "launched": 0}

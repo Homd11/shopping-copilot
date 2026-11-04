@@ -326,9 +326,11 @@ def test_intercepted_operation_and_item_size_profile(world, ec2, monkeypatch, ca
     monkeypatch.setattr(client, "get_item", measured_read)
     monkeypatch.setattr(client, "transact_write_items", measured_write)
     worker(world, ec2).handle(TICK)
-    assert stats["get_count"] + 4 <= 36  # cold constructor contributes four further metadata gets
+    # Legacy construction now proves both metadata and finite-window absence.
+    # Captured worst tick:35 reads plus six cold-constructor reads, below42.
+    assert stats["get_count"] + 6 <= 42
     assert stats["transactions"] <= 4 and stats["max_item_json_bytes"] <= 16384
     assert stats["conservative_write_units"] <= 144
     if case == "stopped":
-        assert stats["get_count"] == 3 and stats["transactions"] == 0
+        assert stats["get_count"] == 4 and stats["transactions"] == 0
     print("COST_SAMPLE " + json.dumps(stats, sort_keys=True))

@@ -63,6 +63,7 @@ class ReadOnlyAuthority:
         self._lock, self._audit = threading.RLock(), audit_path
         common = {"pk": "offline", "schema": 1}
         self._rows = {
+            "operating#window": None,
             "meta": _encode(
                 {
                     **common,
@@ -118,7 +119,7 @@ class ReadOnlyAuthority:
                 raise ValueError("Synthetic authority refused")
             self.reads += 1
             self._record()
-            return {"Item": copy.deepcopy(self._rows[name])}
+            return {} if self._rows[name] is None else {"Item": copy.deepcopy(self._rows[name])}
 
     def __getattr__(self, name):
         if name.startswith("_"):
