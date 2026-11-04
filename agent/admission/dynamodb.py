@@ -3,6 +3,7 @@
 import re
 import secrets
 from decimal import Decimal
+from threading import Lock
 from time import time
 from uuid import UUID, uuid4
 
@@ -91,10 +92,24 @@ class DynamoInvitationStore:
             raise AdmissionDenied("access_unavailable") from None
         return identity
 
-    def __init__(self, client, table, namespace, identity, *, clock=time):
+    def __init__(
+        self,
+        client,
+        table,
+        namespace,
+        identity,
+        *,
+        clock=time,
+        operating=None,
+        operating_control=False,
+    ):
         self._configuration(client, table, namespace)
         self.identity = _identifier(identity)
         self.client, self.table, self.namespace, self.clock = client, table, namespace, clock
+        if type(operating_control) is not bool:
+            raise ValueError("Explicit operating observation mode required")
+        self.operating, self.operating_control = operating, operating_control
+        self._operating_lock, self._operating_seen = Lock(), 0
         self._metadata()
 
     def _key(self, sk):
@@ -126,6 +141,10 @@ class DynamoInvitationStore:
                 raise ValueError("Missing or mismatched authority")
             _count(row["schema"], 1, minimum=1)
             _count(row["issued"], 1000)
+            if self.operating is not None or any(name.startswith("operating_") for name in row):
+                from agent.lifecycle.operating import OperatingAuthority
+
+                OperatingAuthority(self, self.operating).check(allow_closed=self.operating_control)
         except Exception:
             raise AdmissionDenied("access_unavailable") from None
 
