@@ -84,7 +84,14 @@ def _profile(settings):
             "adapter_request_usd": "0.02",
         },
         "inference": dict(settings.inference),
-        **({"operating": settings.operating.values()} if settings.operating is not None else {}),
+        **(
+            {
+                "operating": settings.operating.values(),
+                "operating_attempt_ceiling": settings.operating_attempt_ceiling,
+            }
+            if settings.operating is not None
+            else {}
+        ),
     }
 
 
@@ -256,7 +263,12 @@ class ProviderBinding:
             "inference": dict(settings.inference),
             "admission_limits": dict(settings.admission_limits),
             **(
-                {"operating": settings.operating.values()} if settings.operating is not None else {}
+                {
+                    "operating": settings.operating.values(),
+                    "operating_attempt_ceiling": settings.operating_attempt_ceiling,
+                }
+                if settings.operating is not None
+                else {}
             ),
         }
         path_fields = {
