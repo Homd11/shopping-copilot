@@ -11,6 +11,7 @@ from types import MappingProxyType
 from agent.admission.dynamodb import _identifier
 from agent.admission.runtime import FIELDS, AdmissionPolicy
 from agent.inference.config import REQUIRED, configured_guard
+from agent.lifecycle.operating import OperatingPolicy
 from agent.llm.config import load_llm_settings
 from deploy.artifact import verify
 from deploy.host_files import ORIGINS, _pairs, _read_private
@@ -35,6 +36,7 @@ class HostSettings:
     provider: str = "bedrock"
     model: str = "openai.gpt-oss-20b-1:0"
     provider_key: str = field(default="", repr=False)
+    operating: OperatingPolicy | None = None
 
     def __post_init__(self):
         try:
@@ -45,6 +47,10 @@ class HostSettings:
         raise ValueError("Host configuration refused")
 
     def _validate(self):
+        if self.operating is not None:
+            if type(self.operating) is not OperatingPolicy or self.provider != "openrouter":
+                raise ValueError()
+            self.operating.__post_init__()
         for value, pattern in (
             (self.table, r"[A-Za-z0-9_.-]{3,255}"),
             (self.namespace, r"[A-Za-z0-9_-]{1,64}"),
@@ -167,11 +173,13 @@ def load_host_settings(config_path, *, read_private=_read_private):
             raise ValueError()
         provider, model, provider_key = "bedrock", "openai.gpt-oss-20b-1:0", ""
         provider_files = ()
-        if data["version"] == 2:
+        if data["version"] in (2, 3):
             names |= {"provider", "model", "provider_key_file"}
-        if set(data) != names or data["version"] not in {1, 2}:
+        if data["version"] == 3:
+            names.add("operating")
+        if set(data) != names or data["version"] not in {1, 2, 3}:
             raise ValueError()
-        if data["version"] == 2:
+        if data["version"] in (2, 3):
             if (
                 data["provider"] != "openrouter"
                 or data["model"] != "google/gemini-3.5-flash-lite"
@@ -209,6 +217,7 @@ def load_host_settings(config_path, *, read_private=_read_private):
             provider=provider,
             model=model,
             provider_key=provider_key,
+            operating=OperatingPolicy.parse(data["operating"]) if data["version"] == 3 else None,
         )
     except Exception:
         pass

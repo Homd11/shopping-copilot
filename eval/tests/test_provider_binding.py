@@ -4,6 +4,7 @@ import hashlib
 import json
 from dataclasses import replace
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -36,6 +37,26 @@ def test_effective_profile_is_explicit_and_uses_the_selected_route(openrouter_co
     assert configuration_fingerprint(replace(settings, service_secret="z" * 32)) == baseline
     inference = {**settings.inference, "INFERENCE_INPUT_USD_PER_MILLION": "0.4"}
     assert configuration_fingerprint(replace(settings, inference=inference)) != baseline
+
+
+def test_operating_profile_and_host_config_are_explicitly_bound(openrouter_config):
+    from agent.lifecycle.operating import OperatingPolicy
+    from deploy.provider_binding import configuration_fingerprint
+
+    path, data, ledger = openrouter_config
+    baseline = configuration_fingerprint(load_host_settings(path, read_private=fixture_reader))
+    policy = OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 100, 200)
+    data.update(version=3, operating=policy.values())
+    path.write_text(json.dumps(data))
+    before = ledger.status()
+    settings = load_host_settings(path, read_private=fixture_reader)
+    assert settings.operating == policy
+    assert configuration_fingerprint(settings) != baseline
+    assert ledger.status() == before
+    data["version"] = 2
+    path.write_text(json.dumps(data))
+    with pytest.raises(ValueError):
+        load_host_settings(path, read_private=fixture_reader)
 
 
 @pytest.fixture

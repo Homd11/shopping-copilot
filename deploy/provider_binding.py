@@ -84,6 +84,7 @@ def _profile(settings):
             "adapter_request_usd": "0.02",
         },
         "inference": dict(settings.inference),
+        **({"operating": settings.operating.values()} if settings.operating is not None else {}),
     }
 
 
@@ -98,6 +99,10 @@ def configuration_fingerprint(settings):
 def candidate_binding(settings, *, issued_at, expires_at):
     try:
         _interval(issued_at, expires_at)
+        if settings.operating is not None and not (
+            settings.operating.opens <= issued_at < expires_at <= settings.operating.closes
+        ):
+            raise ValueError()
         data = {
             "version": 1,
             "provider": settings.provider,
@@ -240,7 +245,7 @@ class ProviderBinding:
         ):
             raise ValueError()
         expected_config = {
-            "version": 2,
+            "version": 3 if settings.operating is not None else 2,
             "provider": settings.provider,
             "model": settings.model,
             "fingerprint": settings.fingerprint,
@@ -250,6 +255,9 @@ class ProviderBinding:
             "lifecycle_identity": settings.lifecycle_identity,
             "inference": dict(settings.inference),
             "admission_limits": dict(settings.admission_limits),
+            **(
+                {"operating": settings.operating.values()} if settings.operating is not None else {}
+            ),
         }
         path_fields = {
             "release": settings.release,

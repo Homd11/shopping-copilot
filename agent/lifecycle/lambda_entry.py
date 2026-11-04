@@ -11,6 +11,7 @@ from agent.lifecycle.lambda_runtime import (
     create_controller_runtime,
     create_startup_runtime,
 )
+from agent.lifecycle.operating import OperatingPolicy
 
 COMMON = {"version", "table", "namespace", "invitation_identity", "lifecycle_identity"}
 ROLE_FIELDS = {
@@ -34,13 +35,16 @@ def _settings(role, environment):
     if type(raw) is not str or not 1 <= len(raw.encode("utf-8")) <= 3072:
         raise ValueError()
     value = json.loads(raw, object_pairs_hook=_pairs)
+    version = value.get("version") if type(value) is dict else None
     if (
         type(value) is not dict
-        or set(value) != COMMON | ROLE_FIELDS[role]
+        or set(value) != COMMON | ROLE_FIELDS[role] | ({"operating"} if version == 2 else set())
         or type(value["version"]) is not int
-        or value.pop("version") != 1
+        or value.pop("version") not in (1, 2)
     ):
         raise ValueError()
+    if version == 2:
+        value["operating"] = OperatingPolicy.parse(value["operating"])
     if role == "startup":
         if key is not None:
             raise ValueError()

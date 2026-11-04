@@ -12,6 +12,7 @@ from agent.admission.dynamodb import DynamoInvitationStore, _identifier
 from agent.lifecycle.controller import ControlObserver, ControlWorker, is_tick
 from agent.lifecycle.dynamodb import DynamoLifecycle
 from agent.lifecycle.executor import EC2CommandExecutor
+from agent.lifecycle.operating import OperatingAuthority, OperatingPolicy
 from agent.lifecycle.readiness import HTTPSReadinessProbe
 from agent.lifecycle.startup import DynamoStartupRates, create_startup_handler
 from agent.lifecycle.store import LifecycleUnavailable
@@ -31,9 +32,14 @@ class ControlSettings:
     instance: str | None = None
     release: str | None = None
     readiness_secret: bytes | None = field(default=None, repr=False)
+    operating: OperatingPolicy | None = None
 
     def __post_init__(self):
         try:
+            if self.operating is not None:
+                if type(self.operating) is not OperatingPolicy:
+                    raise ValueError()
+                self.operating.__post_init__()
             if type(self.role) is not str or self.role not in {"startup", "controller"}:
                 raise ValueError()
             for value, pattern in (
@@ -65,6 +71,8 @@ class ControlSettings:
                 ):
                     raise ValueError()
                 HTTPSReadinessProbe(self.readiness_secret, self.release)
+                if self.operating is not None and self.operating.instance != self.instance:
+                    raise ValueError()
         except Exception:
             raise ValueError("Exact restricted role configuration required") from None
 
@@ -157,6 +165,8 @@ def _lifecycle(settings, role, sdk_factory, clock):
         settings.namespace,
         settings.invitation_identity,
         clock=clock,
+        operating=settings.operating,
+        operating_control=role == "controller",
     )
     return DynamoLifecycle(store, settings.lifecycle_identity, clock=clock)
 
@@ -176,10 +186,15 @@ def create_controller_runtime(
     probe = HTTPSReadinessProbe(
         settings.readiness_secret, settings.release, transport=http_transport
     )
+    operating = (
+        OperatingAuthority(lifecycle.invitations, settings.operating)
+        if settings.operating is not None
+        else None
+    )
     worker = ControlWorker(
         lifecycle,
-        EC2CommandExecutor(lifecycle, client, settings.instance),
-        ControlObserver(lifecycle, client, settings.instance, probe),
+        EC2CommandExecutor(lifecycle, client, settings.instance, operating=operating),
+        ControlObserver(lifecycle, client, settings.instance, probe, operating=operating),
     )
 
     def handler(event, context):

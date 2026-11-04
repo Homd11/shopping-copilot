@@ -188,6 +188,28 @@ class DynamoInvitationStore:
 
     def _write(self, operations, *, refusal="access_required"):
         try:
+            if self.operating is not None and not self.operating_control:
+                from agent.lifecycle.operating import KEY, OperatingAuthority
+
+                # An operating-record update supplies its own compare-and-swap.
+                # Other admission/lifecycle writes must atomically race closure.
+                own_key = self._key(KEY)
+                owns_record = any(
+                    body.get("Key", {k: body.get("Item", {}).get(k) for k in ("pk", "sk")})
+                    == own_key
+                    for operation in operations
+                    for body in operation.values()
+                )
+                if not owns_record:
+                    OperatingAuthority(self, self.operating).check()
+                    operations = [
+                        *operations,
+                        self._condition(
+                            KEY,
+                            "#schema=:schema AND #policy=:policy AND #closed=:no",
+                            {":schema": 1, ":policy": self.operating.values(), ":no": False},
+                        ),
+                    ]
             self.client.transact_write_items(
                 TransactItems=operations, ClientRequestToken=uuid4().hex
             )

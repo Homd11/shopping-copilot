@@ -11,9 +11,9 @@ def is_tick(event):
 
 
 class ControlObserver:
-    def __init__(self, lifecycle, client, instance, probe):
+    def __init__(self, lifecycle, client, instance, probe, *, operating=None):
         self.lifecycle, self.client, self.instance, self.probe = lifecycle, client, instance, probe
-        self._executor = EC2CommandExecutor(lifecycle, client, instance)
+        self._executor = EC2CommandExecutor(lifecycle, client, instance, operating=operating)
 
     def observe(self, generation):
         self._executor._configuration()
