@@ -1,5 +1,17 @@
 # Local production-style HTTPS routing
 
+## Approved December operating preparation — 4 November 2026
+
+The owner approved the [invitation-only operating design](../docs/superpowers/specs/2026-11-04-invitation-only-december-operating-design.md).
+Implementation is being verified before public activation. Version-3 host
+configuration binds both the finite operating policy and an absolute
+`operating_attempt_ceiling`; runtime defaults to that ceiling and rejects a
+conflicting override. The qualification fingerprint and actual GuardedClient
+must agree. No counter, key, uncertain hold or allowance is reset on reboot.
+The cloud guard and one-time stop schedule complement the existing idle controller;
+the remaining preparation/launch gates are tracked in the [execution plan](../docs/superpowers/plans/2026-11-04-december-invitation-operation.md).
+Historical preparation notes below do not claim this ongoing window is deployed.
+
 23 October continuation: [the inactive host service bundle](../docs/cap06-host-services.md)
 now prepares separate Storefront/Agent/proxy units and one target around the
 public profile. No unit is installed/enabled or public HTTPS activated. The

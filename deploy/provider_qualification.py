@@ -55,6 +55,10 @@ class ProviderQualification:
                 or guard._capacity
                 != int(values["INFERENCE_MAX_ACTIVE"]) + int(values["INFERENCE_MAX_WAITING"])
                 or guard._wait_seconds != float(values["INFERENCE_WAIT_SECONDS"])
+                or (
+                    settings.operating is not None
+                    and guard._maximum_attempts != settings.operating_attempt_ceiling
+                )
             ):
                 raise ValueError()
             self._binding, self._guard = binding, guard
@@ -135,6 +139,8 @@ class ProviderQualification:
                 settings.model,
                 settings.provider_key,
                 settings.fingerprint,
+                settings.operating.values() if settings.operating is not None else None,
+                settings.operating_attempt_ceiling,
                 tuple(sorted(settings.inference.items())),
             ),
         )

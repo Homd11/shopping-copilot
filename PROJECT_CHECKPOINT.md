@@ -2,6 +2,41 @@
 
 **Last updated:** 2026-11-04
 
+## Owner approved December operation; local implementation in progress
+
+Owner explicitly approved the 2e677e8 operating proposal and requested autonomous
+implementation/launch while outside, with Brave signed into DNS. AWS CLI login
+succeeded; fresh read-only plan proof is ACTIVE/FREE with USD179.30 remaining.
+Exact owner-message/proposal-hash receipt is private at
+.scratch/december-operation/owner-approval.json. No further plan-confirmation loop.
+Native inline execution ledger:
+.superpowers/sdd/2026-11-04-december-invitation-operation/progress.md.
+
+Tasks1–3 committed: f382f39 finite operating authority; 68f283f runtime expiry;
+3dd8bf4 independent guard, portable authoritative DNS proof and third Lambda role.
+56/299/236 focused task checks passed respectively; whole Python format/lint passed
+at that frontier. Missing/corrupt authority refuses; 100 starts / ten invitations
+persist; close/EC2 stop independent of table health; DNS first proof is preserved
+but a renewed safe interval is required after positive/unknown DNS. Eight-hour
+runtime ceiling stops one lifecycle cycle, not all December invitations.
+
+Task4 in progress: private operator/custody helpers have 17 synthetic checks
+passing; source also pins the absolute model-attempt ceiling into version3 host
+config/fingerprint and verifies actual GuardedClient. A preliminary clean Linux
+build of3dd8bf4 passed (2CPU/2GiB/networknone, zero SDK/model calls); it is
+SUPERSEDED for launch by the newer ceiling pin and must be rebuilt from final
+source, never relabelled. Source exporter correctly refused the three local PDF
+drafts; clean validation clone preserves them at
+C:/Users/pc/.codex/tmp/shopper-december-validation-20261104.
+Docker Desktop was started only for bounded local build; native container exited.
+
+No AWS writes, host starts, EIP allocations, DNS edits, provider GETs/POSTs yet.
+Original host remains at its last verified stopped state; refresh independent
+inventory before first cloud write. Finish Task4 operator/guest integration,
+full clean regression and fresh whole-branch review before enabling resources.
+Approved bounds remain USD45AWS/Free0cash, USD0.20/100 model attempts inside old
+USD2 key cap, unexposed USD0.10 reserve, 4December23:59Cairo close, 48h cleanup.
+
 ## December invitation-only operating proposal prepared; no launch yet
 
 Owner resumed after the completed integration/push. Published main is

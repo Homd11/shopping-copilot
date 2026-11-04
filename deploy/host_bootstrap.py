@@ -246,6 +246,11 @@ def create_host_app(
         if type(settings) is not HostSettings or not iscoroutinefunction(provider_ready):
             raise ValueError()
         settings._validate()
+        if settings.operating is not None:
+            if maximum_attempts is None:
+                maximum_attempts = settings.operating_attempt_ceiling
+            elif maximum_attempts != settings.operating_attempt_ceiling:
+                raise ValueError()
         if qualification is not None:
             if (
                 type(qualification) is not ProviderBinding

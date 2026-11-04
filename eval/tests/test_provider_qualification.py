@@ -1,7 +1,9 @@
 """Captured qualification only: no runtime disk worker, network or allowance change."""
 
 import asyncio
+import json
 from dataclasses import replace
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -45,6 +47,41 @@ def test_captured_binding_observes_and_rechecks_without_provider_or_budget_use(q
 
     asyncio.run(scenario())
     assert ledger.status() == before and guard.client.call_metadata == []
+
+
+def test_operating_qualification_rejects_an_unbounded_actual_guard(tmp_path, monkeypatch):
+    from agent.lifecycle.operating import OperatingPolicy
+    from deploy.provider_qualification import ProviderQualification
+
+    configuration = _host.__wrapped__(tmp_path)
+    path, data, _ = configuration
+    data.update(
+        version=3,
+        operating=OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 100, 200).values(),
+        operating_attempt_ceiling=101,
+    )
+    data["admission_limits"]["maximum_sessions"] = 8
+    path.write_text(json.dumps(data))
+    world = _binding.__wrapped__(configuration, monkeypatch)
+    binding = world[5]()
+    client = OpenRouterClient(
+        load_llm_settings(binding.settings.environment()),
+        transport=httpx.MockTransport(lambda _: pytest.fail("Qualification sent a request")),
+    )
+    unbounded = configured_guard(client, client._settings, binding.settings.environment())
+    with pytest.raises(ValueError, match="Provider qualification refused"):
+        ProviderQualification(binding, unbounded)
+    bounded = configured_guard(
+        client, client._settings, binding.settings.environment(), maximum_attempts=101
+    )
+
+    async def verify():
+        verifier = ProviderQualification(binding, bounded)
+        assert await verifier.observe() is not None
+        object.__setattr__(binding.settings, "operating_attempt_ceiling", 999)
+        assert await verifier.observe() is None
+
+    asyncio.run(verify())
 
 
 def test_runtime_verifier_never_reenters_file_validation(qualified_world, monkeypatch):

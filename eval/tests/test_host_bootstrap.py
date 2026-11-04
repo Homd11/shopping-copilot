@@ -39,6 +39,7 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
         model="google/gemini-3.5-flash-lite",
         provider_key_file=str(key),
         operating=policy.values(),
+        operating_attempt_ceiling=100,
     )
     data["admission_limits"]["maximum_sessions"] = 8
     data["inference"].update(
@@ -49,6 +50,12 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     )
     path.write_text(json.dumps(data))
     settings = load_host_settings(path, read_private=fixture_reader)
+    with pytest.raises(ValueError, match="Host startup refused"):
+        create_host_app(
+            settings,
+            maximum_attempts=101,
+            sdk_factory=lambda _: pytest.fail("SDK before ceiling validation"),
+        )
     model = Model()
     app = create_host_app(
         settings,
@@ -58,6 +65,7 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
         clock=lambda: world[0][0],
     )
     before = app.state.llm_client.ledger.status()
+    assert app.state.llm_client._maximum_attempts == 100
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
 
         async def validate(_):

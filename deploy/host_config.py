@@ -37,6 +37,7 @@ class HostSettings:
     model: str = "openai.gpt-oss-20b-1:0"
     provider_key: str = field(default="", repr=False)
     operating: OperatingPolicy | None = None
+    operating_attempt_ceiling: int | None = None
 
     def __post_init__(self):
         try:
@@ -52,10 +53,17 @@ class HostSettings:
                 raise ValueError()
             self.operating.__post_init__()
             if (
+                type(self.operating_attempt_ceiling) is not int
+                or not 1 <= self.operating_attempt_ceiling <= 1_000_000
+            ):
+                raise ValueError()
+            if (
                 not isinstance(self.admission_limits, Mapping)
                 or not 1 <= self.admission_limits.get("maximum_sessions", 0) <= 8
             ):
                 raise ValueError()
+        elif self.operating_attempt_ceiling is not None:
+            raise ValueError()
         for value, pattern in (
             (self.table, r"[A-Za-z0-9_.-]{3,255}"),
             (self.namespace, r"[A-Za-z0-9_-]{1,64}"),
@@ -181,7 +189,7 @@ def load_host_settings(config_path, *, read_private=_read_private):
         if data["version"] in (2, 3):
             names |= {"provider", "model", "provider_key_file"}
         if data["version"] == 3:
-            names.add("operating")
+            names |= {"operating", "operating_attempt_ceiling"}
         if set(data) != names or data["version"] not in {1, 2, 3}:
             raise ValueError()
         if data["version"] in (2, 3):
@@ -223,6 +231,9 @@ def load_host_settings(config_path, *, read_private=_read_private):
             model=model,
             provider_key=provider_key,
             operating=OperatingPolicy.parse(data["operating"]) if data["version"] == 3 else None,
+            operating_attempt_ceiling=data["operating_attempt_ceiling"]
+            if data["version"] == 3
+            else None,
         )
     except Exception:
         pass

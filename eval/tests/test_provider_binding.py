@@ -46,7 +46,7 @@ def test_operating_profile_and_host_config_are_explicitly_bound(openrouter_confi
     path, data, ledger = openrouter_config
     baseline = configuration_fingerprint(load_host_settings(path, read_private=fixture_reader))
     policy = OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 100, 200)
-    data.update(version=3, operating=policy.values())
+    data.update(version=3, operating=policy.values(), operating_attempt_ceiling=101)
     data["admission_limits"]["maximum_sessions"] = 8
     path.write_text(json.dumps(data))
     before = ledger.status()
@@ -65,8 +65,20 @@ def test_operating_host_cannot_exceed_accepted_eight_session_capacity(openrouter
 
     path, data, _ = openrouter_config
     policy = OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 100, 200)
-    data.update(version=3, operating=policy.values())
+    data.update(version=3, operating=policy.values(), operating_attempt_ceiling=101)
     data["admission_limits"]["maximum_sessions"] = 9
+    path.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="Host configuration refused"):
+        load_host_settings(path, read_private=fixture_reader)
+
+
+def test_operating_host_requires_a_pinned_absolute_model_attempt_ceiling(openrouter_config):
+    from agent.lifecycle.operating import OperatingPolicy
+
+    path, data, _ = openrouter_config
+    policy = OperatingPolicy(str(uuid4()), "a" * 64, "i-0123456789abcdef0", 100, 200)
+    data.update(version=3, operating=policy.values())
+    data["admission_limits"]["maximum_sessions"] = 8
     path.write_text(json.dumps(data))
     with pytest.raises(ValueError, match="Host configuration refused"):
         load_host_settings(path, read_private=fixture_reader)
