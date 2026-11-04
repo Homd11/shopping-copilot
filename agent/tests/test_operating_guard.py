@@ -27,6 +27,7 @@ class Backend:
             "credits": "179.30",
             "dns_absent": None,
             "dns_since": None,
+            "dns_checked": None,
             "released": False,
         }
         self.authority = {"closed": False}
@@ -165,8 +166,9 @@ def test_guard_dns_clock_is_preserved_until_full_ttl_and_rechecked_before_releas
     guard = guard_type()(backend, clock=lambda: now[0])
     assert guard.handle({"kind": "guard"})["state"] == "closing"
     assert backend.record["dns_absent"] == 40000
-    now[0] = 47199
-    guard.handle({"kind": "guard"})
+    for epoch in range(40300, 47200, 300):
+        now[0] = epoch
+        guard.handle({"kind": "guard"})
     assert "release" not in backend.calls
     now[0] = 47200
     backend.dns_ok = False
@@ -177,8 +179,9 @@ def test_guard_dns_clock_is_preserved_until_full_ttl_and_rechecked_before_releas
     guard.handle({"kind": "guard"})
     assert backend.record["dns_absent"] == 40000
     assert "release" not in backend.calls
-    now[0] = 54500
-    guard.handle({"kind": "guard"})
+    for epoch in range(47600, 54501, 300):
+        now[0] = epoch
+        guard.handle({"kind": "guard"})
     assert backend.calls.count("release") == 1
     guard.handle({"kind": "guard"})
     assert backend.calls.count("release") == 1
@@ -188,7 +191,12 @@ def test_guard_never_releases_before_actual_stopped_observation_or_after_cleanup
     backend = Backend()
     backend.dns_ok = True
     backend.record.update(
-        closed_at=40000, reason="expired", dns_absent=40000, dns_since=40000, observed=47200
+        closed_at=40000,
+        reason="expired",
+        dns_absent=40000,
+        dns_since=40000,
+        dns_checked=47100,
+        observed=47200,
     )
     backend.host = {"state": "running", "launched": 40000}
     guard_type()(backend, clock=lambda: 47200).handle({"kind": "guard"})
@@ -202,7 +210,12 @@ def test_guard_never_releases_before_actual_stopped_observation_or_after_cleanup
 def test_guard_clock_regression_or_untrusted_event_cannot_reopen_or_release():
     backend = Backend()
     backend.record.update(
-        closed_at=1000, reason="owner", dns_absent=1000, dns_since=1000, observed=1500
+        closed_at=1000,
+        reason="owner",
+        dns_absent=1000,
+        dns_since=1000,
+        dns_checked=1000,
+        observed=1500,
     )
     result = guard_type()(backend, clock=lambda: 1200).handle({"kind": "guard"})
     assert result["state"] != "open" and "release" not in backend.calls
@@ -226,3 +239,48 @@ def test_corrupt_guard_receipt_is_not_repaired_and_cannot_skip_stop(damage):
     result = guard_type()(backend, clock=lambda: 1010).handle({"kind": "guard"})
     assert result["state"] == "unverified"
     assert "stop" in backend.calls and "write" not in backend.calls
+
+
+def test_positive_dns_with_lost_final_write_invalidates_the_previous_ttl_durably():
+    backend = Backend()
+    backend.record.update(
+        closed_at=40000,
+        reason="expired",
+        observed=47100,
+        dns_absent=40000,
+        dns_since=40000,
+        dns_checked=47100,
+    )
+    original = backend.write
+    writes = []
+
+    def lose_second_write(record):
+        writes.append(dict(record))
+        if len(writes) == 2:
+            raise OSError("lost final update")
+        original(record)
+
+    backend.write = lose_second_write
+    guard_type()(backend, clock=lambda: 47200).handle({"kind": "guard"})
+    assert backend.record["dns_since"] is None
+    backend.write = original
+    backend.dns_ok = True
+    guard_type()(backend, clock=lambda: 47300).handle({"kind": "guard"})
+    assert "release" not in backend.calls and backend.record["dns_since"] == 47300
+
+
+def test_dns_clock_starts_after_full_probe_and_a_missed_tick_restarts_continuity():
+    backend = Backend()
+    now = [40000]
+
+    def slow_probe():
+        now[0] += 10
+        return True
+
+    backend.dns_absent = slow_probe
+    guard = guard_type()(backend, clock=lambda: now[0])
+    guard.handle({"kind": "guard"})
+    assert backend.record["dns_since"] == 40010
+    now[0] = 47200
+    guard.handle({"kind": "guard"})
+    assert "release" not in backend.calls and backend.record["dns_since"] == 47210

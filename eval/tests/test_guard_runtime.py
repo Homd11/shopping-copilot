@@ -55,6 +55,7 @@ def state(bindings, now):
         "credits": bindings.baseline_credits,
         "dns_absent": None,
         "dns_since": None,
+        "dns_checked": None,
         "released": False,
     }
 
@@ -220,3 +221,25 @@ def test_guard_entry_creation_has_no_sdk_lookup_and_latches_bad_config(monkeypat
     entry = m.make_guard_entry(environment={})
     assert entry({"kind": "guard"}, None) == {"state": "unavailable"}
     assert entry({"kind": "guard"}, None) == {"state": "unavailable"}
+
+
+def test_release_acknowledgement_is_not_a_proof_of_address_absence(backend, monkeypatch):
+    runtime, bindings, now, _ = backend
+    now[0] += 8000
+    runtime._record = {"closed_at": bindings.policy.opens, "dns_since": bindings.policy.opens}
+    runtime._dns_verified = now[0]
+    monkeypatch.setattr(runtime, "host_status", lambda: {"state": "stopped"})
+    calls = []
+    address = {
+        "AllocationId": bindings.allocation,
+        "Domain": "vpc",
+        "Tags": [{"Key": "OwnerOperation", "Value": bindings.policy.operation}],
+    }
+
+    def acknowledged_but_present(service, action, **kwargs):
+        calls.append(action)
+        return {"Addresses": [address]} if action == "describe_addresses" else {}
+
+    monkeypatch.setattr(runtime, "_call", acknowledged_but_present)
+    assert runtime.release() is False
+    assert calls.count("describe_addresses") == 2

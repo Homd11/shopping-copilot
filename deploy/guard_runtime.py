@@ -453,7 +453,12 @@ class AWSGuardBackend:
         if row.get("AssociationId"):
             self._call("ec2", "disassociate_address", AssociationId=row["AssociationId"])
         self._call("ec2", "release_address", AllocationId=self.b.allocation)
-        return True
+        observed = self._call(
+            "ec2",
+            "describe_addresses",
+            Filters=[{"Name": "allocation-id", "Values": [self.b.allocation]}],
+        )
+        return observed.get("Addresses") == [] and not observed.get("NextToken")
 
 
 def make_guard_entry(*, environment=None, sdk_factory=_sdk):
