@@ -1,6 +1,39 @@
 # Project checkpoint
 
-**Last updated:** 2026-11-03
+**Last updated:** 2026-11-04
+
+## December invitation-only operating proposal prepared; no launch yet
+
+Owner resumed after the completed integration/push. Published main is
+874c9b1ffcbf82052c70b48b76dbdb3a13802b75; exact-head GitHub Actions run
+41619335148 passed. That integration is complete; do not repeat it or discard
+the primary checkout's presentation drafts/local PDFs.
+
+New consolidated proposal:
+docs/superpowers/specs/2026-11-04-invitation-only-december-operating-design.md,
+with fresh official-rate worksheet docs/research/2026-11-04-december-operating-cost.md.
+Proposed invitation-only close 4 December 2026 23:59 Cairo; maximum USD45 existing
+AWS credits, Free/USD0 cash; reuse host/table/key, 100 lifetime start dispatches,
+eight-hour continuous-run threshold, cloud guard plus independent closing stop,
+48-hour DNS-safe cleanup tail. USD0.20/100 additional OpenRouter attempts proposed
+inside original nonreset USD2 cap; USD0.10 readiness reserve remains unexposed.
+Signed baseline is USD1.686132383 accounted/249 attempts/20 legacy uncertain holds;
+public-phase allowance B+0.20, with separate protected reserve, not B+0.30 exposed.
+All scope/amounts are PROPOSED, not approved or implemented.
+
+Brainstorming builder check returned "nothing important left". Public primary-source
+research confirms current regional compute/storage/IPv4/Lambda/DynamoDB rates;
+conservative workload-conditioned estimate USD40.839906, not a guaranteed AWS cap.
+Fresh read-only Free-plan API failed because AWS login expired; no fresh balance
+or inventory claimed. No AWS writes, model/key-status calls, DNS edits, product
+changes, new dependencies or services. Existing stopped/clean cloud state is the
+last verified state from 3 November, not a fabricated fresh observation.
+
+Next: owner reviews the exact proposal, then implementation plan/local synthetic
+checks, followed by conditional account reauthentication and reviewed launch.
+AGENTS.md's exact cost/resource/public-activation gate requires this ongoing
+window decision; earlier temporary acceptance grants are consumed and closed.
+
 
 ## Main release integrated and published; next work is the December operating plan
 

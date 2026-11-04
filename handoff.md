@@ -1,5 +1,21 @@
 # Shopping Copilot — project handoff
 
+## December operating proposal ready for owner review — 4 November 2026
+
+Main publication/CI are complete at 874c9b1, run41619335148 success. Owner resumed
+the main launch work. Prepared one invitation-only operating design through
+4 December23:59Cairo, proposed USD45AWScredits/Free0cash and USD0.20/100new
+OpenRouterattempts within originalUSD2cap, reserve protected. File:
+docs/superpowers/specs/2026-11-04-invitation-only-december-operating-design.md.
+Fresh-rate worksheet alongside it under docs/research/. Builder review found
+nothing important left. No approval/implementation/cloudwrite/providerGETorPOST/
+DNSedit yet. AWS read-only plan refresh reports expiredlogin; do not claim current
+balance or fresh inventory. Repeated bounded wake and cloud-side closing guard
+are proposed; old one-shot operator is not an ongoing deployment. After owner
+review, write implementation plan and finish local checks before reviewed launch.
+Keep invitation-only/December target; do not ask audience/duration again. Preserve
+all draft PDFs/presentation notes and old accounting/unknown holds.
+
 ## Main integrated and pushed; prepare the December invitation-only operating plan
 
 Owner authorized integrate/push.45commits fast-forwarded and normally pushed to
