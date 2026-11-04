@@ -1,5 +1,19 @@
 # Shopping Copilot — project handoff
 
+## Zero-use setup correction consumed; narrow continuation awaits owner exception
+
+Newest PROJECT_CHECKPOINT.md overrides older cloud-status sections. Operation
+1d4a59c9 has resources but no host starts, invitations or provider/model requests.
+Original schedule-date recovery consumed its one audit/apply and then failed an
+IAM simulator input missing the Stockholm context. Abort reclosed owner marker;
+no real guard invocation. Fresh context-aware Stop simulations and LambdaDryRun204
+pass; read-only inspection proves stoppedhost, all3schedulesDISABLED, disabledCF/
+startup0/emptyingress and2ownedactionlessalarms.52private checks pass; runtime395
+unchanged. Proposed second explicit audit/exception:
+docs/december-request-context-setup-continuation-20261104.md. Never rerun old apply
+or provision; no reopening until new exact approval. Current EIP/disk still use
+credits. Preserve original45USD/Free0cash/4Decemberdeadline/counters/modelcaps.
+
 ## December launch verification after completed review fix pass
 
 Newest checkpoint is PROJECT_CHECKPOINT.md. Runtime395b0b6 is the final corrected

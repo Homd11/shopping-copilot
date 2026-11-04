@@ -2,6 +2,34 @@
 
 **Last updated:** 2026-11-04
 
+## Zero-use setup continuation prepared; host stopped, explicit exception pending
+
+Newest frontier at approximately22:36Cairo: operation1d4a59c9 provisioning is
+complete; exec54158 and safety/recovery runners have exited. Do not resume or
+rerun those old sessions. The first schedule activation failed on a stale
+StartDate; the owner-approved one-shot schedule correction then consumed its
+audit/apply grant and aborted at an IAM simulation missing aws:RequestedRegion.
+Its safe abort reclosed the operating marker with reason owner. The first audit
+must remain intact; do not silently reuse the consumed exception.
+
+Fresh read-only inspection proves originalhost stopped, operatingstarts0/invites0,
+no provider requests or model POSTs, untouched never-invoked guard seed, disabled
+CloudFront/startupconcurrency0/Stop-onlycontroller/emptySGingress. All3owned schedules
+exist DISABLED; both exact actionless alarms exist. Context-aware simulation allows
+both Stop roles and denies guard Start; no permission change required. Actual
+LambdaDryRun204 verified corrected CLI format with no function execution.
+FreeACTIVE/USD179.30 refreshed. One owned EIP and retained disk still use credits.
+
+Prepared docs/december-request-context-setup-continuation-20261104.md and private
+context_recovery.py.52private tests pass, including eight newly observed RED→GREEN
+cases. Inspection is read-only and passes; apply requires a NEW exact owner
+exception, a second immutable audit, zero use and the original audit. It reuses
+existing resources, proves the real guard before enabling schedules, then permits
+the original maintenance/acceptance workflow. No AWS writes in this continuation
+turn. OriginalUSD45/Free0cash/4December23:59Cairo/manifest/firstwrite/modelcaps intact.
+Runtime395b0b6 unchanged; prior full1693Python/TS/build evidence remains valid.
+No DNS address has been given to the owner yet. The owner handles A edits manually.
+
 ## December cloud launch in progress — operation1d4a59c9
 
 Task4 is complete. Full clean runtime395b0b6 verification passed1,693 Python tests,
