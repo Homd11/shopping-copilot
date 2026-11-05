@@ -1,6 +1,43 @@
 # Project checkpoint
 
-**Last updated:** 2026-11-04
+**Last updated:** 2026-11-05
+
+## Invitation-only graduation launch accepted and handed over
+
+Actual acceptance is complete; do not repeat the old setup/recovery/deployment
+steps below. Result: docs/december-invitation-launch-result-20261104.md. Source395b0b6
+and exact Linux manifest91d5e0ba54262503151f9e3366a674c22b136e34e487d95cc4a345c9573edd9d
+are unchanged. Full clean1693Python/199TS/format/lint/build passed;71private checks
+and the focused recovery fix pass passed. Source-branch CI41908070390/7b5f2f5 passed.
+
+Real coldwake generation7, independent signed PC readiness, public desktop safety/
+Confirmation/Sensitive exclusion/cartisolation/SSE/refresh passed. Browser closed
+4Nov22:31:08Cairo. Genuine idle3784.437seconds ended in actual STOPPED/recoverable7
+at23:34:03Cairo, no leases/command, no forced stop or clock/activity change. Operator
+auth was renewed during observation; durable activity timestamp remained unchanged.
+Authenticated ordinary shutdown proves disabled ledger250attempts, accounted
+1687169683nanos, one new settled attempt/USD0.001037300, exactly20old uncertain holds,
+allowance1886132383nanos, reserve100millionnanos unexposed, maximum349, nonresetkeyUSD2.
+
+Handover completed5Nov. Independent fresh inventory verifies STOPPED originalhost,
+open finite operating record,4starts/4invitationissuances preserved,2active owner/
+instructor invitations, both QA invitations revoked, SSHclosed, only80/443 ingress,
+same owned EIP13.63.108.192,3enabled exactschedules,3unchanged functionhashes/concurrency1,
+FreeACTIVE/USD179.23remaining. Host is stopped until an admitted wake. Private codes:
+.scratch/december-operation/operation-1d4a59c9-c990-4589-8b29-d11a4fa9f3e1/private-invitations.json.
+Startup entry: https://djlnacpannb9q.cloudfront.net/ . Never commit credentials.
+
+Original USD45AWScredits/Free0cash,4December2026 23:59Cairo closing, firstwrite,
+100lifetimeStarts/10invitations, USD0.20/100additionalmodelattempts and protected
+USD0.10reserve remain. EIP/storage/controls intentionally consume credits while
+available. New frontier is bounded operation and final DNS-safe closing/cleanup,
+not generalisation or another acceptance boot. No further model call is needed.
+
+Git integration uses this accepted source and report. Current publishedmain/Actions
+and .scratch/december-operation/git-completion.json are the final publication proof;
+check those instead of replaying historical integration. Preserve all local user
+PDFs, six primary tracked edits and419untracked presentation assets. No force push
+or deletion of the existing Codex worktree/private operating receipts is intended.
 
 ## Cold7 and desktop acceptance passed; genuine idle observation running
 
@@ -15,8 +52,13 @@ one new model attempt and USD0.001037300 accounted, no cap/reserve/history reset
 Accepted-launch marker saved by root; original two-reservation trigger stays until
 clean idle stop and next boot. No further model calls are needed for acceptance.
 
-Read-only real-idle watcher is running in exec58440, log.scratch/december-operation/
-idle-watch.log and operation/idle-progress.json. Do not open app/store with an
+Read-only real-idle observation continues after operator authentication renewal.
+Old exec58440 exited on expired CLI credentials around43minutes; cloud credentials
+and healthy operation were unaffected. Owner reauthenticated, Free-plan check passed
+and actual activity1793824258.944184 remained identical at48minutes. New watcher
+is exec78644, log.scratch/december-operation/idle-watch-renewed.log; original log
+and errors are retained. No clock/activity/window/start/model reset occurred.
+Current proof is operation/idle-progress.json. Do not open app/store with an
 admitted session, change clocks/activity, duplicate watcher or force a stop and
 call it idle. Need actual>=3605seconds meaningful idle, physicalSTOPPED, recoverable
 lifecycle/zero leases/command, then authenticated shutdown accounting and handover.
@@ -61,7 +103,7 @@ spawned process with strict10s acceptance deadline/termination. Deployed cloud2s
 verifier/application395b0b6 unchanged. No second review loop. Exact prepared helper
 hashes, test log SHA and review disposition are bound by private gate receipts.
 
-At approximately23:19Cairo the single approved controls apply began (exec31746).
+At approximately22:19Cairo the single approved controls apply began (exec31746).
 Do not replay it. It verifies stopped/known final custody, quiesces recurring
 schedules and Lambda queues, audits/restores owner-closed authority without resetting
 2starts/1invitation, restores guard once, proves safety and reconciles the old
@@ -111,7 +153,7 @@ returned open; all3independent schedules are enabled and exact verified. The
 second immutable audit is retained alongside the first. Original manifest,
 first-write epoch,45USD/Free0cash/4Decemberdeadline/modelcaps unchanged.
 
-The reserved maintenance Start succeeded at approximately22:40Cairo; guest logs
+The reserved maintenance Start succeeded at approximately21:40Cairo; guest logs
 were retrieved first. Exact395b0b6 native release and protected custody/binding
 staged successfully, inference ledger remains disabled, baseline249attempts/
 20uncertainholds preserved, publicallowanceB+0.20, attemptceiling349 and separate
@@ -127,7 +169,7 @@ signed accounting and handover. Both recovery exceptions have been consumed.
 
 ## Zero-use setup continuation prepared; host stopped, explicit exception pending
 
-Newest frontier at approximately22:36Cairo: operation1d4a59c9 provisioning is
+Newest frontier at approximately21:36Cairo: operation1d4a59c9 provisioning is
 complete; exec54158 and safety/recovery runners have exited. Do not resume or
 rerun those old sessions. The first schedule activation failed on a stale
 StartDate; the owner-approved one-shot schedule correction then consumed its

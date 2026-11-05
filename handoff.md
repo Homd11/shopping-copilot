@@ -1,5 +1,25 @@
 # Shopping Copilot — project handoff
 
+## Accepted invitation-only December demo — 5 November 2026
+
+Newest PROJECT_CHECKPOINT.md and docs/december-invitation-launch-result-20261104.md
+govern. Actual generation7 coldwake, signed readiness, public desktop safety and
+natural3784.437s idle STOPPED/recoverable proof passed. Signed disabledledger250
+attempts/20oldholds, one newUSD0.001037300 attempt, reserveunexposed, originalUSD2cap.
+Owner/instructor invitations issued privately; QAcredentialsrevoked andSSHclosed.
+Fresh independent inventory: stoppedhost,4starts/4issuedinvites/2active, sameEIP,
+only80/443 ingress,3exact schedules/functions, FreeACTIVE/USD179.23credits. Runtime395
+unchanged;1693Python/199TS/71privatechecks and sourcebranchCI41908070390 passed.
+
+Startup: https://djlnacpannb9q.cloudfront.net/ . Codes are private in the current
+operation directory, resolved by.scratch/december-operation/current-operation.txt.
+No additional boot/model request is needed. Operation remains approved through
+4December23:59Cairo under originalUSD45/Free0cash/100Starts/modelcaps. RetainedIP/
+storage usecredits; finalDNSabsence7200s/ownership conditions still apply. Future
+work is operation/closing, not repeating old recovery or independentStorefront work.
+Currentmain/Actions and privategit-completion.json establish publication; preserve
+all user drafts/private receipts and leave this existing Codex worktree intact.
+
 ## Used operation closed after PC readiness miss — review recovery design first
 
 Newest checkpoint governs. Actual generation6 wake reached cloudready after all

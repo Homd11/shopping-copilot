@@ -9,10 +9,22 @@ using Egyptian Arabic, English, Franco-Arabic, or mixed-language requests. The
 engineering focus is the full interaction: interpreting a request, grounding it in
 store facts, checking each action, and giving the shopper clear control over changes.
 
-This is a **This is an active R&D MVP under development, built around a local Controlled Storefront**, built around one local
-Controlled Storefront. It is a working test environment for the assistant, with
+This is an **active R&D MVP built around one Controlled Storefront**.
+It is a working test environment for the assistant, with
 fictional products, accounts, orders, and checkout. Compatibility with independent
-retailers and production readiness have not been demonstrated.
+retailers and broader production readiness have not been demonstrated.
+
+## Invitation-only graduation demo
+
+Use the [HTTPS startup page](https://djlnacpannb9q.cloudfront.net/) with a privately
+provided invitation code. Open this entry first to wake the host, then follow its
+link to the shopping interface. The host stops after 60 minutes of meaningful
+inactivity. The approved demo window closes **4 December 2026 at 23:59 Cairo**.
+
+The [accepted launch record](docs/december-invitation-launch-result-20261104.md)
+documents trusted public HTTPS, actual cold wake, signed readiness, desktop safety,
+natural idle shutdown and bounded spending. Invitation codes and provider keys
+are not published in this repository.
 
 ## What works today
 
@@ -96,6 +108,12 @@ The Agent checks the result before advancing or reporting completion.
 | [`protocol/v1/`](protocol/v1/) | Shared fixtures for the versioned Snapshot, Action, and Action Result contracts.                           |
 
 ## Verification and evidence
+
+The November launch release passed **1,693 Python and 199 TypeScript tests**, plus
+formatting, lint and builds. Its deployed desktop check also verified bound
+Confirmation, Sensitive Field exclusion, isolated carts, stream recovery and
+refresh without message replay. See the launch record above for exact scope;
+the dated earlier evaluations below remain historical evidence.
 
 The [15 October replacement qualification](docs/research/2026-10-15-gemini-replacement.md)
 records the move to Gemini 3.5 Flash-Lite through OpenRouter: 43/44 core scenarios,
