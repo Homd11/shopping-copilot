@@ -27,6 +27,7 @@ def prepare(model, reads=None, state=None):
         language="en",
         resolved_state=state or {},
         retrieval_budget=None,
+        pending_clarification=None,
     )
     return asyncio.run(
         prepare_turn(task, None, ScriptedPlanner().storefront, model, reads or Reads(), active)
@@ -223,7 +224,11 @@ def test_combined_flow_uses_real_provider_adapter_within_unchanged_size_guard():
 
     model = OpenRouterClient(settings(), transport=httpx.MockTransport(handler))
     task = SimpleNamespace(
-        message="shirt pls", language="en", resolved_state={}, retrieval_budget=None
+        message="shirt pls",
+        language="en",
+        resolved_state={},
+        retrieval_budget=None,
+        pending_clarification=None,
     )
     result = asyncio.run(
         prepare_turn(

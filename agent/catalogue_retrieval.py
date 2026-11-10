@@ -217,12 +217,17 @@ async def retrieve_products(
     storefront: StorefrontDefinition,
     snapshot: Snapshot | None = None,
     budget: RetrievalBudget | None = None,
+    pending_clarification: str | None = None,
 ) -> RetrievalOutcome:
     budget = budget or RetrievalBudget()
     history, evidence, feedback = [], {}, None
     preferences = []
     # Conversation state chooses the entry point, never the meaning of shopper words.
-    executing = bool(context.get("_known_products") or context.get("_previous_suggestions"))
+    executing = bool(
+        pending_clarification
+        or context.get("_known_products")
+        or context.get("_previous_suggestions")
+    )
     requirements, unknowns = None, None
 
     async def read(query, final=False):
@@ -306,7 +311,7 @@ async def retrieve_products(
                     message,
                     storefront=storefront,
                     resolved_state=context,
-                    pending_clarification=None,
+                    pending_clarification=pending_clarification,
                     snapshot=snapshot,
                 ),
                 provider_attempt_limit=1,
