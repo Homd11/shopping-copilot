@@ -1,5 +1,54 @@
 # Project checkpoint
 
+## Clarification plumbing deployed and verified
+
+Current host release source8830aeca2a9ec9a181ce5f776b26792815286190 has manifest
+4cc745d4174af8b305d71e8568faff4c300c52350f781a372389c12bfb0c2d05.
+The existing running generation11 was reused. No extra host start or paid model
+call was needed. Independent signed HTTPS readiness and on-host synthetic Arabic
+colour/size clarification-to-select-to-cart-completion checks passed. Ledger/key
+identity and all rows remained identical across deployment/verification;262attempts,
+accounted1702689083nanos,20olduncertain holds. Original nonresetUSD2cap/allowance/
+reserve/window/expiry remain. EC2/lifecycle STOPPED11 and SSHclosed verified.
+Receipt:work/clarification-release-verification.json. The receipt explicitly marks
+synthetic model responses; live language interpretation was not retested. The prior
+advice-grounding limitation remains open. Signed shutdown proof is recorded in the
+receipt when available. Deployed source is8830aec; later documentation commits record publication status.
+Active artifact pointer:.scratch/december-operation/operation-1d4a59c9-c990-4589-8b29-d11a4fa9f3e1/active-clarification-release.json.
+Do not use old source395b0b6/bb96a48 or native-operation.txt as the current host
+release, or rerun their historic one-shot deploy/recovery phases.
+
+## Search index fix deployed; advice grounding remains open
+
+Latest verified host release is source bb96a489dcff526f3d2ac10961614c12f4ddbfae,
+manifest a0683cbbc5e70ccdaad65ad3e2572d777d72a986e83eb1e1c8533791eb31d55a.
+Catalogue SHA256 3bc6b9c8524c0b6fafcce9036a26cc670c320aaaf1a16e27f85705c02a409751
+contains60preserved products, revision2 and porter unicode61. The old source395b0b6
+and native manifest below are historical deployment baselines. Do not rerun their
+staging/recovery scripts or re-pin the controller to those baseline hashes.
+
+Owner approved the general metadata/stemming/index-migration fix, offline checks,
+then deployment and one additional start after the first runner rolled back on a
+transient502. Local66store/92agent+catalogue-evaluation tests, build and changed-file
+lint/format passed. New release built offline with native Linux dependencies.
+Generation10 deployment and independent signed HTTPS readiness passed. Real desktop
+Arabic query returned shoe-06/1200EGP,shoe-09/1850EGP,shoe-03/2000EGP. IDs/names/prices
+match catalogue; cards mark walking unverified. Prose nevertheless called casual
+choices excellent for walking without supporting suitability facts. Retrieval is
+verified; full advice grounding is NOT accepted. No phrase/synonym lookup was added.
+
+One shopper message used2model attempts/USD0.002572700. Ledger253->255attempts,
+accounted1690362483->1692935183nanos,20uncertain holds, original key/identity,
+allowance1886132383nanos, reserve and349absolute attempt ceiling retained. Controller
+release pin was updated to the new manifest. Final recorded EC2/lifecycle STOPPED,
+generation10, SSHclosed. Original operating window/December4expiry/DNS/EIP remain.
+Receipt work/search-index-release/deployment-verification.json includes the semantic
+limitation; private source .scratch/search-release/retry-verification-receipt.json
+records automated checks only. Fresh read-only AWS checks confirm STOPPED/recoverable10, SSHclosed and the new
+controller pin. MAC-verified shutdown receipt confirms ledgerdisabled,255attempts,
+accounted1692935183nanos,20uncertain holds and nonfinalized custody. No further start
+or model request is authorized by this checkpoint. Preserve all previous receipts.
+
 **Last updated:** 2026-11-05
 
 ## Invitation-only graduation launch accepted and handed over
