@@ -105,8 +105,9 @@ def accept_result(
                         intent, action_result.snapshot, runtime.planner.storefront.product_route
                     )
                     task.resolved_state["_intent"] = intent.model_dump(mode="json")
+                asked: dict = {}
                 task.cart_actions = plan_cart_edit(
-                    intent, action_result.snapshot, task.task_id, task.step_count + 1
+                    intent, action_result.snapshot, task.task_id, task.step_count + 1, asked=asked
                 )
                 task.action = task.cart_actions.pop(0)
                 task.step_count += 1
@@ -115,8 +116,12 @@ def accept_result(
                     if isinstance(task.action, AskShopperAction)
                     else "awaiting_action_result"
                 )
+                task.pending_variant = None
                 if isinstance(task.action, AskShopperAction) and not task.action.options:
                     task.pending_clarification = task.action.question
+                    task.pending_variant = asked or None
+                    # The next interpretation reads history: record the question it answers.
+                    session.conversation.append({"role": "copilot", "text": task.action.question})
                 runtime.append(
                     session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
                 )

@@ -1,335 +1,268 @@
-# Shopping Copilot: System Analysis & Design
+# Shopping Copilot: System Analysis and Design
 
-Updated: 2 October 2026. Track: **AWS ML Engineering**. DEPI deadline: **6 November 2026**.
+Updated: **28 October 2026**. Track: **AWS ML Engineering**. DEPI deadline: **6 November 2026**. Document 04, revision 2. Prepared for technical review; publication is separate from preparation.
 
-Status: **local-system design documented; cloud design awaiting CAP-04 decisions**. Behaviour/evidence is anchored to local MVP `mvp-1` (`39ac6d1`); structure incorporates session refactor `7df44d9`. The [additional design views](system-design-views.md) supply the use-case, DFD, activity, class, deployment and wireframe views requested by the [guidelines](depi-guideline-alignment.md). Prepared for owner review; no instructor approval or submission claimed.
+## 1. Purpose, scope and current status
 
-## 1. Problem, purpose and scope
+Shopping Copilot helps a Shopper express a shopping goal in Egyptian Arabic, Franco-Arabic, English or mixed language and carry it out through visible Storefront interactions. It combines catalogue-grounded advice with bounded browser Actions. The Intent Interpreter proposes meaning and targets; deterministic controls decide whether an Action may execute. Consequential choices remain visible to the Shopper.
 
-**8 October implementation supplement:** [Anonymous shopper isolation](shopper-isolation-verification.md)
-replaces the shared cart and session-ID-only access described in the original
-snapshot. It documents per-profile commerce, authenticated service linking,
-CSRF/Origin checks, stream lifetime and restart behavior. The older MVP anchor
-remains historical; public hosting and real account authentication remain outside
-the implemented local boundary.
+This report replaces the 2 October design snapshot, including its shared-cart and fixture-only storage assumptions. It describes the current source checkout, runtime evidence recorded through 24 October and the current owner-approved scope: Linux host preparation, Stockholm and an explicitly configured OpenRouter fallback if Bedrock is unusable. No AWS account access or model inference was performed to prepare it.
 
-Shoppers can struggle both to choose between products and to carry out shopping steps. Shopping Copilot combines conversation grounded in Catalogue Facts with visible, controlled Storefront interactions. The LLM interprets the Shopper's language and references; runtime code checks whether a proposed interaction is supported and safe. Advice helps the Shopper decide without gaining authority to execute an Action.
+| Evidence level   | Meaning                                                              | Current examples                                                                                 |
+| ---------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Implemented      | Source and dated local verification exist                            | Shopper isolation, SQLite catalogue, cart/Undo, Confirmation, admission and inference allowance  |
+| Rehearsed        | A bounded disposable environment exercised the implementation        | Linux config/native imports, separate synthetic UIDs, WAL access, metadata filtering and logs    |
+| Selected design  | Approved direction; execution bindings or acceptance may remain open | Sibling domains, direct Caddy HTTPS, generated startup link, Stockholm and Free-plan constraints |
+| Proposed or open | Candidate detail or required result is not yet accepted              | Production runtime lock, real systemd acceptance, cloud resources and usable qualified Bedrock   |
 
-The implemented scope is one project-owned Controlled Storefront, multilingual text, optional speech transcription, catalogue discovery, product explanations/comparisons, navigation, cart editing, ten-second Undo, guarded cart clearing and fictional checkout, account/order guidance, Stop and refresh reconciliation. Payment, login and other Sensitive Fields remain manual.
+The local MVP gate is closed under its recorded owner-approved amendments. The remaining graduation path is **Controlled Storefront only, Linux production-host preparation, model qualification and accepted AWS deployment in eu-north-1**. Independent-storefront generalisation belongs to the post-graduation SaaS roadmap. Real payments, arbitrary retailers, commercial multi-tenancy, billing and production-readiness certification are outside this deliverable.
 
-The graduation extension comprises a reviewed multilingual dataset, an offline classical intent-classification baseline, AWS model qualification and a protected AWS deployment of this same Storefront. Arbitrary retailers, Shopify/WooCommerce integration, real payments and multi-tenant SaaS are outside this deliverable. Laptop shopping was a participant's illustration, not an expansion of the catalogue.
+The application is substantially implemented; local code and disposable rehearsal do not establish an active cloud deployment. This report records selected design and known acceptance gaps without inventing resource IDs, live credentials or deployment results.
 
-Requirements and priorities are defined in [CAP-01 requirements](cap01-requirements.md); dates and responsibilities are recorded in [the execution register](cap01-execution.md). [CONTEXT.md](../CONTEXT.md) defines the domain vocabulary.
+## 2. Stakeholders, requirements and use cases
 
-## 2. Stakeholders and analysis evidence
+The Shopper needs useful choices, understandable progress and control over changes. The project owner maintains scope, content and deployment/spending decisions. DEPI reviewers need traceable requirements, diagrams, implementation choices and evidence. External model/transcription services process bounded requests; they have no browser handle or independent mutation authority.
 
-| Actor                                 | Interaction or responsibility                                                                                                         |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Shopper                               | Express needs, compare products, authorize consequential choices, inspect results, stop or undo permitted changes.                    |
-| Project team                          | Maintain the Controlled Storefront, implementation, prompts, evaluation and deployment. Technical allocations are recorded in CAP-01. |
-| Evaluator / DEPI reviewer             | Inspect reproducible evidence, limitations, design decisions and individual contributions.                                            |
-| External model/transcription provider | Process bounded requests through server-side adapters; its output is untrusted input to runtime validation.                           |
+Five informal testers reportedly explored without facilitator help. Their reactions motivated natural advice and comparisons; two successful account navigations were reported. This is qualitative owner-relayed evidence, not a standardized task-completion matrix, satisfaction percentage or representative study. Actual contributions remain distinct from administrative team assignments.
 
-The informal study consisted of five people exploring without facilitator help, according to the owner. All five reacted positively after advice was added; two successful account navigations were reported. The original feedback concerned mechanical conversation and insufficient decision support. These observations motivate advice alongside execution; they do not establish a measured success rate, representative population or complete task coverage. See [Ticket 16 closeout](ticket16-closeout.md).
+The first submission's identifiers remain stable: FR-01-09, SQ-01-07 and GR-01-05. Section 11 maps all 21 to the updated design. No requirement becomes accepted merely because it has a diagram.
 
-## 3. Use cases
+| Use case                  | Normal interaction                                          | Completion or safe handback                                                              |
+| ------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| UC-01 Discover            | Interpret requirements; retrieve current catalogue evidence | Distinguish Exact Match, Alternative and Styling Suggestion; disclose absent/unmet facts |
+| UC-02 Discuss             | Compare verified properties using bounded conversation      | Read-only advice/cards; unknown comfort or quality remains unknown                       |
+| UC-03 Navigate/Spotlight  | Resolve observed product/destination/control                | Same-origin destination or correct visual target; locate does not imply activation       |
+| UC-04 Edit cart           | Select exact variant/line and bounded quantity/removal      | Exact intended effect; other lines unchanged; stock and bounds enforced                  |
+| UC-05 Undo                | Use current reversible-change record                        | Exact prior state restored within the original ten-second deadline                       |
+| UC-06 Guarded Mutation    | Offer exact clear-cart/fictional checkout effect            | Fresh matching Confirmation executes once; expiry/state change/reuse refuses             |
+| UC-07 Account/orders      | Guide to account/newest order                               | Shopper enters sensitive values manually; credentials never enter model context          |
+| UC-08 Stop/recover        | Cancel work or reconcile state/tab ownership                | No late/stale effect or uncertain replay; takeover is explicit                           |
+| UC-09 Dictate             | Obtain editable transcription when available                | Shopper reviews and explicitly sends; typing remains available                           |
+| UC-10 Invited access/wake | Redeem bounded access and request startup                   | Invitation, ownership and signed readiness checked independently                         |
 
-| ID    | Goal and normal flow                                                                                                           | Preconditions / alternative flow                                                                                       | Observable completion                                                                     |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| UC-01 | Discover products: interpret needs, retrieve catalogue evidence, assess explicit Constraints and present results/explanations. | Supported Storefront; unknown or unmet requirements are disclosed. Ask for clarification when needed.                  | Exact Matches, Alternatives or Styling Suggestions are distinguished.                     |
-| UC-02 | Discuss a choice: compare verified properties, explain trade-offs and ask a useful follow-up.                                  | Evidence exists for referenced products; missing quality/comfort facts remain unknown.                                 | Read-only response and relevant cards; no cart change.                                    |
-| UC-03 | Navigate to a product, cart or account, or Spotlight a control.                                                                | Resolve an observed destination/product; reject off-origin or unobserved targets.                                      | ActionResult confirms navigation or visual guidance.                                      |
-| UC-04 | Add a variant, edit quantity or remove a cart line.                                                                            | Resolve exact product/variant/line from current state; validate quantity and availability.                             | Intended line changes and unrelated lines remain intact; Undo is offered for ten seconds. |
-| UC-05 | Undo the last eligible cart change.                                                                                            | Original Undo record is still valid; refresh does not restart its deadline.                                            | Exact prior cart state restored.                                                          |
-| UC-06 | Empty cart or submit fictional checkout.                                                                                       | Fresh Confirmation bound to the precise effect and current cart revision; reject changed, expired or reused authority. | One authorized effect, reported from execution evidence.                                  |
-| UC-07 | Find newest order / handle account access.                                                                                     | Sensitive input is entered by the Shopper; Copilot may guide permitted controls.                                       | Relevant page/control is shown without collecting credentials.                            |
-| UC-08 | Stop, refresh or transfer control to another tab.                                                                              | Existing session and ownership are checked; uncertain effects require reconciliation.                                  | No stale Action execution or automatic replay of an uncertain Mutation.                   |
-| UC-09 | Dictate a request.                                                                                                             | Selected speech service is available and browser permissions permit recording.                                         | Editable transcription; Shopper sends the request, or types when speech is unavailable.   |
+UC-10 supports the hosted demonstration. It is not commerce authentication, and admission never replaces per-Shopper ownership.
 
-These flows describe capabilities, not a list of accepted phrases. Egyptian Arabic, English, code-switching, misspellings and negations belong to LLM interpretation and evaluation, not language dictionaries in the validator.
+## 3. System context and application architecture
 
-## 4. Implemented logical architecture
+The context view places the Shopper, owner and external provider around one system. The container view separates browser applications, Agent process, Storefront process and stores. C4 uses “container” as an execution/storage boundary, not a requirement to deploy Docker. Native services are the selected host path; containers also serve disposable verification.
 
-```mermaid
-flowchart LR
-    shopper[Shopper]
-    subgraph browser[Browser]
-        panel[Panel / chat controller]
-        subgraph frame[Controlled Storefront iframe]
-            ui[Storefront UI]
-            bridge[Bridge / semantic observation and Actions]
-        end
-    end
-    subgraph local[Local application services]
-        api[Agent HTTP and SSE API]
-        session[SessionStore / task lifecycle]
-        intent[Intent Interpreter and boundary]
-        advice[Read-only advisor]
-        planner[Deterministic Action planning]
-        store[Storefront server / catalogue and cart]
-    end
-    model[External LLM provider]
-    shopper --> panel
-    shopper --> ui
-    panel <-->|Validated postMessage| bridge
-    panel <-->|HTTP requests / SSE events| api
-    api --> session
-    api --> intent
-    api --> advice
-    session --> planner
-    intent <-->|Provider adapter| model
-    advice <-->|Provider adapter| model
-    api -->|Catalogue retrieval| store
-    bridge --> ui
-    ui <-->|Storefront requests| store
-```
+![Figure 1. System context](diagrams/system-design-20261028/01-context.png)
 
-This is a responsibility diagram, not a claim that every box is a separate deployable service. Local ports are Panel **4100**, Storefront **4000**, Agent **8000**. The Bridge runs inside the Storefront document; the Panel communicates across the iframe boundary and forwards Actions/results. The model does not receive a browser handle or directly execute DOM operations.
+The browser loads the Panel and embeds the Controlled Storefront, whose document contains the Bridge. The Panel and Bridge exchange origin- and source-window-checked messages. The Panel calls the Agent API and receives Server-Sent Events. The Bridge executes a checked Action and returns an ActionResult with a fresh Snapshot. The Storefront owns the cart effect.
 
-| Component               | Implementation source                                                                                                     | Responsibility                                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Panel                   | [panel.ts](../panel/src/panel.ts), [main.ts](../panel/src/main.ts), [event-stream.ts](../panel/src/event-stream.ts)       | Chat, cards, speech controls, Confirmation UI, session ownership, SSE and Bridge coordination.                     |
-| Bridge                  | [runtime.ts](../bridge/src/runtime.ts), [snapshot.ts](../bridge/src/snapshot.ts), [actions.ts](../bridge/src/actions.ts)  | Semantic Snapshots, message validation, current-target checks, Action execution, Spotlight and execution feedback. |
-| Agent API               | [app.py](../agent/app.py)                                                                                                 | Request validation, orchestration of model work, event streaming and speech endpoints.                             |
-| Shopping Task lifecycle | [sessions.py](../agent/sessions.py)                                                                                       | Active task, events, ownership, context, planning progress, result identities, Stop/retry/reconciliation.          |
-| Intent interpretation   | [intent_pipeline.py](../agent/llm/intent_pipeline.py), [intent.py](../agent/llm/intent.py)                                | Versioned model context/schema, bounded repair and semantic proposal validation.                                   |
-| Discovery and advice    | [catalogue.py](../agent/catalogue.py), [advice.py](../agent/advice.py), [product_context.py](../agent/product_context.py) | Catalogue eligibility, grounded evidence, read-only explanations and bounded product context.                      |
-| Execution policy        | [planner.py](../agent/planner.py), [cart.py](../agent/cart.py), [confirmation.py](../agent/confirmation.py)               | Supported Action sequences, target/bounds checks and bound Confirmation.                                           |
-| Provider seam           | [contract.py](../agent/llm/contract.py), [factory.py](../agent/llm/factory.py)                                            | Provider-neutral request/response interface and configured adapter selection.                                      |
-| Controlled Storefront   | [app.ts](../store/src/app.ts), [guarded-cart.ts](../store/src/guarded-cart.ts), [catalogue.ts](../store/src/catalogue.ts) | Authoritative product fixtures, rendered controls, cart revision, Undo and fictional orders.                       |
+![Figure 2. Application execution boundaries](diagrams/system-design-20261028/02-containers.png)
 
-`SessionStore` is now a stable facade composing a registry and Shopping Task modules; SSE delivery has its own adapter. See the [class/module view](system-design-views.md#classes-and-module-composition) and [refactor record](session-modularity-refactor.md). The logical responsibilities remain; intent interpretation and ActionResult handling retain documented complexity. This is an incremental extraction, not elimination of all architecture debt.
+| Component                   | Main sources                                                                                                  | Responsibility                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Panel                       | panel.ts, event-stream.ts, shopper-link.ts, admission.ts                                                      | Chat/cards, Confirmation, speech review, Stop, ownership and Bridge coordination        |
+| Bridge                      | runtime.ts, snapshot.ts, actions.ts                                                                           | Semantic observation, current-target checks, origin/source validation and DOM execution |
+| Agent API                   | agent/app.py, shopper_http.py, shopper_access.py                                                              | HTTP/SSE, Shopper authorization, admission and orchestration                            |
+| Session facade/task modules | sessions.py, session_registry.py, task_interpretation.py, task_commands.py, task_results.py, task_recovery.py | Context, interpretation, commands, result identities, Stop and reconciliation           |
+| Catalogue/advice            | catalogue_client.py, catalogue_retrieval.py, catalogue_turn.py, advice.py                                     | Bounded retrieval, eligibility, grounded product references and read-only advice        |
+| Storefront                  | app.ts, shopper-state.ts, shopper-link.ts, guarded-cart.ts, product-repository.ts                             | Per-Shopper commerce, linking, stock/revision checks and authoritative catalogue        |
+| Provider seam               | agent/llm/contract.py, factory.py, openrouter.py, bedrock.py                                                  | Explicit adapter selection, structured proposals, errors/cancellation and usage         |
+| Host assembly               | deploy/host_bootstrap.py, host_checks.py, host_component.py                                                   | Protected configuration, native launch, signed readiness and cleanup                    |
 
-## 5. Information flow and trust boundaries
+SessionStore composes modules rather than distributing the application into a fleet of microservices. Browser target IDs are scoped to observations; they are not durable selectors stored in a database. Local development uses Panel 4100, Storefront 4000 and Agent 8000; production routing is described separately in section 8.
 
-1. The Bridge describes the current page as a semantic Snapshot: URL, title, language, viewport and observed elements. Sensitive Fields carry only minimal metadata; their values are excluded.
-2. The Panel submits the Shopper message, Snapshot and session/tab identity to the Agent. Session context supplies recent conversation, known products and previous suggestions. Current observed cart controls/state inform interpretation; a pronoun or quantity change is not resolved by a phrase matcher.
-3. The Intent Interpreter proposes a Structured Intent. The Intent Boundary checks supported fields/capabilities, observed references, bounds and compatible operations. Structured output is a proposal, not execution authority.
-4. Discovery retrieves current catalogue evidence. Exact eligibility remains deterministic against explicit requirements. Advice receives bounded evidence and eligible references; unsupported prose claims are a quality risk assessed separately.
-5. An execution request is translated into supported Actions. The Panel delivers each executable Action to the Bridge, which rechecks its target and current state. Guarded Mutations also require matching Confirmation enforced through the Storefront mutation flow.
-6. The Bridge returns an ActionResult and fresh Snapshot. The Agent accepts only matching task/action/sequence identities, then completes, continues, asks the Shopper or pauses.
+## 4. Data flow, identity and trust
 
-Browser messages, DOM/catalogue text and model replies are not trusted instructions. Origin/source checks constrain cross-frame messages; same-origin navigation and Sensitive Field rules constrain Actions. Catalogue content can ground facts but cannot authorize execution. Current local CORS configuration is not production authentication: cloud access control and server-side session isolation require separate design and verification.
+Anonymous browser profiles now have Storefront-owned Shopper bindings and separate carts. Agent sessions require authenticated linking; a copied session ID is insufficient. Host-only Secure/HttpOnly cookies and Origin/CSRF checks constrain browser requests. Sibling HTTPS origins preserve separate DOMs without widening cookies to the parent domain.
 
-## 6. Interaction sequences
+![Figure 3. Request and evidence data flow](diagrams/system-design-20261028/03-data-flow.png)
 
-### Ordinary cart change
+1. Complete the bounded linking flow and authenticate the binding through a private Storefront service. Check session and active-tab ownership before work.
+2. Build a semantic Snapshot from permitted page metadata/controls. Exclude Sensitive Field values and arbitrary hidden inputs from model context.
+3. Send the request, sanitized observations and bounded history/product context to the explicitly selected model. Validate capability, target, currency, quantity, freshness and authority after interpretation.
+4. Retrieve revisioned catalogue evidence through the service contract. Lexical or optional semantic ranking narrows candidates; product facts determine eligibility. Ranking cannot prove an absent property or authorize a mutation.
+5. Return read-only advice/cards, or plan executable Actions through Confirmation where required and checked event/Bridge delivery.
+6. Accept only matching ActionResults. Missing acknowledgements and disconnects never justify repeating an uncertain Mutation automatically.
 
-```mermaid
-sequenceDiagram
-    actor S as Shopper
-    participant P as Panel
-    participant A as Agent
-    participant L as Intent Interpreter
-    participant B as Bridge
-    participant T as Storefront
-    S->>P: Change a specific cart quantity
-    P->>B: Request current Snapshot
-    B-->>P: Observed controls and cart state
-    P->>A: Message + Snapshot + ownership
-    A->>L: Bounded context and intent schema
-    L-->>A: Proposed operation, target and quantity
-    A->>A: Validate target, capability and bounds
-    alt Ambiguous or invalid proposal
-        A-->>P: Clarification or bounded failure
-    else Valid proposal
-        loop Each required Action
-            A-->>P: Action with identity
-            P->>B: Execute Action
-            B->>B: Recheck current target and safety
-            B->>T: Interact with permitted control
-            T-->>B: Updated UI/state
-            B-->>P: ActionResult + fresh Snapshot
-            P->>A: Submit ActionResult
-            A->>A: Match identity and advance
-        end
-        A-->>P: Completion based on results
-    end
-```
+DOM text, catalogue descriptions, model replies and browser requests are untrusted data. Service authentication is separate from browser cookies. The public Caddy path allowlist excludes private/test interfaces and removes forwarded service secrets. These prepared controls still require deployed-path verification.
 
-### Guarded Mutation
+## 5. Data model and storage
 
-```mermaid
-sequenceDiagram
-    actor S as Shopper
-    participant P as Panel
-    participant A as Agent / Confirmation ledger
-    participant B as Bridge
-    participant T as Storefront
-    A-->>P: Offer exact effect and bound question ID
-    S->>P: Explicit Confirm
-    P->>A: Answer for current question and task
-    A->>A: Check expiry and current proposal equality
-    alt Expired, changed or mismatched
-        A-->>P: No authorized Mutation
-    else Fresh matching authority
-        A-->>P: Bound guarded_click Action
-        P->>B: Execute against current control
-        B->>T: Bound guarded mutation flow
-        T->>T: Check revision and single-use authority
-        T-->>B: Mutation outcome
-        B-->>P: Result and new Snapshot
-        P->>A: Matching ActionResult
-        A-->>P: Verified completion or safe failure
-    end
-```
+The catalogue is an explicitly initialized SQLite database, replacing fixture-only reads. The Storefront owns imports/writes; search/detail responses include revisioned evidence. Unknown properties stay unknown, and Money remains exact at contract boundaries. Native host preparation additionally gives the Agent narrow read-only catalogue/WAL access for verification, never write authority.
 
-Advice follows a shorter path: message → interpretation → catalogue evidence → read-only advice generation → validated response/references → chat/cards. It emits no executable Action. A later request to buy or navigate starts the normal execution path with fresh checks.
+![Figure 4. Physical catalogue and separate allowance schema](diagrams/system-design-20261028/04-data-model.png)
 
-## 7. Shopping Task states and recovery
+| Store/entity              | Identity and fields                                                                                                     | Storage and authority                                                        |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| catalogue_meta            | singleton id, schema_version, revision                                                                                  | Durable SQLite revision; absent/incompatible database refuses startup        |
+| products                  | id, ordinal, revision, document, absent_features, absent_uses, category, product_type, price_minor, available, added_at | Durable records with integer minor-unit prices                               |
+| product_attributes        | product_id, kind, value, present; composite key                                                                         | Indexed evidence; foreign key to products with cascading deletion            |
+| product_fts               | FTS5 id/text, unicode61 tokenizer                                                                                       | Repository-maintained search index, not separate stock authority             |
+| Inference policy/attempts | identity, allowance, enabled; attempt id, reservation, charged, settled                                                 | Separate durable SQLite ledger, integer nanodollars and atomic transactions  |
+| Invitations/lifecycle     | store identity, absolute windows, grant counts; host generation/commands/leases                                         | Local SQLite implementations; remote DynamoDB adapters prepared but inactive |
+| Shopper/cart/orders       | binding/generation, exact product-size-colour lines and revision                                                        | Per-Shopper Storefront process memory; lost on Store restart/expiry          |
+| Session/Shopping Task     | Shopper/session/tab/task IDs, events, accepted results, context/status                                                  | Agent memory; 30-minute inactivity expiry; lost on Agent restart             |
+| Confirmation/Undo         | exact proposal/state; prior lines and original expiry                                                                   | Single-use Confirmation up to 60 seconds; Undo ten seconds                   |
 
-The stored statuses in `agent/sessions.py` are `interpreting`, `awaiting_action_result`, `awaiting_answer`, `completed`, `cancelled` and `paused`. The diagram shows principal paths, not every branch of the implementation.
+There is no invented durable customer/orders database. Commerce/session state remains volatile even though catalogue and operating authorities persist. Product Money crosses contracts as decimal amount plus EGP. SQL filtering uses indexed attributes and integer price_minor.
 
-```mermaid
-stateDiagram-v2
-    [*] --> interpreting: New model-backed task
-    interpreting --> awaiting_answer: Clarification or Confirmation
-    interpreting --> awaiting_action_result: Executable Action issued
-    interpreting --> completed: Advice / no further Action
-    interpreting --> paused: Provider, budget or validation failure
-    awaiting_answer --> interpreting: Semantic clarification answer
-    awaiting_answer --> awaiting_action_result: Valid answer permits next Action
-    awaiting_action_result --> awaiting_action_result: Matching result permits next Action
-    awaiting_action_result --> awaiting_answer: Shopper input needed
-    awaiting_action_result --> completed: Goal verified
-    awaiting_action_result --> paused: Failure or uncertain outcome
-    paused --> interpreting: Explicit eligible retry
-    interpreting --> cancelled: Stop
-    awaiting_answer --> cancelled: Stop
-    awaiting_action_result --> cancelled: Stop
-    paused --> cancelled: Stop
-    completed --> [*]
-    cancelled --> [*]
-```
+The proposed DynamoDB control table has string pk/sk keys and conditional writes for invitation/lifecycle identity, revision, generation and command ownership. It is not a product catalogue. Actual cloud identifiers remain unbound. Restoring older authority/allowance state to regain redemptions or inference capacity is prohibited.
 
-Refresh is reconciliation, not a replay request. The Panel obtains server state and current Storefront observations; uncertain execution does not become an automatic retry. Stop invalidates further progress and late model/action results. Ownership is bound to a tab lease; another tab must take over explicitly. Session inactivity expiry is **30 minutes** in the current Agent. Missing/expired sessions require a new session; browser refresh recovery does not provide durability after server restart.
+## 6. Behavioral design and recovery
 
-## 8. Logical data model and lifetime
+### Ordinary Action sequence
 
-```mermaid
-erDiagram
-    SESSION ||--o{ SESSION_EVENT : records
-    SESSION ||--o{ SHOPPING_TASK : progresses_through
-    SHOPPING_TASK ||--o{ ACTION : proposes
-    ACTION ||--o| ACTION_RESULT : accepts_matching
-    SHOPPING_TASK ||--o| CONFIRMATION : may_require
-    CART ||--o{ CART_LINE : contains
-    PRODUCT ||--o{ CART_LINE : identifies_variant
-    CART ||--o| UNDO_RECORD : can_restore
-    CART ||--o{ FICTIONAL_ORDER : can_submit
-```
+![Figure 5. Validated cart interaction sequence](diagrams/system-design-20261028/05-action-sequence.png)
 
-This is a conceptual relationship model, **not a database schema**. SessionStore retains an active task, last task, context/events and accepted results; it is not a durable complete task-history database. The current Storefront cart is not owned by an Agent session.
+Each Action carries task_id, action_id and sequence_number. The Bridge verifies the current target and destination; the Storefront checks inventory, quantity, variant and relevant state. A task can first navigate to the cart, then reinterpret against its fresh controls. Completion follows actual results rather than the model's success message.
 
-| Object                | Essential identity / contents                                                                        | Storage and lifetime                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Session               | Session ID, tab lease, active/last task, conversation, last Snapshot, product/advice context, events | Agent process memory; inactivity expiry; lost on restart.                                      |
-| Shopping Task         | Task ID, status, message, resolved context, current Action, proposal/Confirmation                    | In-memory session lifecycle.                                                                   |
-| Action / ActionResult | Task ID + Action ID + sequence number; proposed interaction / observed outcome                       | Matched by SessionStore; stale and duplicate attempts cannot repeat an effect.                 |
-| Snapshot              | Version, URL, viewport and observed element IDs/metadata                                             | Observation for current-page planning; not a stable database of DOM targets.                   |
-| Product / Money       | Product ID, explicit facts, variants, availability, decimal amount and configured currency           | Controlled catalogue source; fixture evidence, not external retailer inventory.                |
-| Cart / CartLine       | Revision and product ID + size + colour identity, quantity                                           | **One GuardedCart per Storefront application instance**, in process memory.                    |
-| Undo record           | Prior lines, ID, revision, original expiry                                                           | Latest eligible reversible change; ten-second window.                                          |
-| Confirmation          | Task, target, effect, arguments, state signature and ID                                              | Agent offer expires after 60 seconds; Storefront also checks its own bound mutation authority. |
-| Fictional order       | Order ID and copied cart lines                                                                       | Controlled in-memory cart/order state; no real payment or production fulfilment.               |
+### Guarded Mutation activity
 
-The shared Storefront cart is suitable only for the controlled local demonstration conditions. Separate Agent sessions and a fictional login cookie do **not** establish isolated carts for concurrent shoppers. Before a multi-shopper cloud demo, implement and verify Storefront state ownership, or explicitly constrain the approved demonstration to an isolated instance per participant. No option is selected by this document.
+![Figure 6. Confirmation and execution](diagrams/system-design-20261028/06-confirmation.png)
 
-## 9. Interfaces and versioning
+Confirmation describes the exact effect and state signature. Expiry, state change, cancellation, refresh and single-use consumption constrain the offer. An earlier generic “yes” cannot authorize another task. Both Agent and Storefront enforce authority. Ordinary reversible cart edits use Undo rather than terminal Confirmation semantics.
 
-| Interface              | Contract                                                                                                                                                                               |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Session API            | `POST /sessions`; messages, task answers/retry, action-results and stop endpoints; state/reconcile/takeover operations. Exact route/request definitions: [app.py](../agent/app.py).    |
-| Event stream           | `GET /sessions/{session_id}/events`; event types include task_started, narration, action, suggestions, done, cancelled and error.                                                      |
-| Browser wire contracts | Snapshot, Action and ActionResult use `v: 1`; strict Python and TypeScript contracts reject unsupported shapes. [schemas.py](../agent/schemas.py), [types.ts](../bridge/src/types.ts). |
-| Model intent           | Live intent schema 9, prompt `intent-v28`; schema 8 execution compatibility remains. These versions are distinct from browser wire version 1.                                          |
-| Advice                 | `advice-v3`; response schema 1 with message and product references, no executable fields/tools.                                                                                        |
-| Speech                 | `/speech/availability` and `/speech/transcribe`; service/budget failure leaves typing available.                                                                                       |
-| Provider adapter       | `LLMClient.complete(LLMRequest)` yields chunks; request carries bounded messages, response schema/validator and prompt/schema versions.                                                |
+### Shopping Task state
 
-The local release was verified using OpenRouter with Gemini 2.5 Flash. That observation is not qualification of a Bedrock model. Scripted providers and test-only planners support deterministic regression; their phrase fixtures are not the live interpreter. Cloud release configuration must explicitly select the qualified live adapter and keep development/test routes inaccessible.
+![Figure 7. Shopping Task state model](diagrams/system-design-20261028/07-task-state.png)
 
-## 10. Safety, privacy and failure design
+Actual statuses are interpreting, awaiting_action_result, awaiting_answer, completed, cancelled and paused. The figure shows principal transitions; Stop remains reachable from active/paused states. Completed/cancelled tasks cannot restart from an old event. Retry is explicit and cannot replay uncertain work. Refresh reconciles current observations and the browser execution journal.
 
-| Condition                                       | Required response / implemented boundary                             | Cloud consideration                                                                                  |
-| ----------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| Off-origin destination or forged frame message  | Reject through navigation and message origin/source validation.      | Configure exact HTTPS origins, framing policy and CORS for the selected domains.                     |
-| Sensitive Field                                 | Exclude values from Snapshots and prohibit automated entry.          | Verify redaction in logs, provider payloads and error reports.                                       |
-| Malformed model output                          | Bounded schema repair or safe pause; never execute free text.        | Qualify provider behaviour under the same constraints.                                               |
-| Invalid advice / provider failure               | Keep verified cards and give a fallback; advice cannot mutate state. | Track failure/cost without logging private conversation unnecessarily.                               |
-| Stale target, cart revision or duplicate result | Reject or reconcile; require fresh evidence/authority.               | Preserve invariants across restarts and deployment routing.                                          |
-| Lost response after Mutation                    | Treat outcome as uncertain; do not blindly replay.                   | Define restart semantics and acceptance tests explicitly.                                            |
-| Missing availability or excessive quantity      | Reject unsupported mutation and request usable input.                | Storefront remains authoritative; the model cannot override inventory.                               |
-| Rate limit, exhausted allowance or timeout      | Pause/fallback with actionable feedback and bounded retries.         | Application/provider caps are required; alerts alone are not a spending hard stop.                   |
-| Process restart                                 | Current in-memory state disappears.                                  | Choose documented reset behaviour or justified persistence; do not assume recovery across a restart. |
+| Interruption                       | Retained state                                    | Recovery                                                                       |
+| ---------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Browser refresh/reconnect          | Surviving processes/cart and remaining Undo       | Reconcile Snapshot/cursor; invalidate unused Confirmation; suppress duplicates |
+| Agent-only restart                 | Surviving Storefront cart/Undo and durable stores | Invalidate old tasks/leases; fresh linking/admission as needed; no replay      |
+| Storefront-only restart            | Durable catalogue/operating authorities           | Discard cart/orders/Confirmation/Undo; reject old generation and relink        |
+| Full host/code restart             | External durable authorities/state                | Explain volatile reset; never reset allowance or invitation quotas             |
+| Unknown provider/lifecycle outcome | Existing reservation/command evidence             | Retain charges/protection; no guessed refunds or repeated commands             |
 
-Advice schema validation checks response shape and reference membership; it cannot prove that every natural-language sentence is grounded. Live evaluation must continue to assess unsupported suitability/quality claims, carried-forward context and messy follow-ups. The original failed attempts remain part of the evidence rather than being replaced by successful retries.
+### Host lifecycle
 
-## 11. Graduation deployment design boundary
+![Figure 8. Startup, readiness and idle shutdown](diagrams/system-design-20261028/08-host-lifecycle.png)
 
-The approved target is the same Controlled Storefront application on AWS. The following is a logical deployment requirement view, **not a selected AWS service architecture**:
+The controller uses durable generation/command ownership for start, observe and stop. Invitation windows and cumulative quotas apply at wake and application admission. EC2 running status and ordinary /health liveness are insufficient readiness. The signed aggregate requires release, Storefront, admission, allowance and provider checks; the default unqualified-provider callback refuses readiness.
 
-```mermaid
-flowchart TB
-    browser[Authorized demo browser]
-    ingress[HTTPS entry points / explicit origin and access policy]
-    frontend[Panel and Storefront hosting]
-    backend[Agent hosting / HTTP and SSE]
-    authority[Isolated Storefront cart authority]
-    model[Qualified Bedrock model via provider adapter]
-    secrets[Server-side secret and permission controls]
-    telemetry[Redacted logs / usage and budget monitoring]
-    browser --> ingress
-    ingress --> frontend
-    ingress --> backend
-    frontend --> authority
-    backend --> model
-    secrets --> backend
-    backend --> telemetry
-    authority --> telemetry
-```
+Work leases protect active/uncertain operations from idle stop. Background polling is not meaningful Shopper activity. Browser polling cannot ensure reliable shutdown after browsers vanish; the external observation schedule is a separately costed conditional proposal with its own adoption/failure gate. No schedule or host is active merely because its renderer exists.
 
-CAP-04 must resolve the decisions below before claiming the cloud design is complete. This document does not create resources or authorize spending.
+## 7. Interfaces, versions and module composition
 
-| Decision                      | Required design evidence                                                                                                                                         |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Region, model and permissions | Confirm actual account access and regional model support; retain current primary-source references at decision time.                                             |
-| Hosting and network paths     | Select minimal services, HTTPS domains, iframe/CORS/CSP rules, SSE support and deployment topology; justify each component.                                      |
-| Audience and access           | Define permitted demo users, authentication/access restriction, session authorization and cart isolation.                                                        |
-| Storage and restart behaviour | Choose controlled reset semantics or minimal persistence; account for sessions, carts, confirmations, Undo and multi-instance routing.                           |
-| Cost ceiling                  | Confirm remaining credits and authorized operating budget; estimate hosting, model, storage, logs and data transfer against usage assumptions and demo duration. |
-| Secrets and privacy           | Least-privilege credentials, server-side secrets, redaction, retention/deletion periods, protected development endpoints.                                        |
-| Operations                    | Infrastructure/release procedure, health checks, rollback artifact, restart acceptance, monitoring and complete teardown steps.                                  |
+![Figure 9. Selected classes and facade composition](diagrams/system-design-20261028/09-module-view.png)
 
-CAP-05 implements the narrow Bedrock adapter and qualifies the chosen model. CAP-06 deploys the reviewed design; CAP-07 checks browser, model, safety and operational outcomes. Neither the local MVP tag nor this document waives those gates. Independent-storefront generalisation remains deferred.
+The class view lists selected real members from SessionStore, TaskRuntime, SessionRegistry, Session, ActiveTask and ConfirmationLedger. SessionStore constructs a registry and a shared TaskRuntime for task modules. A registry owns multiple sessions; each Session may reference an active and last task, and each ActiveTask may hold one ConfirmationLedger. These relationships describe process memory, not database tables. Figure 2 and the component table describe the wider module boundaries.
 
-## 12. Evaluation and requirement traceability
+| Interface                | Contract                                                                            | Check/failure boundary                                                |
+| ------------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Shopper linking/activity | Browser identity plus authenticated private service                                 | Host-only cookies, Origin/CSRF, generation and ownership              |
+| Session API              | POST /sessions; messages, answers, retry, action-results, stop, reconcile, takeover | Authorize every session route; recheck state after external waits     |
+| Event stream             | GET /sessions/{session_id}/events; monotonic SSE IDs                                | Cursor reconnect, bounded stream and duplicate suppression            |
+| Browser wire             | Snapshot/Action/ActionResult v1                                                     | Strict mirrored Python/TypeScript contracts and shared fixtures       |
+| Intent                   | Live schema 9, intent-v32                                                           | Semantic proposal validation, observed targets and bounded repair     |
+| Advice                   | advice-v4, response schema 1                                                        | Read-only message/references; malformed output cannot mutate          |
+| Provider                 | LLMClient.complete(LLMRequest)                                                      | Explicit adapter; invalid/failed/cancelled output grants no authority |
+| Readiness                | Signed proof bound to release and generation                                        | Fixed five checks; invalid proof/unqualified provider refuses         |
 
-| Requirement                                   | Design coverage                                                 | Existing evidence / planned verification                                                                                                                                                  |
-| --------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| FR-01–03: language, discovery and advice      | Sections 4–6; Intent Interpreter and read-only advisor          | [Semantic boundary tests](../agent/tests/test_semantic_boundary.py), [advice tests](../agent/tests/test_advice.py), [final advice record](ticket16-advice-evaluation.md).                 |
-| FR-04, FR-07: navigation/account/orders       | Bridge targets, planner and sensitive-input handoff             | [Real-task tests](../agent/tests/test_real_task.py), [Bridge safety tests](../bridge/tests/safety-review.test.ts), limited human account observations.                                    |
-| FR-05–06: cart/Undo/Confirmation              | Sections 6–8; exact line identity, revision and bound authority | [Cart task tests](../agent/tests/test_cart_task.py), [reversible-cart tests](../store/tests/reversible-cart.test.ts), [guarded-mutation tests](../store/tests/guarded-mutations.test.ts). |
-| FR-08–09: lifecycle/UI/speech                 | Sections 7 and 9                                                | [Recovery tests](../agent/tests/test_recovery.py), [Panel controller tests](../panel/tests/panel-controller.test.ts), [speech tests](../agent/tests/test_speech.py).                      |
-| SQ-01–04, SQ-07: semantic boundary and safety | Sections 5 and 10                                               | Boundary, Action contract, malformed-output and advice-isolation regressions; live prose grounding remains a separate quality check.                                                      |
-| SQ-05–06: evidence/cost/privacy               | Versioned requests, usage correlation and bounded context       | [Release results](../RESULTS.md); cloud retention/access requirements remain to be verified.                                                                                              |
-| GR-01–02: dataset and baseline                | Offline evaluation separate from runtime                        | CAP-02 reviewed data/splits, then CAP-03 TF-IDF + Logistic Regression and fair intent-only comparison; no training result claimed.                                                        |
-| GR-03–04: AWS and qualification               | Section 11                                                      | CAP-04–07; 100% schema/currency/safety and at least 95% exact intent-and-Constraint accuracy on the defined qualification corpus; unseen results reported separately.                     |
-| GR-05: academic traceability                  | Versioned design, CAP-01 ownership and evidence register        | Team review, actual contribution records and eventual official-format mapping.                                                                                                            |
+The recorded accepted local provider is OpenRouter Gemini 3.5 Flash-Lite. BedrockClient exists behind the same seam and has offline verification; recorded Stockholm diagnostics failed and candidate applied quotas were zero. The owner permits the current OpenRouter fallback if Bedrock is unusable, but selection must be explicit with qualification/accounting preserved. The non-resetting OpenRouter key cap remains **$2**. This report authorizes no switch, extra call or top-up.
 
-The classical baseline is an offline comparison, not a replacement for the runtime Intent Interpreter. Learned transforms must fit only the training split; exposure history and group-aware splits prevent related cases from leaking across evaluation boundaries. Context-dependent tasks require separate reporting rather than comparison against a text-only classifier on unequal inputs.
+Hosted async adapters retain bounded worker capacity through cancellation until actual synchronous SDK work finishes. State/generation are rechecked after waits. This avoids blocking the event loop or treating timeout as success; it cannot forcibly terminate an entered SDK operation.
 
-Release evidence is preserved in [RESULTS.md](../RESULTS.md): historical full live acceptance belongs to its frozen runtime, while the local release also has current automated and targeted advice/cart evidence under the owner's explicit exception. This documentation change does not constitute another live run or expand those findings.
+## 8. Deployment architecture and isolation
 
-## 13. Readiness and remaining work
+### Selected network topology
 
-- **Documented:** system problem/actors, use cases, current component responsibilities, trust/data flow, execution sequences, actual task statuses, conceptual data model/lifetimes, interfaces, safety/failure handling and requirement-to-evidence mapping.
-- **Awaiting owner/instructor review:** technical content approval, lecturer feedback and submission/export conventions; local diagram and wireframe additions are in the linked supplement.
-- **Awaiting CAP-04 decisions:** concrete costed AWS service design, region/model access, audience/access restrictions, cart isolation, storage/restart semantics and operational procedures.
-- **Not claimed:** new runtime functionality, completed ML experiments, cloud deployment, production readiness or formal submission.
+![Figure 10. Selected AWS network paths](diagrams/system-design-20261028/10-cloud-deployment.png)
 
-The local-system portion can be reviewed now, ahead of 6 November. The full graduation System Analysis & Design deliverable becomes final after the cloud decision register is resolved and incorporated; CAP-04 remains open until then.
+Shopping uses https://app.scpilot.tech for built Panel and Agent HTTP/SSE, and https://store.scpilot.tech for embedded Storefront/Bridge. Direct Caddy HTTPS on one host uses retained addressing. CloudFront's generated HTTPS hostname serves waiting/startup/control, not the shopping iframe/API. This supersedes custom-alias CloudFront/Virginia ACM assumptions blocked by the current Free account without upgrade.
 
-## Post-MVP modularity update — 2 October 2026
+| Resource area           | Selected direction/proposal                                                                 | Acceptance state                                               |
+| ----------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Region/plan             | Stockholm eu-north-1, Free plan, zero out-of-pocket                                         | Refresh dated account/credit/eligibility evidence before apply |
+| Host                    | One x86_64 t3.small candidate, one Agent worker, encrypted 20 GiB gp3 and retained EIP      | Native runtime/AMI, capacity and exact apply bindings open     |
+| Shopping ingress        | Direct Caddy app/store; Agent 8000 and Storefront 4000 loopback                             | DNS, ACME, real security group and browser acceptance open     |
+| Startup delivery        | Generated CloudFront name, private S3 assets and IAM Lambda Function URL with separate OACs | Prepared renderers/packages; no resources/policies applied     |
+| Control                 | Two proposed Python 3.12 Lambdas and one DynamoDB table                                     | Local implementation; actual initialized authority/IAM unbound |
+| Conditional observation | Disabled finite Scheduler, reused controller, bounded metrics/alarms                        | Separate adoption, cost and failure acceptance required        |
+| Model                   | Bedrock candidate, explicit current OpenRouter fallback permitted                           | Bedrock quota/qualification open; no calls by this report      |
 
-The behaviour diagrams remain consistent with the tagged local MVP. The [refactor record](session-modularity-refactor.md) and supplement describe the current module composition. SessionStore retains public entry points while registry, interpretation, commands, results, recovery and SSE delivery have separate modules. Shared Storefront state, in-memory lifetime and cloud prerequisites are unchanged. Refactor verification is not retroactively attributed to the MVP tag.
+The base proposal counts three runtime roles, three inline policies and one host profile. A conditional scheduler adds its role/policy only if adopted. Existing shared VPC and registrar authority are not permission to modify unrelated infrastructure. There is no mandatory NAT, ALB, RDS, Redis, WAF, GPU host or account upgrade. Exact quantities, phase bindings, rollback and teardown remain in the apply dossier; this diagram is not a deployable stack.
+
+### Native host process boundaries
+
+![Figure 11. Prepared host isolation](diagrams/system-design-20261028/11-host-isolation.png)
+
+Prepared units separate Agent, Storefront and proxy UIDs and require a trusted-root metadata barrier. Configs and consuming-UID private key files are separate; proxy receives no application key. Only trusted root/Agent may reach role metadata. The nft output barrier rejects other UIDs at IPv4/IPv6 metadata addresses; root remains trusted, and a oneshot's active state cannot detect later root removal of its rules.
+
+The Store owns catalogue writes and WAL/SHM creation; Agent receives read-only group access. Missing sidecars fail closed rather than justify write permissions. Root owns immutable release/interpreter paths; no-new-privileges and service-specific state paths limit modification. Lifecycle hooks emit bounded private fixed-field records, not raw requests/keys/child output. Lifecycle records are not readiness.
+
+Recorded proof used an official AL2023/Python 3.12.15/glibc 2.34 disposable image and synthetic UIDs. Actual systemd 252 boot/dependency/reboot/capability/metadata acceptance remains open. Static systemd 255 validation and Caddy adaptation/captured launch are narrower than installation, public TLS issuance or reboot proof.
+
+## 9. Safety, privacy and operating decisions
+
+| Condition                                   | Design response                                                          | Remaining verification                              |
+| ------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------- |
+| Off-origin link/form or forged message      | Source-window/origin and destination checks at execution                 | Repeat against actual public origins                |
+| Sensitive values/private identities         | Exclude Snapshot values; private linking; redacted bounded logs          | Full deployed prompt/log/error and retention paths  |
+| Ambiguous variant/unsupported fact/quantity | Clarify; catalogue stock and exact bounds remain authority               | Finite language coverage; preserve failures         |
+| Destructive or terminal change              | Bound fresh Confirmation plus Storefront revision/single-use checks      | Expiry/state-change/replay regressions              |
+| Duplicate or uncertain effect               | Identity matching and journal reconciliation                             | Restart/disconnect/cloud routing acceptance         |
+| Expired invitation/exhausted allowance      | Absolute windows, cumulative quotas, atomic reservations and kill switch | Current workload, real limits and operator recovery |
+| State rollback/loss                         | Compatible code rollback; preserve authority/unknown charges             | Never restore older allowance to regain capacity    |
+| Host process interference                   | Separate UIDs, minimal configs, required metadata barrier                | Native provisioning/reboot proof; trusted root      |
+
+The ledger reserves conservative cost before each provider attempt, including repairs. Unknown cost, cancellation or process death retains the reservation. Native provider caps are additional safeguards; alerts are not hard spending caps. The current workload, prices/credits and complete two-month cost envelope must be refreshed and bound before apply. No new quote or spending permission is implied here.
+
+Immutable release verification and compatible code rollback keep catalogue and operating state outside code. SQLite backup uses its consistent backup API, not a copy of an active WAL file. Catalogue restore creates a verified new copy; no allowance/admission restore replenishes quota. Teardown targets only bound project-owned resources, preserving shared network/registrar configuration and required retained state.
+
+## 10. ML and evaluation design
+
+The runtime model interprets language/context; code retains Money, eligibility, stock, Confirmation and Action authority. Optional retrieval representations rank candidates but cannot invent Catalogue Facts. The host bootstrap explicitly selects lexical retrieval, avoiding an unreviewed encoder dependency at deployment.
+
+The offline development comparison has seven families and 46 fits on 210 training / 53 validation / zero unseen examples, all synthetic/exposed. Frozen multilingual embeddings plus Logistic Regression led at 23/53 correct (43.40%), macro-F1 0.4304; TF-IDF plus Logistic Regression scored 20/53, macro-F1 0.3776. Reports/notebook preserve all trials, errors, confusion matrices and timing. Small selected-validation differences are not independent superiority evidence. Offline models never enter the Action path.
+
+A final same-input LLM comparison and independently reviewed unseen set remain open. Intent classification, Constraint extraction, clarification, advice quality, task success, safety and cost require separate denominators. Provider failures and repairs stay in accounting.
+
+The 15 October local replacement qualification recorded 43/44 core tasks, 19/19 safety cases and 7/7 advice conversations, including retained setup interruption/continuation and a cart-increase clarification limitation. That dated local evidence does not establish Bedrock quota, real-host performance or cloud acceptance.
+
+## 11. Requirement-to-design traceability
+
+Local means implemented with dated local evidence; Limited retains capability/provider limits; Partial leaves material acceptance open; Open has no final qualified/deployed result. All IDs preserve the first submission's meanings.
+
+| ID    | Design sections | Verification or evidence                                             | Status  |
+| ----- | --------------- | -------------------------------------------------------------------- | ------- |
+| FR-01 | 3,4,7,10        | Intent/semantic tests and 15 October record; independent set pending | Partial |
+| FR-02 | 4,5             | Catalogue/discovery/retrieval, stock and eligibility regressions     | Local   |
+| FR-03 | 4,7,10          | Advice/reference tests and retained live prose limitations           | Limited |
+| FR-04 | 3,6             | Navigation/product-context/Bridge/Spotlight cases                    | Local   |
+| FR-05 | 5,6             | Exact cart/reversible tests and refresh Undo                         | Local   |
+| FR-06 | 6,9             | Confirmation expiry/state binding/replay cases                       | Local   |
+| FR-07 | 2,4             | Newest-order/login handback and sensitive exclusion                  | Local   |
+| FR-08 | 4,6,7           | Ownership/recovery/SSE cursor and uncertain-journal tests            | Local   |
+| FR-09 | 2,7             | Speech availability and Panel fallback checks                        | Limited |
+| SQ-01 | 3,4,7           | Model-owned meaning and strict intent boundary tests                 | Local   |
+| SQ-02 | 4,9             | Origin/source-window and sensitive browser regressions               | Local   |
+| SQ-03 | 5,6,9           | Stock/bounds/revision/Confirmation/duplicate checks                  | Local   |
+| SQ-04 | 6,9,10          | Retained failures/unknowns and safe fallback                         | Local   |
+| SQ-05 | 7,9,10          | Measurement/allowance tests; cloud workload pending                  | Partial |
+| SQ-06 | 4,8,9           | Shopper/private-file/UID/log tests; real-host privacy open           | Partial |
+| SQ-07 | 4,9             | Read-only advice and mutation re-entry guards                        | Local   |
+| GR-01 | 5,10            | Grouped synthetic release; independent unseen/gold absent            | Partial |
+| GR-02 | 10              | Offline artifacts/notebook; final LLM comparison pending             | Partial |
+| GR-03 | 8,9             | Selected topology/local renderers; no deployed acceptance            | Open    |
+| GR-04 | 7,10            | Offline adapter/failed diagnostics; qualification open               | Open    |
+| GR-05 | 1,11,12         | Design artifacts and academic records; acceptance separate           | Partial |
+
+Exact paths and dated evidence appear in the companion views. The latest checkpoint records 1,318 Python and 199 TypeScript passes in the 23 October full run. Those are historical counts; this documentation revision did not rerun the application, access AWS or perform paid inference.
+
+## 12. Deliverable coverage and remaining acceptance
+
+This report and its companion cover actors/use cases, C4-style context/execution boundaries, data flow, sequence/activity/state, physical/conceptual data, module/class composition, APIs, deployment/network, process isolation, wireframes, security/recovery, ML separation and requirement traceability. Key trade-offs are single-host scope, durable catalogue with volatile commerce, explicit providers, separate origins and conservative accounting/recovery.
+
+![Figure 12. Desktop and mobile interaction wireframes](diagrams/system-design-20261028/12-wireframes.png)
+
+Remaining acceptance: native production runtime/build lock and real systemd/reboot proof; full signed readiness; current account/credit/workload and exact resource/cost/rollback approval; a usable qualified model or explicitly selected accepted fallback; actual DNS/TLS and deployed isolation, recovery, capacity and browser results. These gaps do not prevent documenting the selected design, but prevent claiming an active or production-ready host.
+
+This revision is ready for owner technical review before the 6 November deadline. Exporting it does not publish it, alter the first three submitted reports, create resources, raise caps or authorize deployment.
+
+## 13. Source and evidence index
+
+- [Domain](../CONTEXT.md), [checkpoint](../PROJECT_CHECKPOINT.md), [requirements](cap01-requirements.md), [DEPI guidelines](depi-guideline-alignment.md).
+- [Companion diagrams/evidence](system-design-views.md), [rebuild and submission guide](system-design-submission.md), [skill discovery](system-design-skills.md).
+- [Shopper isolation](shopper-isolation-verification.md), [session modularity](session-modularity-refactor.md), [local acceptance](../RESULTS.md), [local model qualification](research/2026-10-15-gemini-replacement.md).
+- [Offline comparison](cap03-model-comparison-results.md), [executed notebook](../notebooks/cap03-model-comparison.ipynb), [Bedrock access/adapter](cap05-bedrock.md).
+- [Cloud specification](cap04-spec.md), [Stockholm amendment](superpowers/specs/2026-10-19-cap04-stockholm-ingress-amendment.md), [account evidence](cap04-account-feasibility.md), [allowance](cap04-inference-allowance.md).
+- [Apply proposal](cap06-apply-proposal.md), [inventory](cap06-apply-inventory.json), [host isolation](cap06-host-isolation.md), [bootstrap](cap06-host-bootstrap.md), [signed checks](cap06-host-checks.md), [release/recovery](cap04-release-recovery.md).
+
+Dated operational documents retain historical stages; later amendments/checkpoint govern conflicts. The export manifest records exact source/diagram hashes for this revision. Source inspection supports design accuracy, not new runtime acceptance.

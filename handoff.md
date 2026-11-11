@@ -1122,6 +1122,116 @@ OpenRouter fallback integration/qualification/allowance custody, remaining accou
 cost/apply/public acceptance. No Step25/generalisation, cloud activation, model
 calls, extra spend, production key/state/DNS/TLS changes or push.
 
+## Preserved primary-worktree presentation notes
+
+The current complete presentation review copy is
+`output/presentation-full/shopping-copilot-full-r3.pptx` with matching PDF and
+MP4. The owner preferred the short motion study. Approval of the complete deck
+for Drive is pending. See the newest entry in PROJECT_CHECKPOINT.md.
+
+## Presentation motion rejected; new direction sample - 1 November 2026
+
+Owner rejected motion-r2 as basic. Do not treat it as approved or submission-ready.
+Latest output is a six-scene continuity study, not a full replacement deck:
+output/presentation-continuity/shopping-copilot-continuity-study-r2.pptx and MP4.
+See docs/cap08-continuity-study.md for the paired movement plan and checks.
+Full presentation redesign remains outstanding; no approval, upload or push.
+
+## Native presentation motion revision - 1 November 2026
+
+Latest review candidate: output/presentation-motion/shopping-copilot-motion-r2.pptx
+and shopping-copilot-motion-preview-r2.mp4 in the same folder. First three slides
+preserved exactly; later slides now have automatic grouped builds, varied entries
+and explicit English direction. Native PowerPoint is installed and exported this
+candidate. All slides and focused playback cues reviewed; checks and full video
+decode passed. See docs/cap08-motion-revision.md. Await owner approval before Drive
+upload. Earlier claims of missing PowerPoint are superseded by native verification.
+No Git push, Drive upload, model call or AWS action in this revision.
+
+## Reference-led presentation review candidate - 1 November 2026
+
+Owner approved trying the direction derived from the three videos. New review
+candidate: output/presentation-v3/shopping-copilot-reference-led-r4.pptx and matching
+static PDF. Guide: docs/cap08-reference-led-presentation.md. Twenty slides, editable
+ML evidence/diagrams and native Morph markup; full static visual review completed.
+PowerPoint application playback is unverified. No owner approval or Drive upload
+yet. The previous two decks stay rejected. Existing advice-led video is unchanged.
+
+## Presentation references and Drive delivery - 1 November 2026
+
+Both previous decks are rejected. Owner supplied three local videos, then asked
+for watch. Reference review is complete: see docs/cap08-reference-video-analysis.md
+for observations, evidence paths and the recommended product-led interpretation.
+No new deck or owner approval yet. Do not upload the rejected decks or references.
+
+Documentation is now in Drive: four submitted PDFs, six sources and two packages,
+with successful metadata readback for each. See
+docs/drive-document-submission-2026-11-01.md for links and verification boundary.
+Only the future approved PowerPoint remains to be added. Product/model/cloud
+frontier and existing gates are unchanged.
+
+## CAP-08 advice-led revision - 30 October 2026
+
+Owner rejected the first presentation's design and the demo's missing advice and
+conversation-only execution. Use docs/cap08-presentation-redesign.md and the new
+output/presentation-v2/ and output/demo-v2/ files. The 16-slide deck uses larger
+product evidence and a short narrative. The approximately 117-second video
+shows saved qualified Arabic advice, a why-follow-up, automatic product/variant
+selection and two cart additions, Spotlight/cart navigation and unused clear
+Confirmation. Seven assertions, two add POSTs and zero manual Storefront events.
+
+The video is visibly an offline replay: two verbatim historical model responses,
+authored intent proposals, and real current local execution. No fresh model
+understanding/timing or hosted AWS claim. The presentation-only injected replay
+app is under scripts/, has no provider transport and must never be deployed as a
+runtime model. A draft refresh shot timed out and is excluded from passing
+evidence. Earlier artifacts/reports remain unchanged. New portable ZIP:
+output/submission/shopping-copilot-presentation-demo-v2.zip. No paid calls,
+runtime source changes, account/resource action or new publication.
+
+## CAP-08 presentation and local recording prepared - 30 October 2026
+
+Owner delegated presentation/demo creation and skill search without questions.
+See docs/cap08-presentation-demo.md: output/presentation/ contains final v6 PPTX,
+18-page visual PDF and sourced notes; output/demo/ contains 1080p/30fps MP4,
+English captions, script and seven verified effect checks. Video duration
+101.366s, actual local scripted execution, fictional commerce, visibly labeled;
+no live-model or AWS demonstration is claimed. Complete reviewed/hash-bound ZIP:
+output/submission/shopping-copilot-presentation-demo-2026-10-30.zip.
+
+Package/font/layout/native chart+workbook/table/import checks pass; all final
+slides and thirteen video cue frames reviewed. PDF image pixels exactly match
+final slide renders; video fully decodes. Runtime direct-PDF font alias missing,
+so supplied PDF is a visual copy; editable evidence remains in PPTX. No native
+PowerPoint opening, new official publication, model call, AWS action or runtime
+source change. CAP-08 broader final acceptance and product frontier remain open.
+
+## 6 November design delivered - 30 October 2026
+
+Owner authorized the ready package push. NHA main now contains commit
+2cc55ce9ca37e13f69601a580d2f5f17e840a429: the exact prepared design package under
+milestones/2026-11-06/, downloadable ZIP and updated index/checksums. GitHub API
+verified the branch and all 90 file blobs; October reports/provenance preserved.
+See docs/system-design-submission-record.md. Delivery is complete; no instructor
+acceptance, runtime/model/cloud action or development-repository push is inferred.
+Preserve the dated submitted artifacts; the receipt/newest checkpoint records
+the later publication without rebuilding their frozen source/evidence snapshot.
+
+## 6 November design documentation - refreshed 28 October 2026
+
+Owner requested skill discovery and a current System Analysis and Design report.
+Use docs/system-analysis-design.md, docs/system-design-views.md and
+docs/system-design-submission.md. The report has twelve editable draw.io views
+and all 21 requirement IDs; physical SQLite/per-Shopper/selected host and cloud
+boundaries replace the old shared-cart assumptions. Skill discovery is recorded
+in docs/system-design-skills.md. The standalone exporter validates content, links,
+geometry, IDs and page bounds; a digest-bound visual review accompanies the PDF
+and portable package. No global skill installation or runtime change.
+
+This is local preparation for the November deadline; no new push/upload, AWS
+activation or inference is claimed. Product frontier/gates remain those in the
+newest PROJECT_CHECKPOINT.md and the October native host evidence below.
+
 ## PR3 CI integration fixes — 2026-10-24
 
 PROJECT_CHECKPOINT.md records clean-CI repairs: explicit synthetic admission-test

@@ -84,6 +84,7 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
             storefront=storefront,
             snapshot=snapshot,
             budget=task.retrieval_budget,
+            pending_clarification=task.pending_clarification,
         )
     except RetrievalExhausted:
         await ensure_active()
