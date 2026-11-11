@@ -255,9 +255,10 @@ function optionalState(
     element instanceof element.ownerDocument.defaultView!.HTMLSelectElement
   ) {
     state.value = element.value;
-    state.options = [...element.options].map((option) =>
-      compactText(option.textContent),
-    );
+    // Disabled options (such as a "choose…" placeholder) cannot be selected.
+    state.options = [...element.options]
+      .filter((option) => !option.disabled)
+      .map((option) => compactText(option.textContent));
     state.disabled = element.disabled;
   } else if (
     element instanceof element.ownerDocument.defaultView!.HTMLButtonElement

@@ -81,6 +81,23 @@ function validate(input: Product): ProductEvidence {
     throw new Error("Contradictory or invalid catalogue fact");
   return record;
 }
+function searchText(record: ProductEvidence): string {
+  return [
+    record.category,
+    record.nameAr,
+    record.nameEn,
+    record.type,
+    record.wearPosition,
+    ...record.sizes,
+    ...record.colors,
+    ...record.features,
+    ...record.suitableFor,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+const ftsSchema =
+  "CREATE VIRTUAL TABLE product_fts USING fts5(id UNINDEXED,text,tokenize='porter unicode61')";
 const schema = `
 CREATE TABLE IF NOT EXISTS catalogue_meta(id INTEGER PRIMARY KEY CHECK(id=1), schema_version INTEGER NOT NULL, revision INTEGER NOT NULL);
 INSERT OR IGNORE INTO catalogue_meta VALUES(1,1,0);
@@ -95,7 +112,6 @@ CREATE TABLE IF NOT EXISTS product_attributes(
  PRIMARY KEY(product_id,kind,value));
 CREATE INDEX IF NOT EXISTS attributes_lookup ON product_attributes(kind,value,present,product_id);
 CREATE INDEX IF NOT EXISTS products_filter ON products(category,available,price_minor);
-CREATE VIRTUAL TABLE IF NOT EXISTS product_fts USING fts5(id UNINDEXED,text,tokenize='unicode61');
 `;
 function connect(path: string): DatabaseSync {
   const db = new DatabaseSync(path);
@@ -160,7 +176,26 @@ export function importCatalogue(
           row.absent_features === next[i].absent_features &&
           row.absent_uses === next[i].absent_uses,
       );
-    if (!unchanged) {
+    const existingFts = db
+      .prepare(
+        "SELECT sql FROM sqlite_schema WHERE type='table' AND name='product_fts'",
+      )
+      .get();
+    if (existingFts?.sql !== ftsSchema) {
+      db.exec("DROP TABLE IF EXISTS product_fts");
+      db.exec(ftsSchema);
+    }
+    const indexed = db
+      .prepare("SELECT id,text FROM product_fts ORDER BY rowid")
+      .all();
+    const indexUnchanged =
+      indexed.length === records.length &&
+      indexed.every(
+        (row, i) =>
+          row.id === records[i].id && row.text === searchText(records[i]),
+      );
+    // An explicit import also repairs indexes built by an older release.
+    if (!unchanged || !indexUnchanged) {
       const revision = Number(meta.revision) + 1;
       db.exec(
         "DELETE FROM product_attributes; DELETE FROM products; DELETE FROM product_fts;",
@@ -207,17 +242,7 @@ export function importCatalogue(
               value.normalize("NFKC").trim().toLowerCase(),
               present,
             );
-        fts.run(
-          record.id,
-          [
-            record.nameAr,
-            record.nameEn,
-            record.type,
-            ...record.colors,
-            ...record.features,
-            ...record.suitableFor,
-          ].join(" "),
-        );
+        fts.run(record.id, searchText(record));
       });
       db.prepare("UPDATE catalogue_meta SET revision=? WHERE id=1").run(
         revision,

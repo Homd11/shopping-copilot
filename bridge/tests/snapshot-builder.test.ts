@@ -47,6 +47,24 @@ describe("SnapshotBuilder", () => {
       buttons.find((item) => item.name === "أضف إلى السلة")?.form_action,
     ).toBe("/cart/items");
   });
+  it("offers only selectable options, not a disabled placeholder", () => {
+    const dom = new JSDOM(
+      '<label for="s">المقاس</label><select id="s" required><option value="" disabled selected>اختر المقاس</option><option>42</option><option>43</option></select>',
+      { url: "http://localhost:4000/p/shoe-09" },
+    );
+    const select = new SnapshotBuilder(dom.window.document, {
+      isVisible: () => true,
+    })
+      .build()
+      .elements.find((item) => item.role === "combobox");
+    expect(select).toEqual(
+      expect.objectContaining({
+        name: "المقاس",
+        value: "",
+        options: ["42", "43"],
+      }),
+    );
+  });
   it("describes Arabic category controls using their accessible names", () => {
     const dom = new JSDOM(
       `<!doctype html><html lang="ar"><head><title>الأحذية</title></head><body>

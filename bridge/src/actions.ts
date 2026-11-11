@@ -335,7 +335,9 @@ export async function executeAction(
     if (view !== null && element instanceof view.HTMLSelectElement) {
       const option = [...element.options].find(
         (candidate) =>
-          candidate.value === action.option || candidate.text === action.option,
+          !candidate.disabled &&
+          (candidate.value === action.option ||
+            candidate.text === action.option),
       );
       if (option === undefined) status = "not_found";
       else {

@@ -28,6 +28,9 @@ CART_ROUTES = {
     "undo": "/cart/undo",
 }
 
+# Add-form option controls, in the order the Shopper is asked about them.
+VARIANT_CONTROLS = (("size", "المقاس"), ("color", "اللون"))
+
 
 def bind_product_add(
     intent: StructuredIntent, snapshot: Snapshot, product_route: str
@@ -96,8 +99,14 @@ def validate_cart_intent(
 
 
 def plan_cart_edit(
-    intent: StructuredIntent, snapshot: Snapshot, task_id: str, sequence: int
+    intent: StructuredIntent,
+    snapshot: Snapshot,
+    task_id: str,
+    sequence: int,
+    *,
+    asked: dict | None = None,
 ) -> list[Action]:
+    """Plan the edit, or one handback. ``asked`` receives the add option a question asks for."""
     elements = [e for e in snapshot.elements if e.visible and not e.sensitive and not e.disabled]
     route = {
         "add": "/cart/items",
@@ -158,10 +167,8 @@ def plan_cart_edit(
             allow_answer=True,
         )
     if intent.cart_operation == "add":
-        for name, desired in [
-            ("المقاس", intent.constraints.size),
-            ("اللون", intent.constraints.color),
-        ]:
+        for field, name in VARIANT_CONTROLS:
+            desired = getattr(intent.constraints, field)
             controls = [e for e in elements if e.role == "combobox" and e.name == name]
             if len(controls) != 1:
                 return handback(
@@ -173,6 +180,8 @@ def plan_cart_edit(
                 desired and desired not in (control.options or [])
             ):
                 options = ", ".join(control.options or [])
+                if options and asked is not None:
+                    asked.update(field=field, options=list(control.options or []))
                 if not options:
                     return handback(
                         "لا توجد اختيارات متاحة لهذا المنتج في الصفحة. أوقف المهمة وراجع المنتج.",
