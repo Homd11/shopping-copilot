@@ -94,6 +94,20 @@ MODEL_DECISION = TypeAdapter(
         Field(discriminator="kind"),
     ]
 )
+# The last decision of a turn that already holds evidence must conclude: recommend
+# from that evidence (with its unverified labels) or ask. More reads could not be used.
+FINAL_DECISION = TypeAdapter(
+    Annotated[ClarifyDecision | RecommendDecision, Field(discriminator="kind")]
+)
+# Parsing keeps the legacy finish form accepted by DECISION; the schema never offers it.
+FINAL_PARSE = TypeAdapter(
+    Annotated[ClarifyDecision | RecommendDecision | FinishDecision, Field(discriminator="kind")]
+)
+FINAL_INSTRUCTION = (
+    "\nThis is your FINAL decision for this turn and no further searches are possible. "
+    "Return recommend using the evidence already retrieved (label unverified requirements "
+    "honestly in advice_message), or clarify if no retrieved product is useful."
+)
 
 
 @dataclass
@@ -231,6 +245,10 @@ async def retrieve_products(
         or context.get("_known_products")
         or context.get("_previous_suggestions")
     )
+    # The entry-point guess is ours, not the shopper's: when the action interpreter
+    # hands a request back to search, that hand-off does not consume search budget.
+    # Refunded once per turn, so a turn makes at most four model calls.
+    handoff_refunded = False
     requirements, unknowns = None, None
 
     async def read(query, final=False):
@@ -308,6 +326,14 @@ async def retrieve_products(
         request = _request(
             message, context, snapshot, storefront, history, feedback, budget, preferences
         )
+        concluding = not executing and budget.decisions >= 3 and bool(evidence)
+        if concluding:
+            request = replace(
+                request,
+                system=request.system + FINAL_INSTRUCTION,
+                response_schema=FINAL_DECISION.json_schema(),
+                response_validator=FINAL_PARSE.validate_json,
+            )
         if executing:
             request = replace(
                 build_intent_request(
@@ -357,7 +383,7 @@ async def retrieve_products(
                     selected_ids=[],
                 )
                 if executing
-                else DECISION.validate_json("".join(parts))
+                else (FINAL_PARSE if concluding else DECISION).validate_json("".join(parts))
             )
             if isinstance(decision, ClarifyDecision):
                 return RetrievalOutcome(
@@ -447,6 +473,9 @@ async def retrieve_products(
                 preferences = intent.subjective_preferences
                 executing = False
                 feedback = None
+                if not handoff_refunded:
+                    handoff_refunded = True
+                    budget.decisions -= 1
                 continue
             if intent.intent not in {"find_products", "advice"} and ids:
                 raise ValueError("Action decisions cannot publish recommendation cards")

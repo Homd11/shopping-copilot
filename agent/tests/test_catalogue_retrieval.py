@@ -338,3 +338,84 @@ def test_provider_failure_is_not_retried_as_bad_language_output(failure_kind):
     with pytest.raises(error_type):
         asyncio.run(run(BudgetBlocked(), Reads()))
     assert len(calls) == 1
+
+
+def _search(text="walking sneakers"):
+    return {"kind": "search", "query": SearchQuery(query=text).model_dump(mode="json")}
+
+
+def _recommend(*ids):
+    return {
+        "kind": "recommend",
+        "language": "ar",
+        "selected_ids": list(ids),
+        "advice_message": "مناسب للمشي، والمشي غير مؤكد في بيانات المتجر.",
+    }
+
+
+def test_final_decision_must_recommend_from_retrieved_evidence():
+    # Live trace 2026-11-11: two searches found products, the third decision searched
+    # again and the turn discarded the evidence. The last decision must conclude.
+    model = RecordingModel(_search(), _search("sneakers"), _recommend("p-1"))
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.selected_ids == ["p-1"] and outcome.advice_message
+    final = model.requests[2]
+    assert "FINAL decision" in final.system
+    with pytest.raises(ValueError):
+        final.response_validator(json.dumps(_search("more")))
+    final.response_validator(json.dumps(_recommend("p-1")))
+
+
+def test_final_decision_cannot_spend_the_turn_on_another_search():
+    reads = Reads()
+    model = RecordingModel(_search(), _search("sneakers"), _search("again"))
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(run(model, reads))
+    assert len(reads.calls) == 2  # the third search was refused, never executed
+
+
+def test_final_decision_without_evidence_keeps_every_choice():
+    model = RecordingModel({}, {}, _search())
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(run(model, Reads()))
+    assert "FINAL decision" not in model.requests[2].system
+
+
+def test_interpreter_handoff_to_search_does_not_consume_search_budget():
+    model = RecordingModel(
+        decision(intent="find_products"), _search(), _search("sneakers"), _recommend("p-1")
+    )
+    outcome = asyncio.run(
+        retrieve_products(
+            "عايز كوتشي مريح للمشي",
+            {"_known_products": [{"id": "shoe-01", "name": "x"}]},
+            model,
+            Reads(),
+            active,
+            storefront=ScriptedPlanner().storefront,
+        )
+    )
+    assert outcome.selected_ids == ["p-1"]
+    assert len(model.requests) == 4 and outcome.budget.decisions == 3
+
+
+def test_handoff_refund_is_granted_once_per_turn():
+    model = RecordingModel(
+        decision(intent="find_products"),
+        {"kind": "execute"},
+        decision(intent="find_products"),
+        _search(),
+        _search(),
+    )
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(
+            retrieve_products(
+                "x",
+                {"_known_products": [{"id": "shoe-01", "name": "x"}]},
+                model,
+                Reads(),
+                active,
+                storefront=ScriptedPlanner().storefront,
+            )
+        )
+    assert len(model.requests) == 4
