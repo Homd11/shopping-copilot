@@ -9,6 +9,9 @@ export default tseslint.config(
       "**/node_modules/**",
       "outputs/**",
       "work/**",
+      // Flat config does not read .gitignore: local backups and generated deliverables.
+      ".scratch/**",
+      "output/**",
     ],
   },
   eslint.configs.recommended,

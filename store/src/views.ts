@@ -284,9 +284,9 @@ export function renderProduct(product: Product): string {
         product.available
           ? `<form action="/cart/items" method="post" data-cart-edit="add">
         <input type="hidden" name="product_id" value="${product.id}">
-        <label for="product-size">المقاس</label><select id="product-size" name="size" required><option value="">اختر المقاس</option>${product.sizes.map((size) => `<option>${escapeHtml(size)}</option>`).join("")}</select>
+        <label for="product-size">المقاس</label><select id="product-size" name="size" required><option value="" disabled selected>اختر المقاس</option>${product.sizes.map((size) => `<option>${escapeHtml(size)}</option>`).join("")}</select>
         <div class="size-swatches" role="group" aria-label="مقاسات ${escapeHtml(product.nameAr)}">${product.sizes.map((size) => `<button type="button" data-size-swatch="${escapeHtml(size)}" aria-pressed="false" aria-label="مقاس ${escapeHtml(size)}">${escapeHtml(size)}</button>`).join("")}</div>
-        <label for="product-color">اللون</label><select id="product-color" name="color" required><option value="">اختر اللون</option>${product.colors.map((color) => `<option>${escapeHtml(color)}</option>`).join("")}</select>
+        <label for="product-color">اللون</label><select id="product-color" name="color" required><option value="" disabled selected>اختر اللون</option>${product.colors.map((color) => `<option>${escapeHtml(color)}</option>`).join("")}</select>
         <label for="product-quantity">الكمية</label><input id="product-quantity" name="quantity" type="number" min="1" max="99" value="1" required>
         <button type="submit" data-testid="add-to-cart" data-reversible-mutation="add">أضف إلى السلة</button>
       </form>`

@@ -35,6 +35,20 @@
 {$COPILOT_PANEL_ORIGIN} {
 	import https_common
 	header Content-Security-Policy "frame-ancestors 'none'; frame-src {$COPILOT_STORE_ORIGIN}"
+	# These POSTs await model interpretation inline (agent INTERPRETATION_DEADLINE_SECONDS=90).
+	@interpret {
+		method POST
+		path_regexp interpret ^/sessions/[^/]+/(messages|action-results|tasks/[^/]+/(answers|retry))$
+	}
+	handle @interpret {
+		reverse_proxy {$COPILOT_AGENT_UPSTREAM:127.0.0.1:8000} {
+			header_up -X-Service-Secret
+			transport http {
+				dial_timeout 3s
+				response_header_timeout 105s
+			}
+		}
+	}
 	@api path /health /shopper/* /sessions /sessions/* /speech/*
 	handle @api {
 		reverse_proxy {$COPILOT_AGENT_UPSTREAM:127.0.0.1:8000} {

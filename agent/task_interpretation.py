@@ -1,5 +1,6 @@
 """Model interpretation lifecycle and bounded conversation context."""
 
+from contextlib import suppress
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
@@ -191,6 +192,7 @@ def finish_interpretation(
         )
     if intent.intent == "cart_edit":
         intent = validate_cart_intent(task.message, intent, session.last_snapshot)
+    asked: dict = {}
     if intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation
         product_url = (
@@ -237,7 +239,7 @@ def finish_interpretation(
                 intent, session.last_snapshot, runtime.planner.storefront.product_route
             )
             task.cart_actions = plan_cart_edit(
-                intent, session.last_snapshot, task_id, task.step_count + 1
+                intent, session.last_snapshot, task_id, task.step_count + 1, asked=asked
             )
         action = task.cart_actions.pop(0)
     elif intent.intent == "mutate":
@@ -288,9 +290,11 @@ def finish_interpretation(
         if intent.needs_clarification and (intent.missing_fields or intent.conflicting_fields)
         else None
     )
+    task.pending_variant = None
     if task.cart_operation and isinstance(action, AskShopperAction) and not action.options:
         # The next model call needs the runtime question as well as the draft intent.
         task.pending_clarification = action.question
+        task.pending_variant = asked or None
     if (
         intent.intent == "open_product"
         and task.pending_clarification == "product_id"
@@ -442,6 +446,12 @@ def begin_answer_interpretation(
         ]
         if len(candidates) == 1 and text in task.action.options:
             selected = candidates[0]
+    variant, task.pending_variant = task.pending_variant, None
+    chosen = None
+    if selected is None and variant is not None:
+        # Only an exact reply naming one value the page offered for the asked option.
+        matches = [o for o in variant["options"] if o.casefold() == text.strip().casefold()]
+        chosen = matches[0] if len(matches) == 1 else None
     task.message = text
     task.retrieval_budget = None
     answers = _bounded_answers(task.resolved_state.get("_answers"))
@@ -452,6 +462,10 @@ def begin_answer_interpretation(
     task.status = "interpreting"
     task.model_call_id = f"call-{uuid4().hex}"
     runtime.record_snapshot(session, snapshot)
+    # The task's history was captured before its own request and question existed.
+    task.resolved_state["_recent_conversation"] = session.product_context.prepare(
+        snapshot, runtime.planner.storefront, session.conversation
+    )["_recent_conversation"]
     session.conversation.append({"role": "shopper", "text": text})
     runtime.append(
         session,
@@ -479,6 +493,20 @@ def begin_answer_interpretation(
             }
         )
         finish_interpretation(runtime, session_id, task_id, task.model_call_id, intent)
+    elif chosen is not None:
+        # Continue the same product and cart operation with the chosen option; the add
+        # button is rebound from the current page and every option is revalidated.
+        draft = task.resolved_state["_intent"]
+        intent = StructuredIntent.model_validate(
+            {
+                **draft,
+                "constraints": {**draft["constraints"], variant["field"]: chosen},
+                "cart_target_id": None,
+            }
+        )
+        # If the page no longer supports the bound edit, the model interprets the answer.
+        with suppress(ValueError):
+            finish_interpretation(runtime, session_id, task_id, task.model_call_id, intent)
     return task
 
 

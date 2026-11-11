@@ -1,238 +1,96 @@
-# Local-system design views
+# System design views and evidence reference
 
-Updated: **2 October 2026**. Companion to [System Analysis & Design](system-analysis-design.md) and its existing sequence, state and conceptual entity diagrams. These views describe the current local implementation after the session refactor (`7df44d9`); they do not select AWS services or invent persistent storage. Diagrams simplify interfaces for explanation; code references identify the authoritative implementation.
+Updated: **28 October 2026**. Companion to [document 04](system-analysis-design.md), deadline **6 November 2026**. This revision replaces the shared-cart/fixture-only 2 October supplement. Diagrams are explanatory abstractions of source and selected deployment design; they are not resource-creation instructions or proof of live deployment.
 
-## Use-case view
+## Diagram catalogue
 
-```mermaid
-flowchart LR
-    S[Shopper]
-    P[External model or speech provider]
-    subgraph C[Shopping Copilot with Controlled Storefront]
-        U1([Discover and discuss products])
-        U2([Navigate or Spotlight])
-        U3([Edit cart and Undo])
-        U4([Confirm clear-cart or fictional checkout])
-        U5([Guide account and newest order])
-        U6([Stop and reconcile after refresh])
-        U7([Dictate and review text])
-    end
-    S --- U1
-    S --- U2
-    S --- U3
-    S --- U4
-    S --- U5
-    S --- U6
-    S --- U7
-    P --- U1
-    P --- U7
-```
+Every view has an editable `.drawio` source, matching vector figure in the report and a PNG preview under `docs/diagrams/system-design-20261028/`. The diagram set is generated from explicit definitions by `scripts/export_system_design.py`; the report consumes the resulting XML geometry. No diagram is an image-only black box in the editable source.
 
-This diagram groups the nine detailed use cases in [section 3](system-analysis-design.md#3-use-cases). Model interpretation also supports action requests; provider links above highlight the conversational/speech interfaces, not an exhaustive invocation map. Sensitive login/payment entry remains a manual Storefront interaction.
+| Figure | View                     | Question it answers                                                   | Evidence boundary                                                                              |
+| ------ | ------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 01     | Context                  | Who uses/maintains the system and which external service is involved? | One Controlled Storefront, not arbitrary retailers                                             |
+| 02     | Execution boundaries     | What runs in the browser, Agent and Storefront?                       | Logical processes, not mandatory Docker deployment                                             |
+| 03     | Data flow                | How do sanitized requests, evidence and results move?                 | Model/DOM text never grant execution authority                                                 |
+| 04     | Data model               | Which catalogue/allowance tables persist?                             | Cart/tasks remain process memory; distinct databases have no fictitious cross-file foreign key |
+| 05     | Sequence                 | How does one proposed cart change become an observed effect?          | Abstraction of actual transports; no model-direct browser operation                            |
+| 06     | Activity                 | What authorizes or blocks a guarded mutation?                         | Fresh Confirmation, current state and result identities remain required                        |
+| 07     | Task state               | How do work, questions, results, pause and Stop relate?               | Principal transitions; not an exhaustive transition table                                      |
+| 08     | Host lifecycle           | How do wake, readiness, work and idle stop relate?                    | Durable controller prepared; actual host/schedule unactivated                                  |
+| 09     | Class/facade composition | Which real classes compose session/task control?                      | Selected source members and cardinalities; not persistence tables                              |
+| 10     | Cloud deployment         | Which entry path serves startup versus shopping?                      | Direct app/store Caddy; generated CloudFront only waiting/control                              |
+| 11     | Host isolation           | Who can read keys/state and reach instance metadata?                  | Synthetic UID/Linux proof; actual systemd host acceptance remains open                         |
+| 12     | Wireframes               | Where are chat, cards, Confirmation, Stop and the Storefront?         | Schematic implemented interaction, not pixel-perfect screenshots                               |
 
-## Data flow: context level
+## Architecture notation
+
+Filled rectangles represent application processes, components or data stores as stated in each label. Ellipses denote actors/states, diamonds denote decisions, and bordered tables denote physical or conceptual fields. Solid arrows are directional interactions. A dashed boundary marks a trust/execution grouping; it does not imply deployment success. Figure descriptions state whether the view is implemented or proposed.
+
+The two C4 levels also have concise Mermaid editing sources below. The exported PDF embeds their matching native figures 1 and 2.
 
 ```mermaid
-flowchart LR
-    S[Shopper]
-    C((Shopping Copilot and Controlled Storefront))
-    M[External LLM or transcription provider]
-    S -->|Messages, selections, Confirmation, manual input| C
-    C -->|Advice, product cards, guidance, action outcomes| S
-    C -->|Bounded semantic context or explicitly recorded audio| M
-    M -->|Untrusted structured proposal, advice or transcript| C
+C4Context
+  title Shopping Copilot - system context
+  Person(shopper, "Shopper", "Expresses needs and controls changes")
+  Person(owner, "Project owner", "Maintains evidence and operating policy")
+  System(copilot, "Shopping Copilot", "Controlled Storefront assistant")
+  System_Ext(provider, "Model/transcription provider", "Bounded requests; untrusted output")
+  Rel(shopper, copilot, "Requests and confirms shopping work", "Browser")
+  Rel(owner, copilot, "Maintains and evaluates", "Restricted tools")
+  Rel(copilot, provider, "Requests interpretation/advice", "HTTPS")
 ```
-
-Manual Sensitive Field values stay within the Storefront interaction and are excluded from Agent/model context. Provider requests are made through server adapters; the provider does not control the browser.
-
-## Data flow: detailed local processes
 
 ```mermaid
-flowchart LR
-    S[Shopper]
-    P1((1 Panel and Bridge))
-    P2((2 Agent interpretation and advice))
-    P3((3 Task planning and validation))
-    P4((4 Storefront execution))
-    D1[(Agent process memory)]
-    D2[(Catalogue fixture)]
-    D3[(Storefront cart and order memory)]
-    M[Model provider]
-    S -->|Request and approved response| P1
-    P1 -->|Message and sanitized Snapshot| P2
-    P2 <-->|Bounded request and proposal| M
-    D2 -->|Verified product facts| P2
-    D1 -->|Conversation and product context| P2
-    P2 -->|Validated Structured Intent| P3
-    P2 -->|Advice and cards| P1
-    P3 <-->|Task, identities, Confirmation and events| D1
-    P3 -->|Action through Panel and Bridge| P4
-    P1 -->|Manual shopper controls| P4
-    P4 <-->|Revision, stock checks, cart effect and Undo| D3
-    D2 -->|Authoritative variants and availability| P4
-    P4 -->|ActionResult and fresh Snapshot through Panel| P3
-    P3 -->|Progress, clarification or completion| P1
-    P1 -->|Visible response| S
+C4Container
+  title Shopping Copilot - application boundaries
+  Person(shopper, "Shopper")
+  Container(panel, "Panel", "Browser TypeScript", "Chat, decisions and events")
+  Container(storeUI, "Storefront with Bridge", "Browser document", "Observe and execute checked Actions")
+  Container(agent, "Agent", "FastAPI / Python", "Interpret, validate and orchestrate")
+  Container(store, "Storefront server", "Express / Node", "Catalogue and per-Shopper commerce")
+  ContainerDb(catalogue, "Catalogue", "SQLite", "Revisioned product evidence")
+  System_Ext(provider, "Configured model provider", "No Action authority")
+  Rel(shopper, panel, "Submits requests", "Browser")
+  Rel(panel, agent, "Submits owned requests and receives events", "HTTP/SSE")
+  Rel(panel, storeUI, "Coordinates checks and results", "Validated postMessage")
+  Rel(storeUI, store, "Uses permitted shopping controls", "HTTP")
+  Rel(store, catalogue, "Reads catalogue and owns imports", "SQLite")
+  Rel(agent, store, "Retrieves bounded evidence", "Private authenticated HTTP")
+  Rel(agent, provider, "Requests structured interpretation", "HTTPS")
 ```
 
-Data stores denote logical storage, not database services. The current Storefront cart is shared within its app instance; Agent session separation does not establish cart isolation. API delivery and browser execution are shown together only to keep the DFD readable; the sequence diagrams show the actual transport order.
+## Conceptual relationships and physical schema
 
-## Activity: request to observed outcome
+One Shopper binding owns its process-local cart/orders and can link multiple bounded Agent sessions. A session holds active/last task, events, accepted result identities, product context and tab ownership. A task proposes Actions and can hold a Confirmation offer. A cart holds exact variant lines plus at most the current eligible Undo record. These are logical relationships, not a claim that a durable SQL session/cart table exists.
 
-```mermaid
-flowchart TD
-    A[Receive request and current observation] --> B[Check session and tab ownership]
-    B --> C[Interpret with LLM and bounded context]
-    C --> D{Usable proposal?}
-    D -->|No| E[Bounded repair, clarification or safe pause]
-    D -->|Yes| F{Advice or catalogue response without a browser Action?}
-    F -->|Yes| G[Retrieve facts and return advice or results]
-    F -->|No| H[Resolve target and validate operation bounds]
-    H --> I{Guarded Mutation?}
-    I -->|Yes| J[Offer bound Confirmation]
-    J --> K{Fresh matching approval?}
-    K -->|No| L[Do not perform mutation]
-    K -->|Yes| M[Issue identified Action]
-    I -->|No| M
-    M --> N[Bridge rechecks and executes permitted interaction]
-    N --> O[Match ActionResult and inspect fresh state]
-    O --> P{Outcome established?}
-    P -->|No| Q[Pause or reconcile; no blind mutation replay]
-    P -->|Yes| R{More steps?}
-    R -->|Yes| H
-    R -->|No| T[Report completion and available Undo]
-```
+Physical SQLite catalogue tables are defined in `store/src/catalogue-db.ts`: catalogue_meta, products, product_attributes and product_fts. Product attributes reference products with cascade deletion; FTS id is an indexed search identity maintained by code, not a foreign key. Exact indexes and schema version are preserved in source. The separate inference ledger in `agent/inference/ledger.py` has policy and attempts; a database-level relationship between those tables is not invented.
 
-The flow is conceptual: Stop, tab takeover and stale-result rejection can interrupt progression. Clarification is interpreted with task context; it is not a hardcoded phrase branch. Detailed actual statuses remain in the main document's state diagram.
+Local invitation/lifecycle SQLite implementations support explicit initialization and tests. The prepared cloud implementation uses conditional DynamoDB items with a shared namespace and pk/sk keys. This is separate operating authority, not commerce storage. Missing/replaced authorities refuse instead of silently initializing a fresh quota or lifecycle generation.
 
-## Classes and module composition
+## Sequence and state details
 
-```mermaid
-classDiagram
-    direction LR
-    class SessionStore {
-        create(tab_id)
-        get(session_id)
-        begin_interpretation()
-        accept_result()
-        reconcile()
-    }
-    class SessionRegistry {
-        _sessions
-        create(tab_id)
-        get(session_id)
-        assert_lease(session, tab_id)
-        takeover(session_id, tab_id)
-    }
-    class TaskRuntime {
-        sessions
-        planner
-        clock
-        confirmation_registrar
-        record_snapshot(session, snapshot)
-        require_task_origin(task, snapshot)
-    }
-    class Session {
-        session_id
-        active_task
-        last_task
-        events
-        accepted_results
-        product_context
-        lease_tab_id
-    }
-    class ActiveTask {
-        task_id
-        status
-        action
-        model_call_id
-        resolved_state
-        confirmation
-    }
-    class SessionEvent {
-        id
-        event
-        data
-    }
-    SessionStore *-- SessionRegistry : registry
-    SessionStore *-- TaskRuntime : shared runtime
-    TaskRuntime --> SessionRegistry : references
-    SessionRegistry o-- Session : indexes
-    Session o-- ActiveTask : active or last
-    Session o-- SessionEvent : event list
-```
+The sequence view uses Shopper, Panel, Agent, configured model, Bridge and Storefront participants. A real task may include a fresh-cart navigation and a second interpretation before mutation. Model calls may require one bounded repair; every provider attempt is independently accounted. The figure intentionally shows one valid path, with clarification/refusal discussed in the main report.
 
-Selected members only; this is not an exhaustive API listing. [SessionStore](../agent/sessions.py) explicitly calls functions in [interpretation](../agent/task_interpretation.py), [commands](../agent/task_commands.py), [results](../agent/task_results.py) and [recovery](../agent/task_recovery.py), passing [TaskRuntime](../agent/task_runtime.py). These are modules, not invented subclasses. [SessionRegistry](../agent/session_registry.py) handles lookup, 30-minute inactivity expiry and leases; [session_stream.py](../agent/session_stream.py) formats/delivers SSE. [Session records](../agent/session_state.py) hold the displayed state. No inheritance hierarchy or durable task-history store is implied.
+The task-state diagram uses the exact `TaskStatus` names in `agent/session_state.py`. Stop may cancel any active/paused state; duplicate result delivery is idempotent or stale, never a new effect. The host lifecycle is a different state machine: its durable generation/command/work-lease state must not be confused with a Shopper task's status.
 
-## Physical storage and schema applicability
+## UI and accessibility intent
 
-There is **no relational database in the local MVP**. The main design's ER view is conceptual. SQL tables, indexes, foreign-key constraints and normalization are therefore not implemented artifacts to submit as completed work.
+The desktop schematic places the embedded Storefront beside the conversation and a reachable composer/Stop area. The mobile schematic preserves chat, current task status, decisions and access to the Storefront without hiding Stop behind an overflowing transcript. Product cards and Confirmation describe the actual choice; payment/login remain direct Shopper input.
 
-| Implemented representation                    | Identity and relationships                                                              | Lifetime                                                                 |
-| --------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Python `SessionRegistry._sessions` dictionary | Session ID → Session; Session references active/last task and event/result collections. | Agent memory; inactivity expiry and process restart.                     |
-| Accepted-result dictionary                    | `(task_id, action_id, sequence_number)` → accepted result.                              | Session memory; identity checks reject mismatched/stale results.         |
-| Catalogue TypeScript fixtures                 | Product ID, variants, explicit facts and configured Money.                              | Versioned source; loaded by Storefront.                                  |
-| GuardedCart instance                          | Product/size/colour line identity, revision, Undo and fictional order data.             | Storefront app-instance memory; not partitioned by Agent session.        |
-| Panel browser storage                         | Session/tab restoration metadata.                                                       | Browser-local recovery aid; not authority to replay an uncertain Action. |
+RTL and localized labels, keyboard focus, semantic controls, status announcements and reduced-motion behavior belong to the implemented interface. These references do not certify WCAG conformance or measured mobile-device usability. Exact CSS/DOM comes from `panel/src/styles.css`, `panel/src/panel.ts`, `panel/index.html` and `store/public/store.css`.
 
-If CAP-04 chooses persistence, document its actual logical and physical schema then, including ownership, keys, retention and migration/restart behaviour. A diagram requirement does not authorize adding a database merely to populate the report.
+## Verification index
 
-## Local deployment and component placement
+| Area                       | Representative existing verification files                                                                              | Scope of evidence                                                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Language/targets           | agent/tests/test_intent_pipeline.py; test_semantic_boundary.py; test_product_context.py                                 | Scripted boundaries are distinct from recorded real-model language results                  |
+| Catalogue/retrieval/advice | agent/tests/test_catalogue.py; test_advice.py; store/tests/catalogue.test.ts                                            | Exact eligibility, reference checks, malformed advice and data consistency                  |
+| Cart/Confirmation          | agent/tests/test_cart_task.py; test_confirmation.py; eval/tests/test_ticket11_cart.py; test_ticket10_guarded_browser.py | Exact lines, Undo, stock/bounds, guarded expiry and replay                                  |
+| Origin/privacy             | bridge/tests/safety-review.test.ts; eval/tests/test_ticket09_safety.py                                                  | Visible/hidden attack content, Sensitive Fields and off-origin execution                    |
+| Ownership/recovery         | agent/tests/test_recovery.py; panel/tests/event-stream.test.ts; eval/tests/test_ticket14_spa.py                         | Tab lease, fresh observations, SPA/reconnect and uncertain-outcome protection               |
+| Model/accounting           | agent/tests/test_openrouter.py; test_bedrock.py; eval/tests/test_usage_reconciliation.py                                | Adapter error/cancellation and retained measurements, not live cloud quota                  |
+| Host implementation        | deploy/ and eval/evidence/cap06-host-isolation-20261023.json                                                            | See exact disposable UID/WAL/metadata/log/static-unit proof and remaining native host gates |
+| Full recorded regression   | PROJECT_CHECKPOINT.md, 23 October section                                                                               | 1,318 Python and 199 TypeScript passes; not repeated by this report update                  |
+| Live local model           | docs/research/2026-10-15-gemini-replacement.md                                                                          | 43/44 core, 19/19 safety, 7/7 advice; failed cohorts and continuation retained              |
+| Offline ML                 | docs/cap03-model-comparison-results.md; notebooks/cap03-model-comparison.ipynb                                          | Synthetic/exposed 210/53/0; validation-selected results, no independent test claim          |
 
-```mermaid
-flowchart TB
-    subgraph Browser[User browser]
-        Panel[Panel JavaScript]
-        subgraph Iframe[Storefront document]
-            UI[Storefront controls]
-            Bridge[Bridge JavaScript]
-        end
-    end
-    subgraph Host[Local development host]
-        PS[Panel dev server - port 4100]
-        AS[FastAPI Agent - port 8000]
-        SS[Storefront server - port 4000]
-    end
-    Provider[Configured external model or speech provider]
-    PS -->|Assets| Panel
-    SS -->|HTML and assets| Iframe
-    Panel <-->|Validated postMessage| Bridge
-    Panel <-->|HTTP and SSE| AS
-    UI <-->|Storefront requests| SS
-    AS -->|Catalogue requests| SS
-    AS <-->|Server-side provider adapter| Provider
-```
-
-These are local development processes, not an AWS deployment. See the main design for the logical component view and CAP-04's unresolved HTTPS, access, isolation, restart and cost decisions.
-
-## UI wireframes and implemented guidelines
-
-Schematic desktop layout (not a screenshot; labels indicate regions rather than a fixed language direction):
-
-```text
-+--------------------------------+--------------------------------------+
-| Copilot identity / Stop        |                                      |
-| Status or recovery banner      |       Controlled Storefront           |
-|--------------------------------|                                      |
-| Independently scrolling chat   |       Product / cart / account        |
-| Advice + product cards         |       controls in its iframe          |
-| Clarification / Confirmation   |                                      |
-|--------------------------------|                                      |
-| Language + speech + text/send  |                                      |
-+--------------------------------+--------------------------------------+
-```
-
-Guarded interaction detail:
-
-```text
-+------------------------------------------------+
-| Proposed effect and affected cart state        |
-| Shopper can inspect the bound request          |
-| [Confirm]                 [Cancel / Stop]       |
-+------------------------------------------------+
-```
-
-The schematic does not imply that a label alone grants authorization; IDs, state signatures, expiry and single-use checks bind Confirmation. Ordinary reversible edits show an Undo option with its original deadline.
-
-The implementation uses Segoe UI/Tahoma/Arial, dark text, blue emphasis, light surfaces and clear borders. The Panel has bounded viewport height, independently scrolling messages and a composer outside that scroll region. RTL/localized labels, visible focus styles, disabled/pending states, responsive layout and a typing fallback support interaction. Inspect [Panel CSS](../panel/src/styles.css), [Panel markup/controller](../panel/src/panel.ts), [entry markup](../panel/index.html) and [Storefront CSS](../store/public/store.css) for exact layouts and tokens. This documents implemented design choices; it does not claim formal WCAG conformance or measured accessibility results. Final screenshots and export layout belong in the submission package after owner review.
+The first three submitted reports remain fixed historical artifacts. This document updates design evidence for the next deadline; it does not silently amend those submissions or upload the new report.

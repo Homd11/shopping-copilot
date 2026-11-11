@@ -2,6 +2,14 @@
 
 **Last updated:** 2026-11-05
 
+## Defense content strengthened — 5 November 2026
+
+Latest presentation review copy is `output/presentation-defense-20261105/shopping-copilot-defense-r2.pptx`, with matching PDF and MP4. The 27-slide revision adds problem/contribution, actual informal feedback, evaluation interpretation and documented contribution arrangement; clarifies the white-to-blue choice and ML/latency conclusions. Main presentation 1–22, appendix 23–27. It preserves historical benchmark limits, native motion and quantitative evidence. PowerPoint exports, package/layout/import validation, PDF links and video decoding passed. See `docs/cap08-defense-content-update-20261105.md`. Full-deck approval and Drive upload remain pending. Accepted operation below is unchanged.
+
+## Presentation refreshed for accepted AWS launch — 5 November 2026
+
+Latest review deck: `output/presentation-aws-20261105/shopping-copilot-aws-accepted-r1.pptx`, with matching PDF and 2:19 presentation playback MP4. Slides 17, 18 and 23 now reflect the accepted invitation-only Stockholm deployment, explicitly selected OpenRouter fallback, verified lifecycle/safety results and public startup link. The original shirt sequence, transitions, benchmark data and historical limitations are preserved. PowerPoint export, package/layout/import checks, PDF links and full video decoding passed. See `docs/cap08-presentation-aws-update-20261105.md`. Full-deck approval and Drive upload remain pending. This documentation update does not alter the accepted operating frontier below.
+
 ## Invitation-only graduation launch accepted and handed over
 
 Actual acceptance is complete; do not repeat the old setup/recovery/deployment
@@ -2178,6 +2186,172 @@ host integration, then account/cost/bound apply/deployed acceptance. All existin
 Free/Stockholm/USD0cash, authority and uncertain-outcome gates remain. No provider/
 AWS call, key/state change, host service installation/activation, DNS/public TLS,
 new download, paid test or push.
+
+## Preserved primary-worktree presentation notes
+
+The full garment-style review deck is `output/presentation-garment-full/shopping-copilot-garment-full-r2.pptx`, accompanied by its PDF and 2:19 PowerPoint MP4. The request, selection and cart slides are identical to the approved three-slide sequence. Open process diagrams, benchmark figures and ruled tables extend the style across the full 23 slides. The five tables, chart data and embedded workbook matched the previous verified deck. Full-deck approval for Drive is pending.
+
+Current presentation review copy: `output/presentation-garment/shopping-copilot-garment-r1.pptx`, with matching PDF and PowerPoint MP4. Slides 4–6 now carry a conceptual blue cotton shirt from the chat request to the actual recorded cart. The owner rejected the rectangular request and variant panels. `request-to-cart.mp4` previews the revised sequence. Full-deck approval for Drive is pending.
+
+The latest full presentation review copy is `output/presentation-premium/shopping-copilot-editorial-r1.pptx`, with matching PDF and MP4. PPT Visual is installed under `.agents/skills/ppt-visual`. The editorial revision covers all 23 slides. Desktop PowerPoint exported the deck and video, and the five tables, chart series and embedded workbook matched the prior verified version. Full-deck approval for Drive is pending.
+
+## Full graduation presentation ready for owner review
+
+The owner preferred the six-scene continuity study. The complete review copy is
+in `output/presentation-full/shopping-copilot-full-r3.pptx` with matching PDF
+and 139-second PowerPoint MP4. It has 19 main slides and four appendix slides.
+Shared objects carry the shopping sequence into architecture, evaluation and
+the AWS target. All five native tables match the source cell for cell and the
+embedded chart workbook matches its original bytes. The PDF has 23 pages and
+the MP4 decoded in full. The Drive presentation upload awaits full-deck approval.
+
+## CAP-08 motion-r2 rejected; continuity study - 2026-11-01
+
+Owner rejected the full motion-r2 deck as basic and unlike the supplied examples.
+It is not approved or submission-ready. A new isolated six-scene native Morph
+study and 32.4-second PowerPoint preview are at output/presentation-continuity/
+shopping-copilot-continuity-study-r2.{pptx,mp4}. See
+docs/cap08-continuity-study.md. It demonstrates persistent request/variant/cart
+movement and a pullback to the journey overview. All six scene renders and five
+final transition samples reviewed; package checks and full video decode passed.
+The full replacement deck remains outstanding. No upload or push occurred.
+
+## CAP-08 native motion revision ready for review - 2026-11-01
+
+Owner liked the first three transitions and requested varied motion afterward,
+then requested the HyperFrames creative and animation skills. Local review deck:
+output/presentation-motion/shopping-copilot-motion-r2.pptx, with an approximately
+115-second actual PowerPoint MP4 preview in the same folder. First three slide
+parts are byte-identical to r4. Slides 4–20 have automatic grouped builds and
+varied entries, with explicit English paragraph direction. Data/images/notes and
+editable evidence remain intact. Native PowerPoint 16.0 opened and exported it;
+the earlier statement that PowerPoint was unavailable was incorrect.
+
+Package/layout/native-evidence/import checks passed. All 20 native slide images
+and 12 final video cues reviewed; full MP4 decode passed. No manual object
+triggers remain. Guide: docs/cap08-motion-revision.md. This candidate awaits owner
+approval and has not been uploaded or pushed. Runtime/cloud frontier unchanged.
+
+## CAP-08 reference-led PowerPoint ready for review - 2026-11-01
+
+Owner said “let’s try” after reference review. New 20-slide local review deck at
+output/presentation-v3/shopping-copilot-reference-led-r4.pptx, matching static PDF
+and notes. Sixteen main slides foreground advice and actual conversation-only
+cart effects; four appendices support the academic defense. Native quantitative
+chart/workbook, 100-cell confusion matrix, tables and logical diagrams are editable.
+
+All final slides visually reviewed, package/layout/font/chart/table/import checks
+passed, source chart and matrix values verified. Native Morph markup and explicit
+object matches are present, but PowerPoint slideshow playback remains unverified.
+Guide, source/image provenance and rebuild: docs/cap08-reference-led-presentation.md.
+One built-in Imagegen conceptual cover asset; no runtime provider calls or AWS
+actions. Prior rejected decks remain preserved. This new deck is unapproved and
+not uploaded or pushed. Documentation Drive delivery below remains complete.
+
+## CAP-08 reference review and Drive documents - 2026-11-01
+
+Owner rejected both prior presentation designs, supplied three preferred local
+video references and explicitly requested watch. All 34 sampled frames plus six
+focused transition cues reviewed locally, without transcription or model calls.
+The references favour large image compositions, oversized typography and object
+continuity across transitions. Analysis and recommended adaptation are in
+docs/cap08-reference-video-analysis.md. No replacement deck is authored or
+approved; only the future approved PowerPoint should be uploaded.
+
+Four submitted report PDFs, six editable sources and two evidence ZIPs uploaded
+to the new Shopping Copilot - DEPI Graduation Drive folder. All 12 returned
+success and filename/size/MIME/parent metadata were read back. Local hashes and
+submitted Git report blobs matched before upload; remote hashes are unavailable.
+Receipt: docs/drive-document-submission-2026-11-01.md. No sharing changes,
+runtime changes, paid model calls, AWS actions or Git publication occurred.
+
+## CAP-08 owner-requested presentation and demo revision - 2026-10-30
+
+Owner rejected the initial visuals and requested the missing advice/help and
+conversation-only shopping journey. New 16-slide product-led deck under
+output/presentation-v2/ and approximately 117-second captioned recording under
+output/demo-v2/ supersede the first preparation for review. The original outputs
+and previously submitted NHA reports remain unchanged.
+
+The video explicitly replays two verbatim saved 15 October qualified-model
+advice responses, with authored intent fixtures at the injected LLM seam. Current
+local catalogue, observation, policy, Bridge and cart execution run normally.
+Seven focused assertions verify advice without mutation, two exact product adds,
+cart navigation, zero manual Storefront click/input/change events, exactly two
+cart-add POSTs and unchanged cart before unused bulk-clear Confirmation. No
+fresh language-quality, inference timing or AWS claim. No paid calls, account
+change, runtime-source change or publication. Guide and rebuild/provenance:
+docs/cap08-presentation-redesign.md. Final package:
+output/submission/shopping-copilot-presentation-demo-v2.zip.
+
+Existing product/cloud gates remain unchanged. The presentation-only replay app
+under scripts/ must never become a production model configuration. A removed
+draft refresh shot timed out and is not recorded as a pass or runtime repair.
+
+## CAP-08 presentation and local demo prepared - 2026-10-30
+
+Owner requested autonomous creation and find-skills discovery. Prepared an
+18-slide editable PowerPoint, matching 18-page visual PDF, sourced presenter
+notes and a 101.366-second 1080p/30fps captioned MP4. The continuous recording
+uses the existing local scripted provider, temporary catalogue/services and
+fictional commerce; it visibly discloses that boundary. Seven capture assertions
+verify discovery, exact add, Shopper isolation, quantity/Undo, pre-consent hold,
+confirmed clear and refresh. No live model/AWS call or application code change.
+
+Final deck v6 passes package, font, layout, native chart/embedded workbook,
+native table and first-party re-import checks. All 18 final slide renders and
+13 video cue midpoint frames reviewed; all PDF image pixels match the reviewed
+slides. Video codec/size/frame rate and full decode pass. Direct artifact PDF
+export lacked a standard-font alias; the supplied PDF uses exact final slide
+renders. Native PowerPoint opening is not claimed. Private diagnostic revisions
+and failed recorder rehearsals remain under work/cap08-build/.
+
+Guide: docs/cap08-presentation-demo.md. Final PPTX/PDF/notes: output/presentation/;
+video/captions/script: output/demo/. Portable ZIP:
+output/submission/shopping-copilot-presentation-demo-2026-10-30.zip.
+This is local preparation, not a new official upload or cloud demonstration.
+CAP-08's final AWS/rehearsal/contribution/instructor gates remain open; product
+frontier and existing provider/cost/account/resource acceptance gates unchanged.
+
+## DEPI 6 November design delivered - 2026-10-30
+
+Owner explicitly instructed pushing the ready design deliverable to the NHA
+repository. Delivered to nhahub/NHA-5-145 main, commit
+2cc55ce9ca37e13f69601a580d2f5f17e840a429. The unchanged 78-file prepared snapshot
+is under milestones/2026-11-06/; root index and checksums include the downloadable
+ZIP and preserve the three October reports/sources/original provenance.
+
+Fresh artifact/hash/link/coverage/ZIP checks and scoped Ruff/Prettier/whitespace
+checks passed. After non-force push, GitHub API main and all 90 file blob IDs
+matched the clean submission checkout. Receipt: docs/system-design-submission-record.md.
+Repository delivery is complete; instructor acceptance and product/cloud/model
+gates are separate. No application, inference, AWS or spending action occurred.
+Keep the dated submitted snapshot immutable; this live checkpoint records later
+delivery and is intentionally newer than its packaged 28 October evidence copy.
+
+## DEPI System Analysis and Design refresh - 2026-10-28
+
+Owner reprioritized preparation of the 6 November report against the substantially
+implemented application. docs/system-analysis-design.md and system-design-views.md
+now cover per-Shopper commerce, the physical SQLite catalogue/allowance ledger,
+current intent/advice interfaces, task/Confirmation/recovery, actual selected
+classes and the Stockholm network/native UID/metadata/log design. Twelve editable
+draw.io sources and matching previews accompany the vector PDF; all 21 original
+requirement IDs retain their meanings and distinguish local evidence from open
+acceptance. Historical local regressions are cited, not rerun or enlarged.
+
+Requested find-skills discovery selected the read C4 Architecture and Technical
+Writer guidance; no global installation. docs/system-design-skills.md records
+sources, observations and the restricted XML rendering fallback (no Desktop CLI).
+The separate scripts/export_system_design.py validates source text, links, bounds,
+requirement IDs and geometry; rebuild and package paths are documented in
+docs/system-design-submission.md. The review record binds inspected pages/figures
+to the exact PDF digest. Preparation does not upload this November report.
+
+The product frontier remains native host/runtime lock and the existing actual
+host/model/account/cost/resource/rollback acceptance gates. This revision makes
+no runtime change, AWS call, inference call, deployment or spending change. Prior
+October reports are historical; no independent-storefront prerequisite is added.
 
 ## PR3 clean-CI readiness fixes — 2026-10-24
 

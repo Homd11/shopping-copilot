@@ -6,6 +6,11 @@ pnpm-lock.yaml
 outputs
 work
 
+# Generated deliverables and local tool state; some carry provenance hashes.
+/output/
+/.chart-data-*/
+/.agents/
+
 # Local, Git-ignored agent workflow notes are not publication source.
 /.superpowers/
 

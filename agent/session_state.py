@@ -57,6 +57,8 @@ class ActiveTask:
     model_call_id: str | None = None
     resolved_state: dict[str, Any] = field(default_factory=dict)
     pending_clarification: str | None = None
+    # Add option the open question asks for: {"field": "size"|"color", "options": [...]}.
+    pending_variant: dict[str, Any] | None = None
     intent_kind: str | None = None
     target_name: str | None = None
     auth_handoff: bool = False

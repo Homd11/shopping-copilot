@@ -84,6 +84,11 @@ class AdvanceTestTime(BaseModel):
     seconds: float
 
 
+# Interpretation runs inside the HTTP request. Keep this below the proxy's
+# response_header_timeout for interpretation routes (deploy/Caddyfile*).
+INTERPRETATION_DEADLINE_SECONDS = 90
+
+
 def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
     if isinstance(error, BedrockProviderError):
         return {"throttled": "throttled", "timeout": "timeout", "network": "network"}.get(
@@ -246,6 +251,16 @@ def create_app(
             raise SessionNotFound(session_id)
 
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
+        try:
+            async with asyncio.timeout(INTERPRETATION_DEADLINE_SECONDS):
+                await _interpret(session_id, task_id, call_id)
+        except TimeoutError:
+            sessions.fail_interpretation(session_id, task_id, call_id, "timeout")
+        except asyncio.CancelledError:
+            sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+            raise
+
+    async def _interpret(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
@@ -405,9 +420,6 @@ def create_app(
             return
         except SessionNotFound:
             return
-        except asyncio.CancelledError:
-            sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
-            raise
         except Exception as error:
             reason = (
                 "catalogue_unavailable"

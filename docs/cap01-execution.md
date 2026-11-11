@@ -87,11 +87,13 @@ The owner coordinates submission; nominal leads are not available staffing. The 
 
 These are the current drafts. The earlier `depi-milestone-1.md` preparation note is historical and contains superseded schedule, team and Ticket 16 wording; use this register and the new drafts instead. No dataset collection, model training, paid model call, cloud provisioning or external submission occurs in this drafting step.
 
-## System Analysis & Design — 6 November
+## System Analysis & Design - 6 November (updated 28 October)
 
-The owner requested that this deliverable be prepared early. The [System Analysis & Design draft](system-analysis-design.md) documents the implemented local architecture, use cases, trust boundaries, execution/Confirmation sequences, task states, conceptual data model, interfaces and requirement traceability. It also records the current shared in-memory Storefront cart and loss of state on server restart as deployment constraints.
+The owner requested a refresh against the substantially implemented project. The [current report](system-analysis-design.md) and [companion](system-design-views.md) replace the 2 October shared-cart/fixture assumptions with per-Shopper commerce, durable SQLite catalogue/allowance, current interfaces, recovery, selected Stockholm networking and native host isolation.
 
-The local-system content and [additional diagrams/wireframes](system-design-views.md) are ready for owner review. Selected AWS services, costs, model access, authorized budget, audience/access controls, isolation and restart/storage choices remain CAP-04 work. The full design is not final until those decisions are incorporated; no deployment is claimed.
+The report includes twelve editable views, selected real classes/members and a matrix covering all 21 requirement IDs. [Skill discovery](system-design-skills.md) records the requested find-skills workflow and selected C4/Technical Writer guidance. The [submission guide](system-design-submission.md) identifies the PDF, sources, diagrams, evidence manifest and portable ZIP.
+
+This is prepared documentation for technical review. Native host/runtime/systemd acceptance, actual AWS/model/account/cost/rollback acceptance and the official November upload remain separate. No cloud/model action or new publication is performed by this revision. The historical readiness notes below describe earlier submissions; use the 28 October design sources and newest checkpoint for current architecture.
 
 ## Remaining finalization work
 

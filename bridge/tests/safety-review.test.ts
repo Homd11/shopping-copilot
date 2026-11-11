@@ -99,6 +99,23 @@ describe("Ticket 09/10 review regressions", () => {
     expect(select.value).toBe("01");
   });
 
+  it("does not select a disabled placeholder option", async () => {
+    const { builder, document, run } = fixture(
+      '<select name="size"><option value="" disabled selected>اختر المقاس</option><option>43</option></select>',
+    );
+    const target = builder
+      .build()
+      .elements.find((item) => item.role === "combobox")!;
+    const result = await run({
+      ...identity,
+      type: "select",
+      id: target.id,
+      option: "اختر المقاس",
+    });
+    expect(result.status).toBe("not_found");
+    expect(document.querySelector("select")!.value).toBe("");
+  });
+
   it.each([
     "section-payment cc-number",
     "section-login one-time-code",

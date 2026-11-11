@@ -169,6 +169,9 @@ def install_shopper_http(
                 try:
                     await invoke(lifecycle_work, "check")
                 except LifecycleUnavailable:
+                    # Not a revocation: an event stream closes without shopper_reset
+                    # and its reconnect is re-authorized by this middleware.
+                    request.state.authority_unavailable = True
                     return False
             return True
 

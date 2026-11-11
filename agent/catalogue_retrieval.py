@@ -15,6 +15,7 @@ from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireM
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, LLMRequest
 from agent.llm.intent import IntentConstraints, StructuredIntent
 from agent.llm.intent_pipeline import (
+    _restore_clarification,
     _validate_interpreted_intent,
     build_intent_request,
     snapshot_context,
@@ -217,12 +218,19 @@ async def retrieve_products(
     storefront: StorefrontDefinition,
     snapshot: Snapshot | None = None,
     budget: RetrievalBudget | None = None,
+    pending_clarification: str | None = None,
 ) -> RetrievalOutcome:
     budget = budget or RetrievalBudget()
     history, evidence, feedback = [], {}, None
     preferences = []
     # Conversation state chooses the entry point, never the meaning of shopper words.
-    executing = bool(context.get("_known_products") or context.get("_previous_suggestions"))
+    # An answer to a pending question goes to the action interpreter, which resolves
+    # it against that question and the stored draft intent.
+    executing = bool(
+        pending_clarification
+        or context.get("_known_products")
+        or context.get("_previous_suggestions")
+    )
     requirements, unknowns = None, None
 
     async def read(query, final=False):
@@ -306,7 +314,7 @@ async def retrieve_products(
                     message,
                     storefront=storefront,
                     resolved_state=context,
-                    pending_clarification=None,
+                    pending_clarification=pending_clarification,
                     snapshot=snapshot,
                 ),
                 provider_attempt_limit=1,
@@ -338,7 +346,15 @@ async def retrieve_products(
             advice_message = None
             decision = (
                 FinishDecision(
-                    kind="finish", intent=validate_live_response("".join(parts)), selected_ids=[]
+                    kind="finish",
+                    # Same clarification merge as the non-retrieval interpreter path.
+                    intent=_restore_clarification(
+                        validate_live_response("".join(parts)),
+                        context,
+                        pending_clarification,
+                        message,
+                    ),
+                    selected_ids=[],
                 )
                 if executing
                 else DECISION.validate_json("".join(parts))
