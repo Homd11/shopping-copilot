@@ -71,6 +71,11 @@ def test_rejected_optimistic_edit_restores_cart_and_removes_undo(page):
     frame.locator('input[name="quantity"]').fill("7")
     frame.locator('[data-cart-edit="quantity"] button').click()
     expect(frame.locator(".cart-total strong")).to_have_text("12950.00 EGP")
+    # The optimistic total can render before the request reaches the route handler.
+    for _ in range(100):
+        if pending:
+            break
+        page.wait_for_timeout(50)
     pending[0].fulfill(status=409, body="{}", content_type="application/json")
     expect(frame.locator("#cart-feedback")).to_have_attribute("data-cart-result", "failed")
     expect(frame.locator('input[name="quantity"]')).to_have_value("1")
