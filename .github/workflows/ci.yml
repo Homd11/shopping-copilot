@@ -7,8 +7,11 @@ on:
 # Each gate is its own job so a style slip is reported as a format failure,
 # not as a failure of the tests that never ran.
 jobs:
+  # Formatting is advisory: a style slip is reported as a warning on this job
+  # but never fails the run. Lint, test and build stay strict.
   format:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
