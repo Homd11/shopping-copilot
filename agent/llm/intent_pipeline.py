@@ -718,5 +718,4 @@ def trusted_clarification(
     return (
         "محتاج توضيح بسيط عشان أكمل." if is_arabic else "I need one detail to continue.",
         [],
-    
     )
