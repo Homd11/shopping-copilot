@@ -4,26 +4,38 @@ on:
   push:
   pull_request:
 
+# Each gate is its own job so a style slip is reported as a format failure,
+# not as a failure of the tests that never ran.
 jobs:
-  quality:
+  format:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: ./.github/actions/setup
+      - run: make format-check
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: make lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
         with:
-          version: 11.19.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-          cache: pnpm
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pnpm install --frozen-lockfile
-      - run: python -m pip install -r requirements.lock -r eval/requirements-baseline.txt -r eval/requirements-cloud.txt
-      - run: python -m playwright install --with-deps chromium
-      - run: make ci
+          browser: "true"
+      - run: make test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: make build
       - name: HTTP health checks
         shell: bash
         env:
