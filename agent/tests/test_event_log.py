@@ -529,3 +529,116 @@ def test_each_catalogue_turn_records_the_budget_it_used_and_how_it_ended() -> No
     client2, _, _ = _retrieval_client(exhausted, {}, {}, {})
     _ask(client2, "anything messy")
     assert [t["outcome"] for t in records(exhausted, "retrieval_turn")] == ["exhausted"]
+
+
+class SharedAdapterClient:
+    """Keeps call details in a bounded deque, like Bedrock, and another call lands after ours."""
+
+    def __init__(self, text):
+        from collections import deque
+
+        self.text = text
+        self.call_metadata = deque(maxlen=256)
+
+    async def complete(self, request):
+        from types import SimpleNamespace
+
+        self.call_metadata.append(
+            SimpleNamespace(
+                attempt_id=request.attempt_id,
+                usage={"prompt_tokens": 900, "completion_tokens": 40, "cost": 0.0007},
+            )
+        )
+        self.call_metadata.append(
+            SimpleNamespace(
+                attempt_id="someone-else",
+                usage={"prompt_tokens": 5, "completion_tokens": 5, "cost": 0.5},
+            )
+        )
+        yield LLMChunk(text=self.text)
+
+
+def test_usage_is_matched_to_its_own_call_by_attempt_id() -> None:
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=SharedAdapterClient(navigation_intent("navigate", "orders")),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Open order history", "snapshot": home_snapshot()},
+    )
+
+    (call,) = records(sink, "model_call")
+    assert (call["prompt_tokens"], call["completion_tokens"], call["cost_usd"]) == (900, 40, 0.0007)
+    assert call["attempt_id"]
+
+
+def test_a_catalogue_turn_that_fails_still_records_what_it_used() -> None:
+    from agent.catalogue_client import CatalogueReadError
+
+    class UnreachableCatalogue:
+        calls = []
+
+        async def search(self, query):
+            raise CatalogueReadError("unavailable")
+
+        async def details(self, query):
+            raise CatalogueReadError("unavailable")
+
+    from agent.tests.test_advice import RecordingModel
+
+    sink = MemorySink()
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=RecordingModel({"kind": "search", "query": {"query": "running shoes"}}),
+        catalogue_client=UnreachableCatalogue(),
+        catalogue_retrieval_enabled=True,
+        event_sink=sink,
+    )
+    _ask(TestClient(app), "عايز كوتشي للجري")
+
+    turns = records(sink, "retrieval_turn")
+    assert [(t["outcome"], t["decisions"]) for t in turns] == [("failed", 1)]
+    assert [r["reason"] for r in records(sink, "task_paused")] == ["catalogue_unavailable"]
+
+
+def test_a_cancelled_model_call_is_recorded_as_interrupted_not_ok() -> None:
+    import asyncio
+
+    from agent.event_log import bind
+    from agent.inference.recorded import RecordedClient
+    from agent.llm.contract import LLMRequest
+
+    class Hanging:
+        async def complete(self, request):
+            await asyncio.sleep(60)
+            yield LLMChunk(text="never")
+
+    sink = MemorySink()
+    recorded = RecordedClient(
+        Hanging(), provider="groq", model="m", classify=lambda e: "unexpected"
+    )
+
+    async def call():
+        with bind(EventLog(sink)):
+            async for _ in recorded.complete(LLMRequest(system="s", messages=())):
+                pass
+
+    async def main():
+        work = asyncio.create_task(call())
+        await asyncio.sleep(0.01)
+        work.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await work
+
+    asyncio.run(main())
+
+    assert [(r["outcome"], r["failure"]) for r in records(sink, "model_call")] == [
+        ("failed", "interrupted")
+    ]

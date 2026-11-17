@@ -19,10 +19,11 @@ from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
-from agent.event_log import EventLog, RecordedClient, RequestLog, StreamSink, bind, shopper_tag
+from agent.event_log import EventLog, RequestLog, StreamSink, bind, shopper_tag
 from agent.inference.client import GuardedClient
 from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
+from agent.inference.recorded import RecordedClient
 from agent.lifecycle.work import LifecycleWork, configured_lifecycle
 from agent.llm import LLMClient, LLMSettings, build_llm_client, interpret_message, load_llm_settings
 from agent.llm.bedrock import BedrockProviderError
