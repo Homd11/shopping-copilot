@@ -6,6 +6,7 @@ from typing import Any
 
 from agent import task_commands, task_interpretation, task_recovery, task_results
 from agent.catalogue import DiscoveryResult
+from agent.event_log import EventLog
 from agent.llm.intent import StructuredIntent
 from agent.planner import ScriptedPlanner
 from agent.schemas import ActionResult, Snapshot
@@ -60,7 +61,7 @@ class SessionStore:
             self._registry, planner or ScriptedPlanner(), clock, confirmation_registrar
         )
 
-    def attach_event_log(self, events) -> None:
+    def attach_event_log(self, events: EventLog) -> None:
         self._runtime.events = events
 
     def create(self, tab_id: str | None = None) -> Session:

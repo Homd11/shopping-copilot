@@ -135,6 +135,9 @@ def accept_result(
                 )
             else:
                 task.status = "paused"
+                runtime.record(
+                    session, "task_paused", task_id=task.task_id, reason="cart_navigation_failed"
+                )
                 task.action = None
                 task.cart_actions.clear()
                 task.pause_message = (
@@ -179,6 +182,9 @@ def accept_result(
                 runtime.ask_to_stop_uncertain_mutation(session, task, action)
             else:
                 task.status = "paused"
+                runtime.record(
+                    session, "task_paused", task_id=task.task_id, reason="cart_edit_unavailable"
+                )
                 task.action = None
                 task.cart_actions.clear()
                 task.pause_message = (
@@ -403,6 +409,9 @@ def accept_result(
             )
         except ValueError:
             task.status = "paused"
+            runtime.record(
+                session, "task_paused", task_id=task.task_id, reason="guarded_control_missing"
+            )
             task.action = None
             task.pause_message = (
                 "الإجراء المطلوب غير متاح في حالة السلة الحالية."
