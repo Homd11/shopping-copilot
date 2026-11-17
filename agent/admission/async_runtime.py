@@ -40,9 +40,10 @@ class AsyncAdmissionPolicy(AdmissionPolicy):
 
     async def allocate_session(self, record):
         subject = self.subject(record)
-        await self._call("allocate_session", subject)
+        invitation = await self._call("allocate_session", subject)
         if record.shopper is None or self.subject(record) != subject:
             raise AdmissionDenied()
+        return invitation
 
     async def close(self):
         await self._io.close()

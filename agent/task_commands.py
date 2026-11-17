@@ -150,7 +150,18 @@ def answer(
             or task.mutation_proposal is None
         ):
             raise ActionResultMismatch("There is no live Confirmation")
+
+        def outcome(value: str) -> None:
+            runtime.record(
+                session,
+                "confirmation",
+                task_id=task.task_id,
+                outcome=value,
+                mutation_kind=task.mutation_kind,
+            )
+
         if text in {"Stop", "إيقاف"}:
+            outcome("stopped")
             task.confirmation.invalidate()
             task.status = "cancelled"
             session.last_task = task
@@ -169,9 +180,11 @@ def answer(
             None,
         )
         if candidate is None or text != expected_answer:
+            outcome("stale")
             raise ActionResultMismatch("Confirmation no longer matches the Storefront state")
         element, current = candidate
         if not task.confirmation.can_confirm(question_id, "Confirm", current):
+            outcome("expired")
             raise ActionResultMismatch("Confirmation expired or was already used")
         if runtime.confirmation_registrar is None or not runtime.confirmation_registrar(
             session.shopper,
@@ -181,9 +194,12 @@ def answer(
             task.mutation_kind or "",
             int(dict(current.arguments)["cart_revision"]),
         ):
+            outcome("unregistered")
             raise ActionResultMismatch("The Storefront could not register this Confirmation")
         if not task.confirmation.confirm(question_id, "Confirm", current):
+            outcome("expired")
             raise ActionResultMismatch("Confirmation expired before execution")
+        outcome("consumed")
         action = GuardedClickAction(
             v=1,
             type="guarded_click",

@@ -67,6 +67,14 @@ def accept_result(
     )
     if not identity_matches:
         raise ActionResultMismatch("Action Result does not match the pending Action")
+    runtime.record(
+        session,
+        "action_result",
+        task_id=task.task_id,
+        action_type=action.type,
+        sequence=action.sequence_number,
+        status=action_result.status,
+    )
     if task.cart_operation:
         session.accepted_results[result_identity] = AcceptedResult(task=task, result=action_result)
         same_origin = (

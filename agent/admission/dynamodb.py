@@ -450,6 +450,7 @@ class DynamoInvitationStore:
         )
         if not self.valid_invitation(invitation["id"]):
             raise AdmissionDenied()
+        return invitation["id"]
 
     def revoke(self, invitation):
         self._metadata()

@@ -143,6 +143,15 @@ def finish_interpretation(
         return None
     if session.last_snapshot is not None:
         runtime.require_task_origin(task, session.last_snapshot)
+    runtime.record(
+        session,
+        "intent",
+        task_id=task_id,
+        intent=intent.intent,
+        language=intent.language,
+        dialect=intent.dialect,
+        needs_clarification=intent.needs_clarification,
+    )
     if (
         task.resolved_state
         and "_intent" not in task.resolved_state
@@ -527,6 +536,7 @@ def fail_interpretation(
         return
     task.status = "paused"
     task.model_call_id = None
+    runtime.record(session, "task_paused", task_id=task_id, reason=reason)
     messages = {
         "inference_busy": (
             "المساعد مشغول الآن. لم يُرسل طلبك للنموذج؛ جرّب بعد قليل.",

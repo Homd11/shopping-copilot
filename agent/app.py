@@ -534,11 +534,12 @@ def create_app(
                 authority.sessions.discard(existing)
         if len(authority.sessions) >= (admission.browser_sessions if admission else 8):
             raise HTTPException(status_code=429, detail="Too many active sessions")
+        invitation_id = None
         if admission is not None:
             if not sessions.has_capacity():
                 raise HTTPException(status_code=503, detail="Session capacity reached")
             try:
-                await invoke(admission, "allocate_session", authority)
+                invitation_id = await invoke(admission, "allocate_session", authority)
             except AdmissionDenied as error:
                 raise HTTPException(
                     status_code=429, detail="Demo session allowance exhausted"
@@ -552,6 +553,7 @@ def create_app(
         except OverflowError as error:
             raise HTTPException(status_code=503, detail="Session capacity reached") from error
         session.shopper = http_request.state.shopper
+        session.invitation_id = invitation_id
         authority.sessions.add(session.session_id)
         return {"session_id": session.session_id}
 
@@ -738,6 +740,7 @@ def create_app(
     )
     events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
     app.state.events = events
+    sessions.attach_event_log(events)
     app.add_middleware(RequestLog, events=events, routes=app.router.routes)
     return app
 

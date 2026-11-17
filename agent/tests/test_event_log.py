@@ -6,7 +6,10 @@ import pytest
 
 from agent.app import create_app
 from agent.event_log import EventLog, MemorySink
+from agent.llm import LLMChunk, LLMSettings, ScriptedLLMClient
 from agent.tests.http_client import TestClient
+from agent.tests.test_real_task import navigation_intent
+from agent.tests.test_sessions import parse_sse
 from agent.tests.test_step import home_snapshot
 
 
@@ -53,7 +56,9 @@ def test_what_the_shopper_typed_appears_in_no_record() -> None:
     )
 
     assert submitted.status_code == 202
-    assert any(r["route"] == "/sessions/{session_id}/messages" for r in sink.records)
+    assert any(
+        r["route"] == "/sessions/{session_id}/messages" for r in records(sink, "http_request")
+    )
     dumped = json.dumps(sink.records, ensure_ascii=False)
     assert "secret-phrase-7731" not in dumped
     assert "كوتشي" not in dumped
@@ -125,3 +130,197 @@ def test_a_session_id_that_is_not_one_the_agent_issues_is_not_recorded() -> None
     record = records(sink, "http_request")[-1]
     assert "session_id" not in record
     assert "sneakers" not in json.dumps(sink.records)
+
+
+def test_a_completed_task_leaves_its_whole_trail_in_order() -> None:
+    sink = MemorySink()
+    client = TestClient(create_app(event_sink=sink))
+    session_id = client.post("/sessions").json()["session_id"]
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "عاوز كوتشي للجري بأقل من ٢٠٠٠", "snapshot": home_snapshot()},
+    )
+    action = parse_sse(client.get(f"/sessions/{session_id}/events?after=0&once=true").text)[-1][
+        "data"
+    ]["action"]
+
+    client.post(
+        f"/sessions/{session_id}/action-results",
+        json={
+            "v": 1,
+            "task_id": action["task_id"],
+            "action_id": action["action_id"],
+            "sequence_number": action["sequence_number"],
+            "status": "navigated",
+            "snapshot": {
+                **home_snapshot(),
+                "url": "http://localhost:4000/c/shoes?type=running&max_price=2000",
+            },
+        },
+    )
+
+    trail = [r for r in sink.records if r["event"] in {"task", "action_result"}]
+    assert [(r["event"], r.get("kind") or r.get("status")) for r in trail] == [
+        ("task", "task_started"),
+        ("task", "narration"),
+        ("task", "action"),
+        ("action_result", "navigated"),
+        ("task", "narration"),
+        ("task", "done"),
+    ]
+    assert all(r["session_id"] == session_id for r in trail)
+    assert all(r["task_id"] == action["task_id"] for r in trail)
+    sent = trail[2]
+    assert (sent["action_type"], sent["sequence"]) == ("navigate", 1)
+    assert trail[3]["action_type"] == "navigate"
+    assert "كوتشي" not in json.dumps(sink.records, ensure_ascii=False)
+
+
+def test_a_paused_task_records_why_it_paused() -> None:
+    import httpx
+
+    class TimeoutClient:
+        async def complete(self, request):
+            del request
+            raise httpx.ReadTimeout("private timeout detail")
+            yield LLMChunk(text="unused")
+
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b"),
+            llm_client=TimeoutClient(),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Find running shoes", "snapshot": home_snapshot()},
+    )
+
+    paused = records(sink, "task_paused")
+    assert [r["reason"] for r in paused] == ["timeout"]
+    assert paused[0]["session_id"] == session_id
+    assert "private timeout detail" not in json.dumps(sink.records)
+
+
+def test_the_intent_the_model_chose_is_recorded() -> None:
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=ScriptedLLMClient(
+                [[LLMChunk(text=navigation_intent("navigate", "orders"))]]
+            ),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Open order history", "snapshot": home_snapshot()},
+    )
+
+    intents = records(sink, "intent")
+    assert len(intents) == 1
+    assert (intents[0]["intent"], intents[0]["language"], intents[0]["dialect"]) == (
+        "navigate",
+        "en",
+        "english",
+    )
+    assert intents[0]["needs_clarification"] is False
+    assert "order history" not in json.dumps(sink.records)
+
+
+def _clear_cart_client(sink, clock):
+    from agent.sessions import SessionStore
+    from agent.tests.test_guarded_task import clear_intent
+
+    return TestClient(
+        create_app(
+            session_store=SessionStore(
+                clock=lambda: clock[0], confirmation_registrar=lambda *_: True
+            ),
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=ScriptedLLMClient(
+                [[LLMChunk(text=json.dumps({**clear_intent().model_dump(mode="json"), "v": 9}))]]
+            ),
+            event_sink=sink,
+        )
+    )
+
+
+def _offer(client, snapshot):
+    session_id = client.post("/sessions").json()["session_id"]
+    task_id = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Please empty my cart", "snapshot": snapshot},
+    ).json()["task_id"]
+    events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
+    question = next(e["data"]["action"] for e in events if e["event"] == "action")
+    return f"/sessions/{session_id}/tasks/{task_id}/answers", question["action_id"]
+
+
+def test_each_confirmation_outcome_is_recorded() -> None:
+    from agent.tests.test_guarded_task import cart_snapshot
+
+    def wire(revision="3"):
+        return cart_snapshot(revision).model_dump(mode="json", by_alias=True, exclude_none=True)
+
+    sink, clock = MemorySink(), [100.0]
+    client = _clear_cart_client(sink, clock)
+    answers, question_id = _offer(client, wire())
+    changed = client.post(
+        answers, json={"question_id": question_id, "text": "Confirm", "snapshot": wire("4")}
+    )
+    clock[0] = 160.0
+    late = client.post(
+        answers, json={"question_id": question_id, "text": "Confirm", "snapshot": wire()}
+    )
+
+    other, clock2 = MemorySink(), [100.0]
+    client2 = _clear_cart_client(other, clock2)
+    answers2, question_id2 = _offer(client2, wire())
+    confirmed = client2.post(
+        answers2, json={"question_id": question_id2, "text": "Confirm", "snapshot": wire()}
+    )
+
+    assert (changed.status_code, late.status_code, confirmed.status_code) == (409, 409, 202)
+    assert [r["outcome"] for r in records(sink, "confirmation")] == ["stale", "expired"]
+    assert [(r["outcome"], r["mutation_kind"]) for r in records(other, "confirmation")] == [
+        ("consumed", "clear_cart")
+    ]
+
+
+def test_task_records_name_the_invitation_and_a_scrambled_shopper_never_the_code(tmp_path):
+    from time import time
+
+    from agent.admission.runtime import AdmissionPolicy
+    from agent.admission.store import InvitationStore
+
+    path = tmp_path / "admission.sqlite"
+    store = InvitationStore(path, InvitationStore.initialize(path))
+    invitation, code = store.issue(time() - 1, time() + 100, redemptions=2, sessions=4)
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            admission=AdmissionPolicy(store),
+            llm_settings=LLMSettings(provider="scripted", model="scripted-v1"),
+            event_sink=sink,
+        )
+    )
+    assert client.post("/shopper/admission", json={"code": code}).status_code == 200
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Open my cart", "snapshot": home_snapshot()},
+    )
+
+    trail = records(sink, "task")
+    assert trail and all(r["invitation_id"] == invitation for r in trail)
+    assert len({r["shopper"] for r in trail}) == 1
+    assert code not in json.dumps(sink.records)
