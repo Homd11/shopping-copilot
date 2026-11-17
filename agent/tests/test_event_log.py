@@ -324,3 +324,74 @@ def test_task_records_name_the_invitation_and_a_scrambled_shopper_never_the_code
     assert trail and all(r["invitation_id"] == invitation for r in trail)
     assert len({r["shopper"] for r in trail}) == 1
     assert code not in json.dumps(sink.records)
+
+
+def _wire_cart(revision="3"):
+    from agent.tests.test_guarded_task import cart_snapshot
+
+    return cart_snapshot(revision).model_dump(mode="json", by_alias=True, exclude_none=True)
+
+
+def test_stopping_or_refreshing_a_confirmation_is_recorded() -> None:
+    sink = MemorySink()
+    client = _clear_cart_client(sink, [100.0])
+    answers, question_id = _offer(client, _wire_cart())
+    client.post(
+        answers, json={"question_id": question_id, "text": "Stop", "snapshot": _wire_cart()}
+    )
+
+    refreshed = MemorySink()
+    client2 = _clear_cart_client(refreshed, [100.0])
+    answers2, _ = _offer(client2, _wire_cart())
+    session_id = answers2.split("/")[2]
+    client2.get(f"/sessions/{session_id}/state?tab_id=tab-1")
+
+    assert [r["outcome"] for r in records(sink, "confirmation")] == ["stopped"]
+    assert [r["outcome"] for r in records(refreshed, "confirmation")] == ["invalidated"]
+    assert [r["reason"] for r in records(refreshed, "task_paused")] == ["refresh"]
+
+
+def test_an_offered_confirmation_and_a_clarifying_question_are_told_apart() -> None:
+    sink = MemorySink()
+    client = _clear_cart_client(sink, [100.0])
+    _offer(client, _wire_cart())
+
+    asked = [r for r in records(sink, "task") if r.get("action_type") == "ask_shopper"]
+    assert [r["question_kind"] for r in asked] == ["confirmation"]
+
+    other = MemorySink()
+    which_category = {
+        "v": 9,
+        "language": "en",
+        "dialect": "english",
+        "intent": "find_products",
+        "constraints": {},
+        "missing_fields": ["category"],
+        "conflicting_fields": [],
+        "needs_clarification": True,
+    }
+    clarifying = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=ScriptedLLMClient([[LLMChunk(text=json.dumps(which_category))]]),
+            event_sink=other,
+        )
+    )
+    session_id = clarifying.post("/sessions").json()["session_id"]
+    clarifying.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "I want something nice", "snapshot": home_snapshot()},
+    )
+    kinds = [r.get("question_kind") for r in records(other, "task") if r["kind"] == "action"]
+    assert "question" in kinds
+
+
+def test_a_broken_log_never_stops_a_task() -> None:
+    client = _clear_cart_client(BrokenSink(), [100.0])
+
+    answers, question_id = _offer(client, _wire_cart())
+    confirmed = client.post(
+        answers, json={"question_id": question_id, "text": "Confirm", "snapshot": _wire_cart()}
+    )
+
+    assert confirmed.status_code == 202

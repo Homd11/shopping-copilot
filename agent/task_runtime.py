@@ -10,7 +10,7 @@ from agent.confirmation import (
     ConfirmationLedger,
     classify_guarded_mutation,
 )
-from agent.event_log import shopper_tag
+from agent.event_log import EventLog, shopper_tag
 from agent.planner import (
     ScriptedPlanner,
 )
@@ -31,7 +31,7 @@ class TaskRuntime:
     planner: ScriptedPlanner
     clock: Callable[[], float]
     confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool] | None
-    events: Any = None
+    events: EventLog | None = None
 
     def record(self, session: Session, event: str, **fields: Any) -> None:
         """Emit one event-log record for this session; never fails the task."""

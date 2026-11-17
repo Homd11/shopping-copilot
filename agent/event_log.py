@@ -18,7 +18,7 @@ from typing import Any, get_args
 from starlette.routing import Match
 
 from agent.llm.intent import Dialect, IntentName
-from agent.schemas import ActionResult
+from agent.schemas import Action, ActionResult
 from agent.session_state import EventType, InterpretationPauseReason
 
 TOKEN = re.compile(r"[A-Za-z0-9_.:/{}\-]{1,200}")
@@ -43,12 +43,18 @@ SHOPPER = re.compile(r"[0-9a-f]{16}")
 INVITATION_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 TASK_EVENTS = frozenset(get_args(EventType))
 ACTION_TYPES = frozenset(
-    {"navigate", "click", "guarded_click", "type", "select", "scroll_to", "spotlight"}
-    | {"ask_shopper", "done"}
+    get_args(variant.model_fields["type"].annotation)[0]
+    for variant in get_args(get_args(Action)[0])
 )
 INTENTS = frozenset(get_args(IntentName))
 DIALECTS = frozenset(get_args(Dialect))
-PAUSE_REASONS = frozenset(get_args(InterpretationPauseReason))
+# Interpretation failures, plus pauses the task engine makes on its own.
+PAUSE_REASONS = frozenset(get_args(InterpretationPauseReason)) | {
+    "refresh",
+    "cart_navigation_failed",
+    "cart_edit_unavailable",
+    "guarded_control_missing",
+}
 RESULT_STATUSES = frozenset(get_args(ActionResult.model_fields["status"].annotation))
 
 
@@ -67,6 +73,9 @@ def shopper_tag(binding) -> str | None:
     return hashlib.sha256(b"event-log:" + binding.context.encode()).hexdigest()[:16]
 
 
+_SEQUENCE = lambda value: _int(value) and value >= 0  # noqa: E731
+_LANGUAGE = _one_of({"ar", "en"})
+
 _TASK_CONTEXT = {
     "session_id": lambda v: _session_id(v),
     "task_id": _matches(TASK_ID),
@@ -79,20 +88,22 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         **_TASK_CONTEXT,
         "kind": _one_of(TASK_EVENTS),
         "action_type": _one_of(ACTION_TYPES),
-        "sequence": lambda v: _int(v) and v >= 0,
+        "sequence": _SEQUENCE,
         "question_kind": _one_of({"confirmation", "question"}),
-        "language": _one_of({"ar", "en"}),
+        "language": _LANGUAGE,
     },
     "intent": {
         **_TASK_CONTEXT,
         "intent": _one_of(INTENTS),
-        "language": _one_of({"ar", "en"}),
+        "language": _LANGUAGE,
         "dialect": _one_of(DIALECTS),
         "needs_clarification": lambda v: isinstance(v, bool),
     },
     "confirmation": {
         **_TASK_CONTEXT,
-        "outcome": _one_of({"consumed", "stopped", "stale", "expired", "unregistered"}),
+        "outcome": _one_of(
+            {"consumed", "stopped", "stale", "expired", "unregistered", "invalidated"}
+        ),
         "mutation_kind": _one_of({"clear_cart", "submit_checkout"}),
     },
     "task_paused": {
@@ -102,7 +113,7 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
     "action_result": {
         **_TASK_CONTEXT,
         "action_type": _one_of(ACTION_TYPES),
-        "sequence": lambda v: _int(v) and v >= 0,
+        "sequence": _SEQUENCE,
         "status": _one_of(RESULT_STATUSES),
     },
     "http_request": {
