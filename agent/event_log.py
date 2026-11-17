@@ -41,6 +41,16 @@ def _int(value):
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def is_count(value) -> bool:
+    return _int(value) and value >= 0
+
+
+def is_cost(value) -> bool:
+    """A finite, non-negative dollar amount."""
+    number = isinstance(value, int | float) and not isinstance(value, bool)
+    return number and math.isfinite(value) and value >= 0
+
+
 TASK_ID = re.compile(r"task-[0-9a-f]{32}")
 SHOPPER = re.compile(r"[0-9a-f]{16}")
 INVITATION_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
@@ -76,7 +86,7 @@ def shopper_tag(binding) -> str | None:
     return hashlib.sha256(b"event-log:" + binding.context.encode()).hexdigest()[:16]
 
 
-_SEQUENCE = lambda value: _int(value) and value >= 0  # noqa: E731
+_SEQUENCE = is_count
 _LANGUAGE = _one_of({"ar", "en"})
 
 _TASK_CONTEXT = {
@@ -120,14 +130,12 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         "failure": _one_of(PAUSE_REASONS),
         "prompt_tokens": _SEQUENCE,
         "completion_tokens": _SEQUENCE,
-        "cost_usd": lambda v: isinstance(v, int | float)
-        and not isinstance(v, bool)
-        and math.isfinite(v)
-        and v >= 0,
+        "cost_usd": is_cost,
+        "attempt_id": _token,
     },
     "retrieval_turn": {
         **_TASK_CONTEXT,
-        "outcome": _one_of({"recommend", "clarify", "execute", "exhausted"}),
+        "outcome": _one_of({"recommend", "clarify", "execute", "exhausted", "failed"}),
         "decisions": _SEQUENCE,
         "reads": _SEQUENCE,
         "advice": _SEQUENCE,
@@ -290,55 +298,3 @@ def record(event: str, **fields: Any) -> None:
         events.emit(event, **context, **fields)
     except Exception:
         events.failures += 1
-
-
-class RecordedClient:
-    """Wraps a model client and records one model_call per completion."""
-
-    def __init__(self, client, *, provider: str, model: str, classify: Callable[[Exception], str]):
-        self.client = client
-        self.provider = provider
-        self.model = model
-        self.classify = classify
-
-    def __getattr__(self, name):
-        return getattr(self.client, name)
-
-    async def complete(self, request):
-        adapter = getattr(self.client, "client", self.client)
-        metadata = getattr(adapter, "call_metadata", None)
-        before = len(metadata) if isinstance(metadata, list) else 0
-        started = time.monotonic()
-        failure = None
-        try:
-            async for chunk in self.client.complete(request):
-                yield chunk
-        except Exception as error:
-            failure = self.classify(error)
-            raise
-        finally:
-            usage = {}
-            if isinstance(metadata, list) and len(metadata) > before:
-                usage = getattr(metadata[-1], "usage", None) or {}
-            record(
-                "model_call",
-                provider=self.provider,
-                model=self.model,
-                prompt_version=request.prompt_version,
-                schema_version=request.schema_version,
-                latency_ms=int((time.monotonic() - started) * 1000),
-                outcome="ok" if failure is None else "failed",
-                failure=failure,
-                prompt_tokens=_count(usage.get("prompt_tokens")),
-                completion_tokens=_count(usage.get("completion_tokens")),
-                cost_usd=_cost(usage.get("cost")),
-            )
-
-
-def _count(value):
-    return value if _int(value) and value >= 0 else None
-
-
-def _cost(value):
-    valid = isinstance(value, int | float) and not isinstance(value, bool)
-    return value if valid and math.isfinite(value) and value >= 0 else None

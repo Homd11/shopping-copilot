@@ -75,16 +75,22 @@ def _exhausted_turn(task):
 async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
     if task.retrieval_budget is None:
         task.retrieval_budget = RetrievalBudget()
-    turn, ending = await _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active)
-    budget = task.retrieval_budget
-    record(
-        "retrieval_turn",
-        outcome=ending,
-        decisions=budget.decisions,
-        reads=budget.reads,
-        advice=budget.advice,
-    )
-    return turn
+    ending = "failed"
+    try:
+        turn, ending = await _prepare_turn(
+            task, snapshot, storefront, llm, catalogue, ensure_active
+        )
+        return turn
+    finally:
+        # Also on failure, so the budget spent before a catalogue or model error shows.
+        budget = task.retrieval_budget
+        record(
+            "retrieval_turn",
+            outcome=ending,
+            decisions=budget.decisions,
+            reads=budget.reads,
+            advice=budget.advice,
+        )
 
 
 async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
