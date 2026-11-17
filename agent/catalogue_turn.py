@@ -15,6 +15,7 @@ from agent.advice import (
 from agent.catalogue import DiscoveryResult
 from agent.catalogue_client import CatalogueClient
 from agent.catalogue_retrieval import RetrievalBudget, RetrievalExhausted, retrieve_products
+from agent.event_log import record
 from agent.llm.intent import StructuredIntent
 
 
@@ -74,6 +75,20 @@ def _exhausted_turn(task):
 async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
     if task.retrieval_budget is None:
         task.retrieval_budget = RetrievalBudget()
+    turn, ending = await _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active)
+    budget = task.retrieval_budget
+    record(
+        "retrieval_turn",
+        outcome=ending,
+        decisions=budget.decisions,
+        reads=budget.reads,
+        advice=budget.advice,
+    )
+    return turn
+
+
+async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
+    """Run one catalogue turn; return the prepared turn and how it ended."""
     try:
         outcome = await retrieve_products(
             task.message,
@@ -88,7 +103,7 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
         )
     except RetrievalExhausted:
         await ensure_active()
-        return _exhausted_turn(task)
+        return _exhausted_turn(task), "exhausted"
     await ensure_active()
     if outcome.question:
         intent = StructuredIntent.model_validate(
@@ -104,7 +119,7 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
         )
         return PreparedTurn(
             intent, AdviceEvidence(DiscoveryResult(None, ()), ()), outcome.question, []
-        )
+        ), "clarify"
     intent = outcome.intent
     references = [
         {
@@ -114,12 +129,12 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
         for p in outcome.products
     ]
     if intent.intent not in {"find_products", "advice"} or intent.needs_clarification:
-        return PreparedTurn(intent, None, None, references)
+        return PreparedTurn(intent, None, None, references), "execute"
     evidence = prepare_retrieved_advice(outcome)
     if outcome.advice_message is not None:
-        return PreparedTurn(intent, evidence, outcome.advice_message, references)
+        return PreparedTurn(intent, evidence, outcome.advice_message, references), "recommend"
     if outcome.budget.advice >= 1:
-        return _exhausted_turn(task)
+        return _exhausted_turn(task), "exhausted"
     await ensure_active()
     outcome.budget.advice += 1
     summary = await compose_advice(
@@ -131,4 +146,4 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
         evidence,
     )
     await ensure_active()
-    return PreparedTurn(intent, evidence, summary, references)
+    return PreparedTurn(intent, evidence, summary, references), "recommend"

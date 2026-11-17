@@ -395,3 +395,137 @@ def test_a_broken_log_never_stops_a_task() -> None:
     )
 
     assert confirmed.status_code == 202
+
+
+class MeteredClient:
+    """A model double that reports usage the way the production adapters do."""
+
+    def __init__(self, text):
+        self.text = text
+        self.call_metadata = []
+
+    async def complete(self, request):
+        from types import SimpleNamespace
+
+        self.call_metadata.append(
+            SimpleNamespace(
+                usage={"prompt_tokens": 1200, "completion_tokens": 85, "cost": 0.0011298},
+                attempt_id=request.attempt_id,
+            )
+        )
+        yield LLMChunk(text=self.text)
+
+
+def test_each_model_call_is_recorded_with_its_tokens_and_cost() -> None:
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=MeteredClient(navigation_intent("navigate", "orders")),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    task_id = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Open order history", "snapshot": home_snapshot()},
+    ).json()["task_id"]
+
+    calls = records(sink, "model_call")
+    assert len(calls) == 1
+    call = calls[0]
+    assert (call["session_id"], call["task_id"]) == (session_id, task_id)
+    assert (call["provider"], call["model"], call["outcome"]) == (
+        "groq",
+        "openai/gpt-oss-120b",
+        "ok",
+    )
+    assert call["prompt_version"].startswith("intent-")
+    assert (call["prompt_tokens"], call["completion_tokens"]) == (1200, 85)
+    assert call["cost_usd"] == 0.0011298
+    assert isinstance(call["latency_ms"], int)
+    assert "navigate" not in json.dumps(call)
+
+
+def test_a_failed_model_call_records_why_without_the_provider_message() -> None:
+    import httpx
+
+    class TimeoutClient:
+        async def complete(self, request):
+            del request
+            raise httpx.ReadTimeout("private timeout detail")
+            yield LLMChunk(text="unused")
+
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b"),
+            llm_client=TimeoutClient(),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Find running shoes", "snapshot": home_snapshot()},
+    )
+
+    calls = records(sink, "model_call")
+    assert [(c["outcome"], c["failure"]) for c in calls] == [("failed", "timeout")]
+    assert "prompt_tokens" not in calls[0] and "cost_usd" not in calls[0]
+    assert "private timeout detail" not in json.dumps(sink.records)
+
+
+def _retrieval_client(sink, *answers):
+    from agent.tests.test_advice import RecordingModel
+    from agent.tests.test_catalogue_retrieval import Reads
+
+    model, reads = RecordingModel(*answers), Reads()
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=reads,
+        catalogue_retrieval_enabled=True,
+        event_sink=sink,
+    )
+    return TestClient(app), model, reads
+
+
+def _ask(client, text):
+    session_id = client.post("/sessions").json()["session_id"]
+    client.post(
+        f"/sessions/{session_id}/messages", json={"text": text, "snapshot": home_snapshot()}
+    )
+    return session_id
+
+
+def test_each_catalogue_turn_records_the_budget_it_used_and_how_it_ended() -> None:
+    from agent.tests.test_advice import advice, decision
+
+    sink = MemorySink()
+    client, model, reads = _retrieval_client(
+        sink,
+        {"kind": "search", "query": {"query": "running shoes"}},
+        {"kind": "finish", "intent": decision(constraints={}), "selected_ids": ["p-4"]},
+        advice("A light running shoe.", ["p-4"]),
+    )
+    session_id = _ask(client, "عايز كوتشي للجري")
+
+    turns = records(sink, "retrieval_turn")
+    assert len(turns) == 1
+    turn = turns[0]
+    assert turn["session_id"] == session_id
+    assert (turn["outcome"], turn["decisions"], turn["advice"]) == ("recommend", 2, 1)
+    assert turn["reads"] == len(reads.calls)
+    assert [c["prompt_version"].split("-")[0] for c in records(sink, "model_call")] == [
+        "catalogue",
+        "catalogue",
+        "advice",
+    ]
+
+    exhausted = MemorySink()
+    client2, _, _ = _retrieval_client(exhausted, {}, {}, {})
+    _ask(client2, "anything messy")
+    assert [t["outcome"] for t in records(exhausted, "retrieval_turn")] == ["exhausted"]

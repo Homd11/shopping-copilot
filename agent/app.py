@@ -19,7 +19,7 @@ from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
-from agent.event_log import EventLog, RequestLog, StreamSink
+from agent.event_log import EventLog, RecordedClient, RequestLog, StreamSink, bind, shopper_tag
 from agent.inference.client import GuardedClient
 from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
@@ -139,6 +139,7 @@ def create_app(
     release: str = "local",
 ) -> FastAPI:
     environment = None if environment is None else dict(environment)
+    events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
     settings = llm_settings or load_llm_settings(environment)
     values = dict(os.environ) if environment is None else environment
     llm_client = configured_guard(
@@ -147,6 +148,14 @@ def create_app(
         environment,
         queue_observer=inference_queue_observer,
         maximum_attempts=inference_maximum_attempts,
+    )
+    # Recording wraps only the calls a turn makes; the guard itself stays as configured,
+    # because readiness and the speech switch check its exact type.
+    recorded_llm = RecordedClient(
+        llm_client,
+        provider=settings.provider,
+        model=settings.model,
+        classify=interpretation_pause_reason,
     )
     admission = admission or configured_admission(environment)
     lifecycle = lifecycle or configured_lifecycle(values, admission)
@@ -264,6 +273,17 @@ def create_app(
             raise
 
     async def _interpret(session_id: str, task_id: str, call_id: str) -> None:
+        session = sessions.get(session_id)
+        with bind(
+            events,
+            session_id=session_id,
+            task_id=task_id,
+            shopper=shopper_tag(session.shopper),
+            invitation_id=session.invitation_id,
+        ):
+            await _interpret_task(session_id, task_id, call_id)
+
+    async def _interpret_task(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
@@ -272,9 +292,9 @@ def create_app(
             return
         active_interpretations.add(identity)
         model = (
-            AdmissionClient(llm_client, lambda: verify_owner(session_id))
+            AdmissionClient(recorded_llm, lambda: verify_owner(session_id))
             if admission
-            else llm_client
+            else recorded_llm
         )
         observed = sessions.get(session_id).last_snapshot
         observed = observed.model_copy(deep=True) if observed is not None else None
@@ -738,7 +758,6 @@ def create_app(
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
-    events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
     app.state.events = events
     sessions.attach_event_log(events)
     app.add_middleware(RequestLog, events=events, routes=app.router.routes)
