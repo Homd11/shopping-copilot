@@ -10,6 +10,7 @@ from agent.confirmation import (
     ConfirmationLedger,
     classify_guarded_mutation,
 )
+from agent.event_log import shopper_tag
 from agent.planner import (
     ScriptedPlanner,
 )
@@ -30,6 +31,22 @@ class TaskRuntime:
     planner: ScriptedPlanner
     clock: Callable[[], float]
     confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool] | None
+    events: Any = None
+
+    def record(self, session: Session, event: str, **fields: Any) -> None:
+        """Emit one event-log record for this session; never fails the task."""
+        if self.events is None:
+            return
+        try:
+            self.events.emit(
+                event,
+                session_id=session.session_id,
+                shopper=shopper_tag(session.shopper),
+                invitation_id=session.invitation_id,
+                **fields,
+            )
+        except Exception:
+            self.events.failures += 1
 
     def record_snapshot(self, session: Session, snapshot: Snapshot) -> None:
         location = urlsplit(snapshot.url)
@@ -143,7 +160,19 @@ class TaskRuntime:
             kind="confirmation",
         )
 
-    @staticmethod
-    def append(session: Session, event: EventType, data: dict[str, Any]) -> None:
+    def append(self, session: Session, event: EventType, data: dict[str, Any]) -> None:
         payload = {"session_id": session.session_id, **data}
         session.events.append(SessionEvent(id=len(session.events) + 1, event=event, data=payload))
+        action = data.get("action") or {}
+        self.record(
+            session,
+            "task",
+            kind=event,
+            task_id=data.get("task_id"),
+            action_type=action.get("type"),
+            sequence=action.get("sequence_number"),
+            question_kind=(action.get("kind") or "question")
+            if action.get("type") == "ask_shopper"
+            else None,
+            language=data.get("language"),
+        )

@@ -96,6 +96,7 @@ class Session:
     requires_reconciliation: bool = False
     product_context: ProductContext = field(default_factory=ProductContext)
     advice_context: dict[str, Any] = field(default_factory=dict)
+    invitation_id: str | None = None
 
 
 class SessionNotFound(KeyError):

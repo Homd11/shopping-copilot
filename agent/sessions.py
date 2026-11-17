@@ -60,6 +60,9 @@ class SessionStore:
             self._registry, planner or ScriptedPlanner(), clock, confirmation_registrar
         )
 
+    def attach_event_log(self, events) -> None:
+        self._runtime.events = events
+
     def create(self, tab_id: str | None = None) -> Session:
         return self._registry.create(tab_id)
 

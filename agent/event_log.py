@@ -6,15 +6,20 @@ token (ids, route templates, type names). Free text is rejected, so a later chan
 cannot leak Shopper words into the log by accident.
 """
 
+import hashlib
 import json
 import re
 import sys
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, get_args
 
 from starlette.routing import Match
+
+from agent.llm.intent import Dialect, IntentName
+from agent.schemas import ActionResult
+from agent.session_state import EventType, InterpretationPauseReason
 
 TOKEN = re.compile(r"[A-Za-z0-9_.:/{}\-]{1,200}")
 SESSION_ID = re.compile(r"session-[0-9a-f]{32}")
@@ -33,7 +38,73 @@ def _int(value):
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+TASK_ID = re.compile(r"task-[0-9a-f]{32}")
+SHOPPER = re.compile(r"[0-9a-f]{16}")
+INVITATION_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
+TASK_EVENTS = frozenset(get_args(EventType))
+ACTION_TYPES = frozenset(
+    {"navigate", "click", "guarded_click", "type", "select", "scroll_to", "spotlight"}
+    | {"ask_shopper", "done"}
+)
+INTENTS = frozenset(get_args(IntentName))
+DIALECTS = frozenset(get_args(Dialect))
+PAUSE_REASONS = frozenset(get_args(InterpretationPauseReason))
+RESULT_STATUSES = frozenset(get_args(ActionResult.model_fields["status"].annotation))
+
+
+def _matches(pattern):
+    return lambda value: isinstance(value, str) and pattern.fullmatch(value) is not None
+
+
+def _one_of(values):
+    return lambda value: value in values
+
+
+def shopper_tag(binding) -> str | None:
+    """A short scrambled id that groups one Shopper's records without identifying them."""
+    if binding is None:
+        return None
+    return hashlib.sha256(b"event-log:" + binding.context.encode()).hexdigest()[:16]
+
+
+_TASK_CONTEXT = {
+    "session_id": lambda v: _session_id(v),
+    "task_id": _matches(TASK_ID),
+    "shopper": _matches(SHOPPER),
+    "invitation_id": _matches(INVITATION_ID),
+}
+
 EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
+    "task": {
+        **_TASK_CONTEXT,
+        "kind": _one_of(TASK_EVENTS),
+        "action_type": _one_of(ACTION_TYPES),
+        "sequence": lambda v: _int(v) and v >= 0,
+        "question_kind": _one_of({"confirmation", "question"}),
+        "language": _one_of({"ar", "en"}),
+    },
+    "intent": {
+        **_TASK_CONTEXT,
+        "intent": _one_of(INTENTS),
+        "language": _one_of({"ar", "en"}),
+        "dialect": _one_of(DIALECTS),
+        "needs_clarification": lambda v: isinstance(v, bool),
+    },
+    "confirmation": {
+        **_TASK_CONTEXT,
+        "outcome": _one_of({"consumed", "stopped", "stale", "expired", "unregistered"}),
+        "mutation_kind": _one_of({"clear_cart", "submit_checkout"}),
+    },
+    "task_paused": {
+        **_TASK_CONTEXT,
+        "reason": _one_of(PAUSE_REASONS),
+    },
+    "action_result": {
+        **_TASK_CONTEXT,
+        "action_type": _one_of(ACTION_TYPES),
+        "sequence": lambda v: _int(v) and v >= 0,
+        "status": _one_of(RESULT_STATUSES),
+    },
     "http_request": {
         "method": lambda v: v in METHODS,
         "route": _token,

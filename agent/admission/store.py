@@ -160,7 +160,8 @@ class InvitationStore:
         except AdmissionDenied:
             return False
 
-    def allocate_session(self, subject: str) -> None:
+    def allocate_session(self, subject: str) -> str:
+        """Count one new Shopping session against the grant; return its invitation id."""
         with self._transaction() as db:
             row = self._valid_grant(db, subject)
             if not row:
@@ -172,6 +173,7 @@ class InvitationStore:
             )
             if result.rowcount != 1:
                 raise AdmissionDenied("access_sessions")
+            return row[0]
 
     def revoke(self, invitation: str) -> None:
         with self._transaction() as db:
