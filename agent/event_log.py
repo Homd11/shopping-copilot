@@ -8,10 +8,13 @@ cannot leak Shopper words into the log by accident.
 
 import hashlib
 import json
+import math
 import re
 import sys
 import time
 from collections.abc import Callable
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from typing import Any, get_args
 
@@ -105,6 +108,29 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
             {"consumed", "stopped", "stale", "expired", "unregistered", "invalidated"}
         ),
         "mutation_kind": _one_of({"clear_cart", "submit_checkout"}),
+    },
+    "model_call": {
+        **_TASK_CONTEXT,
+        "provider": _token,
+        "model": _token,
+        "prompt_version": _token,
+        "schema_version": _SEQUENCE,
+        "latency_ms": _SEQUENCE,
+        "outcome": _one_of({"ok", "failed"}),
+        "failure": _one_of(PAUSE_REASONS),
+        "prompt_tokens": _SEQUENCE,
+        "completion_tokens": _SEQUENCE,
+        "cost_usd": lambda v: isinstance(v, int | float)
+        and not isinstance(v, bool)
+        and math.isfinite(v)
+        and v >= 0,
+    },
+    "retrieval_turn": {
+        **_TASK_CONTEXT,
+        "outcome": _one_of({"recommend", "clarify", "execute", "exhausted"}),
+        "decisions": _SEQUENCE,
+        "reads": _SEQUENCE,
+        "advice": _SEQUENCE,
     },
     "task_paused": {
         **_TASK_CONTEXT,
@@ -238,3 +264,81 @@ class RequestLog:
             if match is not Match.NONE:
                 return candidate.path, child.get("path_params", {})
         return "unmatched", {}
+
+
+# The session and task a piece of work belongs to, so records made deep inside a
+# turn (model calls, retrieval) are tied to it without threading ids through.
+_scope: ContextVar[tuple[EventLog, dict[str, Any]] | None] = ContextVar("event_scope", default=None)
+
+
+@contextmanager
+def bind(events: EventLog | None, **context: Any):
+    token = _scope.set(None if events is None else (events, context))
+    try:
+        yield
+    finally:
+        _scope.reset(token)
+
+
+def record(event: str, **fields: Any) -> None:
+    """Emit a record in the current scope; a no-op outside one, never raises."""
+    scope = _scope.get()
+    if scope is None:
+        return
+    events, context = scope
+    try:
+        events.emit(event, **context, **fields)
+    except Exception:
+        events.failures += 1
+
+
+class RecordedClient:
+    """Wraps a model client and records one model_call per completion."""
+
+    def __init__(self, client, *, provider: str, model: str, classify: Callable[[Exception], str]):
+        self.client = client
+        self.provider = provider
+        self.model = model
+        self.classify = classify
+
+    def __getattr__(self, name):
+        return getattr(self.client, name)
+
+    async def complete(self, request):
+        adapter = getattr(self.client, "client", self.client)
+        metadata = getattr(adapter, "call_metadata", None)
+        before = len(metadata) if isinstance(metadata, list) else 0
+        started = time.monotonic()
+        failure = None
+        try:
+            async for chunk in self.client.complete(request):
+                yield chunk
+        except Exception as error:
+            failure = self.classify(error)
+            raise
+        finally:
+            usage = {}
+            if isinstance(metadata, list) and len(metadata) > before:
+                usage = getattr(metadata[-1], "usage", None) or {}
+            record(
+                "model_call",
+                provider=self.provider,
+                model=self.model,
+                prompt_version=request.prompt_version,
+                schema_version=request.schema_version,
+                latency_ms=int((time.monotonic() - started) * 1000),
+                outcome="ok" if failure is None else "failed",
+                failure=failure,
+                prompt_tokens=_count(usage.get("prompt_tokens")),
+                completion_tokens=_count(usage.get("completion_tokens")),
+                cost_usd=_cost(usage.get("cost")),
+            )
+
+
+def _count(value):
+    return value if _int(value) and value >= 0 else None
+
+
+def _cost(value):
+    valid = isinstance(value, int | float) and not isinstance(value, bool)
+    return value if valid and math.isfinite(value) and value >= 0 else None
