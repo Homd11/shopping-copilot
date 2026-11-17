@@ -19,6 +19,7 @@ from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
+from agent.event_log import EventLog, RequestLog, StreamSink
 from agent.inference.client import GuardedClient
 from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
@@ -134,6 +135,8 @@ def create_app(
     lifecycle_work_factory=None,
     readiness_factory=None,
     environment=None,
+    event_sink=None,
+    release: str = "local",
 ) -> FastAPI:
     environment = None if environment is None else dict(environment)
     settings = llm_settings or load_llm_settings(environment)
@@ -733,6 +736,9 @@ def create_app(
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
+    events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
+    app.state.events = events
+    app.add_middleware(RequestLog, events=events)
     return app
 
 
