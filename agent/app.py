@@ -738,7 +738,7 @@ def create_app(
     )
     events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
     app.state.events = events
-    app.add_middleware(RequestLog, events=events)
+    app.add_middleware(RequestLog, events=events, routes=app.router.routes)
     return app
 
 
