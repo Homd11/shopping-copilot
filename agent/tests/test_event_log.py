@@ -82,3 +82,46 @@ def test_without_a_sink_records_print_to_the_terminal_as_json_lines(capsys) -> N
     parsed = [json.loads(line) for line in lines]
     assert any(r["event"] == "http_request" and r["route"] == "/sessions" for r in parsed)
     assert all(r["release"] == "local" for r in parsed)
+
+
+class BrokenSink:
+    def write(self, record):
+        raise OSError("disk full")
+
+
+def test_logging_never_breaks_a_request() -> None:
+    client = TestClient(create_app(event_sink=BrokenSink()))
+
+    assert client.post("/sessions").status_code == 201
+
+    sink = MemorySink()
+    client = TestClient(create_app(event_sink=sink))
+    unusual = client.request("PROPFIND", "/sessions")
+
+    assert unusual.status_code == 405
+    assert any(r["method"] == "OTHER" for r in records(sink, "http_request"))
+
+
+def test_a_rejected_request_keeps_its_route_template() -> None:
+    sink = MemorySink()
+    client = TestClient(create_app(event_sink=sink))
+    unknown = "session-" + "0" * 32
+
+    response = client.get(f"/sessions/{unknown}/state?tab_id=tab-1")
+
+    assert response.status_code == 404
+    record = records(sink, "http_request")[-1]
+    assert record["route"] == "/sessions/{session_id}/state"
+    assert record["status"] == 404
+    assert record["session_id"] == unknown
+
+
+def test_a_session_id_that_is_not_one_the_agent_issues_is_not_recorded() -> None:
+    sink = MemorySink()
+    client = TestClient(create_app(event_sink=sink))
+
+    client.get("/sessions/sneakers-under-2000/state?tab_id=tab-1")
+
+    record = records(sink, "http_request")[-1]
+    assert "session_id" not in record
+    assert "sneakers" not in json.dumps(sink.records)

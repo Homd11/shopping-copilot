@@ -14,11 +14,19 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
+from starlette.routing import Match
+
 TOKEN = re.compile(r"[A-Za-z0-9_.:/{}\-]{1,200}")
+SESSION_ID = re.compile(r"session-[0-9a-f]{32}")
+METHODS = frozenset({"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OTHER"})
 
 
 def _token(value):
     return isinstance(value, str) and TOKEN.fullmatch(value) is not None
+
+
+def _session_id(value):
+    return isinstance(value, str) and SESSION_ID.fullmatch(value) is not None
 
 
 def _int(value):
@@ -27,11 +35,11 @@ def _int(value):
 
 EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
     "http_request": {
-        "method": lambda v: v in {"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"},
+        "method": lambda v: v in METHODS,
         "route": _token,
         "status": _int,
         "duration_ms": lambda v: _int(v) and v >= 0,
-        "session_id": _token,
+        "session_id": _session_id,
     },
 }
 
@@ -100,15 +108,17 @@ _NOISE = frozenset({"/health", "/shopper/activity"})
 class RequestLog:
     """ASGI middleware recording one http_request per completed request."""
 
-    def __init__(self, app, events: EventLog):
+    def __init__(self, app, events: EventLog, routes=()):
         self.app = app
         self.events = events
+        # Requests rejected before routing still name the endpoint they targeted.
+        self.routes = routes
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http" or scope["path"] in _NOISE or scope["method"] == "OPTIONS":
             await self.app(scope, receive, send)
             return
-        status = 500
+        status = 499  # client went away before any response started
         started = time.monotonic()
 
         async def capture(message):
@@ -120,16 +130,29 @@ class RequestLog:
         try:
             await self.app(scope, receive, capture)
         finally:
-            route = scope.get("route")
-            template = getattr(route, "path", None)
-            if template is None:
-                template = scope["path"] if scope["path"] in _FIXED_PATHS else "unmatched"
-            session_id = scope.get("path_params", {}).get("session_id")
-            self.events.emit(
-                "http_request",
-                method=scope["method"],
-                route=template,
-                status=status,
-                duration_ms=int((time.monotonic() - started) * 1000),
-                session_id=session_id if _token(session_id) else None,
-            )
+            try:
+                template, params = self._route(scope)
+                session_id = params.get("session_id")
+                self.events.emit(
+                    "http_request",
+                    method=scope["method"] if scope["method"] in METHODS else "OTHER",
+                    route=template if _token(template) else "unmatched",
+                    status=status,
+                    duration_ms=int((time.monotonic() - started) * 1000),
+                    session_id=session_id if _session_id(session_id) else None,
+                )
+            except Exception:
+                # Logging must never fail or slow the request it describes.
+                self.events.failures += 1
+
+    def _route(self, scope):
+        route = scope.get("route")
+        if route is not None:
+            return route.path, scope.get("path_params", {})
+        if scope["path"] in _FIXED_PATHS:
+            return scope["path"], {}
+        for candidate in self.routes:
+            match, child = candidate.matches(scope)
+            if match is not Match.NONE:
+                return candidate.path, child.get("path_params", {})
+        return "unmatched", {}
