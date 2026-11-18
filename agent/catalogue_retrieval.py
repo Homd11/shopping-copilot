@@ -7,14 +7,17 @@ from dataclasses import dataclass, field, replace
 from typing import Annotated, Any, Literal
 from uuid import uuid4
 
-from pydantic import ConfigDict, Field, TypeAdapter, ValidationError
+from pydantic import ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 
 from agent.advice import ADVICE_GROUNDING_POLICY, prepare_retrieved_advice
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireModel
+from agent.event_log import MAX_REJECTIONS, REJECTION_CODES, debug_text
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, LLMRequest
 from agent.llm.intent import IntentConstraints, StructuredIntent
 from agent.llm.intent_pipeline import (
+    MissingExecutionField,
+    Rejected,
     _restore_clarification,
     _validate_interpreted_intent,
     build_intent_request,
@@ -22,11 +25,25 @@ from agent.llm.intent_pipeline import (
     validate_live_response,
 )
 from agent.schemas import Snapshot
-from agent.storefront import StorefrontDefinition
+from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
 
 class Decision(WireModel):
     v: Literal[1] = 1
+
+    @model_validator(mode="before")
+    @classmethod
+    def model_written_versions_carry_no_meaning(cls, data: object) -> object:
+        """The decision and query envelopes have one version, and the provider schema cannot
+        hold the model to it (numeric enums are stripped for Gemini). A wrong number the model
+        copied from elsewhere must not cost a decision; every other field stays strict."""
+        if not isinstance(data, dict):
+            return data
+        data = {key: value for key, value in data.items() if key != "v"}
+        query = data.get("query")
+        if isinstance(query, dict):
+            data["query"] = {key: value for key, value in query.items() if key != "v"}
+        return data
 
 
 class ReadDecision(Decision):
@@ -115,6 +132,8 @@ class RetrievalBudget:
     decisions: int = 0
     reads: int = 0
     advice: int = 0
+    # One closed code per rejected decision, in order; see REJECTION_CODES. Never text.
+    rejections: list[str] = field(default_factory=list)
 
 
 class RetrievalExhausted(ValueError):
@@ -132,6 +151,32 @@ class RetrievalOutcome:
     question: str | None = None
     language: str = "en"
     advice_message: str | None = None
+
+
+def _rejection_code(error: Exception, stage: str) -> str:
+    """Why a decision was rejected, as a closed code that carries no text."""
+    if isinstance(error, Rejected):
+        code = error.code
+    elif isinstance(error, MissingExecutionField):
+        code = "missing_execution_field"
+    elif isinstance(error, UnsupportedCurrencyError):
+        code = "unsupported_currency"
+    elif isinstance(error, LLMInvalidResponseError):
+        code = "model_response"
+    elif isinstance(error, ValidationError):
+        code = stage
+    else:
+        code = "other"
+    return code if code in REJECTION_CODES else "other"
+
+
+def _reject(budget: RetrievalBudget, error: Exception, stage: str) -> dict:
+    """Record the reason for one rejected decision and return the feedback for the next."""
+    text = str(error)[:1000]
+    if len(budget.rejections) < MAX_REJECTIONS:
+        budget.rejections.append(_rejection_code(error, stage))
+    debug_text("retrieval_rejection", text)
+    return {"error": text}
 
 
 def _json(value):
@@ -280,9 +325,9 @@ async def retrieve_products(
             or {r.index for r in p.requirements} != set(range(len(requirements)))
             for p in records
         ):
-            raise ValueError("Incomplete requirement evidence")
+            raise Rejected("incomplete_evidence", "Incomplete requirement evidence")
         if result.unverified_requirements != unknowns:
-            raise ValueError("Catalogue omitted unknown requirements")
+            raise Rejected("unknowns_omitted", "Catalogue omitted unknown requirements")
         for product in records:
             evidence[product.product.id] = product
         entry = {
@@ -317,7 +362,7 @@ async def retrieve_products(
         while len(_json(history).encode("utf-8")) > 49152 and len(history) > 1:
             history.pop(0)
         if len(_json(history).encode("utf-8")) > 49152:
-            raise ValueError("Catalogue evidence exceeds its byte budget")
+            raise Rejected("evidence_too_large", "Catalogue evidence exceeds its byte budget")
         return result
 
     while budget.decisions < 3:
@@ -327,6 +372,10 @@ async def retrieve_products(
             message, context, snapshot, storefront, history, feedback, budget, preferences
         )
         concluding = not executing and budget.decisions >= 3 and bool(evidence)
+        # What a ValidationError means depends on which JSON the model was asked for.
+        schema_stage = (
+            "intent_schema" if executing else "final_schema" if concluding else "decision_schema"
+        )
         if concluding:
             request = replace(
                 request,
@@ -363,11 +412,12 @@ async def retrieve_products(
                         raise LLMInvalidResponseError("Decision exceeds byte budget")
                     parts.append(text)
         except (LLMInvalidResponseError, ValidationError) as error:
-            feedback = {"error": str(error)[:1000]}
+            feedback = _reject(budget, error, schema_stage)
             continue
         # Provider configuration, budget, and transport failures are operational errors.
         # Only malformed output should consume another model decision attempt.
         await ensure_active()
+        stage = schema_stage
         try:
             advice_message = None
             decision = (
@@ -399,13 +449,15 @@ async def retrieve_products(
             if isinstance(decision, SearchDecision | DetailsDecision):
                 if decision.subjective_preferences:
                     preferences = decision.subjective_preferences
+                stage = "query_invalid"
                 await read(decision.query)
                 feedback = None
                 continue
             if isinstance(decision, RecommendDecision):
                 advice_message = decision.advice_message
                 if advice_message is not None and not advice_message.strip():
-                    raise ValueError("Advice message must not be blank")
+                    raise Rejected("blank_advice", "Advice message must not be blank")
+                stage = "intent_schema"
                 # An explicit model-owned read-only choice maps to advice, never Action authority.
                 decision = FinishDecision(
                     kind="finish",
@@ -435,12 +487,15 @@ async def retrieve_products(
                 and (decision.selected_ids or decision.intent.advice_product_ids)
                 and requirements is None
             ):
-                raise ValueError(
-                    "Read product evidence with original requirements before selection"
+                raise Rejected(
+                    "selection_before_read",
+                    "Read product evidence with original requirements before selection",
                 )
             ids = decision.selected_ids
-            if len(set(ids)) != len(ids) or any(key not in evidence for key in ids):
-                raise ValueError("Select distinct retrieved product IDs")
+            if len(set(ids)) != len(ids):
+                raise Rejected("duplicate_ids", "Select distinct retrieved product IDs")
+            if any(key not in evidence for key in ids):
+                raise Rejected("ids_not_retrieved", "Select distinct retrieved product IDs")
             trusted = {
                 **context,
                 "_known_products": [
@@ -459,6 +514,7 @@ async def retrieve_products(
                         "subjective_preferences": preferences,
                     }
                 )
+            stage = "intent_schema"
             intent = _validate_interpreted_intent(
                 message, proposed_intent, storefront, trusted, snapshot, retrieval=True
             )
@@ -478,7 +534,9 @@ async def retrieve_products(
                     budget.decisions -= 1
                 continue
             if intent.intent not in {"find_products", "advice"} and ids:
-                raise ValueError("Action decisions cannot publish recommendation cards")
+                raise Rejected(
+                    "action_with_cards", "Action decisions cannot publish recommendation cards"
+                )
             refresh_ids = list(
                 dict.fromkeys(
                     [
@@ -503,6 +561,7 @@ async def retrieve_products(
                     # Keep the read budget: a standalone advisor will see only freshly
                     # refreshed selected products, so discard the combined prose.
                     advice_message = None
+            stage = "query_invalid"
             products = []
             previous = {key: evidence[key] for key in refresh_ids if key in evidence}
             for offset in range(0, len(refresh_ids), 9):
@@ -516,7 +575,9 @@ async def retrieve_products(
                     final=True,
                 )
                 if fresh.missing_ids or {p.product.id for p in fresh.products} != set(batch):
-                    raise ValueError("Selected or discussed product is no longer present")
+                    raise Rejected(
+                        "product_gone", "Selected or discussed product is no longer present"
+                    )
                 products.extend(fresh.products)
             if advice_message is not None and any(
                 p.product.id not in previous
@@ -525,7 +586,10 @@ async def retrieve_products(
                 or p.requirements != previous[p.product.id].requirements
                 for p in products
             ):
-                raise ValueError("Product evidence changed: rewrite advice using the latest read")
+                raise Rejected(
+                    "evidence_changed",
+                    "Product evidence changed: rewrite advice using the latest read",
+                )
             return RetrievalOutcome(
                 intent,
                 ids,
@@ -539,5 +603,5 @@ async def retrieve_products(
             # Transport/index errors and exhaustion are explicit failures, never new model attempts.
             if isinstance(error, CatalogueReadError | RetrievalExhausted):
                 raise
-            feedback = {"error": str(error)[:1000]}
+            feedback = _reject(budget, error, stage)
     raise RetrievalExhausted("Decision budget exhausted; clarify in a new shopper message")

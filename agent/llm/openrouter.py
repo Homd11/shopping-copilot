@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -29,6 +30,7 @@ class OpenRouterCallMetadata:
     attempt_id: str | None = None
     started_at: str | None = None
     generation_id: str | None = None
+    route: str | None = None
 
 
 class OpenRouterBudgetError(ValueError):
@@ -40,6 +42,15 @@ class StreamMetrics:
     ttft_ms: float | None = None
     usage: dict[str, int | float] | None = None
     generation_id: str | None = None
+    route: str | None = None
+
+
+def route_name(value):
+    """The upstream provider as a short token, or nothing if it is not one."""
+    if not isinstance(value, str):
+        return None
+    name = value.replace(" ", "_")
+    return name if re.fullmatch(r"[A-Za-z0-9_.\-]{1,40}", name) else None
 
 
 def _usage_metadata(raw):
@@ -185,6 +196,7 @@ class OpenRouterClient:
                 stream_metrics.generation_id = generation_id(body.get("id")) or (
                     stream_metrics.generation_id
                 )
+                stream_metrics.route = route_name(body.get("provider")) or stream_metrics.route
                 raw_usage = body.get("usage", {})
                 usage = _usage_metadata(raw_usage)
                 choice = body["choices"][0]
@@ -231,6 +243,7 @@ class OpenRouterClient:
                     attempt_id,
                     started_at,
                     stream_metrics.generation_id,
+                    stream_metrics.route,
                 )
             )
 
@@ -262,6 +275,7 @@ async def _collect_stream(response: httpx.Response, started: float, metrics: Str
                     metrics.generation_id = None
                     raise LLMInvalidResponseError("OpenRouter stream changed generation identity")
                 metrics.generation_id = received_id
+            metrics.route = metrics.route or route_name(chunk.get("provider"))
             if "usage" in chunk:
                 usage = chunk["usage"]
                 received_usage = _usage_metadata(usage)

@@ -90,6 +90,7 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
             decisions=budget.decisions,
             reads=budget.reads,
             advice=budget.advice,
+            rejections=list(budget.rejections),
         )
 
 

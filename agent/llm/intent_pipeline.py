@@ -26,6 +26,14 @@ PROMPT_VERSION = "intent-v33"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
+class Rejected(ValueError):
+    """A proposal refused for a known reason; ``code`` is a closed, text-free label."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
 class MissingExecutionField(ValueError):
     """A complete model proposal omitted a field required by the runtime capability."""
 
@@ -520,11 +528,18 @@ def _validate_interpreted_intent(
             if money.currency != storefront.currency:
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
     if intent.intent == "cart_edit":
-        intent = validate_cart_intent(message, intent, snapshot)
+        intent = _coded("cart_edit_invalid", validate_cart_intent, message, intent, snapshot)
         if intent.product_id is not None:
-            require_known_product(intent.product_id, state, snapshot, storefront)
+            _coded(
+                "unknown_product",
+                require_known_product,
+                intent.product_id,
+                state,
+                snapshot,
+                storefront,
+            )
     for product_id in intent.advice_product_ids:
-        require_known_product(product_id, state, snapshot, storefront)
+        _coded("unknown_product", require_known_product, product_id, state, snapshot, storefront)
     if intent.needs_clarification:
         return intent
     # Advice is read-only. Catalogue evaluation, not vocabulary membership, decides
@@ -546,7 +561,7 @@ def _validate_interpreted_intent(
     ):
         value = getattr(intent.constraints, field)
         if value is not None and value not in supported:
-            raise ValueError(f"Unsupported catalogue {field}")
+            raise Rejected("unsupported_catalogue_value", f"Unsupported catalogue {field}")
     for requirement in intent.catalogue_requirements:
         supported = (
             storefront.vocabulary.features
@@ -554,17 +569,37 @@ def _validate_interpreted_intent(
             else storefront.vocabulary.suitable_for
         )
         if requirement.value not in supported:
-            raise ValueError("Unsupported catalogue property for this requirement kind")
+            raise Rejected(
+                "unsupported_catalogue_value",
+                "Unsupported catalogue property for this requirement kind",
+            )
     if intent.intent == "mutate":
-        validate_mutation_interpretation(message, intent)
+        _coded("mutation_invalid", validate_mutation_interpretation, message, intent)
     if (
         intent.intent in {"navigate", "locate"}
         and intent.constraints.target not in storefront.destination_routes
     ):
-        raise ValueError("Unconfigured Storefront destination")
+        raise Rejected("unknown_destination", "Unconfigured Storefront destination")
     if intent.intent == "open_product":
-        require_known_product(intent.product_id, state, snapshot, storefront)
+        _coded(
+            "unknown_product",
+            require_known_product,
+            intent.product_id,
+            state,
+            snapshot,
+            storefront,
+        )
     return intent
+
+
+def _coded(code, check, *arguments):
+    """Run a delegated check; a plain ValueError from it becomes a labelled rejection."""
+    try:
+        return check(*arguments)
+    except (ValidationError, MissingExecutionField, UnsupportedCurrencyError):
+        raise
+    except ValueError as error:
+        raise Rejected(code, str(error)) from error
 
 
 def require_browser_actionable_intent(intent: StructuredIntent) -> StructuredIntent:

@@ -517,6 +517,7 @@ def test_each_catalogue_turn_records_the_budget_it_used_and_how_it_ended() -> No
     turn = turns[0]
     assert turn["session_id"] == session_id
     assert (turn["outcome"], turn["decisions"], turn["advice"]) == ("recommend", 2, 1)
+    assert turn["rejections"] == []
     assert turn["reads"] == len(reads.calls)
     assert [c["prompt_version"].split("-")[0] for c in records(sink, "model_call")] == [
         "catalogue",
@@ -904,3 +905,102 @@ def test_only_the_expected_owner_can_turn_debug_on(tmp_path, unsafe) -> None:
 
     assert DebugSwitch(marker, owner=owner).active() is False
     assert DebugSwitch(marker, owner=None).active() is (unsafe == "wrong_owner")
+
+
+def test_a_catalogue_turn_records_why_each_decision_was_rejected_without_any_text() -> None:
+    sink = MemorySink()
+    client, _, _ = _retrieval_client(
+        sink,
+        {"kind": "teleport", "note": "سر الشوبر"},
+        {},
+        {"kind": "recommend", "language": "ar", "selected_ids": ["p-1"]},
+    )
+    _ask(client, "عايز كوتشي سري جدا")
+
+    (turn,) = records(sink, "retrieval_turn")
+    assert turn["outcome"] == "exhausted"
+    assert turn["rejections"] == ["decision_schema", "decision_schema", "selection_before_read"]
+    everything = json.dumps(sink.records, ensure_ascii=False)
+    for text in ("سري", "سر الشوبر", "teleport", "Field required", "validation error"):
+        assert text not in everything
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        ["not a code"],
+        ["decision_schema"] * 4,
+        "decision_schema",
+        [{"error": "text"}],
+        [None],
+    ],
+)
+def test_the_rejection_field_refuses_anything_but_a_short_list_of_codes(bad) -> None:
+    log = EventLog(MemorySink())
+    with pytest.raises(ValueError):
+        log.emit("retrieval_turn", rejections=bad)
+    log.emit("retrieval_turn", rejections=["other", "duplicate_ids"])
+    log.emit("retrieval_turn", rejections=[])
+
+
+def _openrouter_model_call(provider_field):
+    import asyncio
+
+    import httpx
+
+    from agent.event_log import bind
+    from agent.inference.recorded import RecordedClient
+    from agent.llm.contract import LLMRequest
+    from agent.llm.openrouter import OpenRouterClient
+    from agent.tests.test_openrouter import settings
+
+    def handler(request):
+        if request.url.path.endswith("/key"):
+            return httpx.Response(
+                200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
+            )
+        body = {"choices": [{"finish_reason": "stop", "message": {"content": "{}"}}]}
+        if provider_field is not None:
+            body["provider"] = provider_field
+        return httpx.Response(200, json=body)
+
+    sink = MemorySink()
+    recorded = RecordedClient(
+        OpenRouterClient(settings(), transport=httpx.MockTransport(handler)),
+        provider="openrouter",
+        model="google/gemini-2.5-flash",
+        classify=lambda error: "unexpected",
+    )
+
+    async def call():
+        with bind(EventLog(sink)):
+            async for _ in recorded.complete(LLMRequest(system="s", messages=())):
+                pass
+
+    asyncio.run(call())
+    (call_record,) = records(sink, "model_call")
+    return call_record
+
+
+def test_the_model_call_names_the_upstream_provider_that_served_it() -> None:
+    assert _openrouter_model_call("Google AI Studio")["route"] == "Google_AI_Studio"
+    assert _openrouter_model_call("Vertex-2.0")["route"] == "Vertex-2.0"
+
+
+@pytest.mark.parametrize("hostile", ['x"; DROP', "a" * 41, "", "عايز", 5, None, ["Google"]])
+def test_a_provider_name_that_is_not_a_short_token_is_dropped(hostile) -> None:
+    assert "route" not in _openrouter_model_call(hostile)
+
+
+def test_providers_without_an_upstream_name_record_no_route() -> None:
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=SharedAdapterClient(navigation_intent("navigate", "orders")),
+            event_sink=sink,
+        )
+    )
+    _send(client, "Open order history")
+    (call,) = records(sink, "model_call")
+    assert "route" not in call

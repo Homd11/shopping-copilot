@@ -366,3 +366,61 @@ def test_real_intent_request_fits_the_paid_budget_bound():
         return [c async for c in client.complete(request)]
 
     assert len(asyncio.run(run())) == 1
+
+
+def _key_or(body):
+    def handler(request):
+        if request.url.path.endswith("/key"):
+            return httpx.Response(
+                200, json={"data": {"limit": 0.25, "limit_remaining": 0.25, "limit_reset": None}}
+            )
+        return body(request)
+
+    return handler
+
+
+@pytest.mark.parametrize(
+    ("provider", "route"),
+    [
+        ("Google AI Studio", "Google_AI_Studio"),
+        ("Google", "Google"),
+        ('evil"}\n{"x', None),
+        ("a" * 41, None),
+        (None, None),
+        (7, None),
+    ],
+)
+def test_the_serving_provider_is_kept_only_as_a_short_token(provider, route):
+    def respond(request):
+        body = {"choices": [{"finish_reason": "stop", "message": {"content": "{}"}}]}
+        if provider is not None:
+            body["provider"] = provider
+        return httpx.Response(200, json=body)
+
+    client = OpenRouterClient(settings(), transport=httpx.MockTransport(_key_or(respond)))
+    collect(client)
+    assert client.call_metadata[-1].route == route
+
+
+@pytest.mark.parametrize("fails", [False, True])
+def test_a_streamed_response_names_its_provider_even_when_the_stream_then_fails(fails):
+    def respond(request):
+        chunks = [
+            {"provider": "Google AI Studio", "choices": [{"delta": {"content": "{}"}}]},
+            {
+                "provider": "Other",
+                "choices": [{"delta": {}, "finish_reason": "length" if fails else "stop"}],
+            },
+        ]
+        text = "".join("data: " + json.dumps(c) + "\n\n" for c in chunks) + "data: [DONE]\n\n"
+        return httpx.Response(200, text=text)
+
+    client = OpenRouterClient(
+        replace(settings(), stream=True), transport=httpx.MockTransport(_key_or(respond))
+    )
+    if fails:
+        with pytest.raises(ValueError):
+            collect(client)
+    else:
+        collect(client)
+    assert client.call_metadata[-1].route == "Google_AI_Studio"

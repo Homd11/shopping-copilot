@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import replace
 from uuid import uuid4
 
-from agent.event_log import debug_text, is_cost, is_count, record
+from agent.event_log import ROUTE, debug_text, is_cost, is_count, record
 
 
 class RecordedClient:
@@ -56,6 +56,7 @@ class RecordedClient:
                 prompt_tokens=_kept(usage.get("prompt_tokens"), is_count),
                 completion_tokens=_kept(usage.get("completion_tokens"), is_count),
                 cost_usd=_kept(usage.get("cost"), is_cost),
+                route=_kept(_route(self.client, attempt), _is_route),
             )
 
 
@@ -66,6 +67,19 @@ def _usage(client, attempt: str) -> dict:
         if getattr(item, "attempt_id", None) == attempt:
             return getattr(item, "usage", None) or {}
     return {}
+
+
+def _route(client, attempt: str):
+    """The upstream provider that served one attempt, when the adapter reports it."""
+    adapter = getattr(client, "client", client)
+    for item in reversed(tuple(getattr(adapter, "call_metadata", ()) or ())):
+        if getattr(item, "attempt_id", None) == attempt:
+            return getattr(item, "route", None)
+    return None
+
+
+def _is_route(value) -> bool:
+    return isinstance(value, str) and ROUTE.fullmatch(value) is not None
 
 
 def _kept(value, valid):

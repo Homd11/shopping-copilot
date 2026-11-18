@@ -75,6 +75,36 @@ PAUSE_REASONS = frozenset(get_args(InterpretationPauseReason)) | {
     "cart_edit_unavailable",
     "guarded_control_missing",
 }
+# Why one catalogue decision was rejected. A closed set: never the error text.
+REJECTION_CODES = frozenset(
+    {
+        "decision_schema",  # the model's search/details/recommend/execute/clarify JSON
+        "final_schema",  # the last decision, restricted to recommend or clarify
+        "intent_schema",  # the action interpreter's intent JSON, or a recommend's intent
+        "model_response",  # tool call, oversize or incomplete model output
+        "query_invalid",  # a read query that cannot be built or revalidated
+        "incomplete_evidence",
+        "unknowns_omitted",
+        "evidence_too_large",
+        "blank_advice",
+        "selection_before_read",
+        "ids_not_retrieved",
+        "duplicate_ids",
+        "action_with_cards",
+        "product_gone",
+        "evidence_changed",
+        "missing_execution_field",
+        "unsupported_currency",
+        "unsupported_catalogue_value",
+        "unknown_destination",
+        "unknown_product",
+        "cart_edit_invalid",
+        "mutation_invalid",
+        "other",
+    }
+)
+MAX_REJECTIONS = 3
+ROUTE = re.compile(r"[A-Za-z0-9_.\-]{1,40}")
 RESULT_STATUSES = frozenset(get_args(ActionResult.model_fields["status"].annotation))
 
 
@@ -139,6 +169,7 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         "completion_tokens": _SEQUENCE,
         "cost_usd": is_cost,
         "attempt_id": _token,
+        "route": _matches(ROUTE),
     },
     "retrieval_turn": {
         **_TASK_CONTEXT,
@@ -146,6 +177,11 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         "decisions": _SEQUENCE,
         "reads": _SEQUENCE,
         "advice": _SEQUENCE,
+        "rejections": lambda v: (
+            isinstance(v, list)
+            and len(v) <= MAX_REJECTIONS
+            and all(isinstance(code, str) and code in REJECTION_CODES for code in v)
+        ),
     },
     "error": {
         **_TASK_CONTEXT,
@@ -198,7 +234,7 @@ class StreamSink:
         stream.flush()
 
 
-DEBUG_KINDS = frozenset({"shopper_message", "model_output", "error_detail"})
+DEBUG_KINDS = frozenset({"shopper_message", "model_output", "error_detail", "retrieval_rejection"})
 DEBUG_TEXT_LIMIT = 8000
 DEBUG_WINDOW_SECONDS = 60 * 60
 

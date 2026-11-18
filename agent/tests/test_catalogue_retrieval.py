@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import json
 
 import pytest
@@ -419,3 +420,173 @@ def test_handoff_refund_is_granted_once_per_turn():
             )
         )
     assert len(model.requests) == 4
+
+
+class Misbehaving:
+    """Answers with the scripted JSON, or raises the scripted error instead."""
+
+    def __init__(self, *responses):
+        self.responses = iter(responses)
+
+    async def complete(self, request):
+        del request
+        answer = next(self.responses)
+        if isinstance(answer, Exception):
+            raise answer
+        yield LLMChunk(text=json.dumps(answer, ensure_ascii=False))
+
+
+def _rejections(model, **kwargs):
+    budget = RetrievalBudget()
+    with contextlib.suppress(RetrievalExhausted):
+        asyncio.run(run(model, Reads(), budget=budget, **kwargs))
+    return budget
+
+
+def test_one_invalid_decision_then_a_valid_recommend_records_one_reason():
+    model = RecordingModel(_search(), {"kind": "teleport"}, _recommend("p-1"))
+    budget = RetrievalBudget()
+    outcome = asyncio.run(run(model, Reads(), budget=budget))
+    assert outcome.selected_ids == ["p-1"]
+    assert budget.rejections == ["decision_schema"]
+
+
+def test_three_invalid_decisions_record_three_reasons_in_order_and_still_exhaust():
+    from agent.llm.contract import LLMInvalidResponseError
+
+    model = Misbehaving({}, _recommend("p-1"), LLMInvalidResponseError("Decision exceeds budget"))
+    budget = RetrievalBudget()
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(run(model, Reads(), budget=budget))
+    assert budget.decisions == 3
+    assert budget.rejections == ["decision_schema", "selection_before_read", "model_response"]
+
+
+def test_a_rejected_final_decision_is_recorded_as_a_final_schema_failure():
+    budget = _rejections(RecordingModel(_search(), _search("sneakers"), _search("again")))
+    assert budget.rejections == ["final_schema"]
+    assert budget.decisions == 3 and budget.reads == 2
+
+
+@pytest.mark.parametrize(
+    ("ids", "code"),
+    [(["p-1", "p-1"], "duplicate_ids"), (["p-9"], "ids_not_retrieved")],
+)
+def test_selected_id_problems_are_told_apart(ids, code):
+    model = RecordingModel(_search(), _recommend(*ids), _recommend("p-1"))
+    budget = RetrievalBudget()
+    asyncio.run(run(model, Reads(), budget=budget))
+    assert budget.rejections == [code]
+
+
+def test_blank_advice_is_recorded():
+    blank = {**_recommend("p-1"), "advice_message": "   "}
+    model = RecordingModel(_search(), blank, _recommend("p-1"))
+    budget = RetrievalBudget()
+    asyncio.run(run(model, Reads(), budget=budget))
+    assert budget.rejections == ["blank_advice"]
+
+
+def test_execution_intent_rejections_are_recorded_by_what_was_refused():
+    from dataclasses import replace
+
+    storefront = ScriptedPlanner().storefront
+    model = RecordingModel(
+        {"kind": "execute"},
+        decision(intent="navigate", constraints={"target": "cart"}),
+        decision(
+            intent="open_product", product_id="ghost-1", constraints={}, request_mode="browse"
+        ),
+    )
+    budget = RetrievalBudget()
+    with pytest.raises(RetrievalExhausted):
+        asyncio.run(
+            retrieve_products(
+                "x",
+                {},
+                model,
+                Reads(),
+                active,
+                storefront=replace(storefront, destination_routes={}),
+                budget=budget,
+            )
+        )
+    assert budget.decisions == 3
+    assert budget.rejections == ["unknown_destination", "unknown_product"]
+
+
+def test_an_execution_intent_that_is_not_an_intent_is_an_intent_schema_failure():
+    budget = _rejections(RecordingModel({"kind": "execute"}, {}, {}))
+    assert budget.rejections == ["intent_schema", "intent_schema"]
+
+
+def test_a_search_decision_to_catalogue_failure_is_not_a_rejection():
+    from agent.catalogue_client import CatalogueReadError
+
+    class Down(Reads):
+        async def search(self, query):
+            raise CatalogueReadError("down")
+
+    budget = RetrievalBudget()
+    with pytest.raises(CatalogueReadError):
+        asyncio.run(run(RecordingModel(_search()), Down(), budget=budget))
+    assert budget.rejections == []
+
+
+def test_the_reason_never_carries_the_error_text_and_stays_in_the_vocabulary():
+    from agent.event_log import REJECTION_CODES
+
+    budget = _rejections(RecordingModel({"kind": "teleport"}, {}, {}))
+    assert budget.rejections and set(budget.rejections) <= REJECTION_CODES
+    assert all(len(code) < 40 and " " not in code for code in budget.rejections)
+
+
+def test_rejection_text_is_debug_only():
+    from agent.event_log import DebugSwitch, EventLog, MemorySink, bind
+
+    def attempt(switch):
+        sink = MemorySink()
+        with bind(EventLog(sink, debug=switch)):
+            _rejections(RecordingModel({"kind": "teleport"}, {}, {}))
+        return sink.records
+
+    assert attempt(None) == []
+
+    import tempfile
+    from pathlib import Path
+
+    with tempfile.TemporaryDirectory() as folder:
+        marker = Path(folder) / "debug-logging"
+        marker.write_text("")
+        records = attempt(DebugSwitch(marker, owner=None))
+        assert [r["kind"] for r in records] == ["retrieval_rejection"] * 3
+        assert all(r["debug"] is True and r["event"] == "debug" for r in records)
+        assert "kind" in records[0]["text"].lower() and len(records[0]["text"]) <= 1000
+        off = DebugSwitch(Path(folder) / "missing", owner=None)
+        assert attempt(off) == []
+
+
+def test_a_wrong_version_the_model_copied_does_not_cost_a_decision() -> None:
+    from agent.catalogue_retrieval import DECISION, FINAL_PARSE
+
+    final = FINAL_PARSE.validate_json(
+        '{"v": 10, "kind": "clarify", "question": "Which size?", "language": "en"}'
+    )
+    search = DECISION.validate_json(
+        '{"v": 10, "kind": "search", "query": {"v": 9, "query": "running shoes"}}'
+    )
+
+    assert final.v == 1 and final.kind == "clarify"
+    assert search.v == 1 and search.query.v == 1 and search.query.query == "running shoes"
+
+
+def test_other_decision_fields_stay_strict_after_the_version_is_ignored() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    from agent.catalogue_retrieval import DECISION
+
+    with pytest.raises(ValidationError):
+        DECISION.validate_json('{"v": 10, "kind": "search", "query": {"query": 5}}')
+    with pytest.raises(ValidationError):
+        DECISION.validate_json('{"v": 1, "kind": "browse"}')
