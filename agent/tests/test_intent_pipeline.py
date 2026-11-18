@@ -195,7 +195,7 @@ def test_intent_request_contains_only_trusted_context_and_the_current_shopper_me
     assert context["pending_clarification"] == "size"
     assert all(
         request.response_schema["$defs"][branch["$ref"].split("/")[-1]]["properties"]["v"]["const"]
-        == 9
+        == 10
         for branch in request.response_schema["anyOf"]
     )
 

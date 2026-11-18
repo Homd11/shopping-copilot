@@ -7,7 +7,7 @@ from agent.llm.intent_wire import wire_intent_adapter
 
 def test_cart_wire_rejects_discovery_fields_but_preserves_the_complete_add_goal():
     payload = dict(
-        v=9,
+        v=10,
         language="ar",
         dialect="egyptian_arabic",
         intent="cart_edit",
@@ -28,7 +28,7 @@ def test_cart_wire_rejects_discovery_fields_but_preserves_the_complete_add_goal(
 @pytest.mark.parametrize("operation", ["advice", "find_products"])
 def test_discovery_wire_retains_negation_and_price_constraints(operation):
     payload = dict(
-        v=9,
+        v=10,
         language="en",
         dialect="english",
         intent=operation,

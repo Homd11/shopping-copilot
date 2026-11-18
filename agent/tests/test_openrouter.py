@@ -89,7 +89,7 @@ def test_operation_union_reaches_provider_and_runtime_validates_the_decision():
     from agent.llm.intent_wire import wire_intent_adapter
 
     decision = dict(
-        v=9,
+        v=10,
         intent="cart_edit",
         language="en",
         dialect="english",

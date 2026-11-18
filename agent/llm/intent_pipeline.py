@@ -22,7 +22,8 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v32"
+PROMPT_VERSION = "intent-v33"
+LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
 class MissingExecutionField(ValueError):
@@ -136,7 +137,7 @@ def build_intent_request(
             + json.dumps(context, ensure_ascii=False, separators=(",", ":"))
             + "\n"
             "Interpret the current Shopper request and return exactly one complete "
-            "StructuredIntent JSON object, v=9. "
+            "StructuredIntent JSON object, v=10. "
             "You own language interpretation: Egyptian Arabic, Franco-Arabic, English, "
             "typos, number words, negation, "
             "pronouns, comparisons and revisions. No downstream language parser will correct "
@@ -301,6 +302,19 @@ def build_intent_request(
             "operations. "
             "Set needs_clarification only with missing_fields/conflicting_fields; use target "
             "for cart-line ambiguity. "
+            "If the Shopper asks for several things in order, interpret ONLY the first step "
+            "against current_snapshot exactly as above. Return each later step in "
+            "remaining_steps as the Shopper's own words, including any condition words, "
+            "never as an intent, product ID, element ID or target. Three steps at most: "
+            "remaining_steps holds at most two; any further steps go as words in "
+            "skipped_steps. condition applies to the first step only and is "
+            "{fact: price|in_stock|size_exists|colour_exists, comparator, value}; for a vaguer "
+            "condition set needs_clarification=true with missing_fields=['condition']. Set "
+            "beneficiary when the step is for someone else (brother, sister, mother, father, "
+            "son, daughter, husband, wife, friend, or named_person for a name). Set "
+            "refers_to_this=true when the Shopper points at a product (this, ديه, دي, it, di) "
+            "instead of naming it; never decide which product. A one-step message leaves "
+            "the new fields empty. "
             "Absent optional properties are null, arrays empty. Output no prose, Markdown, "
             "tools, selectors or URLs."
         ),
@@ -308,7 +322,7 @@ def build_intent_request(
         response_schema=_live_intent_response_schema(),
         response_validator=validate_live_response,
         prompt_version=PROMPT_VERSION,
-        schema_version=9,
+        schema_version=10,
         max_tokens=1536,
     )
 
@@ -320,8 +334,8 @@ def _live_intent_response_schema() -> dict[str, Any]:
 def validate_live_response(text: str) -> StructuredIntent:
     """Live adapters cannot fall back to the legacy persisted-intent format."""
     intent = StructuredIntent.model_validate_json(text)
-    if intent.v not in {8, 9}:
-        raise StructuredIntentDraftError("Live interpretation requires schema version 8 or 9")
+    if intent.v not in LIVE_SCHEMA_VERSIONS:
+        raise StructuredIntentDraftError("Live interpretation requires schema version 8, 9 or 10")
     return intent
 
 
@@ -346,9 +360,9 @@ async def interpret_message(
         intent = None
         try:
             intent = await collect_structured_intent(client, request)
-            if intent.v not in {8, 9}:
+            if intent.v not in LIVE_SCHEMA_VERSIONS:
                 raise StructuredIntentDraftError(
-                    "Live interpretation requires schema version 8 or 9"
+                    "Live interpretation requires schema version 8, 9 or 10"
                 )
             intent = _restore_clarification(intent, resolved_state, pending_clarification, message)
             return _validate_interpreted_intent(
@@ -489,6 +503,17 @@ def _validate_interpreted_intent(
     *,
     retrieval: bool = False,
 ) -> StructuredIntent:
+    if intent.cart_operation == "replace":
+        # Not executable yet: nothing is clicked, and later steps are not run either.
+        return StructuredIntent(
+            v=intent.v,
+            language=intent.language,
+            dialect=intent.dialect,
+            intent="unsupported",
+            constraints=IntentConstraints(),
+            missing_fields=[],
+            needs_clarification=False,
+        )
     for money in (intent.constraints.min_price, intent.constraints.max_price):
         if money is not None:
             money.to_money()
@@ -619,6 +644,13 @@ def trusted_clarification(
     if not intent.needs_clarification:
         raise ValueError("A clarification requires clarification state")
     is_arabic = intent.language == "ar"
+    if "condition" in intent.missing_fields:
+        return (
+            "أقدر أشيّك على السعر أو التوفر أو المقاس أو اللون بس. تقصد أنهي شرط؟"
+            if is_arabic
+            else "I can only check price, stock, size or colour. Which condition do you mean?",
+            [],
+        )
     if intent.intent == "cart_edit":
         if "cart_quantity" in intent.missing_fields:
             return (

@@ -27,13 +27,17 @@ def _constraints(name, fields):
 
 
 _common = ("language", "dialect", "missing_fields", "conflicting_fields", "needs_clarification")
+# Later steps, only where a first step can be acted on; conversation replies carry none.
+_steps = ("remaining_steps", "skipped_steps")
+# The provider schema is copied into every branch, so each field goes only where it can apply.
+_for_whom = ("beneficiary", "refers_to_this")
 
 
 def _branch(name, intents, fields, constraints):
     return create_model(
         name,
         __base__=IntentModel,
-        v=(Literal[9], ...),
+        v=(Literal[10], ...),
         intent=(Literal[tuple(intents)], ...),
         constraints=(constraints, ...),
         **_fields(StructuredIntent, (*_common, *fields)),
@@ -56,6 +60,8 @@ _branches = (
             "advice_product_ids",
             "revised_fields",
             "revision_source",
+            *_steps,
+            *_for_whom,
         ),
         _constraints(
             "DiscoveryConstraints",
@@ -72,25 +78,28 @@ _branches = (
             "cart_target_id",
             "cart_quantity",
             "cart_quantity_mode",
+            *_steps,
+            *_for_whom,
+            "condition",
         ),
         _constraints("CartVariants", ("size", "color")),
     ),
     _branch(
         "NavigationDecision",
         ("navigate", "locate"),
-        ("navigation_source",),
+        ("navigation_source", *_steps),
         _constraints("Destination", ("target",)),
     ),
     _branch(
         "ProductDecision",
         ("open_product",),
-        ("product_id", "navigation_source"),
+        ("product_id", "navigation_source", *_steps),
         _constraints("ProductNavigationConstraints", ()),
     ),
     _branch(
         "MutationDecision",
         ("mutate",),
-        ("mutation_kind", "mutation_source"),
+        ("mutation_kind", "mutation_source", *_steps),
         _constraints("MutationConstraints", ()),
     ),
     _branch(

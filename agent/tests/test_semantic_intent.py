@@ -326,7 +326,7 @@ def test_v3_non_navigation_intent_is_not_rewritten_by_navigation_cues(message, i
     assert intent.constraints.target is None
 
 
-def test_live_intent_request_requires_schema_version_nine():
+def test_live_intent_request_requires_schema_version_ten():
     request = build_intent_request(
         "show shoes",
         storefront=load_storefront_definition(),
@@ -336,7 +336,7 @@ def test_live_intent_request_requires_schema_version_nine():
 
     assert all(
         request.response_schema["$defs"][branch["$ref"].split("/")[-1]]["properties"]["v"]["const"]
-        == 9
+        == 10
         for branch in request.response_schema["anyOf"]
     )
 

@@ -66,9 +66,15 @@ def openrouter_response_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
             value.pop("const")
         if "enum" in value and any(not isinstance(item, str) for item in value["enum"]):
             value = {key: item for key, item in value.items() if key != "enum"}
-        return _map_subschemas(
+        result = _map_subschemas(
             {key: item for key, item in value.items() if key not in local_constraints}, structural
         )
+        # A property's title only repeats its name. The schema is copied into every
+        # branch, and the request must stay inside the evaluation budget size bound.
+        for child in result.get("properties", {}).values():
+            if isinstance(child, dict):
+                child.pop("title", None)
+        return result
 
     return structural(inline_schema_references(schema))
 

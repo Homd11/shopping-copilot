@@ -1,8 +1,16 @@
 import re
 from decimal import Decimal
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from pydantic_core import PydanticCustomError
 
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMRequest
@@ -37,6 +45,7 @@ ConstraintField = Literal[
     "price_preference",
     "product_id",
     "cart_quantity",
+    "condition",
 ]
 RevisionField = Literal[
     "category",
@@ -57,6 +66,33 @@ RevisionField = Literal[
     "preferred_colors",
     "desired_wear_position",
 ]
+
+
+ConditionFact = Literal["price", "in_stock", "size_exists", "colour_exists"]
+ConditionComparator = Literal["lt", "lte", "gt", "gte", "eq", "is", "is_not"]
+Beneficiary = Literal[
+    "me",
+    "brother",
+    "sister",
+    "mother",
+    "father",
+    "son",
+    "daughter",
+    "husband",
+    "wife",
+    "friend",
+    "named_person",
+]
+# The comparators each page-checkable fact allows; anything else is not a condition.
+CONDITION_COMPARATORS: dict[str, frozenset[str]] = {
+    "price": frozenset({"lt", "lte", "gt", "gte", "eq"}),
+    "in_stock": frozenset({"is"}),
+    "size_exists": frozenset({"is", "is_not"}),
+    "colour_exists": frozenset({"is", "is_not"}),
+}
+MAX_REMAINING_STEPS = 2
+MAX_SKIPPED_STEPS = 6
+StepWords = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
 
 
 class IntentModel(BaseModel):
@@ -136,8 +172,29 @@ class OwnedItem(IntentModel):
     source: str
 
 
+class IntentCondition(IntentModel):
+    # A page-checkable condition: price, stock, size or colour. Never prose.
+    # (No docstring: it would be copied into the provider schema as a description.)
+
+    fact: ConditionFact
+    comparator: ConditionComparator
+    value: str = Field(min_length=1, max_length=40)
+
+    @model_validator(mode="after")
+    def comparator_and_value_fit_the_fact(self) -> Self:
+        if self.comparator not in CONDITION_COMPARATORS[self.fact]:
+            raise ValueError("Comparator does not fit this condition fact")
+        if self.fact == "price" and (
+            re.fullmatch(r"(?:0|[1-9]\d*)(?:\.\d{1,2})?", self.value) is None
+        ):
+            raise ValueError("Price condition needs a non-negative decimal amount")
+        if self.fact == "in_stock" and self.value not in {"true", "false"}:
+            raise ValueError("Stock condition needs true or false")
+        return self
+
+
 class StructuredIntent(IntentModel):
-    v: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9]
+    v: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     language: Language
     dialect: Dialect
     intent: IntentName
@@ -168,11 +225,12 @@ class StructuredIntent(IntentModel):
     revision_source: str | None = None
     mutation_kind: Literal["clear_cart", "submit_checkout"] | None = None
     mutation_source: str | None = None
-    cart_operation: Literal["add", "quantity", "remove", "undo"] | None = Field(
+    cart_operation: Literal["add", "quantity", "remove", "undo", "replace"] | None = Field(
         default=None,
         description=(
             "Cart capability: add a product, change quantity of an existing line, remove a "
-            "line, or undo. Every increase, decrease, or final quantity change uses operation "
+            "line, undo, or replace (v10 only). "
+            "Every increase, decrease, or final quantity change uses operation "
             "quantity; its direction belongs in cart_quantity_mode, not this field."
         ),
     )
@@ -207,6 +265,54 @@ class StructuredIntent(IntentModel):
             "different amount to compensate for a wrong mode."
         ),
     )
+
+    # No field descriptions: the provider schema is copied into every branch, and the
+    # prompt explains these fields. Later steps are the Shopper's words, never intents.
+    remaining_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_REMAINING_STEPS)
+    skipped_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_SKIPPED_STEPS)
+    condition: IntentCondition | None = None
+    beneficiary: Beneficiary | None = None
+    refers_to_this: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def unsupported_conditions_need_clarification(cls, data: object) -> object:
+        """A condition outside the four page-checkable kinds is a question, not a guess."""
+        if not isinstance(data, dict) or data.get("v") != 10:
+            return data
+        unsupported = False
+
+        def checked(raw: object) -> object:
+            nonlocal unsupported
+            if raw is None:
+                return None
+            try:
+                IntentCondition.model_validate(raw)
+            except ValidationError:
+                unsupported = True
+                return None
+            return raw
+
+        data = dict(data)
+        steps, skipped = data.get("remaining_steps"), data.get("skipped_steps") or []
+        if (
+            isinstance(steps, list)
+            and isinstance(skipped, list)
+            and all(isinstance(item, str) for item in (*steps, *skipped))
+        ):
+            # Overflow is words for the report, never work: keep spoken order.
+            data["remaining_steps"] = steps[:MAX_REMAINING_STEPS]
+            data["skipped_steps"] = [*steps[MAX_REMAINING_STEPS:], *skipped][:MAX_SKIPPED_STEPS]
+        if "condition" in data:
+            data["condition"] = checked(data["condition"])
+        if unsupported:
+            missing = data.get("missing_fields")
+            missing = list(missing) if isinstance(missing, list) else []
+            data["needs_clarification"] = True
+            data["missing_fields"] = (
+                [*missing, "condition"] if "condition" not in missing else missing
+            )
+        return data
 
     @field_validator("subjective_preferences", mode="before")
     @classmethod
@@ -244,12 +350,21 @@ class StructuredIntent(IntentModel):
 
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
+        if self.v < 10 and (
+            self.remaining_steps
+            or self.skipped_steps
+            or self.condition is not None
+            or self.beneficiary is not None
+            or self.refers_to_this
+            or self.cart_operation == "replace"
+        ):
+            raise ValueError("Multi-step fields and replace require schema 10")
         if (self.intent == "advice" or self.advice_product_ids) and (
             self.v < 9 or self.intent != "advice" or self.constraints.target is not None
         ):
             raise ValueError("Advice requires schema 9 and cannot carry action authority")
         if self.intent == "cart_edit":
-            if self.v not in {5, 6, 7, 8, 9} or not self.cart_operation:
+            if self.v not in {5, 6, 7, 8, 9, 10} or not self.cart_operation:
                 raise ValueError("Cart edit needs a supported operation")
             if (
                 self.v >= 6

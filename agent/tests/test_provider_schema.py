@@ -71,7 +71,7 @@ def test_provider_literals_use_single_value_enums_including_nested_operations():
         openrouter_response_schema({"type": "string", "const": "add", "enum": ["remove"]})
 
 
-@pytest.mark.parametrize("version", [7, 8, 9, 10])
+@pytest.mark.parametrize("version", [7, 8, 9, 10, 11])
 def test_live_validation_retains_version_policy_without_provider_numeric_enum(version):
     from agent.llm.intent_pipeline import validate_live_response
 
@@ -86,7 +86,7 @@ def test_live_validation_retains_version_policy_without_provider_numeric_enum(ve
             needs_clarification=False,
         )
     )
-    if version in {8, 9}:
+    if version in {8, 9, 10}:
         assert validate_live_response(raw).v == version
     else:
         with pytest.raises(ValueError):
