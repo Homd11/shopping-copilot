@@ -10,6 +10,7 @@ from agent.admission.async_runtime import AsyncAdmissionPolicy
 from agent.admission.dynamodb import DynamoInvitationStore
 from agent.app import create_app
 from agent.catalogue_client import CatalogueClient
+from agent.event_log import DebugSwitch
 from agent.lifecycle.async_work import AsyncLifecycleWork
 from agent.lifecycle.dynamodb import DynamoLifecycle
 from agent.lifecycle.host_health import HostReadiness
@@ -313,7 +314,7 @@ def create_host_app(
             ),
             catalogue_retrieval_enabled=True,
             event_sink=HostFileSink(),
-            debug_marker=DEBUG_MARKER,
+            debug_switch=DebugSwitch(DEBUG_MARKER, owner=0),
             release=settings.fingerprint[:12],
         )
         app.state.host_cleanup = cleanup

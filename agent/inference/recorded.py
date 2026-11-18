@@ -40,7 +40,7 @@ class RecordedClient:
             failure = self.classify(error)
             raise
         finally:
-            if failure is None:
+            if output or failure is None:
                 debug_text("model_output", "".join(output))
             usage = _usage(self.client, attempt)
             record(

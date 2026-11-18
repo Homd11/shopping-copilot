@@ -4,6 +4,10 @@ Every record is one JSON object. Each event has a fixed allow-list of fields, an
 every value must be a number, a boolean, a value from a fixed set, or a short
 token (ids, route templates, type names). Free text is rejected, so a later change
 cannot leak Shopper words into the log by accident.
+
+The one exception is debug records: free text (the Shopper's message, model output,
+full error text) written only while the owner's debug switch is on, only to a sink
+that keeps them on the host, and marked ``debug: true`` so they are never shipped.
 """
 
 import hashlib
@@ -171,6 +175,8 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
 class MemorySink:
     """Keeps records in memory; for tests."""
 
+    keeps_debug_local = True
+
     def __init__(self):
         self.records: list[dict[str, Any]] = []
 
@@ -180,6 +186,8 @@ class MemorySink:
 
 class StreamSink:
     """Writes one JSON line per record to a text stream (the terminal by default)."""
+
+    keeps_debug_local = False  # a terminal can be shared or captured; debug text never goes here
 
     def __init__(self, stream=None):
         self.stream = stream
@@ -192,30 +200,64 @@ class StreamSink:
 
 DEBUG_KINDS = frozenset({"shopper_message", "model_output", "error_detail"})
 DEBUG_TEXT_LIMIT = 8000
+DEBUG_WINDOW_SECONDS = 60 * 60
 
 
 class DebugSwitch:
     """Owner-only, time-limited permission to record free text while chasing one bug.
 
-    The switch is a marker file the owner creates on the host. It is on while the
-    marker was last touched less than ``window_seconds`` ago, so it turns itself off.
-    Nothing in the HTTP API can create or touch it.
+    The switch is a marker file in a folder the Agent can read but not write, owned by
+    ``owner`` (root on the host), so the Agent itself can never turn it on. It is on
+    while the marker was touched less than an hour ago and not in the future, so it
+    turns itself off. The file is checked through a descriptor like the host's other
+    private files: no symlink, a single link, a regular file, and nobody else may write
+    it or its folder. ``owner=None`` skips the owner check, for tests and laptops.
     """
 
-    def __init__(self, marker, *, window_seconds: int = 3600):
+    def __init__(
+        self, marker, *, owner: int | None = 0, window_seconds: int = DEBUG_WINDOW_SECONDS
+    ):
         self.marker = Path(marker)
+        self.owner = owner
         self.window_seconds = window_seconds
 
     def active(self) -> bool:
         try:
-            info = self.marker.lstat()
+            info = self._checked_info()
         except OSError:
             return False
-        if not stat.S_ISREG(info.st_mode):
+        if info is None:
             return False
-        if os.name == "posix" and (info.st_uid != os.geteuid() or info.st_mode & 0o022):
-            return False
-        return time.time() - info.st_mtime < self.window_seconds
+        return 0 <= time.time() - info.st_mtime < self.window_seconds
+
+    def _checked_info(self):
+        if self.marker.is_symlink():
+            return None
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+        descriptor = os.open(self.marker, flags)
+        try:
+            info = os.fstat(descriptor)
+        finally:
+            os.close(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            return None
+        if os.name != "posix":
+            return info
+        folder = self.marker.parent.lstat()
+        owner_ok = self.owner is None or (
+            info.st_uid == self.owner and folder.st_uid in {0, self.owner}
+        )
+        safe = (
+            owner_ok
+            and not info.st_mode & 0o022
+            and stat.S_ISDIR(folder.st_mode)
+            and not folder.st_mode & 0o022
+        )
+        return info if safe else None
+
+
+def _now() -> str:
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 class EventLog:
@@ -227,28 +269,6 @@ class EventLog:
         self.debug = debug
         self.failures = 0
 
-    def emit_debug(self, kind: str, text: str, **context: Any) -> None:
-        """Record free text, only while the debug switch is on; marked so it is never shipped."""
-        if self.debug is None or kind not in DEBUG_KINDS or not self.debug.active():
-            return
-        for name, value in context.items():
-            check = _TASK_CONTEXT.get(name)
-            if check is None or (value is not None and not check(value)):
-                raise ValueError(f"Field {name} is not allowed on a debug record")
-        record = {
-            "time": datetime.now(UTC).isoformat(timespec="milliseconds"),
-            "release": self.release,
-            "event": "debug",
-            "debug": True,
-            "kind": kind,
-            "text": str(text)[:DEBUG_TEXT_LIMIT],
-            **{name: value for name, value in context.items() if value is not None},
-        }
-        try:
-            self.sink.write(record)
-        except Exception:
-            self.failures += 1
-
     def emit(self, event: str, **fields: Any) -> None:
         allowed = EVENTS.get(event)
         if allowed is None:
@@ -259,12 +279,51 @@ class EventLog:
                 raise ValueError(f"Field {name} is not allowed on {event}")
             if value is not None and not check(value):
                 raise ValueError(f"Field {name} on {event} is not an allowed value")
-        record = {
-            "time": datetime.now(UTC).isoformat(timespec="milliseconds"),
-            "release": self.release,
-            "event": event,
-            **{name: value for name, value in fields.items() if value is not None},
-        }
+        self._write(
+            {
+                "time": _now(),
+                "release": self.release,
+                "event": event,
+                **{name: value for name, value in fields.items() if value is not None},
+            }
+        )
+
+    def emit_debug(self, kind: str, text: str, **context: Any) -> None:
+        """Record free text, only while the debug switch is on and only to a local sink.
+
+        Debug records are marked ``debug: true`` so nothing ever ships them off the host.
+        """
+        if (
+            self.debug is None
+            or kind not in DEBUG_KINDS
+            or not getattr(self.sink, "keeps_debug_local", False)
+            or not self.debug.active()
+        ):
+            return
+        for name, value in context.items():
+            check = _TASK_CONTEXT.get(name)
+            if check is None or (value is not None and not check(value)):
+                raise ValueError(f"Field {name} is not allowed on a debug record")
+        self._write(
+            {
+                "time": _now(),
+                "release": self.release,
+                "event": "debug",
+                "debug": True,
+                "kind": kind,
+                "text": str(text)[:DEBUG_TEXT_LIMIT],
+                **{name: value for name, value in context.items() if value is not None},
+            }
+        )
+
+    def emit_error(self, error: BaseException, **context: Any) -> None:
+        """Record an error by type and place; its full text only as a debug record."""
+        self.emit(
+            "error", error_type=type(error).__name__, location=error_location(error), **context
+        )
+        self.emit_debug("error_detail", f"{type(error).__name__}: {error}", **context)
+
+    def _write(self, record: dict[str, Any]) -> None:
         try:
             self.sink.write(record)
         except Exception:
@@ -304,6 +363,15 @@ class RequestLog:
 
         try:
             await self.app(scope, receive, capture)
+        except Exception as error:
+            session_id = scope.get("path_params", {}).get("session_id")
+            try:
+                self.events.emit_error(
+                    error, session_id=session_id if _session_id(session_id) else None
+                )
+            except Exception:
+                self.events.failures += 1
+            raise
         finally:
             try:
                 template, params = self._route(scope)
@@ -359,15 +427,22 @@ def record(event: str, **fields: Any) -> None:
         events.failures += 1
 
 
+_ROOT = Path(__file__).resolve().parents[1]
+
+
 def error_location(error: BaseException) -> str:
-    """Where an error was raised, as ``file.py:function``; never its message."""
-    frame = error.__traceback__
-    if frame is None:
-        return "unknown"
-    while frame.tb_next is not None:
+    """Where an error was raised in this project's code, as ``path:function``; never its text."""
+    frame, chosen = error.__traceback__, None
+    while frame is not None:
+        path = Path(frame.tb_frame.f_code.co_filename)
+        if path.is_absolute() and path.resolve().is_relative_to(_ROOT):
+            chosen = frame
         frame = frame.tb_next
-    code = frame.tb_frame.f_code
-    location = f"{Path(code.co_filename).name}:{code.co_name}"
+    if chosen is None:
+        return "unknown"
+    code = chosen.tb_frame.f_code
+    relative = Path(code.co_filename).resolve().relative_to(_ROOT).as_posix()
+    location = f"{relative}:{code.co_name}"
     return location if _token(location) else "unknown"
 
 
@@ -379,5 +454,17 @@ def debug_text(kind: str, text: str) -> None:
     events, context = scope
     try:
         events.emit_debug(kind, text, **context)
+    except Exception:
+        events.failures += 1
+
+
+def record_error(error: BaseException) -> None:
+    """Record an error in the current scope; never raises."""
+    scope = _scope.get()
+    if scope is None:
+        return
+    events, context = scope
+    try:
+        events.emit_error(error, **context)
     except Exception:
         events.failures += 1

@@ -33,6 +33,22 @@ class TaskRuntime:
     confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool] | None
     events: EventLog | None = None
 
+    def record_debug(self, session: Session, kind: str, text: str, task_id: str) -> None:
+        """Free text for the owner's debug switch; written only while it is on."""
+        if self.events is None:
+            return
+        try:
+            self.events.emit_debug(
+                kind,
+                text,
+                session_id=session.session_id,
+                task_id=task_id,
+                shopper=shopper_tag(session.shopper),
+                invitation_id=session.invitation_id,
+            )
+        except Exception:
+            self.events.failures += 1
+
     def record(self, session: Session, event: str, **fields: Any) -> None:
         """Emit one event-log record for this session; never fails the task."""
         if self.events is None:

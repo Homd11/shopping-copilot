@@ -72,8 +72,9 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     assert app.state.events.release == settings.fingerprint[:12]
     assert isinstance(app.state.events.sink, HostFileSink)
     assert app.state.events.sink.directory == Path("/var/log/shopping-copilot/agent")
-    # The owner turns debug text on by touching this file as the Agent user over SSH.
-    assert app.state.events.debug.marker == Path("/var/lib/shopping-copilot/agent/debug-logging")
+    # Only root can turn debug text on: the Agent cannot write /etc/shopping-copilot.
+    assert app.state.events.debug.marker == Path("/etc/shopping-copilot/debug-logging")
+    assert app.state.events.debug.owner == 0
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
 
         async def validate(_):
