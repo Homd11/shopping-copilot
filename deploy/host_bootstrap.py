@@ -20,6 +20,7 @@ from agent.storefront_service import StorefrontService, identity_config
 from deploy.host_checks import HostChecks, unqualified_provider
 from deploy.host_config import HostSettings
 from deploy.host_event_log import DEBUG_MARKER, HostFileSink
+from deploy.host_log_shipper import Shipper
 from deploy.provider_binding import ProviderBinding
 from deploy.provider_qualification import ProviderQualification, QualificationProof
 
@@ -231,8 +232,11 @@ def create_host_app(
     else:
         raise ValueError("Host startup refused")
     sdk, admission, service, work, checks, readiness, provider = (None,) * 7
+    shipper = None
 
     async def cleanup():
+        if shipper is not None:
+            shipper.stop()
         for resource in (readiness, checks, work, provider, admission):
             if resource is not None:
                 with suppress(Exception):
@@ -317,6 +321,10 @@ def create_host_app(
             debug_switch=DebugSwitch(DEBUG_MARKER, owner=0),
             release=settings.fingerprint[:12],
         )
+        # Ordinary event records go from the private file to CloudWatch, per release.
+        shipper = Shipper(client=sdk_factory("logs"), stream=f"agent-{settings.fingerprint[:12]}")
+        shipper.start()
+        app.state.log_shipper = shipper
         app.state.host_cleanup = cleanup
         return app
     except Exception:
