@@ -311,6 +311,9 @@ async def score_case(
         ("subjective_preferences", []),
         ("advice_product_ids", []),
         ("revised_fields", []),
+        ("remaining_steps", []),
+        ("skipped_steps", []),
+        ("refers_to_this", False),
     ):
         if field_name not in case.expected and actual.get(field_name) == default:
             actual.pop(field_name, None)
