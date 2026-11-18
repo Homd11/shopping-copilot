@@ -18,7 +18,7 @@ from agent.lifecycle.store import LifecycleUnavailable
 from agent.storefront_service import StorefrontService, identity_config
 from deploy.host_checks import HostChecks, unqualified_provider
 from deploy.host_config import HostSettings
-from deploy.host_event_log import HostFileSink
+from deploy.host_event_log import DEBUG_MARKER, HostFileSink
 from deploy.provider_binding import ProviderBinding
 from deploy.provider_qualification import ProviderQualification, QualificationProof
 
@@ -313,6 +313,7 @@ def create_host_app(
             ),
             catalogue_retrieval_enabled=True,
             event_sink=HostFileSink(),
+            debug_marker=DEBUG_MARKER,
             release=settings.fingerprint[:12],
         )
         app.state.host_cleanup = cleanup
