@@ -69,6 +69,7 @@ class DelayedDecision:
                         "dialect": "english",
                         "intent": "cart_edit",
                         "cart_operation": "add",
+                        "cart_source": "fixture shopping request",
                         "product_id": "shoe-09",
                         "constraints": {},
                         "missing_fields": [],

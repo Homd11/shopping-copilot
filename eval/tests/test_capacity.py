@@ -136,6 +136,7 @@ def test_five_inference_requests_and_actions_block_idle_stop_then_drain_is_fence
                             "dialect": "english",
                             "intent": "cart_edit",
                             "cart_operation": "add",
+                            "cart_source": "fixture shopping request",
                             "product_id": "shoe-09",
                             "constraints": {},
                             "missing_fields": [],
