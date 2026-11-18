@@ -27,6 +27,7 @@ def add_decision(**changes):
         product_id="shoe-12",
         cart_quantity=1,
         cart_quantity_mode="set",
+        cart_source="ضيفه فالعربية",
         **changes,
     )
 

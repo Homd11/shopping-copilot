@@ -5,7 +5,13 @@ from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from agent.cart import bind_product_add, plan_cart_edit, validate_cart_intent
+from agent.cart import (
+    UNDO_EXPIRED,
+    bind_product_add,
+    plan_cart_edit,
+    undo_expired,
+    validate_cart_intent,
+)
 from agent.catalogue import DiscoveryResult
 from agent.confirmation import (
     validate_mutation_interpretation,
@@ -200,6 +206,18 @@ def finish_interpretation(
         )
     if intent.intent == "cart_edit":
         intent = validate_cart_intent(task.message, intent, session.last_snapshot)
+        if undo_expired(intent, session.last_snapshot):
+            summary = UNDO_EXPIRED[0] if intent.language == "ar" else UNDO_EXPIRED[1]
+            runtime.append(
+                session,
+                "done",
+                {"task_id": task_id, "summary": summary, "language": intent.language},
+            )
+            task.model_call_id = None
+            session.conversation.append({"role": "copilot", "text": summary})
+            runtime.end_task(session, task, "completed")
+            runtime.sessions.touch(session)
+            return task
     asked: dict = {}
     if intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation

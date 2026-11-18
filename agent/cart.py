@@ -56,6 +56,31 @@ def bind_product_add(
     return intent.model_copy(update={"cart_target_id": target})
 
 
+UNDO_EXPIRED = (
+    "التراجع متاح ١٠ ثواني بس بعد تعديل السلة، والمدة خلصت. ما غيّرتش حاجة في السلة.",
+    "Undo is only available for 10 seconds after a cart change, and that time has passed. "
+    "Nothing in your cart was changed.",
+)
+
+
+def undo_expired(intent: StructuredIntent, snapshot: Snapshot | None) -> bool:
+    """An undo with no observed enabled Undo control: the Storefront's window has closed."""
+    if (
+        intent.intent != "cart_edit"
+        or intent.cart_operation != "undo"
+        or intent.needs_clarification
+    ):
+        return False
+    return snapshot is None or not any(
+        e.visible
+        and not e.sensitive
+        and not e.disabled
+        and e.role == "button"
+        and e.form_action == CART_ROUTES["undo"]
+        for e in snapshot.elements
+    )
+
+
 def validate_cart_intent(
     message: str, intent: StructuredIntent, snapshot: Snapshot | None = None
 ) -> StructuredIntent:
@@ -76,7 +101,8 @@ def validate_cart_intent(
         )
     if intent.cart_quantity is not None:
         intent = intent.model_copy(update={"cart_quantity": int(intent.cart_quantity)})
-    if intent.needs_clarification:
+    if intent.needs_clarification or undo_expired(intent, snapshot):
+        # An expired undo has nothing to bind; the task completes with an honest answer.
         return intent
     if intent.cart_target_id is not None:
         targets = (

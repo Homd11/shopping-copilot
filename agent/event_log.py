@@ -100,6 +100,7 @@ REJECTION_CODES = frozenset(
         "unknown_product",
         "cart_edit_invalid",
         "mutation_invalid",
+        "source_not_in_message",
         "other",
     }
 )

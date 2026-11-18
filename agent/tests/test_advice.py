@@ -487,6 +487,7 @@ def test_discovery_constraints_on_cart_add_get_scoped_repair_preserving_product_
         cart_quantity=1,
         cart_quantity_mode="set",
         product_id="shoe-09",
+        cart_source="ضيفهولي",
     )
     model = RecordingModel(
         {**clean, "constraints": {**clean["constraints"], "category": "shoes"}}, clean

@@ -24,7 +24,7 @@ CONTEXT_PREFIX = "Shopping Copilot intent context: "
 
 
 def add_with(constraints):
-    return {**add_decision(), "constraints": constraints}
+    return {**add_decision(), "cart_source": ADD_REQUEST, "constraints": constraints}
 
 
 def intent_context(request):

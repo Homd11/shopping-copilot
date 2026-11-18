@@ -89,7 +89,12 @@ def test_unavailable_option_asks_before_any_partial_form_change():
     current = snapshot().model_dump(mode="json", by_alias=True, exclude_none=True)
     current["elements"][0]["options"] = ["43", "44"]
     decision = intent().model_dump(mode="json")
-    decision.update(v=8, cart_target_id=4, constraints={"size": "44", "color": "red"})
+    decision.update(
+        v=8,
+        cart_target_id=4,
+        cart_source="use my chosen options",
+        constraints={"size": "44", "color": "red"},
+    )
     with real_client([[LLMChunk(text=json.dumps(decision))]]) as client:
         sid = client.post("/sessions").json()["session_id"]
         client.post(

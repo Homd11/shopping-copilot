@@ -415,6 +415,11 @@ def _repair_feedback(error, intent, snapshot, schema):
             "the ORIGINAL Shopper request and catalogue_values in the context, and put it "
             "inside constraints. If genuinely ambiguous, ask a clarification instead."
         )
+    if isinstance(error, Rejected) and error.code == "source_not_in_message":
+        feedback["required_action"] = (
+            "The quoted source must be words copied from the CURRENT Shopper message. Do not "
+            "repeat an earlier request; decide the operation from the current message only."
+        )
     cause = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(cause, ValidationError):
         # Runtime errors refer to the persisted contract, including field validators.
@@ -528,6 +533,8 @@ def _validate_interpreted_intent(
             if money.currency != storefront.currency:
                 raise UnsupportedCurrencyError("Unsupported Storefront currency")
     if intent.intent == "cart_edit":
+        if not intent.needs_clarification:
+            _require_quoted_source(message, intent.cart_source, state)
         intent = _coded("cart_edit_invalid", validate_cart_intent, message, intent, snapshot)
         if intent.product_id is not None:
             _coded(
@@ -574,6 +581,7 @@ def _validate_interpreted_intent(
                 "Unsupported catalogue property for this requirement kind",
             )
     if intent.intent == "mutate":
+        _require_quoted_source(message, intent.mutation_source, state)
         _coded("mutation_invalid", validate_mutation_interpretation, message, intent)
     if (
         intent.intent in {"navigate", "locate"}
@@ -590,6 +598,23 @@ def _validate_interpreted_intent(
             storefront,
         )
     return intent
+
+
+def _normalise_spaces(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _require_quoted_source(message: str, source: str | None, state: Mapping[str, Any]) -> None:
+    """Evidence check, not language parsing: a model-proposed cart edit or mutation must
+    quote words the Shopper actually wrote in this task (this message, the task's original
+    message, or a recorded clarification answer), never an earlier task's request."""
+    quote = _normalise_spaces(source or "")
+    answers = state.get("_answers")
+    candidates = [message, state.get("_original_message"), *(answers if answers else [])]
+    if not quote or not any(
+        isinstance(text, str) and quote in _normalise_spaces(text) for text in candidates
+    ):
+        raise Rejected("source_not_in_message", "The quoted source is not in the current request")
 
 
 def _coded(code, check, *arguments):

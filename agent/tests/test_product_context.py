@@ -128,6 +128,7 @@ def test_verified_product_survives_other_tasks_and_refresh(intervening):
             cart_target_id=13,
             cart_quantity=3,
             cart_quantity_mode="increase",
+            cart_source="Do another shopping task",
         )
     else:
         middle.update(request_mode="recommend", constraints={"category": "shoes"})

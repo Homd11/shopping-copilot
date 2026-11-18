@@ -341,7 +341,9 @@ def test_add_accepts_explicit_form_quantity_without_treating_it_as_a_cart_total(
     from agent.tests.test_cart_task import snapshot as product_snapshot
 
     payload = add_intent().model_dump(mode="json")
-    payload.update(v=8, cart_target_id=4, cart_quantity=2, cart_quantity_mode="set")
+    payload.update(
+        v=8, cart_target_id=4, cart_quantity=2, cart_quantity_mode="set", cart_source="add two"
+    )
     current = product_snapshot()
     decision = interpret("add two of this", payload, current)
     actions = plan_cart_edit(decision, current, "task-add", 1)
