@@ -20,7 +20,7 @@ from agent.storefront_service import StorefrontService, identity_config
 from deploy.host_checks import HostChecks, unqualified_provider
 from deploy.host_config import HostSettings
 from deploy.host_event_log import DEBUG_MARKER, HostFileSink
-from deploy.host_log_shipper import Shipper
+from deploy.host_log_shipper import Shipper, logs_client
 from deploy.provider_binding import ProviderBinding
 from deploy.provider_qualification import ProviderQualification, QualificationProof
 
@@ -218,6 +218,7 @@ def create_host_app(
     settings,
     *,
     sdk_factory=_sdk,
+    logs_factory=logs_client,
     provider_ready=unqualified_provider,
     model_client=None,
     http_transport=None,
@@ -236,7 +237,8 @@ def create_host_app(
 
     async def cleanup():
         if shipper is not None:
-            shipper.stop()
+            with suppress(Exception):
+                await asyncio.to_thread(shipper.stop)
         for resource in (readiness, checks, work, provider, admission):
             if resource is not None:
                 with suppress(Exception):
@@ -322,7 +324,7 @@ def create_host_app(
             release=settings.fingerprint[:12],
         )
         # Ordinary event records go from the private file to CloudWatch, per release.
-        shipper = Shipper(client=sdk_factory("logs"), stream=f"agent-{settings.fingerprint[:12]}")
+        shipper = Shipper(client=logs_factory(), stream=f"agent-{settings.fingerprint[:12]}")
         shipper.start()
         app.state.log_shipper = shipper
         app.state.host_cleanup = cleanup
