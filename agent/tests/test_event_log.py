@@ -670,18 +670,20 @@ def test_an_unexpected_error_is_recorded_by_type_and_place_never_its_message() -
     errors = records(sink, "error")
     assert len(errors) == 1
     assert errors[0]["error_type"] == "RuntimeError"
-    assert errors[0]["location"].endswith("test_event_log.py:complete")
+    assert errors[0]["location"] == "agent/tests/test_event_log.py:complete"
     assert errors[0]["session_id"] == session_id
     assert "secret detail" not in json.dumps(sink.records, ensure_ascii=False)
 
 
 def _debug_client(sink, marker, llm_client):
+    from agent.event_log import DebugSwitch
+
     return TestClient(
         create_app(
             llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
             llm_client=llm_client,
             event_sink=sink,
-            debug_marker=marker,
+            debug_switch=DebugSwitch(marker, owner=None),
         )
     )
 
@@ -760,3 +762,146 @@ def test_no_web_route_can_turn_debug_logging_on() -> None:
     app = create_app(event_sink=MemorySink())
 
     assert not [r.path for r in app.routes if "debug" in getattr(r, "path", "").lower()]
+
+
+def test_an_answer_to_a_question_is_captured_as_typed(tmp_path) -> None:
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    which_category = {
+        "v": 9,
+        "language": "en",
+        "dialect": "english",
+        "intent": "find_products",
+        "constraints": {},
+        "missing_fields": ["category"],
+        "conflicting_fields": [],
+        "needs_clarification": True,
+    }
+    sink = MemorySink()
+    client = _debug_client(
+        sink,
+        marker,
+        ScriptedLLMClient(
+            [
+                [LLMChunk(text=json.dumps(which_category))],
+                [LLMChunk(text=navigation_intent("navigate", "orders"))],
+            ]
+        ),
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+    task_id = client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "I want something nice", "snapshot": home_snapshot()},
+    ).json()["task_id"]
+    events = parse_sse(client.get(f"/sessions/{session_id}/events?once=true").text)
+    question = next(e["data"]["action"] for e in events if e["event"] == "action")
+
+    client.post(
+        f"/sessions/{session_id}/tasks/{task_id}/answers",
+        json={
+            "question_id": question["action_id"],
+            "text": "shoes please",
+            "snapshot": home_snapshot(),
+        },
+    )
+
+    typed = [r["text"] for r in records(sink, "debug") if r["kind"] == "shopper_message"]
+    assert typed == ["I want something nice", "shoes please"]
+
+
+def test_a_failed_call_keeps_its_partial_output_while_debugging(tmp_path) -> None:
+    class HalfAnswer:
+        async def complete(self, request):
+            yield LLMChunk(text='{"v": 9, "intent"')
+            raise RuntimeError("cut off")
+
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    sink = MemorySink()
+
+    _send(_debug_client(sink, marker, HalfAnswer()), "Find running shoes")
+
+    outputs = [r["text"] for r in records(sink, "debug") if r["kind"] == "model_output"]
+    assert outputs == ['{"v": 9, "intent"']
+
+
+def test_an_error_in_a_request_handler_is_recorded() -> None:
+    from agent.sessions import SessionStore
+
+    class BrokenStore(SessionStore):
+        def state(self, session_id, tab_id):
+            raise RuntimeError("store exploded: private")
+
+    sink = MemorySink()
+    client = TestClient(
+        create_app(session_store=BrokenStore(), event_sink=sink), raise_server_exceptions=False
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    response = client.get(f"/sessions/{session_id}/state?tab_id=tab-1")
+
+    assert response.status_code == 500
+    (error,) = records(sink, "error")
+    assert error["error_type"] == "RuntimeError"
+    assert error["location"] == "agent/tests/test_event_log.py:state"
+    assert "private" not in json.dumps(sink.records)
+
+
+def test_debug_text_is_never_printed_to_a_terminal(tmp_path, capsys) -> None:
+    from agent.event_log import DebugSwitch, StreamSink
+
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    log = EventLog(StreamSink(), debug=DebugSwitch(marker, owner=None))
+
+    log.emit_debug("shopper_message", "عايز كوتشي")
+
+    printed = capsys.readouterr().err
+    assert '"event":"debug"' not in printed and "shopper_message" not in printed
+
+
+@pytest.mark.parametrize("unsafe", ["missing", "directory", "symlink", "future"])
+def test_an_unsafe_or_odd_marker_never_turns_debug_on(tmp_path, unsafe) -> None:
+    import os
+    import time
+
+    from agent.event_log import DebugSwitch
+
+    marker = tmp_path / "debug-logging"
+    real = tmp_path / "real"
+    real.write_text("")
+    if unsafe == "directory":
+        marker.mkdir()
+    elif unsafe == "symlink":
+        try:
+            marker.symlink_to(real)
+        except OSError:
+            pytest.skip("symlinks unavailable")
+    elif unsafe == "future":
+        marker.write_text("")
+        ahead = time.time() + 3600
+        os.utime(marker, (ahead, ahead))
+
+    assert DebugSwitch(marker, owner=None).active() is False
+
+
+@pytest.mark.skipif(__import__("os").name != "posix", reason="owners and modes are POSIX")
+@pytest.mark.parametrize("unsafe", ["wrong_owner", "group_writable", "hard_link"])
+def test_only_the_expected_owner_can_turn_debug_on(tmp_path, unsafe) -> None:
+    import os
+
+    from agent.event_log import DebugSwitch
+
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    marker.chmod(0o644)
+    owner = os.geteuid()
+    if unsafe == "wrong_owner":
+        owner = os.geteuid() + 1
+    elif unsafe == "group_writable":
+        marker.chmod(0o664)
+    else:
+        os.link(marker, tmp_path / "second-name")
+
+    assert DebugSwitch(marker, owner=owner).active() is False
+    assert DebugSwitch(marker, owner=None).active() is (unsafe == "wrong_owner")

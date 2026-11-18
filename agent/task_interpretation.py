@@ -116,6 +116,7 @@ def begin_interpretation(
     runtime.record_snapshot(session, snapshot)
     session.conversation.append({"role": "shopper", "text": text})
     runtime.append(session, "task_started", {"task_id": task.task_id})
+    runtime.record_debug(session, "shopper_message", text, task.task_id)
     runtime.append(
         session,
         "narration",
@@ -462,6 +463,7 @@ def begin_answer_interpretation(
         matches = [o for o in variant["options"] if o.casefold() == text.strip().casefold()]
         chosen = matches[0] if len(matches) == 1 else None
     task.message = text
+    runtime.record_debug(session, "shopper_message", text, task.task_id)
     task.retrieval_budget = None
     answers = _bounded_answers(task.resolved_state.get("_answers"))
     task.resolved_state["_answers"] = [*answers, text[:_CONTEXT_TEXT_LIMIT]][

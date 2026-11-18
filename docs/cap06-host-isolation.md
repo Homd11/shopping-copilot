@@ -94,6 +94,28 @@ propagate and failed pre-start logging prevents launch. An I/O failure cannot
 guarantee its own record. Logs are not tamper-proof against their UID; local Linux
 only, not NFS. Production disk-headroom/reboot retrieval remain gates.
 
+## Agent event records
+
+The Agent also records structured events (requests, Shopping Task steps, model
+calls, errors) in the same private folder, as `events.jsonl` and two numbered
+backups of about 1.7 MB each. They use the same append step as the lifecycle
+records above (descriptor traversal, link and owner checks, directory flock,
+seven-day pruning on write), with two differences: records are queued and written
+by one background thread so a slow disk cannot slow a request, and event records
+skip fsync (best effort; a crash can lose the last few). A full queue or failed
+write is counted, never raised. Ordinary records accept only allow-listed ids,
+numbers and fixed values, so they never contain Shopper text, model output,
+error text or an invitation code; errors are recorded by type and code location.
+
+**Debug switch.** While root-owned `/etc/shopping-copilot/debug-logging` was
+touched less than 60 minutes ago (and not in the future), the Agent also writes
+debug records containing the Shopper's message, model output and full error
+text. The Agent can read `/etc/shopping-copilot` but never write it, so only the
+owner can turn this on (`sudo touch` over SSH); the marker must be a single-link
+regular file not writable by group or others, in a folder with the same rule.
+Debug records are marked `"debug": true`, go only to this host file (never to a
+terminal or off the host), and are capped at 8000 characters each.
+
 ## Disposable evidence and limits
 
 Evidence: eval/evidence/cap06-host-isolation-20261023.json. Tracked probes:
