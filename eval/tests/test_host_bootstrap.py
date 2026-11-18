@@ -1,11 +1,13 @@
 import asyncio
 import json
+from pathlib import Path
 from uuid import uuid4
 
 import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from agent.event_log import FileSink
 from agent.inference.client import GuardedClient
 from agent.lifecycle.readiness import _mac
 from agent.schemas import Snapshot
@@ -66,6 +68,10 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     )
     before = app.state.llm_client.ledger.status()
     assert app.state.llm_client._maximum_attempts == 100
+    # Records go to the host's private log folder, stamped with the installed release.
+    assert app.state.events.release == settings.fingerprint[:12]
+    assert isinstance(app.state.events.sink, FileSink)
+    assert app.state.events.sink.directory == Path("/var/log/shopping-copilot/agent")
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
 
         async def validate(_):
