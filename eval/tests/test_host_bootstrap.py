@@ -59,9 +59,11 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
             sdk_factory=lambda _: pytest.fail("SDK before ceiling validation"),
         )
     model = Model()
+    logs = object()
     app = create_host_app(
         settings,
         sdk_factory=lambda _: world[-1],
+        logs_factory=lambda: logs,
         model_client=model,
         http_transport=httpx.MockTransport(lambda _: reply(value=search())),
         clock=lambda: world[0][0],
@@ -77,6 +79,7 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     assert app.state.events.debug.owner == 0
     # Ordinary records are shipped to CloudWatch from that file, per release.
     shipper = app.state.log_shipper
+    assert shipper.client is logs and shipper.running
     assert (shipper.group, shipper.stream) == (
         "/scpilot/agent-events",
         "agent-" + settings.fingerprint[:12],
@@ -190,8 +193,7 @@ def test_host_factory_wires_owned_resources_and_blocks_unqualified_requests(
         http_transport=httpx.MockTransport(lambda _: reply(value=search())),
         clock=lambda: world[0][0],
     )
-    # DynamoDB for lifecycle and admission; CloudWatch Logs for shipping event records.
-    assert selected == ["dynamodb", "logs"]
+    assert selected == ["dynamodb"]
     assert isinstance(app.state.llm_client, GuardedClient)
     assert app.state.llm_client.client is model
     assert settings.environment()["LLM_PROVIDER"] == provider

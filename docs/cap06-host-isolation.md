@@ -116,6 +116,22 @@ regular file not writable by group or others, in a folder with the same rule.
 Debug records are marked `"debug": true`, go only to this host file (never to a
 terminal or off the host), and are capped at 8000 characters each.
 
+**Shipping to CloudWatch.** A background thread in the Agent sends new complete,
+non-debug lines from these files to the CloudWatch Logs group
+`/scpilot/agent-events` (stream `agent-<release>`) every 15 seconds, using a
+host-owned client pinned to eu-north-1 with one attempt per call. It reads the
+files and writes its checkpoint (`/var/lib/shopping-copilot/agent/log-shipper.json`)
+through descriptors with the same checks as above. The checkpoint records the
+file's identity (device, file number, first line), offset and the last shipped
+record's time, so a restart resumes without gaps and a rotated or pruned file is
+never sent twice; delivery is at-least-once (a crash between sending a batch and
+saving the checkpoint can repeat that batch). Records CloudWatch would refuse
+(older than 13 days, more than 90 minutes ahead, oversized, or a batch it rejects)
+are counted and skipped so they cannot block later records; unreachable or
+throttled calls retry on the next interval and lose nothing. The log group, its
+30-day retention and the host role's permission to write it are created
+separately (owner-approved AWS change).
+
 ## Disposable evidence and limits
 
 Evidence: eval/evidence/cap06-host-isolation-20261023.json. Tracked probes:
