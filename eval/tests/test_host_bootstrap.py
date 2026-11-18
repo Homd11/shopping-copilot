@@ -7,7 +7,6 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from agent.event_log import FileSink
 from agent.inference.client import GuardedClient
 from agent.lifecycle.readiness import _mac
 from agent.schemas import Snapshot
@@ -16,6 +15,7 @@ from agent.tests.test_lifecycle_dynamodb import make_ready
 from agent.tests.test_step import home_snapshot
 from deploy.host_bootstrap import create_host_app
 from deploy.host_config import load_host_settings
+from deploy.host_event_log import HostFileSink
 from eval.tests.test_host_checks import catalogue_source as _catalogue_source
 from eval.tests.test_host_checks import prepared as _prepared
 from eval.tests.test_host_checks import reply, search
@@ -70,7 +70,7 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     assert app.state.llm_client._maximum_attempts == 100
     # Records go to the host's private log folder, stamped with the installed release.
     assert app.state.events.release == settings.fingerprint[:12]
-    assert isinstance(app.state.events.sink, FileSink)
+    assert isinstance(app.state.events.sink, HostFileSink)
     assert app.state.events.sink.directory == Path("/var/log/shopping-copilot/agent")
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
 
