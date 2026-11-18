@@ -94,6 +94,7 @@ def test_fixed_store_environment_excludes_ambient_authority(module, settings, mo
         "COPILOT_STORE_ORIGIN": "https://store.scpilot.tech",
         "COPILOT_CATALOGUE_DB": str(settings.catalogue),
         "CATALOGUE_RANKING": "lexical",
+        "COPILOT_RELEASE": settings.fingerprint[:12],
     }
     assert dict(os.environ) == before
 

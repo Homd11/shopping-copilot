@@ -11,6 +11,7 @@ export default tseslint.config(
       "work/**",
       // Flat config does not read .gitignore: local backups and generated deliverables.
       ".scratch/**",
+      ".agents/**",
       "output/**",
     ],
   },

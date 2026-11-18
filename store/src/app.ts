@@ -1,6 +1,11 @@
 import type { ProductRepository } from "./product-repository.js";
 import { catalogueRoutes } from "./catalogue-api.js";
-import express, { type Express } from "express";
+import express, {
+  type Express,
+  type NextFunction,
+  type Request,
+  type Response,
+} from "express";
 import {
   LinkTickets,
   privateShopperRoutes,
@@ -16,6 +21,7 @@ import { validatePublicOrigin } from "../../bridge/src/public-origins.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type CartLine } from "./guarded-cart.js";
+import { StoreEventLog, streamSink } from "./event-log.js";
 
 import {
   categories,
@@ -124,8 +130,10 @@ export function createApp(options: {
   origin?: string;
   capacity?: number;
   ttlMs?: number;
+  events?: StoreEventLog;
 }): Express {
   const repository = options.repository;
+  const events = options.events ?? new StoreEventLog(streamSink());
   const app = express();
   const registry = new ShopperRegistry(options);
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
@@ -214,10 +222,12 @@ export function createApp(options: {
             "انتهى التأكيد أو تغيرت السلة. لم يتم الإفراغ.",
           ),
         );
+      events.cartChange("clear", "unconfirmed", response.statusCode);
       return;
     }
     cart.clear();
     response.redirect(303, "/cart");
+    events.cartChange("clear", "ok", response.statusCode);
   });
 
   app.post("/cart/items", (request, response) => {
@@ -227,17 +237,21 @@ export function createApp(options: {
       typeof productId === "string" ? repository.get(productId) : undefined;
     if (product === undefined) {
       response.status(404).json({ error: "unknown_product" });
+      events.cartChange("add", "unknown_product", response.statusCode);
       return;
     }
     if (!product.available) {
       response.status(409).json({ error: "product_unavailable" });
+      events.cartChange("add", "unavailable", response.statusCode);
       return;
     }
     if (!cart.edit("add", request.body ?? {})) {
       response.status(409).json({ error: "invalid_or_stale_cart_edit" });
+      events.cartChange("add", "rejected", response.statusCode);
       return;
     }
     response.json(cartView(shopper(response)));
+    events.cartChange("add", "ok", response.statusCode);
   });
 
   function cartView(state: ShopperState) {
@@ -260,9 +274,11 @@ export function createApp(options: {
       const cart = shopper(response).cart;
       if (!cart.edit(kind, request.body ?? {})) {
         response.status(409).json({ error: "invalid_or_stale_cart_edit" });
+        events.cartChange(kind, "rejected", response.statusCode);
         return;
       }
       response.json(cartView(shopper(response)));
+      events.cartChange(kind, "ok", response.statusCode);
     });
   }
 
@@ -293,6 +309,7 @@ export function createApp(options: {
             "انتهى التأكيد أو تغيرت السلة. لم يتم تسجيل طلب.",
           ),
         );
+      events.cartChange("checkout", "unconfirmed", response.statusCode);
       return;
     }
     if (
@@ -311,9 +328,11 @@ export function createApp(options: {
             "استخدم بيانات الدفع الخيالية المعروضة فقط. لم يتم تسجيل طلب.",
           ),
         );
+      events.cartChange("checkout", "invalid_payment", response.statusCode);
       return;
     }
     response.redirect(303, `/order/complete/${cart.submitOrder()}`);
+    events.cartChange("checkout", "ok", response.statusCode);
   });
 
   app.get("/order/complete/:orderId", (request, response) => {
@@ -451,6 +470,24 @@ export function createApp(options: {
       product_count: matchingProducts.length,
     });
   });
+
+  app.use(
+    (
+      error: unknown,
+      request: Request,
+      _response: Response,
+      next: NextFunction,
+    ) => {
+      // Express marks a shopper's malformed request (bad JSON, oversized body) with a
+      // 4xx status; only server errors are worth an error record.
+      const status = (error as { status?: unknown } | null)?.status;
+      if (!(typeof status === "number" && status < 500)) {
+        const route: unknown = request.route?.path;
+        events.error(error, route);
+      }
+      next(error);
+    },
+  );
 
   return app;
 }
