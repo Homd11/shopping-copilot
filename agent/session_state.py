@@ -38,6 +38,9 @@ InterpretationPauseReason = Literal[
 ]
 
 
+TaskEndKind = Literal["completed", "cancelled", "paused"]
+
+
 @dataclass(frozen=True)
 class SessionEvent:
     id: int
@@ -72,6 +75,16 @@ class ActiveTask:
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
     retrieval_budget: "RetrievalBudget | None" = None
+
+
+@dataclass(frozen=True)
+class TaskEnd:
+    """How one Shopping Task ended; `reason` is the pause reason when it paused."""
+
+    session: "Session"
+    task: ActiveTask
+    kind: TaskEndKind
+    reason: str | None = None
 
 
 @dataclass(frozen=True)

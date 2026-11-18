@@ -79,7 +79,7 @@ def begin_interpretation(
     if session.active_task is not None:
         if not replace_active:
             raise TaskConflict("A Shopping Task is already active")
-        runtime.append(session, "cancelled", {"task_id": session.active_task.task_id})
+        runtime.end_task(session, session.active_task, "cancelled")
     previous_target = session.last_followup_target
     followup_target = None
     session.last_followup_target = None
@@ -186,11 +186,9 @@ def finish_interpretation(
                 "language": intent.language,
             },
         )
-        task.status = "completed"
         task.model_call_id = None
-        session.active_task = None
-        session.last_task = task
         session.conversation.append({"role": "copilot", "text": summary})
+        runtime.end_task(session, task, "completed")
         runtime.sessions.touch(session)
         return task
     if intent.product_id is not None and not intent.needs_clarification:
@@ -368,9 +366,6 @@ def finish_catalogue_interpretation(
     task.language = intent.language
     task.intent_kind = intent.intent
     task.model_call_id = None
-    task.status = "completed"
-    session.active_task = None
-    session.last_task = task
     if any(item.label == "styling_suggestion" for item in result.suggestions):
         summary = (
             "دي اقتراحات تنسيق من منتجات المتجر المتاحة."
@@ -420,6 +415,7 @@ def finish_catalogue_interpretation(
         {"task_id": task_id, "summary": summary, "language": intent.language},
     )
     session.conversation.append({"role": "copilot", "text": summary})
+    runtime.end_task(session, task, "completed")
     runtime.sessions.touch(session)
     return task
 
@@ -536,9 +532,8 @@ def fail_interpretation(
         return
     if task.status != "interpreting":
         return
-    task.status = "paused"
     task.model_call_id = None
-    runtime.record(session, "task_paused", task_id=task_id, reason=reason)
+    runtime.end_task(session, task, "paused", reason)
     messages = {
         "inference_busy": (
             "المساعد مشغول الآن. لم يُرسل طلبك للنموذج؛ جرّب بعد قليل.",

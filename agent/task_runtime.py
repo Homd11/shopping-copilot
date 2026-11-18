@@ -1,7 +1,7 @@
 """Shared dependencies and cross-cutting task policy used by task transitions."""
 
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
@@ -21,7 +21,15 @@ from agent.schemas import (
     to_wire,
 )
 from agent.session_registry import SessionRegistry
-from agent.session_state import ActiveTask, EventType, Session, SessionEvent, TaskConflict
+from agent.session_state import (
+    ActiveTask,
+    EventType,
+    Session,
+    SessionEvent,
+    TaskConflict,
+    TaskEnd,
+    TaskEndKind,
+)
 from agent.shopper_access import ShopperBinding
 
 
@@ -32,6 +40,33 @@ class TaskRuntime:
     clock: Callable[[], float]
     confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool] | None
     events: EventLog | None = None
+    task_end_listeners: list[Callable[[TaskEnd], None]] = field(default_factory=list)
+
+    def end_task(
+        self,
+        session: Session,
+        task: ActiveTask,
+        kind: TaskEndKind,
+        reason: str | None = None,
+    ) -> None:
+        """The one place a Shopping Task ends: completed, cancelled, or paused with a reason.
+
+        A completed or cancelled task leaves the Session's active task; a paused one stays
+        there awaiting Retry. Cancelling appends its `cancelled` event and pausing writes its
+        `task_paused` record here; a completed task's `done` event is written by the caller
+        first, because its summary differs. Listeners hear the end last.
+        """
+        task.status = kind
+        if kind == "paused":
+            self.record(session, "task_paused", task_id=task.task_id, reason=reason)
+        else:
+            session.active_task = None
+            session.last_task = task
+            if kind == "cancelled":
+                self.append(session, "cancelled", {"task_id": task.task_id})
+        end = TaskEnd(session=session, task=task, kind=kind, reason=reason)
+        for listener in self.task_end_listeners:
+            listener(end)
 
     def record_debug(self, session: Session, kind: str, text: str, task_id: str) -> None:
         """Free text for the owner's debug switch; written only while it is on."""

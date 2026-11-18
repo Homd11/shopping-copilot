@@ -23,6 +23,8 @@ from agent.session_state import (
     SessionExpired,
     SessionNotFound,
     TaskConflict,
+    TaskEnd,
+    TaskEndKind,
     TaskStatus,
 )
 from agent.shopper_access import ShopperBinding
@@ -33,6 +35,8 @@ __all__ = [
     "SESSION_TTL_SECONDS",
     "EventType",
     "TaskStatus",
+    "TaskEnd",
+    "TaskEndKind",
     "InterpretationPauseReason",
     "SessionEvent",
     "ActiveTask",
@@ -63,6 +67,10 @@ class SessionStore:
 
     def attach_event_log(self, events: EventLog) -> None:
         self._runtime.events = events
+
+    def on_task_end(self, listener: Callable[[TaskEnd], None]) -> None:
+        """Hear every Shopping Task end (none are registered by default)."""
+        self._runtime.task_end_listeners.append(listener)
 
     def create(self, tab_id: str | None = None) -> Session:
         return self._registry.create(tab_id)

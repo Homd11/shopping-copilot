@@ -29,8 +29,7 @@ def state(runtime: TaskRuntime, session_id: str, tab_id: str) -> dict[str, Any]:
         task.confirmation = None
         task.mutation_proposal = None
         task.action = None
-        task.status = "paused"
-        runtime.record(session, "task_paused", task_id=task.task_id, reason="refresh")
+        runtime.end_task(session, task, "paused", "refresh")
         task.pause_message = (
             "انتهى التأكيد بعد تحديث الصفحة. حاول تاني لتأكيد الحالة الحالية."
             if task.language == "ar"
@@ -39,9 +38,8 @@ def state(runtime: TaskRuntime, session_id: str, tab_id: str) -> dict[str, Any]:
         runtime.append(session, "error", {"task_id": task.task_id, "message": task.pause_message})
     if owned and session.active_task is not None and session.active_task.status == "interpreting":
         task = session.active_task
-        task.status = "paused"
         task.model_call_id = None
-        runtime.record(session, "task_paused", task_id=task.task_id, reason="refresh")
+        runtime.end_task(session, task, "paused", "refresh")
         task.pause_message = (
             "اتحدثت الصفحة أثناء فهم الطلب. حاول تاني أو أوقف المهمة."
             if task.language == "ar"
@@ -106,8 +104,7 @@ def reconcile(
         elif task.cart_operation or task.mutation_kind:
             task.action = None
             task.cart_actions.clear()
-            task.status = "paused"
-            runtime.record(session, "task_paused", task_id=task.task_id, reason="refresh")
+            runtime.end_task(session, task, "paused", "refresh")
             task.pause_message = (
                 "اتحدثت الصفحة قبل تعديل السلة أو الطلب. حاول تاني من الحالة الحالية."
                 if task.language == "ar"

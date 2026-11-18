@@ -59,9 +59,7 @@ def submit_message(
     if session.active_task is not None:
         if not replace_active:
             raise TaskConflict("A Shopping Task is already active")
-        replaced = session.active_task
-        session.active_task = None
-        runtime.append(session, "cancelled", {"task_id": replaced.task_id})
+        runtime.end_task(session, session.active_task, "cancelled")
     previous_target = session.last_followup_target
     followup_target = previous_target if is_deictic_cart_open(text) else None
     session.last_followup_target = None
@@ -137,10 +135,7 @@ def answer(
     if task.action.options in (["Stop"], ["إيقاف"]):
         if text != task.action.options[0]:
             raise ActionResultMismatch("Choose Stop to end this Shopping Task")
-        task.status = "cancelled"
-        session.last_task = task
-        session.active_task = None
-        runtime.append(session, "cancelled", {"task_id": task.task_id})
+        runtime.end_task(session, task, "cancelled")
         runtime.sessions.touch(session)
         return task
     if task.action.kind == "confirmation":
@@ -163,10 +158,7 @@ def answer(
         if text in {"Stop", "إيقاف"}:
             outcome("stopped")
             task.confirmation.invalidate()
-            task.status = "cancelled"
-            session.last_task = task
-            session.active_task = None
-            runtime.append(session, "cancelled", {"task_id": task.task_id})
+            runtime.end_task(session, task, "cancelled")
             runtime.sessions.touch(session)
             return task
         expected_answer = "تأكيد" if task.language == "ar" else "Confirm"
@@ -230,10 +222,7 @@ def answer(
         return task
     if task.auth_handoff:
         if text == "Stop":
-            task.status = "cancelled"
-            session.last_task = task
-            session.active_task = None
-            runtime.append(session, "cancelled", {"task_id": task.task_id})
+            runtime.end_task(session, task, "cancelled")
             runtime.sessions.touch(session)
             return task
         if text != "Continue":
@@ -367,11 +356,8 @@ def stop(runtime: TaskRuntime, session_id: str, tab_id: str | None = None) -> Ac
     task = session.active_task
     if task is None:
         raise TaskConflict("There is no active Shopping Task")
-    task.status = "cancelled"
     if task.confirmation is not None:
         task.confirmation.invalidate()
-    session.last_task = task
-    session.active_task = None
-    runtime.append(session, "cancelled", {"task_id": task.task_id})
+    runtime.end_task(session, task, "cancelled")
     runtime.sessions.touch(session)
     return task

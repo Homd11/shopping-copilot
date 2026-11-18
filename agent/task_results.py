@@ -134,10 +134,7 @@ def accept_result(
                     session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
                 )
             else:
-                task.status = "paused"
-                runtime.record(
-                    session, "task_paused", task_id=task.task_id, reason="cart_navigation_failed"
-                )
+                runtime.end_task(session, task, "paused", "cart_navigation_failed")
                 task.action = None
                 task.cart_actions.clear()
                 task.pause_message = (
@@ -168,23 +165,18 @@ def accept_result(
             for e in action_result.snapshot.elements
         ):
             summary = MESSAGES[task.cart_operation][0 if task.language == "ar" else 1]
-            task.status = "completed"
-            session.active_task = None
-            session.last_task = task
             session.conversation.append({"role": "copilot", "text": summary})
             runtime.append(
                 session,
                 "done",
                 {"task_id": task.task_id, "summary": summary, "language": task.language},
             )
+            runtime.end_task(session, task, "completed")
         else:
             if isinstance(action, ClickAction):
                 runtime.ask_to_stop_uncertain_mutation(session, task, action)
             else:
-                task.status = "paused"
-                runtime.record(
-                    session, "task_paused", task_id=task.task_id, reason="cart_edit_unavailable"
-                )
+                runtime.end_task(session, task, "paused", "cart_edit_unavailable")
                 task.action = None
                 task.cart_actions.clear()
                 task.pause_message = (
@@ -247,15 +239,13 @@ def accept_result(
                 if task.language == "ar"
                 else "Fictional order submitted without a real payment."
             )
-            task.status = "completed"
-            session.active_task = None
-            session.last_task = task
             runtime.append(
                 session,
                 "done",
                 {"task_id": task.task_id, "summary": summary, "language": task.language},
             )
             session.conversation.append({"role": "copilot", "text": summary})
+            runtime.end_task(session, task, "completed")
         runtime.sessions.touch(session)
         return task
     if action_result.status not in {"ok", "navigated"}:
@@ -408,10 +398,7 @@ def accept_result(
                 task, action_result.snapshot, action.sequence_number + 1
             )
         except ValueError:
-            task.status = "paused"
-            runtime.record(
-                session, "task_paused", task_id=task.task_id, reason="guarded_control_missing"
-            )
+            runtime.end_task(session, task, "paused", "guarded_control_missing")
             task.action = None
             task.pause_message = (
                 "الإجراء المطلوب غير متاح في حالة السلة الحالية."
@@ -562,8 +549,6 @@ def accept_result(
         {"task_id": task.task_id, "summary": summary, "language": task.language},
     )
     session.accepted_results[result_identity] = AcceptedResult(task=task, result=action_result)
-    task.status = "completed"
-    session.last_task = task
     runtime.record_snapshot(session, action_result.snapshot)
     session.last_followup_target = (
         task.target_name
@@ -572,6 +557,6 @@ def accept_result(
         else None
     )
     session.conversation.append({"role": "copilot", "text": summary})
-    session.active_task = None
+    runtime.end_task(session, task, "completed")
     runtime.sessions.touch(session)
     return task
