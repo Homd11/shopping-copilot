@@ -1,6 +1,12 @@
 import { createApp } from "./app.js";
 import { identityConfig } from "./identity-config.js";
 import { openCatalogue } from "./catalogue-db.js";
+import {
+  HOST_DIRECTORY,
+  StoreEventLog,
+  fileSink,
+  streamSink,
+} from "./event-log.js";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +22,15 @@ const repository = openCatalogue(
 const catalogueRanking = process.env.CATALOGUE_RANKING ?? "lexical";
 if (catalogueRanking !== "lexical" && catalogueRanking !== "hybrid")
   throw new Error("Invalid catalogue ranking");
-createApp({ ...identityConfig(), repository, catalogueRanking }).listen(
+// On the host the Storefront writes its own private log file (its systemd log folder);
+// locally records print to the terminal. Neither path needs AWS credentials.
+const events = new StoreEventLog(
+  process.env.COPILOT_ENV === "production"
+    ? fileSink(HOST_DIRECTORY)
+    : streamSink(),
+  process.env.COPILOT_RELEASE ?? "local",
+);
+createApp({ ...identityConfig(), repository, catalogueRanking, events }).listen(
   port,
   "127.0.0.1",
   () => {

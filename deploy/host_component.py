@@ -68,6 +68,7 @@ def command(settings, component):
                     "COPILOT_STORE_ORIGIN": ORIGINS["store"],
                     "COPILOT_CATALOGUE_DB": str(settings.catalogue),
                     "CATALOGUE_RANKING": "lexical",
+                    "COPILOT_RELEASE": settings.fingerprint[:12],
                 }
             )
             return ["/usr/bin/node", str(script)], environment

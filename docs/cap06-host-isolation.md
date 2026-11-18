@@ -132,6 +132,21 @@ throttled calls retry on the next interval and lose nothing. The log group, its
 30-day retention and the host role's permission to write it are created
 separately (owner-approved AWS change).
 
+**Storefront event records.** The Storefront keeps its own `events.jsonl` (and two
+numbered backups) in `/var/log/shopping-copilot/store`. Each cart change is one
+record naming its type (add, quantity, remove, undo, clear, checkout), outcome and
+status; server errors are recorded by type and route template (a Shopper's
+malformed request is not an error record). Records never carry a product, size,
+colour, quantity, payment field or error message: values outside the fixed lists
+are dropped. Records are queued (bounded) and written by one async loop, so a slow
+disk never holds up a request. Before each write the folder must be owned by the
+Storefront and closed to others, and every managed file must be a single-link
+regular file (never a link) owned by the Storefront and unreadable by others;
+files older than seven days are pruned. A full queue or failed write is counted,
+never raised. These records stay on the host: the
+Storefront has no AWS credentials and nothing ships them. The release id reaches
+the Storefront as `COPILOT_RELEASE`; locally records print to the terminal.
+
 ## Disposable evidence and limits
 
 Evidence: eval/evidence/cap06-host-isolation-20261023.json. Tracked probes:
