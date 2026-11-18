@@ -612,3 +612,12 @@ def test_skipped_steps_are_truncated_with_the_overflow_first():
 def test_v9_replies_are_not_normalised():
     with pytest.raises(ValueError):
         StructuredIntent.model_validate(v10(v=9, remaining_steps=["a", "b", "c"]))
+
+
+def test_step_overflow_is_kept_when_the_model_sends_null_skipped_steps():
+    intent = StructuredIntent.model_validate(
+        v10(remaining_steps=["one", "two", "three"], skipped_steps=None)
+    )
+
+    assert intent.remaining_steps == ["one", "two"]
+    assert intent.skipped_steps == ["three"]
