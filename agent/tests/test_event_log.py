@@ -642,3 +642,121 @@ def test_a_cancelled_model_call_is_recorded_as_interrupted_not_ok() -> None:
     assert [(r["outcome"], r["failure"]) for r in records(sink, "model_call")] == [
         ("failed", "interrupted")
     ]
+
+
+class ExplodingClient:
+    async def complete(self, request):
+        del request
+        raise RuntimeError("secret detail: عايز كوتشي")
+        yield LLMChunk(text="unused")
+
+
+def test_an_unexpected_error_is_recorded_by_type_and_place_never_its_message() -> None:
+    sink = MemorySink()
+    client = TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b"),
+            llm_client=ExplodingClient(),
+            event_sink=sink,
+        )
+    )
+    session_id = client.post("/sessions").json()["session_id"]
+
+    client.post(
+        f"/sessions/{session_id}/messages",
+        json={"text": "Find running shoes", "snapshot": home_snapshot()},
+    )
+
+    errors = records(sink, "error")
+    assert len(errors) == 1
+    assert errors[0]["error_type"] == "RuntimeError"
+    assert errors[0]["location"].endswith("test_event_log.py:complete")
+    assert errors[0]["session_id"] == session_id
+    assert "secret detail" not in json.dumps(sink.records, ensure_ascii=False)
+
+
+def _debug_client(sink, marker, llm_client):
+    return TestClient(
+        create_app(
+            llm_settings=LLMSettings(provider="groq", model="openai/gpt-oss-120b", api_key=None),
+            llm_client=llm_client,
+            event_sink=sink,
+            debug_marker=marker,
+        )
+    )
+
+
+def _send(client, text):
+    session_id = client.post("/sessions").json()["session_id"]
+    client.post(
+        f"/sessions/{session_id}/messages", json={"text": text, "snapshot": home_snapshot()}
+    )
+    return session_id
+
+
+def test_without_the_marker_no_debug_record_is_written(tmp_path) -> None:
+    sink = MemorySink()
+    client = _debug_client(
+        sink,
+        tmp_path / "debug-logging",
+        ScriptedLLMClient([[LLMChunk(text=navigation_intent("navigate", "orders"))]]),
+    )
+
+    _send(client, "افتح طلباتي")
+
+    assert records(sink, "debug") == []
+    assert "افتح" not in json.dumps(sink.records, ensure_ascii=False)
+
+
+def test_a_fresh_marker_records_the_message_model_output_and_error_text(tmp_path) -> None:
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    sink = MemorySink()
+    _send(
+        _debug_client(
+            sink,
+            marker,
+            ScriptedLLMClient([[LLMChunk(text=navigation_intent("navigate", "orders"))]]),
+        ),
+        "افتح طلباتي",
+    )
+    failing = MemorySink()
+    _send(_debug_client(failing, marker, ExplodingClient()), "Find running shoes")
+
+    debug = {r["kind"]: r for r in records(sink, "debug")}
+    assert debug["shopper_message"]["text"] == "افتح طلباتي"
+    assert '"intent": "navigate"' in debug["model_output"]["text"]
+    assert all(r["debug"] is True for r in debug.values())
+    detail = [r for r in records(failing, "debug") if r["kind"] == "error_detail"]
+    assert "secret detail" in detail[0]["text"]
+    # Debug text never leaks into the ordinary records.
+    ordinary = [r for r in sink.records if r["event"] != "debug"]
+    assert "افتح" not in json.dumps(ordinary, ensure_ascii=False)
+
+
+def test_a_marker_older_than_sixty_minutes_is_ignored(tmp_path) -> None:
+    import os
+    import time
+
+    marker = tmp_path / "debug-logging"
+    marker.write_text("")
+    stale = time.time() - 61 * 60
+    os.utime(marker, (stale, stale))
+    sink = MemorySink()
+
+    _send(
+        _debug_client(
+            sink,
+            marker,
+            ScriptedLLMClient([[LLMChunk(text=navigation_intent("navigate", "orders"))]]),
+        ),
+        "افتح طلباتي",
+    )
+
+    assert records(sink, "debug") == []
+
+
+def test_no_web_route_can_turn_debug_logging_on() -> None:
+    app = create_app(event_sink=MemorySink())
+
+    assert not [r.path for r in app.routes if "debug" in getattr(r, "path", "").lower()]

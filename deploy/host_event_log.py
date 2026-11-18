@@ -11,6 +11,9 @@ from deploy.host_diagnostics import append_line
 NAMES = ("events.jsonl", "events.jsonl.1", "events.jsonl.2")
 DIRECTORY = Path("/var/log/shopping-copilot/agent")  # LogsDirectory= of the agent unit
 FILE_BYTES = 5 * 1024 * 1024 // 3  # three rotating files, about 5 MB in total
+# Owner-only debug switch: `sudo -u copilot touch` this file over SSH to record
+# Shopper text for 60 minutes. Debug records stay in the host file, never shipped.
+DEBUG_MARKER = Path("/var/lib/shopping-copilot/agent/debug-logging")
 
 
 class HostFileSink:

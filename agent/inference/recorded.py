@@ -6,7 +6,7 @@ from collections.abc import Callable
 from dataclasses import replace
 from uuid import uuid4
 
-from agent.event_log import is_cost, is_count, record
+from agent.event_log import debug_text, is_cost, is_count, record
 
 
 class RecordedClient:
@@ -28,8 +28,10 @@ class RecordedClient:
         request = replace(request, attempt_id=attempt)
         started = time.monotonic()
         failure = None
+        output = []
         try:
             async for chunk in self.client.complete(request):
+                output.append(chunk.text or "")
                 yield chunk
         except (asyncio.CancelledError, GeneratorExit):
             failure = "interrupted"
@@ -38,6 +40,8 @@ class RecordedClient:
             failure = self.classify(error)
             raise
         finally:
+            if failure is None:
+                debug_text("model_output", "".join(output))
             usage = _usage(self.client, attempt)
             record(
                 "model_call",

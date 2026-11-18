@@ -19,7 +19,17 @@ from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
-from agent.event_log import EventLog, RequestLog, StreamSink, bind, shopper_tag
+from agent.event_log import (
+    DebugSwitch,
+    EventLog,
+    RequestLog,
+    StreamSink,
+    bind,
+    debug_text,
+    error_location,
+    record,
+    shopper_tag,
+)
 from agent.inference.client import GuardedClient
 from agent.inference.config import configured_guard
 from agent.inference.ledger import InferenceRefused
@@ -138,9 +148,14 @@ def create_app(
     environment=None,
     event_sink=None,
     release: str = "local",
+    debug_marker=None,
 ) -> FastAPI:
     environment = None if environment is None else dict(environment)
-    events = EventLog(event_sink if event_sink is not None else StreamSink(), release=release)
+    events = EventLog(
+        event_sink if event_sink is not None else StreamSink(),
+        release=release,
+        debug=DebugSwitch(debug_marker) if debug_marker is not None else None,
+    )
     settings = llm_settings or load_llm_settings(environment)
     values = dict(os.environ) if environment is None else environment
     llm_client = configured_guard(
@@ -288,6 +303,7 @@ def create_app(
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
             return
+        debug_text("shopper_message", task.message)
         identity = (session_id, task_id, call_id)
         if identity in active_interpretations:
             return
@@ -445,6 +461,8 @@ def create_app(
         except SessionNotFound:
             return
         except Exception as error:
+            record("error", error_type=type(error).__name__, location=error_location(error))
+            debug_text("error_detail", f"{type(error).__name__}: {error}")
             reason = (
                 "catalogue_unavailable"
                 if phase == "catalogue" or isinstance(error, CatalogueReadError)

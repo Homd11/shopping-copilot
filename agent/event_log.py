@@ -9,13 +9,16 @@ cannot leak Shopper words into the log by accident.
 import hashlib
 import json
 import math
+import os
 import re
+import stat
 import sys
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, get_args
 
 from starlette.routing import Match
@@ -140,6 +143,11 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         "reads": _SEQUENCE,
         "advice": _SEQUENCE,
     },
+    "error": {
+        **_TASK_CONTEXT,
+        "error_type": _token,
+        "location": _token,
+    },
     "task_paused": {
         **_TASK_CONTEXT,
         "reason": _one_of(PAUSE_REASONS),
@@ -182,13 +190,64 @@ class StreamSink:
         stream.flush()
 
 
+DEBUG_KINDS = frozenset({"shopper_message", "model_output", "error_detail"})
+DEBUG_TEXT_LIMIT = 8000
+
+
+class DebugSwitch:
+    """Owner-only, time-limited permission to record free text while chasing one bug.
+
+    The switch is a marker file the owner creates on the host. It is on while the
+    marker was last touched less than ``window_seconds`` ago, so it turns itself off.
+    Nothing in the HTTP API can create or touch it.
+    """
+
+    def __init__(self, marker, *, window_seconds: int = 3600):
+        self.marker = Path(marker)
+        self.window_seconds = window_seconds
+
+    def active(self) -> bool:
+        try:
+            info = self.marker.lstat()
+        except OSError:
+            return False
+        if not stat.S_ISREG(info.st_mode):
+            return False
+        if os.name == "posix" and (info.st_uid != os.geteuid() or info.st_mode & 0o022):
+            return False
+        return time.time() - info.st_mtime < self.window_seconds
+
+
 class EventLog:
-    def __init__(self, sink, *, release: str = "local"):
+    def __init__(self, sink, *, release: str = "local", debug: DebugSwitch | None = None):
         if not _token(release):
             raise ValueError("Release id must be a token")
         self.sink = sink
         self.release = release
+        self.debug = debug
         self.failures = 0
+
+    def emit_debug(self, kind: str, text: str, **context: Any) -> None:
+        """Record free text, only while the debug switch is on; marked so it is never shipped."""
+        if self.debug is None or kind not in DEBUG_KINDS or not self.debug.active():
+            return
+        for name, value in context.items():
+            check = _TASK_CONTEXT.get(name)
+            if check is None or (value is not None and not check(value)):
+                raise ValueError(f"Field {name} is not allowed on a debug record")
+        record = {
+            "time": datetime.now(UTC).isoformat(timespec="milliseconds"),
+            "release": self.release,
+            "event": "debug",
+            "debug": True,
+            "kind": kind,
+            "text": str(text)[:DEBUG_TEXT_LIMIT],
+            **{name: value for name, value in context.items() if value is not None},
+        }
+        try:
+            self.sink.write(record)
+        except Exception:
+            self.failures += 1
 
     def emit(self, event: str, **fields: Any) -> None:
         allowed = EVENTS.get(event)
@@ -296,5 +355,29 @@ def record(event: str, **fields: Any) -> None:
     events, context = scope
     try:
         events.emit(event, **context, **fields)
+    except Exception:
+        events.failures += 1
+
+
+def error_location(error: BaseException) -> str:
+    """Where an error was raised, as ``file.py:function``; never its message."""
+    frame = error.__traceback__
+    if frame is None:
+        return "unknown"
+    while frame.tb_next is not None:
+        frame = frame.tb_next
+    code = frame.tb_frame.f_code
+    location = f"{Path(code.co_filename).name}:{code.co_name}"
+    return location if _token(location) else "unknown"
+
+
+def debug_text(kind: str, text: str) -> None:
+    """Record free text in the current scope while the debug switch is on; never raises."""
+    scope = _scope.get()
+    if scope is None:
+        return
+    events, context = scope
+    try:
+        events.emit_debug(kind, text, **context)
     except Exception:
         events.failures += 1
