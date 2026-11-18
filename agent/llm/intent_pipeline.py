@@ -22,7 +22,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v33"
+PROMPT_VERSION = "intent-v34"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
@@ -301,7 +301,8 @@ def build_intent_request(
             "Leave catalogue_requirements/owned_items empty and owned_item null. Preserve "
             "the requested cart operation, quantity, mode and size/color. "
             "cart_source and navigation_source describe the current request. Emptying the "
-            "whole cart is mutate/clear_cart; "
+            "whole cart is always mutate/clear_cart, even when the cart has one line or "
+            "line remove buttons are visible; never cart_edit remove. "
             "submitting a fictional order is mutate/submit_checkout. These only propose an "
             "operation: application-bound "
             "confirmation is always required before execution. Opening checkout/cart never "

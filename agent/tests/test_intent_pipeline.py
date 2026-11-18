@@ -428,3 +428,17 @@ def test_intent_pipeline_does_not_invent_a_result_when_the_provider_is_unavailab
                 pending_clarification=None,
             )
         )
+
+
+def test_emptying_the_cart_is_always_the_confirmed_clear_even_with_one_line() -> None:
+    request = build_intent_request(
+        "empty my cart",
+        storefront=load_storefront_definition(),
+        resolved_state={},
+        pending_clarification=None,
+    )
+
+    rule = request.system.index("Emptying the whole cart is always mutate/clear_cart")
+    window = request.system[rule : rule + 200]
+    assert "even when the cart has one line" in window
+    assert "never cart_edit remove" in window
