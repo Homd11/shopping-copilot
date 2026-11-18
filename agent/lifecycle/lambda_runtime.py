@@ -78,7 +78,7 @@ class ControlSettings:
 
 
 def _sdk(service):
-    if service not in {"dynamodb", "lambda", "ec2"}:
+    if service not in {"dynamodb", "lambda", "ec2", "logs"}:
         raise ValueError("Fixed control service required")
     return boto3.client(
         service,

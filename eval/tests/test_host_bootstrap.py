@@ -75,6 +75,14 @@ def test_operating_host_admission_expires_without_restart_or_provider_call(confi
     # Only root can turn debug text on: the Agent cannot write /etc/shopping-copilot.
     assert app.state.events.debug.marker == Path("/etc/shopping-copilot/debug-logging")
     assert app.state.events.debug.owner == 0
+    # Ordinary records are shipped to CloudWatch from that file, per release.
+    shipper = app.state.log_shipper
+    assert (shipper.group, shipper.stream) == (
+        "/scpilot/agent-events",
+        "agent-" + settings.fingerprint[:12],
+    )
+    assert shipper.directory == Path("/var/log/shopping-copilot/agent")
+    assert shipper.checkpoint == Path("/var/lib/shopping-copilot/agent/log-shipper.json")
     with TestClient(app, base_url="https://app.scpilot.tech") as client:
 
         async def validate(_):
@@ -182,7 +190,8 @@ def test_host_factory_wires_owned_resources_and_blocks_unqualified_requests(
         http_transport=httpx.MockTransport(lambda _: reply(value=search())),
         clock=lambda: world[0][0],
     )
-    assert selected == ["dynamodb"]
+    # DynamoDB for lifecycle and admission; CloudWatch Logs for shipping event records.
+    assert selected == ["dynamodb", "logs"]
     assert isinstance(app.state.llm_client, GuardedClient)
     assert app.state.llm_client.client is model
     assert settings.environment()["LLM_PROVIDER"] == provider
