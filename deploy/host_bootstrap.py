@@ -10,7 +10,6 @@ from agent.admission.async_runtime import AsyncAdmissionPolicy
 from agent.admission.dynamodb import DynamoInvitationStore
 from agent.app import create_app
 from agent.catalogue_client import CatalogueClient
-from agent.event_log import FileSink
 from agent.lifecycle.async_work import AsyncLifecycleWork
 from agent.lifecycle.dynamodb import DynamoLifecycle
 from agent.lifecycle.host_health import HostReadiness
@@ -19,6 +18,7 @@ from agent.lifecycle.store import LifecycleUnavailable
 from agent.storefront_service import StorefrontService, identity_config
 from deploy.host_checks import HostChecks, unqualified_provider
 from deploy.host_config import HostSettings
+from deploy.host_event_log import HostFileSink
 from deploy.provider_binding import ProviderBinding
 from deploy.provider_qualification import ProviderQualification, QualificationProof
 
@@ -312,8 +312,7 @@ def create_host_app(
                 secret=settings.service_secret, transport=http_transport
             ),
             catalogue_retrieval_enabled=True,
-            # The unit's LogsDirectory= creates this folder, private to the Agent user.
-            event_sink=FileSink(Path("/var/log/shopping-copilot/agent")),
+            event_sink=HostFileSink(),
             release=settings.fingerprint[:12],
         )
         app.state.host_cleanup = cleanup

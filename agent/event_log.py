@@ -9,16 +9,13 @@ cannot leak Shopper words into the log by accident.
 import hashlib
 import json
 import math
-import os
 import re
 import sys
-import threading
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any, get_args
 
 from starlette.routing import Match
@@ -183,65 +180,6 @@ class StreamSink:
         stream = self.stream if self.stream is not None else sys.stderr
         stream.write(json.dumps(record, ensure_ascii=True, separators=(",", ":")) + "\n")
         stream.flush()
-
-
-class FileSink:
-    """Appends records to a private, size-limited file that rotates through three names.
-
-    Total size stays under three times ``maximum_bytes`` (about 5 MiB by default), and
-    files untouched for seven days are removed. Any problem raises, and the event log
-    counts it instead of failing the request it describes.
-    """
-
-    NAMES = ("events.jsonl", "events.jsonl.1", "events.jsonl.2")
-    RETENTION_SECONDS = 7 * 24 * 3600
-
-    def __init__(self, directory, *, maximum_bytes: int = 5 * 1024 * 1024 // 3):
-        self.directory = Path(directory)
-        self.maximum_bytes = maximum_bytes
-        self._lock = threading.Lock()
-        self._checked = False
-
-    def write(self, record: dict[str, Any]) -> None:
-        line = json.dumps(record, ensure_ascii=True, separators=(",", ":"))
-        encoded = (line + "\n").encode()
-        if len(encoded) > self.maximum_bytes:
-            raise ValueError("Record larger than the log file limit")
-        with self._lock:
-            if not self._checked:
-                self._check_private()
-                self._prune()
-                self._checked = True
-            current = self.directory / self.NAMES[0]
-            size = current.stat().st_size if current.exists() else 0
-            if size + len(encoded) > self.maximum_bytes:
-                self._rotate()
-            flags = os.O_WRONLY | os.O_APPEND | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
-            descriptor = os.open(current, flags, 0o600)
-            try:
-                os.write(descriptor, encoded)
-            finally:
-                os.close(descriptor)
-
-    def _check_private(self) -> None:
-        info = self.directory.stat()
-        if os.name == "posix" and (info.st_uid != os.geteuid() or info.st_mode & 0o077):
-            raise PermissionError("Event log directory must be private to the Agent")
-
-    def _rotate(self) -> None:
-        names = [self.directory / name for name in self.NAMES]
-        names[-1].unlink(missing_ok=True)
-        for older, newer in zip(reversed(names[:-1]), reversed(names[1:]), strict=True):
-            if older.exists():
-                older.replace(newer)
-        self._prune()
-
-    def _prune(self) -> None:
-        cutoff = time.time() - self.RETENTION_SECONDS
-        for name in self.NAMES:
-            path = self.directory / name
-            if path.exists() and path.stat().st_mtime < cutoff:
-                path.unlink()
 
 
 class EventLog:

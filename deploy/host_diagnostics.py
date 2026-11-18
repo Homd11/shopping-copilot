@@ -73,16 +73,27 @@ def _file(directory, name, maximum_bytes, *, create=False):
 
 
 def write_event(directory, service, event, *, result=None, now=None, maximum_bytes=65536):
-    import fcntl
-
     if type(maximum_bytes) is not int or not 256 <= maximum_bytes <= 65536:
         raise ValueError("Bounded log size required")
     now = int(time.time()) if now is None else now
     encoded = (
         json.dumps(payload(service, event, result, now=now), separators=(",", ":")) + "\n"
     ).encode("ascii")
+    append_line(Path(directory), _NAMES, encoded, maximum_bytes=maximum_bytes, now=now)
+
+
+def append_line(directory, names, encoded, *, maximum_bytes, now, sync=True):
+    """Append one line to a private, bounded file that rotates through ``names``.
+
+    Shared by the lifecycle records and the Agent's event records. The directory and
+    every managed file are validated through descriptors before anything changes:
+    symlinks, foreign owners, loose modes, extra hard links and oversize files are
+    refused, and a directory lock serialises writers across processes.
+    """
+    import fcntl
+
     if len(encoded) > maximum_bytes:
-        raise ValueError()
+        raise ValueError("Record larger than the log file limit")
     descriptor = _directory(Path(directory))
     try:
         deadline = time.monotonic() + 1
@@ -96,7 +107,7 @@ def write_event(directory, service, event, *, result=None, now=None, maximum_byt
                 time.sleep(0.01)
         # Validate every managed name before changing any. Never traverse or scan others.
         existing = {}
-        for name in _NAMES:
+        for name in names:
             try:
                 file, info = _file(descriptor, name, maximum_bytes)
             except FileNotFoundError:
@@ -107,22 +118,24 @@ def write_event(directory, service, event, *, result=None, now=None, maximum_byt
             if now - info.st_mtime > _RETENTION:
                 os.unlink(name, dir_fd=descriptor)
                 del existing[name]
-        current = existing.get(_NAMES[0])
+        current = existing.get(names[0])
         if current is not None and current.st_size + len(encoded) > maximum_bytes:
-            if _NAMES[2] in existing:
-                os.unlink(_NAMES[2], dir_fd=descriptor)
-            if _NAMES[1] in existing:
-                os.rename(_NAMES[1], _NAMES[2], src_dir_fd=descriptor, dst_dir_fd=descriptor)
-            os.rename(_NAMES[0], _NAMES[1], src_dir_fd=descriptor, dst_dir_fd=descriptor)
-            existing.pop(_NAMES[0])
-        file, _ = _file(descriptor, _NAMES[0], maximum_bytes, create=_NAMES[0] not in existing)
+            if names[2] in existing:
+                os.unlink(names[2], dir_fd=descriptor)
+            if names[1] in existing:
+                os.rename(names[1], names[2], src_dir_fd=descriptor, dst_dir_fd=descriptor)
+            os.rename(names[0], names[1], src_dir_fd=descriptor, dst_dir_fd=descriptor)
+            existing.pop(names[0])
+        file, _ = _file(descriptor, names[0], maximum_bytes, create=names[0] not in existing)
         try:
             if os.write(file, encoded) != len(encoded):
-                raise OSError("Incomplete lifecycle write")
-            os.fsync(file)
+                raise OSError("Incomplete log write")
+            if sync:
+                os.fsync(file)
         finally:
             os.close(file)
-        os.fsync(descriptor)
+        if sync:
+            os.fsync(descriptor)
     finally:
         os.close(descriptor)
 
