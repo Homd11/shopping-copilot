@@ -378,7 +378,7 @@ def test_locate_cart_uses_one_spotlight_without_navigation() -> None:
     completion = parse_sse(
         client.get(f"/sessions/{session_id}/events?after={events[-1]['id']}&once=true").text
     )
-    assert [event["event"] for event in completion] == ["narration", "done"]
+    assert [event["event"] for event in completion] == ["done"]
 
 
 def test_verified_locate_cart_allows_immediate_deictic_open_followup() -> None:
@@ -1077,7 +1077,7 @@ def test_navigate_orders_spotlights_newest_order_only_after_verified_navigation(
             f"/sessions/{session_id}/events?after={followup_events[-1]['id']}&once=true"
         ).text
     )
-    assert [event["event"] for event in final_events] == ["narration", "done"]
+    assert [event["event"] for event in final_events] == ["done"]
     assert final_events[-1]["data"]["summary"] == (
         "Opened order history and highlighted the newest order."
     )

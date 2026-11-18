@@ -538,11 +538,13 @@ def accept_result(
                 if task.language == "ar"
                 else "Matching products are now shown."
             )
-    runtime.append(
-        session,
-        "narration",
-        {"task_id": task.task_id, "text": narration},
-    )
+    if narration != summary:
+        # The Panel shows done.summary as its own message; a twin narration would repeat it.
+        runtime.append(
+            session,
+            "narration",
+            {"task_id": task.task_id, "text": narration},
+        )
     runtime.append(
         session,
         "done",

@@ -165,7 +165,6 @@ def test_a_completed_task_leaves_its_whole_trail_in_order() -> None:
         ("task", "narration"),
         ("task", "action"),
         ("action_result", "navigated"),
-        ("task", "narration"),
         ("task", "done"),
     ]
     assert all(r["session_id"] == session_id for r in trail)

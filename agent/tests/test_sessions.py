@@ -108,7 +108,7 @@ def test_only_the_matching_action_result_completes_the_active_task() -> None:
     assert mismatch.status_code == 409
     assert accepted.status_code == 202
     completion = parse_sse(client.get(f"/sessions/{session_id}/events?after=3&once=true").text)
-    assert [event["event"] for event in completion] == ["narration", "done"]
+    assert [event["event"] for event in completion] == ["done"]
     assert completion[-1]["data"]["task_id"] == action["task_id"]
 
 
@@ -146,7 +146,7 @@ def test_duplicate_action_result_is_acknowledged_without_repeating_events() -> N
     assert conflicting_duplicate.status_code == 409
     assert duplicate.json() == {"task_id": action["task_id"], "status": "accepted"}
     completion = parse_sse(client.get(f"/sessions/{session_id}/events?after=3&once=true").text)
-    assert [event["event"] for event in completion] == ["narration", "done"]
+    assert [event["event"] for event in completion] == ["done"]
 
 
 def test_stop_cancels_the_active_task_and_rejects_its_later_result() -> None:
