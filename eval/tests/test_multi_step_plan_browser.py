@@ -146,7 +146,7 @@ def test_unrelated_pair_adds_once_then_shows_suggestions_with_retrieval_on():
             ]
             decisions = requests[2:]
             # search, then recommend (its advice text rides in the decision: no advice call).
-            assert [r["prompt"] for r in decisions] == ["catalogue-decision-v8"] * 2
+            assert [r["prompt"] for r in decisions] == ["catalogue-decision-v9"] * 2
             assert all(r["message"] == PANTS_STEP for r in decisions)
             assert all(r["plan_step"]["position"] == 2 for r in decisions)
             assert page.locator("#plan-checklist li").count() == 2

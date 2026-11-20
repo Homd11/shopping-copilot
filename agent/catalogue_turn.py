@@ -55,6 +55,22 @@ class PreparedTurn:
     steps: PlanSteps = field(default_factory=PlanSteps)
     # The turn ended in the exhausted fallback: the task completes, but did not do its step.
     exhausted: bool = False
+    # Verified (category, product type) of the products the turn read; the Session derives size
+    # kinds from these, never from the model or a name.
+    facts: dict[str, tuple[str, str]] = field(default_factory=dict)
+    beneficiary: str | None = None
+    size_hint: str | None = None
+
+
+def _size_hint(requirements) -> str | None:
+    """The one size the Shopper asked for as a search predicate, when the model left the
+    constraint empty."""
+    values = {
+        p.value
+        for p in requirements
+        if getattr(p, "field", None) == "size" and getattr(p, "op", None) == "eq"
+    }
+    return next(iter(values)) if len(values) == 1 else None
 
 
 def _exhausted_turn(task):
@@ -148,12 +164,21 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
         }
         for p in outcome.products
     ]
+    facts = {p.product.id: (p.product.category, p.product.type) for p in outcome.products}
     if intent.intent not in {"find_products", "advice"} or intent.needs_clarification:
         return PreparedTurn(intent, None, None, references, steps), "execute"
     evidence = prepare_retrieved_advice(outcome)
+    who, hint = outcome.beneficiary, _size_hint(outcome.requirements)
     if outcome.advice_message is not None:
         return PreparedTurn(
-            intent, evidence, outcome.advice_message, references, steps
+            intent,
+            evidence,
+            outcome.advice_message,
+            references,
+            steps,
+            facts=facts,
+            beneficiary=who,
+            size_hint=hint,
         ), "recommend"
     if outcome.budget.advice >= 1:
         return _exhausted_turn(task), "exhausted"
@@ -168,4 +193,13 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
         evidence,
     )
     await ensure_active()
-    return PreparedTurn(intent, evidence, summary, references, steps), "recommend"
+    return PreparedTurn(
+        intent,
+        evidence,
+        summary,
+        references,
+        steps,
+        facts=facts,
+        beneficiary=who,
+        size_hint=hint,
+    ), "recommend"

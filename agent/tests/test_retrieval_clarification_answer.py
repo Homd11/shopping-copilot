@@ -10,6 +10,7 @@ from agent.planner import ScriptedPlanner
 from agent.sessions import SessionStore
 from agent.tests.http_client import TestClient
 from agent.tests.test_advice import RecordingModel
+from agent.tests.test_catalogue_retrieval import Reads
 from agent.tests.test_recommended_add import (
     add_decision,
     events,
@@ -48,7 +49,7 @@ def start(*responses):
         session_store=store,
         llm_settings=LLMSettings(provider="groq", model="test"),
         llm_client=model,
-        catalogue_client=object(),  # Cart execution performs no catalogue reads.
+        catalogue_client=Reads(),  # A size said with an add reads the product's size kind.
         catalogue_retrieval_enabled=True,
     )
     client = TestClient(app)

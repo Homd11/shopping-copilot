@@ -561,7 +561,8 @@ def test_the_provider_decision_schema_stays_small_plain_strings_without_descript
     branch = next(b for b in schema["oneOf"] if b["properties"]["kind"]["enum"] == ["clarify"])
     assert branch["properties"]["remaining_steps"] == {"items": {"type": "string"}, "type": "array"}
     assert "title" not in branch["properties"]["first_step"]
-    assert len(text.encode()) < 9000
+    # 8880 bytes before `beneficiary` (nullable, one enum per branch) joined the four branches.
+    assert len(text.encode()) < 10000
 
 
 def run_retrieval(model):
@@ -619,13 +620,13 @@ def test_a_later_decision_may_name_the_steps_when_the_first_did_not():
     )
 
 
-def test_the_decision_prompt_asks_for_the_first_step_only_and_is_v8():
+def test_the_decision_prompt_asks_for_the_first_step_only_and_is_v9():
     import asyncio
 
     model = RecordingModel({"kind": "clarify", "language": "en", "question": "Which one?"})
     asyncio.run(run_retrieval(model))
     request = model.requests[0]
-    assert request.prompt_version == "catalogue-decision-v8"
+    assert request.prompt_version == "catalogue-decision-v9"
     for phrase in ("first_step", "remaining_steps", "FIRST step only", "skipped_steps"):
         assert phrase in request.system
 
@@ -642,7 +643,7 @@ def test_the_sent_provider_schema_requires_the_step_fields_but_the_models_still_
             "agent.llm.provider_schema", fromlist=["x"]
         ).openrouter_response_schema(sent)["oneOf"]
     }
-    steps = ["first_step", "remaining_steps"]
+    steps = ["first_step", "remaining_steps", "beneficiary"]
     assert required == {
         "search": ["kind", "query", *steps],
         "details": ["kind", "query", *steps],

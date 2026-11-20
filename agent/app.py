@@ -18,6 +18,7 @@ from agent.advice import build_advice_request, compose_advice, prepare_advice
 from agent.async_boundary import invoke
 from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catalogue
 from agent.catalogue_client import CatalogueReadError
+from agent.catalogue_contract import DetailsQuery
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
 from agent.event_log import (
     EventLog,
@@ -123,6 +124,15 @@ def interpretation_pause_reason(error: Exception) -> InterpretationPauseReason:
     if isinstance(error, ValueError):
         return "invalid_response"
     return "unexpected"
+
+
+def catalogue_facts(catalogue, only: str | None = None) -> dict[str, tuple[str, str]]:
+    """(category, product type) of the catalogue's products: verified facts for size kinds."""
+    return {
+        p.id: (p.category, p.product_type)
+        for p in catalogue.products
+        if only is None or p.id == only
+    }
 
 
 def create_app(
@@ -314,6 +324,24 @@ def create_app(
         ):
             await _interpret_task(session_id, task_id, call_id)
 
+    async def note_add_kind(session_id: str, intent, lookup) -> None:
+        """Learn the size kind of an added product from verified catalogue facts (once per
+        product); a failed read just leaves the kind unknown, so nothing is stored or read."""
+        session = sessions.get(session_id)
+        if (
+            intent.intent != "cart_edit"
+            or intent.cart_operation != "add"
+            or not intent.product_id
+            or intent.needs_clarification
+            or intent.product_id in session.product_kinds
+        ):
+            return
+        try:
+            facts = await lookup(intent.product_id)
+        except (CatalogueReadError, httpx.HTTPError, ValueError, OSError):
+            return
+        sessions.note_product_facts(session_id, facts)
+
     async def _interpret_task(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
@@ -385,6 +413,9 @@ def create_app(
                         advice_text=prepared.summary,
                         plan_steps=prepared.steps,
                         end_reason=RETRIEVAL_EXHAUSTED if prepared.exhausted else None,
+                        facts=prepared.facts,
+                        beneficiary=prepared.beneficiary,
+                        size_hint=prepared.size_hint,
                     )
                     session = sessions.get(session_id)
                     session.advice_context["retrieval_requirements"] = list(
@@ -394,6 +425,16 @@ def create_app(
                         prepared.evidence.unverified_requirements
                     )
                 else:
+
+                    async def details_facts(product_id):
+                        found = await reader.details(DetailsQuery(ids=[product_id]))
+                        return {
+                            p.product.id: (p.product.category, p.product.type)
+                            for p in found.products
+                        }
+
+                    await note_add_kind(session_id, prepared.intent, details_facts)
+                    await ensure_active()
                     sessions.finish_interpretation(
                         session_id, task_id, call_id, prepared.intent, plan_steps=prepared.steps
                     )
@@ -425,7 +466,12 @@ def create_app(
                 ):
                     await verify_owner(session_id)
                     sessions.finish_catalogue_interpretation(
-                        session_id, task_id, call_id, intent, evidence.discovery
+                        session_id,
+                        task_id,
+                        call_id,
+                        intent,
+                        evidence.discovery,
+                        facts=catalogue_facts(catalogue),
                     )
                     return
                 phase = "advice"
@@ -459,7 +505,13 @@ def create_app(
                     return
                 await verify_owner(session_id)
                 sessions.finish_catalogue_interpretation(
-                    session_id, task_id, call_id, intent, evidence.discovery, advice_text=summary
+                    session_id,
+                    task_id,
+                    call_id,
+                    intent,
+                    evidence.discovery,
+                    advice_text=summary,
+                    facts=catalogue_facts(catalogue),
                 )
                 return
             if catalogue_discovery:
@@ -468,9 +520,20 @@ def create_app(
                 result = evaluate_catalogue(catalogue, intent)
                 await verify_owner(session_id)
                 sessions.finish_catalogue_interpretation(
-                    session_id, task_id, call_id, intent, result
+                    session_id,
+                    task_id,
+                    call_id,
+                    intent,
+                    result,
+                    facts=catalogue_facts(catalogue),
                 )
                 return
+
+            async def snapshot_facts(product_id):
+                found = await catalogue_reader.read()
+                return catalogue_facts(found, product_id)
+
+            await note_add_kind(session_id, intent, snapshot_facts)
             await verify_owner(session_id)
             sessions.finish_interpretation(session_id, task_id, call_id, intent)
         except CatalogueTurnInterrupted:

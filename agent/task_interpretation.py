@@ -1,6 +1,6 @@
 """Model interpretation lifecycle and bounded conversation context."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from contextlib import suppress
 from typing import Any
 from urllib.parse import urlsplit
@@ -24,6 +24,20 @@ from agent.planner import (
 )
 from agent.plans import PlanSteps, open_plan
 from agent.product_context import require_known_product
+from agent.remembered_sizes import (
+    NAMED_PERSON,
+    not_saved_note,
+    note_verified,
+    recall,
+    record_selection,
+    remember,
+    remember_add,
+    shared_kind,
+    size_said,
+    stale_selection,
+    used_note,
+    with_note,
+)
 from agent.schemas import (
     AskShopperAction,
     NavigateAction,
@@ -47,6 +61,15 @@ def _bounded_answers(value: object) -> list[str]:
         return []
     return [item[:_CONTEXT_TEXT_LIMIT] for item in value if isinstance(item, str)][
         -_CONTEXT_ANSWER_LIMIT:
+    ]
+
+
+def _shopper_texts(task: "ActiveTask") -> list[object]:
+    """The Shopper's own words for this task: the message, the original one and the answers."""
+    return [
+        task.message,
+        task.resolved_state.get("_original_message"),
+        *_bounded_answers(task.resolved_state.get("_answers")),
     ]
 
 
@@ -230,6 +253,17 @@ def finish_interpretation(
     asked: dict = {}
     if intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation
+        if (
+            intent.cart_operation == "add"
+            and intent.constraints.size
+            and not size_said(intent.constraints.size, _shopper_texts(task))
+        ):
+            # The model copied this size from the page or an earlier turn; the Shopper never
+            # said it. Drop it (not the intent) so the remembered size or the question applies.
+            intent = intent.model_copy(
+                update={"constraints": intent.constraints.model_copy(update={"size": None})}
+            )
+        task.size_note = remember_add(session, intent) if intent.cart_operation == "add" else None
         product_url = (
             runtime.planner.storefront.product_route.replace("{product_id}", intent.product_id)
             if intent.cart_operation == "add" and intent.product_id
@@ -273,9 +307,22 @@ def finish_interpretation(
             intent = bind_product_add(
                 intent, session.last_snapshot, runtime.planner.storefront.product_route
             )
+            used: dict = {}
+            chosen: dict = {}
             task.cart_actions = plan_cart_edit(
-                intent, session.last_snapshot, task_id, task.step_count + 1, asked=asked
+                intent,
+                session.last_snapshot,
+                task_id,
+                task.step_count + 1,
+                asked=asked,
+                remembered=recall(session, intent) if intent.cart_operation == "add" else None,
+                used=used,
+                stale_size=stale_selection(session, intent),
+                selected=chosen,
             )
+            record_selection(session, intent, chosen.get("size"))
+            if "size" in used:
+                task.size_note = used_note(intent.language, used["size"])
         action = task.cart_actions.pop(0)
     elif intent.intent == "mutate":
         validate_mutation_interpretation(task.message, intent)
@@ -349,6 +396,32 @@ def finish_interpretation(
     return task
 
 
+def _remember_search_size(
+    session,
+    intent: StructuredIntent,
+    result: DiscoveryResult,
+    *,
+    facts: Mapping[str, tuple[str, str]] | None,
+    beneficiary: str | None,
+    size_hint: str | None,
+    exhausted: bool,
+    texts: list[object],
+) -> str | None:
+    """Store a size said with a search/advice turn under the kind ALL shown products share.
+
+    A named person's size is used for this request only; the returned note says so.
+    """
+    note_verified(session, facts)
+    size = intent.constraints.size or size_hint
+    if not size or exhausted or not size_said(size, texts):
+        return None
+    who = beneficiary or intent.beneficiary
+    if who == NAMED_PERSON:
+        return not_saved_note(intent.language)
+    remember(session, who, shared_kind(session, [item.id for item in result.suggestions]), size)
+    return None
+
+
 def finish_catalogue_interpretation(
     runtime: TaskRuntime,
     session_id: str,
@@ -360,6 +433,9 @@ def finish_catalogue_interpretation(
     advice_text: str | None = None,
     plan_steps: PlanSteps | None = None,
     end_reason: str | None = None,
+    facts: Mapping[str, tuple[str, str]] | None = None,
+    beneficiary: str | None = None,
+    size_hint: str | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -439,6 +515,19 @@ def finish_catalogue_interpretation(
         )
     if advice_text is not None:
         summary = advice_text
+    summary = with_note(
+        summary,
+        _remember_search_size(
+            session,
+            intent,
+            result,
+            facts=facts,
+            beneficiary=beneficiary,
+            size_hint=size_hint,
+            exhausted=end_reason is not None,
+            texts=_shopper_texts(task),
+        ),
+    )
     open_plan(
         runtime,
         session,

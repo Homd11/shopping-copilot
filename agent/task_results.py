@@ -11,6 +11,13 @@ from agent.planner import (
     is_expected_login_redirect,
     snapshot_matches_url,
 )
+from agent.remembered_sizes import (
+    recall,
+    record_selection,
+    stale_selection,
+    used_note,
+    with_note,
+)
 from agent.schemas import (
     ActionResult,
     AskShopperAction,
@@ -114,9 +121,23 @@ def accept_result(
                     )
                     task.resolved_state["_intent"] = intent.model_dump(mode="json")
                 asked: dict = {}
+                used: dict = {}
+                chosen: dict = {}
                 task.cart_actions = plan_cart_edit(
-                    intent, action_result.snapshot, task.task_id, task.step_count + 1, asked=asked
+                    intent,
+                    action_result.snapshot,
+                    task.task_id,
+                    task.step_count + 1,
+                    asked=asked,
+                    remembered=recall(session, intent) if product_add else None,
+                    used=used,
+                    stale_size=stale_selection(session, intent) if product_add else None,
+                    selected=chosen,
                 )
+                if product_add:
+                    record_selection(session, intent, chosen.get("size"))
+                if "size" in used:
+                    task.size_note = used_note(intent.language, used["size"])
                 task.action = task.cart_actions.pop(0)
                 task.step_count += 1
                 task.status = (
@@ -164,7 +185,9 @@ def accept_result(
             e.visible and e.role == "status" and e.name in MESSAGES[task.cart_operation]
             for e in action_result.snapshot.elements
         ):
-            summary = MESSAGES[task.cart_operation][0 if task.language == "ar" else 1]
+            summary = with_note(
+                MESSAGES[task.cart_operation][0 if task.language == "ar" else 1], task.size_note
+            )
             session.conversation.append({"role": "copilot", "text": summary})
             runtime.append(
                 session,

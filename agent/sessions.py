@@ -1,10 +1,17 @@
 """Stable session interface composing storage and Shopping Task modules."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from time import monotonic
 from typing import Any
 
-from agent import plans, task_commands, task_interpretation, task_recovery, task_results
+from agent import (
+    plans,
+    remembered_sizes,
+    task_commands,
+    task_interpretation,
+    task_recovery,
+    task_results,
+)
 from agent.catalogue import DiscoveryResult
 from agent.event_log import EventLog
 from agent.llm.intent import StructuredIntent
@@ -133,6 +140,9 @@ class SessionStore:
         advice_text: str | None = None,
         plan_steps: PlanSteps | None = None,
         end_reason: str | None = None,
+        facts: Mapping[str, tuple[str, str]] | None = None,
+        beneficiary: str | None = None,
+        size_hint: str | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_catalogue_interpretation(
             self._runtime,
@@ -144,7 +154,16 @@ class SessionStore:
             advice_text=advice_text,
             plan_steps=plan_steps,
             end_reason=end_reason,
+            facts=facts,
+            beneficiary=beneficiary,
+            size_hint=size_hint,
         )
+
+    def note_product_facts(
+        self, session_id: str, facts: Mapping[str, tuple[str, str]] | None
+    ) -> None:
+        """Keep the size kind of products the catalogue just verified (never the facts)."""
+        remembered_sizes.note_verified(self.get(session_id), facts)
 
     def begin_answer_interpretation(
         self,

@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from agent.product_reference import names_product
+from agent.remembered_sizes import matching_option, unavailable_line
 from agent.schemas import Action, AskShopperAction, ClickAction, SelectAction, Snapshot, TypeAction
 
 if TYPE_CHECKING:
@@ -131,8 +132,19 @@ def plan_cart_edit(
     sequence: int,
     *,
     asked: dict | None = None,
+    remembered: tuple[str, str] | None = None,
+    used: dict | None = None,
+    stale_size: str | None = None,
+    selected: dict | None = None,
 ) -> list[Action]:
-    """Plan the edit, or one handback. ``asked`` receives the add option a question asks for."""
+    """Plan the edit, or one handback. ``asked`` receives the add option a question asks for.
+
+    ``remembered`` is the (size kind, size) kept for this add's person and product. It is read
+    only when the add names no size and the page's size control has none; it is used only when
+    the page offers exactly that size (``used`` then receives it), never a nearby one.
+    ``stale_size`` is a size control value the Copilot itself selected for another person: it
+    counts as no value. ``selected`` receives the size this plan selects.
+    """
     elements = [e for e in snapshot.elements if e.visible and not e.sensitive and not e.disabled]
     route = {
         "add": "/cart/items",
@@ -202,9 +214,19 @@ def plan_cart_edit(
                     "I couldn't verify the option controls. Stop and refresh the product page.",
                 )
             control = controls[0]
-            if not (desired or control.value) or (
-                desired and desired not in (control.options or [])
-            ):
+            prefix = ""
+            current = control.value
+            if field == "size" and not desired and stale_size and current == stale_size:
+                current = ""
+            if field == "size" and not (desired or current) and remembered is not None:
+                offered = matching_option(*remembered, control.options or [])
+                if offered is not None:
+                    desired = offered
+                    if used is not None:
+                        used["size"] = remembered[1]
+                else:
+                    prefix = unavailable_line(intent.language, remembered[1]) + " "
+            if not (desired or current) or (desired and desired not in (control.options or [])):
                 options = ", ".join(control.options or [])
                 if options and asked is not None:
                     asked.update(field=field, options=list(control.options or []))
@@ -214,12 +236,15 @@ def plan_cart_edit(
                         "No product options are available on the page. Stop and check the product.",
                     )
                 return handback(
-                    f"محتاج اختيارًا متاحًا لحقل {control.name}. المتاح: {options}. تختار إيه؟",
-                    f"Choose an available option for {control.name}: {options}. Which one?",
+                    f"{prefix}محتاج اختيارًا متاحًا لحقل {control.name}. المتاح: {options}. "
+                    "تختار إيه؟",
+                    f"{prefix}Choose an available option for {control.name}: {options}. Which one?",
                     allow_answer=True,
                 )
-            if desired and desired != control.value:
+            if desired and desired != current:
                 actions.append(SelectAction(**base(), type="select", id=control.id, option=desired))
+                if field == "size" and selected is not None:
+                    selected["size"] = desired
     if intent.cart_operation in {"add", "quantity"} and intent.cart_quantity is not None:
         name = (
             "الكمية"

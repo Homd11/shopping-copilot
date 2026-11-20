@@ -118,6 +118,9 @@ class ActiveTask:
     # 1-based position when this task is a step of the Session's plan; such a task never
     # creates a plan of its own.
     plan_position: int | None = None
+    # One short Shopper-language note for the done summary (a remembered size was used, or a
+    # named person's size was not saved). Shopper-facing text only; never recorded in a log.
+    size_note: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)
@@ -154,6 +157,13 @@ class Session:
     advice_context: dict[str, Any] = field(default_factory=dict)
     invitation_id: str | None = None
     plan: ActivePlan | None = None
+    # Remembered sizes, keyed by (person, size kind). In memory for this Session only: never
+    # on disk, in the state endpoint, in any event or log record. Gone with the Session.
+    remembered_sizes: dict[tuple[str, str], str] = field(default_factory=dict, repr=False)
+    # Size the Copilot itself selected on a product's add form, and for whom (memory only).
+    copilot_selected_size: dict[str, tuple[str, str]] = field(default_factory=dict, repr=False)
+    # Size kind of products whose category and type the catalogue verified (id -> kind or None).
+    product_kinds: dict[str, str | None] = field(default_factory=dict, repr=False)
 
 
 class SessionNotFound(KeyError):

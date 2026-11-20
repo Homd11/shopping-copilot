@@ -17,6 +17,7 @@ from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, L
 from agent.llm.intent import (
     MAX_REMAINING_STEPS,
     MAX_SKIPPED_STEPS,
+    Beneficiary,
     IntentConstraints,
     StepWords,
     StructuredIntent,
@@ -64,6 +65,8 @@ class StepFields(Decision):
     first_step: StepWords | None = None
     remaining_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_REMAINING_STEPS)
     skipped_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_SKIPPED_STEPS)
+    # Who the request is for; null means the Shopper. Required in the provider schema.
+    beneficiary: Beneficiary | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -126,15 +129,17 @@ class ClarifyDecision(StepFields):
 
 
 def provider_schema(adapter: TypeAdapter) -> dict:
-    """The schema sent to the provider: the step fields are required there, so the model
-    always states them (null / []). The Pydantic models keep their defaults, so replies and
-    fixtures that omit them still parse. `skipped_steps` stays optional."""
+    """The schema sent to the provider: the step fields and `beneficiary` are required there, so
+    the model always states them (null / []). The Pydantic models keep their defaults, so
+    replies and fixtures that omit them still parse. `skipped_steps` stays optional."""
     schema = adapter.json_schema()
     for definition in schema.get("$defs", {}).values():
         if "first_step" in definition.get("properties", {}):
             required = definition.setdefault("required", [])
             required.extend(
-                name for name in ("first_step", "remaining_steps") if name not in required
+                name
+                for name in ("first_step", "remaining_steps", "beneficiary")
+                if name not in required
             )
     return schema
 
@@ -209,6 +214,8 @@ class RetrievalOutcome:
     first_step: str | None = None
     remaining_steps: list[str] = field(default_factory=list)
     skipped_steps: list[str] = field(default_factory=list)
+    # Who the turn is for (never a name); None means the Shopper.
+    beneficiary: str | None = None
 
 
 def _rejection_code(error: Exception, stage: str) -> str:
@@ -274,6 +281,9 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "When plan_step is present, the Shopper's request is only the current message text. "
             "Earlier parts of their previous message were already carried out; never repeat "
             "them or take a product, size or action from them. "
+            "Set beneficiary when the request is for someone else (brother, sister, mother, "
+            "father, son, daughter, husband, wife, friend; named_person for a name); null "
+            "means the Shopper. "
             "You are Shopping Copilot. Return a catalogue decision JSON: "
             "search, details, recommend, execute or "
             "clarify. You own all language interpretation, including Egyptian Arabic, Franco, "
@@ -332,7 +342,7 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
         response_schema=provider_schema(MODEL_DECISION),
         response_validator=DECISION.validate_json,
         provider_attempt_limit=1,
-        prompt_version="catalogue-decision-v8",
+        prompt_version="catalogue-decision-v9",
         schema_version=1,
         max_tokens=2048,
         attempt_id="retrieval-" + uuid4().hex,
@@ -371,6 +381,8 @@ async def retrieve_products(
     requirements, unknowns = None, None
     # The first decision of the turn that names later steps wins; later ones may omit them.
     steps: dict[str, Any] = {}
+    # Who the turn is for: the latest decision that names someone else.
+    beneficiary: str | None = None
 
     def note_steps(source) -> None:
         if not steps and source.remaining_steps:
@@ -531,6 +543,7 @@ async def retrieve_products(
                 )
             if isinstance(decision, StepFields):
                 note_steps(decision)
+                beneficiary = decision.beneficiary or beneficiary
             if isinstance(decision, ClarifyDecision):
                 return RetrievalOutcome(
                     None,
@@ -541,6 +554,7 @@ async def retrieve_products(
                     unknowns or [],
                     decision.question,
                     decision.language,
+                    beneficiary=beneficiary,
                     **steps,
                 )
             if isinstance(decision, SearchDecision | DetailsDecision):
@@ -714,6 +728,7 @@ async def retrieve_products(
                 requirements or [],
                 unknowns or [],
                 advice_message=advice_message,
+                beneficiary=beneficiary or intent.beneficiary,
                 **steps,
             )
         except (ValidationError, ValueError) as error:
