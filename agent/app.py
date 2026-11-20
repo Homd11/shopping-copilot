@@ -38,6 +38,7 @@ from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
 from agent.llm.openrouter import OpenRouterBudgetError
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
+from agent.plans import RETRIEVAL_EXHAUSTED
 from agent.schemas import ActionResult, Snapshot, to_wire
 from agent.session_stream import encode_sse as encode_sse
 from agent.session_stream import session_event_response
@@ -285,6 +286,23 @@ def create_app(
             sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
             raise
 
+    async def drive_plan(session_id: str) -> None:
+        """Interpret each plan step that a task end has just started.
+
+        The shared task end starts the next step synchronously; interpreting it is model work,
+        so the request handler that caused the end (message, answer, retry or Action Result)
+        does it here. A step that ends at once starts the next, so this loops.
+        """
+        while True:
+            session = sessions.get(session_id)
+            plan, task = session.plan, session.active_task
+            if plan is None or plan.start_pending is None:
+                return
+            pending, plan.start_pending = plan.start_pending, None
+            if task is None or task.task_id != pending or task.status != "interpreting":
+                return
+            await run_interpretation(session_id, task.task_id, task.model_call_id or "")
+
     async def _interpret(session_id: str, task_id: str, call_id: str) -> None:
         session = sessions.get(session_id)
         with bind(
@@ -365,6 +383,8 @@ def create_app(
                         prepared.intent,
                         prepared.evidence.discovery,
                         advice_text=prepared.summary,
+                        plan_steps=prepared.steps,
+                        end_reason=RETRIEVAL_EXHAUSTED if prepared.exhausted else None,
                     )
                     session = sessions.get(session_id)
                     session.advice_context["retrieval_requirements"] = list(
@@ -374,7 +394,9 @@ def create_app(
                         prepared.evidence.unverified_requirements
                     )
                 else:
-                    sessions.finish_interpretation(session_id, task_id, call_id, prepared.intent)
+                    sessions.finish_interpretation(
+                        session_id, task_id, call_id, prepared.intent, plan_steps=prepared.steps
+                    )
                 return
             intent = await interpret_message(
                 model,
@@ -615,6 +637,7 @@ def create_app(
                     tab_id=x_tab_id,
                 )
                 await run_interpretation(session_id, task.task_id, task.model_call_id or "")
+                await drive_plan(session_id)
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
         except TaskConflict as error:
@@ -635,6 +658,7 @@ def create_app(
         try:
             task = sessions.retry_interpretation(session_id, task_id, x_tab_id, request.snapshot)
             await run_interpretation(session_id, task_id, task.model_call_id or "")
+            await drive_plan(session_id)
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
         except (TaskConflict, LeaseConflict) as error:
@@ -673,6 +697,7 @@ def create_app(
                     x_tab_id,
                 )
                 await run_interpretation(session_id, task_id, task.model_call_id or "")
+            await drive_plan(session_id)
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
         except (
@@ -713,6 +738,7 @@ def create_app(
             task = sessions.accept_result(session_id, action_result, x_tab_id)
             if task.status == "interpreting" and task.model_call_id:
                 await run_interpretation(session_id, task.task_id, task.model_call_id)
+            await drive_plan(session_id)
         except SessionNotFound as error:
             raise HTTPException(status_code=404, detail="Session not found") from error
         except (ActionResultMismatch, LeaseConflict) as error:

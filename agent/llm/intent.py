@@ -95,6 +95,23 @@ MAX_SKIPPED_STEPS = 6
 StepWords = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=300)]
 
 
+def normalise_steps(data: dict) -> dict:
+    """Steps beyond the two that can run become skipped words, in spoken order.
+
+    Overflow is words for the report, never work. A null `skipped_steps` is tolerated.
+    Anything that is not a list of strings is left for the model validation to reject.
+    """
+    steps, skipped = data.get("remaining_steps"), data.get("skipped_steps") or []
+    if (
+        isinstance(steps, list)
+        and isinstance(skipped, list)
+        and all(isinstance(item, str) for item in (*steps, *skipped))
+    ):
+        data["remaining_steps"] = steps[:MAX_REMAINING_STEPS]
+        data["skipped_steps"] = [*steps[MAX_REMAINING_STEPS:], *skipped][:MAX_SKIPPED_STEPS]
+    return data
+
+
 class IntentModel(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
 
@@ -268,6 +285,7 @@ class StructuredIntent(IntentModel):
 
     # No field descriptions: the provider schema is copied into every branch, and the
     # prompt explains these fields. Later steps are the Shopper's words, never intents.
+    first_step: StepWords | None = None
     remaining_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_REMAINING_STEPS)
     skipped_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_SKIPPED_STEPS)
     condition: IntentCondition | None = None
@@ -293,16 +311,7 @@ class StructuredIntent(IntentModel):
                 return None
             return raw
 
-        data = dict(data)
-        steps, skipped = data.get("remaining_steps"), data.get("skipped_steps") or []
-        if (
-            isinstance(steps, list)
-            and isinstance(skipped, list)
-            and all(isinstance(item, str) for item in (*steps, *skipped))
-        ):
-            # Overflow is words for the report, never work: keep spoken order.
-            data["remaining_steps"] = steps[:MAX_REMAINING_STEPS]
-            data["skipped_steps"] = [*steps[MAX_REMAINING_STEPS:], *skipped][:MAX_SKIPPED_STEPS]
+        data = normalise_steps(dict(data))
         if "condition" in data:
             data["condition"] = checked(data["condition"])
         if unsupported:
@@ -351,7 +360,8 @@ class StructuredIntent(IntentModel):
     @model_validator(mode="after")
     def clarification_state_is_consistent(self) -> Self:
         if self.v < 10 and (
-            self.remaining_steps
+            self.first_step is not None
+            or self.remaining_steps
             or self.skipped_steps
             or self.condition is not None
             or self.beneficiary is not None

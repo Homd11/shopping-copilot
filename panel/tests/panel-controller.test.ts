@@ -1203,3 +1203,163 @@ describe("PanelController", () => {
     expect(getUserMedia).not.toHaveBeenCalled();
   });
 });
+
+describe("PanelController plan checklist", () => {
+  const steps = [
+    { position: 1, text: "ضيفلي الجزمة للعربية" },
+    { position: 2, text: "افتح العربية" },
+  ];
+
+  async function ready() {
+    const context = setup();
+    await context.controller.start();
+    context.controller.receiveStorefront({ type: "snapshot", snapshot });
+    return context;
+  }
+  const marks = (root: HTMLElement) =>
+    Array.from(root.querySelectorAll<HTMLElement>(".plan-step")).map(
+      (item) => item.dataset.mark,
+    );
+  const inputDisabled = (root: HTMLElement) =>
+    root.querySelector<HTMLInputElement>("#shopper-message")!.disabled;
+  const created = (language: "ar" | "en" = "ar"): AgentEvent => ({
+    type: "plan_created",
+    data: { plan_id: "plan-1", language, steps },
+  });
+  const started = (position: number, taskId: string): AgentEvent => ({
+    type: "plan_step_started",
+    data: { plan_id: "plan-1", position, task_id: taskId },
+  });
+  const finishStep = (
+    position: number,
+    outcome: "done" | "failed" | "skipped",
+  ): AgentEvent => ({
+    type: "plan_step_finished",
+    data: { plan_id: "plan-1", position, outcome },
+  });
+  const finished = (outcome: "done" | "failed" | "cancelled"): AgentEvent => ({
+    type: "plan_finished",
+    data: { plan_id: "plan-1", outcome },
+  });
+
+  it("ticks marks live and keeps the input disabled until the plan finishes", async () => {
+    const { root, emit } = await ready();
+    expect(inputDisabled(root)).toBe(false);
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created());
+    expect(root.querySelectorAll("#plan-checklist")).toHaveLength(1);
+    expect(root.querySelector<HTMLElement>("#plan-checklist")!.hidden).toBe(
+      false,
+    );
+    expect(root.querySelector("#plan-checklist")!.getAttribute("dir")).toBe(
+      "rtl",
+    );
+    expect(root.querySelector(".plan-heading")!.textContent).toBe("الخطوات");
+    expect(marks(root)).toEqual(["pending", "pending"]);
+    expect(inputDisabled(root)).toBe(true);
+
+    emit(started(1, "task-1"));
+    expect(marks(root)).toEqual(["running", "pending"]);
+    emit({ type: "done", data: { summary: "تمت", language: "ar" } });
+    emit(finishStep(1, "done"));
+    expect(marks(root)).toEqual(["done", "pending"]);
+    // The gap between step 1's done and step 2's task_started.
+    expect(inputDisabled(root)).toBe(true);
+    emit({ type: "task_started", data: { task_id: "task-2" } });
+    emit(started(2, "task-2"));
+    expect(marks(root)).toEqual(["done", "running"]);
+    emit({ type: "done", data: { summary: "تمت", language: "ar" } });
+    emit(finishStep(2, "done"));
+    expect(inputDisabled(root)).toBe(true);
+    emit(finished("done"));
+    expect(marks(root)).toEqual(["done", "done"]);
+    expect(inputDisabled(root)).toBe(false);
+    expect(root.querySelectorAll("#plan-checklist")).toHaveLength(1);
+    expect(root.querySelectorAll(".plan-steps")).toHaveLength(1);
+  });
+
+  it("labels the checklist in English and shows text-based state, not colour only", async () => {
+    const { root, emit } = await ready();
+    emit(created("en"));
+    emit(started(1, "task-1"));
+    const container = root.querySelector("#plan-checklist")!;
+    expect(container.getAttribute("dir")).toBe("ltr");
+    expect(container.querySelector(".plan-heading")!.textContent).toBe("Steps");
+    const states = Array.from(container.querySelectorAll(".plan-state")).map(
+      (node) => node.textContent,
+    );
+    expect(states).toEqual(["In progress", "Waiting"]);
+  });
+
+  it("renders step text as text, never HTML", async () => {
+    const { root, emit } = await ready();
+    emit({
+      type: "plan_created",
+      data: {
+        plan_id: "plan-1",
+        language: "en",
+        steps: [
+          { position: 1, text: "<img src=x onerror=alert(1)>" },
+          { position: 2, text: "open the cart" },
+        ],
+      },
+    });
+    expect(root.querySelector("#plan-checklist img")).toBeNull();
+    expect(root.querySelector(".plan-text")!.textContent).toBe(
+      "<img src=x onerror=alert(1)>",
+    );
+  });
+
+  it("shows a failed step 1 and a skipped step 2, then frees the input", async () => {
+    const { root, emit } = await ready();
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created());
+    emit(started(1, "task-1"));
+    emit({ type: "cancelled", data: {} });
+    emit(finishStep(1, "failed"));
+    emit(finishStep(2, "skipped"));
+    expect(marks(root)).toEqual(["failed", "skipped"]);
+    expect(inputDisabled(root)).toBe(true);
+    emit(finished("failed"));
+    expect(inputDisabled(root)).toBe(false);
+  });
+
+  it("ignores step events for an unknown plan", async () => {
+    const { root, emit } = await ready();
+    emit(created());
+    emit({
+      type: "plan_step_started",
+      data: { plan_id: "other", position: 1, task_id: "task-1" },
+    });
+    emit({
+      type: "plan_finished",
+      data: { plan_id: "other", outcome: "done" },
+    });
+    expect(marks(root)).toEqual(["pending", "pending"]);
+    expect(inputDisabled(root)).toBe(true);
+  });
+
+  it("shows no checklist for a one-step task and behaves as today", async () => {
+    const { root, emit } = await ready();
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    expect(root.querySelector<HTMLElement>("#plan-checklist")!.hidden).toBe(
+      true,
+    );
+    expect(root.querySelectorAll(".plan-step")).toHaveLength(0);
+    expect(inputDisabled(root)).toBe(true);
+    emit({ type: "done", data: { summary: "Done", language: "en" } });
+    expect(inputDisabled(root)).toBe(false);
+    expect(root.querySelectorAll(".plan-step")).toHaveLength(0);
+  });
+
+  it("clears a finished checklist when the Shopper sends the next message", async () => {
+    const { root, emit } = await ready();
+    emit(created());
+    emit(finished("cancelled"));
+    root.querySelector<HTMLInputElement>("#shopper-message")!.value = "hi";
+    root.querySelector<HTMLButtonElement>(".input-row button")!.click();
+    expect(root.querySelector<HTMLElement>("#plan-checklist")!.hidden).toBe(
+      true,
+    );
+  });
+});

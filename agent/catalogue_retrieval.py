@@ -14,7 +14,14 @@ from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireModel
 from agent.event_log import MAX_REJECTIONS, REJECTION_CODES, debug_text
 from agent.llm.contract import LLMClient, LLMInvalidResponseError, LLMMessage, LLMRequest
-from agent.llm.intent import IntentConstraints, StructuredIntent
+from agent.llm.intent import (
+    MAX_REMAINING_STEPS,
+    MAX_SKIPPED_STEPS,
+    IntentConstraints,
+    StepWords,
+    StructuredIntent,
+    normalise_steps,
+)
 from agent.llm.intent_pipeline import (
     MissingExecutionField,
     Rejected,
@@ -46,7 +53,31 @@ class Decision(WireModel):
         return data
 
 
-class ReadDecision(Decision):
+class StepFields(Decision):
+    """The Shopper's words for a multi-part message, on the decisions that talk to the Shopper.
+
+    No field descriptions: the provider schema is copied into every decision, and the prompt
+    explains these fields. Words only, never intents; the first decision that names later
+    steps wins (see `retrieve_products`).
+    """
+
+    first_step: StepWords | None = None
+    remaining_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_REMAINING_STEPS)
+    skipped_steps: list[StepWords] = Field(default_factory=list, max_length=MAX_SKIPPED_STEPS)
+
+    @model_validator(mode="before")
+    @classmethod
+    def overflow_steps_are_skipped_words(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+        data = dict(data)
+        for name in ("remaining_steps", "skipped_steps"):
+            if name in data and data[name] is None:
+                data[name] = []
+        return normalise_steps(data)
+
+
+class ReadDecision(StepFields):
     subjective_preferences: list[Annotated[str, Field(min_length=1, max_length=120)]] = Field(
         default_factory=list,
         max_length=6,
@@ -88,10 +119,24 @@ class ExecuteDecision(Decision):
     kind: Literal["execute"]
 
 
-class ClarifyDecision(Decision):
+class ClarifyDecision(StepFields):
     kind: Literal["clarify"]
     question: str = Field(min_length=1, max_length=500)
     language: Literal["ar", "en"]
+
+
+def provider_schema(adapter: TypeAdapter) -> dict:
+    """The schema sent to the provider: the step fields are required there, so the model
+    always states them (null / []). The Pydantic models keep their defaults, so replies and
+    fixtures that omit them still parse. `skipped_steps` stays optional."""
+    schema = adapter.json_schema()
+    for definition in schema.get("$defs", {}).values():
+        if "first_step" in definition.get("properties", {}):
+            required = definition.setdefault("required", [])
+            required.extend(
+                name for name in ("first_step", "remaining_steps") if name not in required
+            )
+    return schema
 
 
 DECISION = TypeAdapter(
@@ -108,6 +153,15 @@ DECISION = TypeAdapter(
 MODEL_DECISION = TypeAdapter(
     Annotated[
         SearchDecision | DetailsDecision | ExecuteDecision | ClarifyDecision | RecommendDecision,
+        Field(discriminator="kind"),
+    ]
+)
+# After the action interpreter hands a request back to search, execute is not offered again:
+# a model that keeps choosing it loops execute -> find_products -> hand-back until the
+# decision budget is gone (live trace 2026-11-20).
+HANDBACK_DECISION = TypeAdapter(
+    Annotated[
+        SearchDecision | DetailsDecision | ClarifyDecision | RecommendDecision,
         Field(discriminator="kind"),
     ]
 )
@@ -151,6 +205,10 @@ class RetrievalOutcome:
     question: str | None = None
     language: str = "en"
     advice_message: str | None = None
+    # The Shopper's words for later parts of a multi-part message; see `StepFields`.
+    first_step: str | None = None
+    remaining_steps: list[str] = field(default_factory=list)
+    skipped_steps: list[str] = field(default_factory=list)
 
 
 def _rejection_code(error: Exception, stage: str) -> str:
@@ -192,6 +250,7 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
         "previous_suggestions": state.get("_previous_suggestions", []),
         "pending_intent": state.get("_intent"),
         "current_snapshot": snapshot_context(snapshot),
+        "plan_step": state.get("_plan_step"),
         "destinations": storefront.destination_routes,
         "currency": storefront.currency,
         "evidence": history,
@@ -202,6 +261,19 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
     }
     return LLMRequest(
         system=(
+            "FIRST RULE, before anything else: if the message asks for more than one thing, "
+            "set first_step to the Shopper's own words for the first thing and remaining_steps "
+            "to the later things' words in spoken order (two at most; further things go as "
+            "words in skipped_steps). Every search, details, recommend and clarify in this turn "
+            "is about the FIRST step only. Never put an intent, ID or target in these fields. "
+            "A one-thing message has first_step null and remaining_steps []. execute carries "
+            "none of them. Example: 'find walking shoes under 1500 then open the cart' -> "
+            "first_step 'find walking shoes under 1500', remaining_steps ['open the cart']. "
+            "Example: 'دورلي على جزمة مشي تحت 1500 وبعدين افتحلي العربية' -> first_step "
+            "'دورلي على جزمة مشي تحت 1500', remaining_steps ['افتحلي العربية']. "
+            "When plan_step is present, the Shopper's request is only the current message text. "
+            "Earlier parts of their previous message were already carried out; never repeat "
+            "them or take a product, size or action from them. "
             "You are Shopping Copilot. Return a catalogue decision JSON: "
             "search, details, recommend, execute or "
             "clarify. You own all language interpretation, including Egyptian Arabic, Franco, "
@@ -257,10 +329,10 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "The other decisions do not include advice_message."
         ),
         messages=(LLMMessage(role="shopper", content=_json(context)),),
-        response_schema=MODEL_DECISION.json_schema(),
+        response_schema=provider_schema(MODEL_DECISION),
         response_validator=DECISION.validate_json,
         provider_attempt_limit=1,
-        prompt_version="catalogue-decision-v7",
+        prompt_version="catalogue-decision-v8",
         schema_version=1,
         max_tokens=2048,
         attempt_id="retrieval-" + uuid4().hex,
@@ -294,7 +366,19 @@ async def retrieve_products(
     # hands a request back to search, that hand-off does not consume search budget.
     # Refunded once per turn, so a turn makes at most four model calls.
     handoff_refunded = False
+    handed_back = False
+    routed_empty_recommend = False
     requirements, unknowns = None, None
+    # The first decision of the turn that names later steps wins; later ones may omit them.
+    steps: dict[str, Any] = {}
+
+    def note_steps(source) -> None:
+        if not steps and source.remaining_steps:
+            steps.update(
+                first_step=source.first_step,
+                remaining_steps=list(source.remaining_steps),
+                skipped_steps=list(source.skipped_steps),
+            )
 
     async def read(query, final=False):
         nonlocal requirements, unknowns
@@ -380,8 +464,14 @@ async def retrieve_products(
             request = replace(
                 request,
                 system=request.system + FINAL_INSTRUCTION,
-                response_schema=FINAL_DECISION.json_schema(),
+                response_schema=provider_schema(FINAL_DECISION),
                 response_validator=FINAL_PARSE.validate_json,
+            )
+        if handed_back and not executing and not concluding:
+            request = replace(
+                request,
+                system=request.system + " Execute is not available again in this turn.",
+                response_schema=provider_schema(HANDBACK_DECISION),
             )
         if executing:
             request = replace(
@@ -435,6 +525,12 @@ async def retrieve_products(
                 if executing
                 else (FINAL_PARSE if concluding else DECISION).validate_json("".join(parts))
             )
+            if handed_back and isinstance(decision, ExecuteDecision):
+                raise Rejected(
+                    "execute_after_handoff", "Execute is not available after a hand-back to search"
+                )
+            if isinstance(decision, StepFields):
+                note_steps(decision)
             if isinstance(decision, ClarifyDecision):
                 return RetrievalOutcome(
                     None,
@@ -445,12 +541,28 @@ async def retrieve_products(
                     unknowns or [],
                     decision.question,
                     decision.language,
+                    **steps,
                 )
             if isinstance(decision, SearchDecision | DetailsDecision):
                 if decision.subjective_preferences:
                     preferences = decision.subjective_preferences
                 stage = "query_invalid"
                 await read(decision.query)
+                feedback = None
+                continue
+            if (
+                isinstance(decision, RecommendDecision)
+                and not decision.selected_ids
+                and not evidence
+                and not handed_back
+                and not routed_empty_recommend
+                and budget.decisions < 3
+            ):
+                # Nothing was read and nothing selected: this is not a recommendation, so it
+                # is routed like execute (code-side; the interpreter rereads the request).
+                # Live trace 2026-11-20: a cart command refused as "advice" after a search.
+                routed_empty_recommend = True
+                executing = True
                 feedback = None
                 continue
             if isinstance(decision, RecommendDecision):
@@ -518,6 +630,9 @@ async def retrieve_products(
             intent = _validate_interpreted_intent(
                 message, proposed_intent, storefront, trusted, snapshot, retrieval=True
             )
+            if executing:
+                # An execute decision names no steps: the action interpreter's reply does.
+                note_steps(intent)
             if (
                 executing
                 and intent.intent in {"find_products", "advice"}
@@ -528,6 +643,7 @@ async def retrieve_products(
                 context = {**context, "_intent": intent.model_dump(mode="json")}
                 preferences = intent.subjective_preferences
                 executing = False
+                handed_back = True
                 feedback = None
                 if not handoff_refunded:
                     handoff_refunded = True
@@ -598,6 +714,7 @@ async def retrieve_products(
                 requirements or [],
                 unknowns or [],
                 advice_message=advice_message,
+                **steps,
             )
         except (ValidationError, ValueError) as error:
             # Transport/index errors and exhaustion are explicit failures, never new model attempts.

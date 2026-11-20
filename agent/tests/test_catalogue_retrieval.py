@@ -590,3 +590,130 @@ def test_other_decision_fields_stay_strict_after_the_version_is_ignored() -> Non
         DECISION.validate_json('{"v": 10, "kind": "search", "query": {"query": 5}}')
     with pytest.raises(ValidationError):
         DECISION.validate_json('{"v": 1, "kind": "browse"}')
+
+
+def _offered_kinds(request):
+    from agent.llm.provider_schema import openrouter_response_schema
+
+    schema = openrouter_response_schema(request.response_schema)
+    return [branch["properties"]["kind"]["enum"][0] for branch in schema["oneOf"]]
+
+
+def test_after_a_handoff_to_retrieval_execute_is_no_longer_offered():
+    # Live trace 2026-11-20: execute, intent find_products, hand-back, execute again, ...
+    model = RecordingModel(
+        {"kind": "execute"},
+        decision(intent="find_products"),
+        _search(),
+        _recommend("p-1"),
+    )
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.selected_ids == ["p-1"]
+    assert len(model.requests) == 4
+    assert "execute" in _offered_kinds(model.requests[0])
+    for request in model.requests[2:]:
+        assert "execute" not in _offered_kinds(request)
+    assert sorted(_offered_kinds(model.requests[2])) == [
+        "clarify",
+        "details",
+        "recommend",
+        "search",
+    ]
+
+
+def test_an_execute_decision_after_a_handoff_is_an_invalid_decision_with_its_own_reason():
+    model = RecordingModel(
+        {"kind": "execute"},
+        decision(intent="find_products"),
+        {"kind": "execute"},
+        {"kind": "clarify", "language": "en", "question": "Which bag?"},
+    )
+    budget = RetrievalBudget()
+    outcome = asyncio.run(run(model, Reads(), budget=budget))
+    assert outcome.question == "Which bag?"
+    assert budget.rejections == ["execute_after_handoff"]
+
+
+EMPTY_RECOMMEND = {
+    "kind": "recommend",
+    "language": "ar",
+    "selected_ids": [],
+    "advice_message": "عذراً، لا أستطيع مسح السلة.",
+}
+
+
+def test_an_empty_recommend_without_evidence_is_routed_to_the_action_interpreter():
+    # Live trace 2026-11-20: "امسح السلة كلها" after a search was refused as a recommendation.
+    from agent.app import create_app
+    from agent.llm import LLMSettings
+    from agent.tests.http_client import TestClient
+    from agent.tests.test_sessions import parse_sse
+    from agent.tests.test_step import home_snapshot
+
+    clear = {
+        "v": 10,
+        "language": "ar",
+        "dialect": "egyptian_arabic",
+        "intent": "mutate",
+        "constraints": {},
+        "missing_fields": [],
+        "needs_clarification": False,
+        "mutation_kind": "clear_cart",
+        "mutation_source": "امسح السلة كلها",
+    }
+    model = RecordingModel(EMPTY_RECOMMEND, clear)
+    app = create_app(
+        llm_settings=LLMSettings(provider="groq", model="test"),
+        llm_client=model,
+        catalogue_client=Reads(),
+        catalogue_retrieval_enabled=True,
+    )
+    with TestClient(app) as client:
+        sid = client.post("/sessions").json()["session_id"]
+        client.post(
+            f"/sessions/{sid}/messages",
+            json={"text": "امسح السلة كلها", "snapshot": home_snapshot()},
+        )
+        events = parse_sse(client.get(f"/sessions/{sid}/events?once=true").text)
+    # The interpreter ran; the guarded flow starts by opening the cart for the Confirmation.
+    assert len(model.requests) == 2
+    action = [e["data"]["action"] for e in events if e["event"] == "action"][-1]
+    assert (action["type"], action["url"]) == ("navigate", "/cart")
+    assert "suggestions" not in [e["event"] for e in events]
+    assert "لا أستطيع" not in json.dumps(events, ensure_ascii=False)
+
+
+def test_the_empty_recommend_is_routed_once_and_costs_no_extra_budget():
+    model = RecordingModel(
+        EMPTY_RECOMMEND, decision(intent="navigate", constraints={"target": "cart"})
+    )
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.intent.intent == "navigate"
+    assert outcome.budget.decisions == 2 and len(model.requests) == 2
+
+
+def test_an_empty_recommend_after_a_handoff_is_accepted_not_routed_again():
+    model = RecordingModel(
+        {"kind": "execute"},
+        decision(intent="find_products"),
+        EMPTY_RECOMMEND,
+    )
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.intent.intent == "advice" and outcome.selected_ids == []
+    assert len(model.requests) == 3
+
+
+def test_an_empty_recommend_is_routed_at_most_once_per_turn():
+    model = RecordingModel(EMPTY_RECOMMEND, decision(intent="find_products"), EMPTY_RECOMMEND)
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.selected_ids == [] and len(model.requests) == 3
+
+
+def test_a_recommend_with_selected_ids_or_after_reads_is_unchanged():
+    model = RecordingModel(_search(), _recommend("p-1"))
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.selected_ids == ["p-1"] and len(model.requests) == 2
+    # After a read, an empty recommend is a real (empty) recommendation: no routing.
+    model = RecordingModel(_search(), EMPTY_RECOMMEND)
+    outcome = asyncio.run(run(model, Reads()))
+    assert outcome.selected_ids == [] and len(model.requests) == 2

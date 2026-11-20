@@ -59,6 +59,7 @@ def is_cost(value) -> bool:
 
 
 TASK_ID = re.compile(r"task-[0-9a-f]{32}")
+PLAN_ID = re.compile(r"plan-[0-9a-f]{32}")
 SHOPPER = re.compile(r"[0-9a-f]{16}")
 INVITATION_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 TASK_EVENTS = frozenset(get_args(EventType))
@@ -101,6 +102,7 @@ REJECTION_CODES = frozenset(
         "cart_edit_invalid",
         "mutation_invalid",
         "source_not_in_message",
+        "execute_after_handoff",  # execute chosen again after the interpreter handed back
         "other",
     }
 )
@@ -156,6 +158,31 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
             {"consumed", "stopped", "stale", "expired", "unregistered", "invalidated"}
         ),
         "mutation_kind": _one_of({"clear_cart", "submit_checkout"}),
+    },
+    # Plans: identifiers, positions, types, outcomes and counts only; never step text.
+    "plan_created": {
+        **_TASK_CONTEXT,
+        "plan_id": _matches(PLAN_ID),
+        "step_count": is_count,
+        "skipped_count": is_count,
+        "language": _LANGUAGE,
+        "dialect": _one_of(DIALECTS),
+    },
+    "plan_step": {
+        **_TASK_CONTEXT,
+        "plan_id": _matches(PLAN_ID),
+        "position": is_count,
+        "outcome": _one_of({"done", "failed", "skipped"}),
+        "intent_type": _one_of(INTENTS),
+        "guarded": lambda v: isinstance(v, bool),
+    },
+    "plan_finished": {
+        **_TASK_CONTEXT,
+        "plan_id": _matches(PLAN_ID),
+        "outcome": _one_of({"done", "failed", "cancelled"}),
+        "done_count": is_count,
+        "failed_count": is_count,
+        "skipped_count": is_count,
     },
     "model_call": {
         **_TASK_CONTEXT,

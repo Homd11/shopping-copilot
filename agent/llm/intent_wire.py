@@ -28,7 +28,7 @@ def _constraints(name, fields):
 
 _common = ("language", "dialect", "missing_fields", "conflicting_fields", "needs_clarification")
 # Later steps, only where a first step can be acted on; conversation replies carry none.
-_steps = ("remaining_steps", "skipped_steps")
+_steps = ("first_step", "remaining_steps", "skipped_steps")
 # The provider schema is copied into every branch, so each field goes only where it can apply.
 _for_whom = ("beneficiary", "refers_to_this")
 

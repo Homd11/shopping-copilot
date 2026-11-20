@@ -22,7 +22,7 @@ from agent.product_context import require_known_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v34"
+PROMPT_VERSION = "intent-v35"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
@@ -311,12 +311,17 @@ def build_intent_request(
             "operations. "
             "Set needs_clarification only with missing_fields/conflicting_fields; use target "
             "for cart-line ambiguity. "
+            "When plan_step is present, the Shopper's request is only the current message text. "
+            "Earlier parts of their previous message were already carried out; never repeat "
+            "them or take a product, size or action from them. "
             "If the Shopper asks for several things in order, interpret ONLY the first step "
             "against current_snapshot exactly as above. Return each later step in "
             "remaining_steps as the Shopper's own words, including any condition words, "
             "never as an intent, product ID, element ID or target. Three steps at most: "
             "remaining_steps holds at most two; any further steps go as words in "
-            "skipped_steps. condition applies to the first step only and is "
+            "skipped_steps. When remaining_steps is not empty, also fill first_step with the "
+            "Shopper's own words for the first step; otherwise leave it null. condition "
+            "applies to the first step only and is "
             "{fact: price|in_stock|size_exists|colour_exists, comparator, value}; for a vaguer "
             "condition set needs_clarification=true with missing_fields=['condition']. Set "
             "beneficiary when the step is for someone else (brother, sister, mother, father, "

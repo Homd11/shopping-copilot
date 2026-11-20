@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from pathlib import Path
 
@@ -17,6 +17,7 @@ from agent.catalogue_client import CatalogueClient
 from agent.catalogue_retrieval import RetrievalBudget, RetrievalExhausted, retrieve_products
 from agent.event_log import record
 from agent.llm.intent import StructuredIntent
+from agent.plans import PlanSteps
 
 
 @lru_cache(maxsize=1)
@@ -50,6 +51,10 @@ class PreparedTurn:
     evidence: AdviceEvidence | None
     summary: str | None
     references: list[dict[str, str]]
+    # The Shopper's words for later parts of the message; empty for a one-part message.
+    steps: PlanSteps = field(default_factory=PlanSteps)
+    # The turn ended in the exhausted fallback: the task completes, but did not do its step.
+    exhausted: bool = False
 
 
 def _exhausted_turn(task):
@@ -69,7 +74,9 @@ def _exhausted_turn(task):
         if task.language == "ar"
         else "I couldn't finish this search. Which requirement should we start with?"
     )
-    return PreparedTurn(intent, AdviceEvidence(DiscoveryResult(None, ()), ()), question, [])
+    return PreparedTurn(
+        intent, AdviceEvidence(DiscoveryResult(None, ()), ()), question, [], exhausted=True
+    )
 
 
 async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
@@ -128,6 +135,12 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
             intent, AdviceEvidence(DiscoveryResult(None, ()), ()), outcome.question, []
         ), "clarify"
     intent = outcome.intent
+    steps = PlanSteps(
+        outcome.first_step,
+        list(outcome.remaining_steps),
+        list(outcome.skipped_steps),
+        intent.dialect,
+    )
     references = [
         {
             "id": p.product.id,
@@ -136,10 +149,12 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
         for p in outcome.products
     ]
     if intent.intent not in {"find_products", "advice"} or intent.needs_clarification:
-        return PreparedTurn(intent, None, None, references), "execute"
+        return PreparedTurn(intent, None, None, references, steps), "execute"
     evidence = prepare_retrieved_advice(outcome)
     if outcome.advice_message is not None:
-        return PreparedTurn(intent, evidence, outcome.advice_message, references), "recommend"
+        return PreparedTurn(
+            intent, evidence, outcome.advice_message, references, steps
+        ), "recommend"
     if outcome.budget.advice >= 1:
         return _exhausted_turn(task), "exhausted"
     await ensure_active()
@@ -153,4 +168,4 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
         evidence,
     )
     await ensure_active()
-    return PreparedTurn(intent, evidence, summary, references), "recommend"
+    return PreparedTurn(intent, evidence, summary, references, steps), "recommend"

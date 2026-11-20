@@ -13,7 +13,17 @@ from agent.schemas import Action, ActionResult, Snapshot
 from agent.shopper_access import ShopperBinding
 
 EventType = Literal[
-    "task_started", "narration", "action", "suggestions", "done", "cancelled", "error"
+    "task_started",
+    "narration",
+    "action",
+    "suggestions",
+    "done",
+    "cancelled",
+    "error",
+    "plan_created",
+    "plan_step_started",
+    "plan_step_finished",
+    "plan_finished",
 ]
 
 
@@ -39,6 +49,36 @@ InterpretationPauseReason = Literal[
 
 
 TaskEndKind = Literal["completed", "cancelled", "paused"]
+
+
+PlanStepStatus = Literal["pending", "running", "done", "failed", "skipped"]
+
+
+@dataclass
+class PlanStep:
+    """One thing the Shopper asked for, as their own words; never an intent or a target."""
+
+    position: int  # 1-based, in the order spoken
+    text: str
+    status: PlanStepStatus = "pending"
+    task_id: str | None = None
+
+
+@dataclass
+class ActivePlan:
+    """Thin record beside the active task: the steps of one multi-part message.
+
+    The Session still has at most one active task; the plan only remembers what is left and
+    starts the next step as its own Shopping Task when the current one completes.
+    """
+
+    plan_id: str
+    language: Language
+    steps: list[PlanStep]
+    cursor: int = 0  # index into `steps` of the step whose task is current
+    skipped_steps: list[str] = field(default_factory=list)  # words for the report, not work
+    # Task id of a step just started that nobody has interpreted yet (see `app.drive_plan`).
+    start_pending: str | None = None
 
 
 @dataclass(frozen=True)
@@ -75,6 +115,9 @@ class ActiveTask:
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
     retrieval_budget: "RetrievalBudget | None" = None
+    # 1-based position when this task is a step of the Session's plan; such a task never
+    # creates a plan of its own.
+    plan_position: int | None = None
 
 
 @dataclass(frozen=True)
@@ -110,6 +153,7 @@ class Session:
     product_context: ProductContext = field(default_factory=ProductContext)
     advice_context: dict[str, Any] = field(default_factory=dict)
     invitation_id: str | None = None
+    plan: ActivePlan | None = None
 
 
 class SessionNotFound(KeyError):

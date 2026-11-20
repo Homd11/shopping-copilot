@@ -215,6 +215,8 @@ class TaskRuntime:
         payload = {"session_id": session.session_id, **data}
         session.events.append(SessionEvent(id=len(session.events) + 1, event=event, data=payload))
         action = data.get("action") or {}
+        if event.startswith("plan_"):
+            return  # plans have their own records (plan_created, plan_step, plan_finished)
         self.record(
             session,
             "task",

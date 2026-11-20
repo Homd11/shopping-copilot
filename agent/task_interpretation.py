@@ -1,5 +1,6 @@
 """Model interpretation lifecycle and bounded conversation context."""
 
+from collections.abc import Callable
 from contextlib import suppress
 from typing import Any
 from urllib.parse import urlsplit
@@ -21,6 +22,7 @@ from agent.planner import (
     ActionIdentity,
     detect_language,
 )
+from agent.plans import PlanSteps, open_plan
 from agent.product_context import require_known_product
 from agent.schemas import (
     AskShopperAction,
@@ -65,7 +67,7 @@ def _intent_context(task: "ActiveTask", intent: StructuredIntent) -> dict[str, A
         ),
         **{
             key: task.resolved_state[key]
-            for key in ("_known_products", "_recent_conversation")
+            for key in ("_known_products", "_recent_conversation", "_plan_step")
             if key in task.resolved_state
         },
     }
@@ -79,6 +81,7 @@ def begin_interpretation(
     *,
     replace_active: bool = False,
     tab_id: str | None = None,
+    on_started: Callable[[ActiveTask], None] | None = None,
 ) -> ActiveTask:
     session = runtime.sessions.get(session_id)
     runtime.sessions.assert_lease(session, tab_id)
@@ -122,6 +125,8 @@ def begin_interpretation(
     runtime.record_snapshot(session, snapshot)
     session.conversation.append({"role": "shopper", "text": text})
     runtime.append(session, "task_started", {"task_id": task.task_id})
+    if on_started is not None:
+        on_started(task)
     runtime.record_debug(session, "shopper_message", text, task.task_id)
     runtime.append(
         session,
@@ -141,6 +146,8 @@ def finish_interpretation(
     task_id: str,
     call_id: str,
     intent: StructuredIntent,
+    *,
+    plan_steps: PlanSteps | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -148,6 +155,7 @@ def finish_interpretation(
         return None
     if task.status != "interpreting" or session.requires_reconciliation:
         return None
+    steps = plan_steps if plan_steps is not None else PlanSteps.from_intent(intent)
     if session.last_snapshot is not None:
         runtime.require_task_origin(task, session.last_snapshot)
     runtime.record(
@@ -208,6 +216,7 @@ def finish_interpretation(
         intent = validate_cart_intent(task.message, intent, session.last_snapshot)
         if undo_expired(intent, session.last_snapshot):
             summary = UNDO_EXPIRED[0] if intent.language == "ar" else UNDO_EXPIRED[1]
+            open_plan(runtime, session, task, steps, intent.language)
             runtime.append(
                 session,
                 "done",
@@ -331,6 +340,8 @@ def finish_interpretation(
             for item in task.resolved_state.get("_previous_suggestions", [])
             if isinstance(item, dict) and isinstance(item.get("name"), str)
         ][:3]
+    # Later steps exist only as the Shopper's words; the plan is announced before any action.
+    open_plan(runtime, session, task, steps, intent.language)
     runtime.append(session, "narration", {"task_id": task_id, "text": action.narration})
     runtime.append(session, "action", {"task_id": task_id, "action": to_wire(action)})
     session.conversation.append({"role": "copilot", "text": action.narration})
@@ -347,6 +358,8 @@ def finish_catalogue_interpretation(
     result: DiscoveryResult,
     *,
     advice_text: str | None = None,
+    plan_steps: PlanSteps | None = None,
+    end_reason: str | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -426,6 +439,13 @@ def finish_catalogue_interpretation(
         )
     if advice_text is not None:
         summary = advice_text
+    open_plan(
+        runtime,
+        session,
+        task,
+        plan_steps if plan_steps is not None else PlanSteps.from_intent(intent),
+        intent.language,
+    )
     runtime.append(session, "suggestions", {"task_id": task_id, **payload})
     runtime.append(
         session,
@@ -433,7 +453,7 @@ def finish_catalogue_interpretation(
         {"task_id": task_id, "summary": summary, "language": intent.language},
     )
     session.conversation.append({"role": "copilot", "text": summary})
-    runtime.end_task(session, task, "completed")
+    runtime.end_task(session, task, "completed", end_reason)
     runtime.sessions.touch(session)
     return task
 

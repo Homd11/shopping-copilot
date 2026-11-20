@@ -13,7 +13,14 @@ export const AGENT_EVENT_TYPES = [
   "done",
   "cancelled",
   "error",
+  "plan_created",
+  "plan_step_started",
+  "plan_step_finished",
+  "plan_finished",
 ] as const;
+
+export type PlanStepOutcome = "done" | "failed" | "skipped";
+export type PlanOutcome = "done" | "failed" | "cancelled";
 
 export type AgentEvent =
   | { type: "task_started"; data: { task_id: string } }
@@ -22,7 +29,24 @@ export type AgentEvent =
   | { type: "suggestions"; data: SuggestionResult }
   | { type: "done"; data: { summary: string; language: "ar" | "en" } }
   | { type: "cancelled"; data: Record<string, never> }
-  | { type: "error"; data: { message: string } };
+  | { type: "error"; data: { message: string } }
+  | {
+      type: "plan_created";
+      data: {
+        plan_id: string;
+        language: "ar" | "en";
+        steps: Array<{ position: number; text: string }>;
+      };
+    }
+  | {
+      type: "plan_step_started";
+      data: { plan_id: string; position: number; task_id: string };
+    }
+  | {
+      type: "plan_step_finished";
+      data: { plan_id: string; position: number; outcome: PlanStepOutcome };
+    }
+  | { type: "plan_finished"; data: { plan_id: string; outcome: PlanOutcome } };
 
 export interface Suggestion {
   id: string;
@@ -88,6 +112,50 @@ function eventString(data: Record<string, unknown>, key: string): string {
   return value;
 }
 
+function eventPosition(data: Record<string, unknown>, max = 3): number {
+  const value = data.position;
+  if (
+    !Number.isSafeInteger(value) ||
+    (value as number) < 1 ||
+    (value as number) > max
+  )
+    throw new TypeError(
+      `Agent event data.position must be an integer 1-${max}`,
+    );
+  return value as number;
+}
+
+function eventOneOf<T extends string>(
+  data: Record<string, unknown>,
+  key: string,
+  allowed: readonly T[],
+): T {
+  const value = eventString(data, key);
+  if (!(allowed as readonly string[]).includes(value))
+    throw new TypeError(`Agent event data.${key} is not supported`);
+  return value as T;
+}
+
+function eventPlanId(data: Record<string, unknown>): string {
+  const planId = eventString(data, "plan_id");
+  if (planId === "") throw new TypeError("Agent event data.plan_id is empty");
+  return planId;
+}
+
+function parsePlanSteps(
+  value: unknown,
+): Array<{ position: number; text: string }> {
+  if (!Array.isArray(value) || value.length < 2 || value.length > 3)
+    throw new TypeError("Agent event data.steps must list 2 or 3 steps");
+  return value.map((entry: unknown, index: number) => {
+    const step = eventData(entry);
+    const position = eventPosition(step, value.length);
+    if (position !== index + 1)
+      throw new TypeError("Agent event data.steps must be in order");
+    return { position, text: eventString(step, "text") };
+  });
+}
+
 export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
   if (!(AGENT_EVENT_TYPES as readonly string[]).includes(type))
     throw new TypeError(
@@ -116,12 +184,87 @@ export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
       return { type, data: {} };
     case "error":
       return { type, data: { message: eventString(data, "message") } };
+    case "plan_created":
+      return {
+        type,
+        data: {
+          plan_id: eventPlanId(data),
+          language: eventOneOf(data, "language", ["ar", "en"] as const),
+          steps: parsePlanSteps(data.steps),
+        },
+      };
+    case "plan_step_started":
+      return {
+        type,
+        data: {
+          plan_id: eventPlanId(data),
+          position: eventPosition(data),
+          task_id: eventString(data, "task_id"),
+        },
+      };
+    case "plan_step_finished":
+      return {
+        type,
+        data: {
+          plan_id: eventPlanId(data),
+          position: eventPosition(data),
+          outcome: eventOneOf(data, "outcome", [
+            "done",
+            "failed",
+            "skipped",
+          ] as const),
+        },
+      };
+    case "plan_finished":
+      return {
+        type,
+        data: {
+          plan_id: eventPlanId(data),
+          outcome: eventOneOf(data, "outcome", [
+            "done",
+            "failed",
+            "cancelled",
+          ] as const),
+        },
+      };
     default:
       throw new TypeError(
         `Agent event type ${JSON.stringify(type)} is not supported`,
       );
   }
 }
+
+type PlanStepMark = "pending" | "running" | PlanStepOutcome;
+
+interface PlanView {
+  planId: string;
+  language: "ar" | "en";
+  steps: Array<{ text: string; mark: PlanStepMark }>;
+  active: boolean;
+}
+
+const PLAN_LABELS = {
+  ar: {
+    heading: "الخطوات",
+    marks: {
+      pending: ["○", "في الانتظار"],
+      running: ["◐", "جاري التنفيذ"],
+      done: ["✓", "تمّت"],
+      failed: ["✕", "لم تنجح"],
+      skipped: ["–", "تم تخطّيها"],
+    },
+  },
+  en: {
+    heading: "Steps",
+    marks: {
+      pending: ["○", "Waiting"],
+      running: ["◐", "In progress"],
+      done: ["✓", "Done"],
+      failed: ["✕", "Failed"],
+      skipped: ["–", "Skipped"],
+    },
+  },
+} as const;
 
 export type StorefrontMessage =
   | { type: "snapshot"; snapshot: Snapshot }
@@ -252,6 +395,7 @@ export class PanelController {
   #recognition: BrowserSpeechRecognition | undefined;
   #recorder: MediaRecorder | undefined;
   #speechVersion = 0;
+  #plan: PlanView | undefined;
 
   constructor(
     root: HTMLElement,
@@ -536,7 +680,78 @@ export class PanelController {
       this.#setStatus(event.data.message);
       this.#renderRetry();
       this.#setInputEnabled(false);
+    } else if (event.type === "plan_created") {
+      this.#plan = {
+        planId: event.data.plan_id,
+        language: event.data.language,
+        steps: event.data.steps.map((step) => ({
+          text: step.text,
+          mark: "pending",
+        })),
+        active: true,
+      };
+      this.#renderPlan();
+      this.#setInputEnabled(false);
+    } else if (this.#plan?.planId !== event.data.plan_id) {
+      // Plan events for an unknown plan are ignored.
+      return;
+    } else if (event.type === "plan_step_started") {
+      const step = this.#plan.steps[event.data.position - 1];
+      if (step === undefined) return;
+      step.mark = "running";
+      this.#renderPlan();
+    } else if (event.type === "plan_step_finished") {
+      const step = this.#plan.steps[event.data.position - 1];
+      if (step === undefined) return;
+      step.mark = event.data.outcome;
+      this.#renderPlan();
+    } else if (event.type === "plan_finished") {
+      this.#plan.active = false;
+      this.#renderPlan();
+      this.#setInputEnabled(this.#activeTaskId === undefined);
     }
+  }
+
+  #renderPlan(): void {
+    const container = this.#root.querySelector<HTMLElement>("#plan-checklist");
+    if (container === null) return;
+    const plan = this.#plan;
+    if (plan === undefined) {
+      container.replaceChildren();
+      container.hidden = true;
+      return;
+    }
+    const document = this.#root.ownerDocument;
+    const labels = PLAN_LABELS[plan.language];
+    container.hidden = false;
+    container.dir = plan.language === "ar" ? "rtl" : "ltr";
+    container.lang = plan.language;
+    const heading = document.createElement("h2");
+    heading.className = "plan-heading";
+    heading.textContent = labels.heading;
+    const list = document.createElement("ol");
+    list.className = "plan-steps";
+    list.setAttribute("aria-label", labels.heading);
+    plan.steps.forEach((step) => {
+      const [symbol, word] = labels.marks[step.mark];
+      const item = document.createElement("li");
+      item.className = `plan-step plan-step-${step.mark}`;
+      item.dataset.mark = step.mark;
+      if (step.mark === "running") item.setAttribute("aria-current", "step");
+      const mark = document.createElement("span");
+      mark.className = "plan-mark";
+      mark.setAttribute("aria-hidden", "true");
+      mark.textContent = symbol;
+      const text = document.createElement("span");
+      text.className = "plan-text";
+      text.textContent = step.text;
+      const state = document.createElement("span");
+      state.className = "plan-state";
+      state.textContent = word;
+      item.append(mark, text, state);
+      list.append(item);
+    });
+    container.replaceChildren(heading, list);
   }
 
   #renderRetry(): void {
@@ -589,6 +804,7 @@ export class PanelController {
           </div>
         </div>
         <ol id="conversation" class="conversation" aria-label="المحادثة"></ol>
+        <section id="plan-checklist" class="plan-checklist" aria-live="polite" hidden></section>
         <section id="suggestions" class="suggestions" aria-label="اقتراحات المنتجات" aria-live="polite"></section>
         <div id="pending-question"></div>
         </div>
@@ -629,6 +845,8 @@ export class PanelController {
         )
           return;
         this.#appendMessage("shopper", text);
+        this.#plan = undefined;
+        this.#renderPlan();
         this.#setStatus("أفهم طلبك الآن…");
         this.#submitting = true;
         this.#setInputEnabled(false);
@@ -1022,7 +1240,7 @@ export class PanelController {
   }
 
   #setInputEnabled(enabled: boolean): void {
-    enabled = enabled && !this.#shopperInvalid;
+    enabled = enabled && !this.#shopperInvalid && this.#plan?.active !== true;
     const input =
       this.#root.querySelector<HTMLInputElement>("#shopper-message");
     if (input !== null) input.disabled = !enabled;

@@ -4,11 +4,12 @@ from collections.abc import Callable
 from time import monotonic
 from typing import Any
 
-from agent import task_commands, task_interpretation, task_recovery, task_results
+from agent import plans, task_commands, task_interpretation, task_recovery, task_results
 from agent.catalogue import DiscoveryResult
 from agent.event_log import EventLog
 from agent.llm.intent import StructuredIntent
 from agent.planner import ScriptedPlanner
+from agent.plans import PlanSteps
 from agent.schemas import ActionResult, Snapshot
 from agent.session_registry import SESSION_TTL_SECONDS, SessionRegistry
 from agent.session_state import (
@@ -64,6 +65,8 @@ class SessionStore:
         self._runtime = TaskRuntime(
             self._registry, planner or ScriptedPlanner(), clock, confirmation_registrar
         )
+        # First to hear every task end: the plan starts the next step before any other listener.
+        self._runtime.task_end_listeners.append(lambda end: plans.on_task_end(self._runtime, end))
 
     def attach_event_log(self, events: EventLog) -> None:
         self._runtime.events = events
@@ -112,9 +115,11 @@ class SessionStore:
         task_id: str,
         call_id: str,
         intent: StructuredIntent,
+        *,
+        plan_steps: PlanSteps | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_interpretation(
-            self._runtime, session_id, task_id, call_id, intent
+            self._runtime, session_id, task_id, call_id, intent, plan_steps=plan_steps
         )
 
     def finish_catalogue_interpretation(
@@ -126,9 +131,19 @@ class SessionStore:
         result: DiscoveryResult,
         *,
         advice_text: str | None = None,
+        plan_steps: PlanSteps | None = None,
+        end_reason: str | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_catalogue_interpretation(
-            self._runtime, session_id, task_id, call_id, intent, result, advice_text=advice_text
+            self._runtime,
+            session_id,
+            task_id,
+            call_id,
+            intent,
+            result,
+            advice_text=advice_text,
+            plan_steps=plan_steps,
+            end_reason=end_reason,
         )
 
     def begin_answer_interpretation(

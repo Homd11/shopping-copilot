@@ -273,8 +273,8 @@ def test_the_prompt_asks_for_v10_and_keeps_its_existing_rules():
         resolved_state={},
         pending_clarification=None,
     )
-    assert PROMPT_VERSION == "intent-v34"
-    assert request.prompt_version == "intent-v34"
+    assert PROMPT_VERSION == "intent-v35"
+    assert request.prompt_version == "intent-v35"
     assert request.schema_version == 10
     assert "StructuredIntent JSON object, v=10." in request.system
     for kept in (
@@ -289,6 +289,7 @@ def test_the_prompt_asks_for_v10_and_keeps_its_existing_rules():
         "Three steps at most",
         "skipped_steps",
         "refers_to_this=true",
+        "fill first_step",
     ):
         assert added in request.system
 
@@ -300,7 +301,14 @@ def test_the_provider_schema_offers_the_new_fields_on_every_branch():
         resolved_state={},
         pending_clarification=None,
     ).response_schema
-    new = {"remaining_steps", "skipped_steps", "condition", "beneficiary", "refers_to_this"}
+    new = {
+        "first_step",
+        "remaining_steps",
+        "skipped_steps",
+        "condition",
+        "beneficiary",
+        "refers_to_this",
+    }
     carried = {}
     for branch in schema["anyOf"]:
         name = branch["$ref"].split("/")[-1]
@@ -621,3 +629,19 @@ def test_step_overflow_is_kept_when_the_model_sends_null_skipped_steps():
 
     assert intent.remaining_steps == ["one", "two"]
     assert intent.skipped_steps == ["three"]
+
+
+def test_first_step_is_optional_additive_and_only_allowed_on_v10():
+    assert StructuredIntent.model_validate(v10()).first_step is None
+    intent = StructuredIntent.model_validate(
+        v10(first_step="  افتح الطلبات ", remaining_steps=["افتح السلة"])
+    )
+    assert intent.first_step == "افتح الطلبات"
+    with pytest.raises(ValueError):
+        StructuredIntent.model_validate(v10(v=9, first_step="x"))
+    with pytest.raises(ValueError):
+        StructuredIntent.model_validate(v10(first_step=""))
+    client, model = counting_client(v10(first_step="افتح الطلبات", remaining_steps=["افتح السلة"]))
+    events, _ = say(client)
+    assert [a["type"] for a in actions(events)] == ["navigate"]
+    assert len(model.requests) == 1

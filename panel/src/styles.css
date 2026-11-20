@@ -199,6 +199,69 @@ button:disabled {
   border: 1px solid #e8edf5;
   border-radius: 5px 17px 17px 17px;
 }
+.plan-checklist {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.plan-checklist[hidden] {
+  display: none;
+}
+.plan-heading {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.plan-steps {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: plan;
+}
+.plan-step {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  counter-increment: plan;
+}
+.plan-step::before {
+  content: counter(plan) ".";
+  color: var(--muted);
+}
+.plan-mark {
+  font-weight: 700;
+}
+.plan-text {
+  overflow-wrap: anywhere;
+}
+.plan-state {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.plan-step-running .plan-mark,
+.plan-step-running .plan-text {
+  color: var(--blue);
+  font-weight: 700;
+}
+.plan-step-done .plan-mark {
+  color: #17703a;
+}
+.plan-step-failed .plan-mark,
+.plan-step-failed .plan-state {
+  color: #b3261e;
+}
+.plan-step-skipped .plan-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
 .suggestions:not(:empty) {
   display: grid;
   gap: 12px;
