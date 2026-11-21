@@ -36,6 +36,7 @@ export type AgentEvent =
         plan_id: string;
         language: "ar" | "en";
         steps: Array<{ position: number; text: string }>;
+        skipped: string[];
       };
     }
   | {
@@ -46,7 +47,10 @@ export type AgentEvent =
       type: "plan_step_finished";
       data: { plan_id: string; position: number; outcome: PlanStepOutcome };
     }
-  | { type: "plan_finished"; data: { plan_id: string; outcome: PlanOutcome } };
+  | {
+      type: "plan_finished";
+      data: { plan_id: string; outcome: PlanOutcome; report: string };
+    };
 
 export interface Suggestion {
   id: string;
@@ -156,6 +160,16 @@ function parsePlanSteps(
   });
 }
 
+function parseSkippedWords(value: unknown): string[] {
+  if (
+    !Array.isArray(value) ||
+    value.length > 6 ||
+    !value.every((word: unknown) => typeof word === "string")
+  )
+    throw new TypeError("Agent event data.skipped must list up to 6 strings");
+  return value as string[];
+}
+
 export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
   if (!(AGENT_EVENT_TYPES as readonly string[]).includes(type))
     throw new TypeError(
@@ -191,6 +205,7 @@ export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
           plan_id: eventPlanId(data),
           language: eventOneOf(data, "language", ["ar", "en"] as const),
           steps: parsePlanSteps(data.steps),
+          skipped: parseSkippedWords(data.skipped),
         },
       };
     case "plan_step_started":
@@ -225,6 +240,7 @@ export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
             "failed",
             "cancelled",
           ] as const),
+          report: eventString(data, "report"),
         },
       };
     default:
@@ -240,12 +256,23 @@ interface PlanView {
   planId: string;
   language: "ar" | "en";
   steps: Array<{ text: string; mark: PlanStepMark }>;
+  skipped: string[];
   active: boolean;
+}
+
+export interface PlanState {
+  plan_id: string;
+  language: "ar" | "en";
+  active: boolean;
+  steps: Array<{ position: number; text: string; status: PlanStepMark }>;
+  skipped: string[];
 }
 
 const PLAN_LABELS = {
   ar: {
     heading: "الخطوات",
+    skippedNote: "مش هعمل دول دلوقتي (الحد ٣ طلبات): ",
+    separator: "، ",
     marks: {
       pending: ["○", "في الانتظار"],
       running: ["◐", "جاري التنفيذ"],
@@ -256,6 +283,8 @@ const PLAN_LABELS = {
   },
   en: {
     heading: "Steps",
+    skippedNote: "Not doing these now (limit is 3 requests): ",
+    separator: ", ",
     marks: {
       pending: ["○", "Waiting"],
       running: ["◐", "In progress"],
@@ -276,6 +305,7 @@ export interface SessionView {
   event_cursor: number;
   conversation: Array<{ role: "shopper" | "copilot"; text: string }>;
   requires_reconciliation: boolean;
+  plan?: PlanState | null;
   task: {
     task_id: string;
     status: string;
@@ -586,6 +616,7 @@ export class PanelController {
     for (const message of state.conversation)
       this.#appendMessage(message.role, message.text);
     this.#renderSuggestions(state.task?.suggestions ?? null);
+    this.#restorePlan(state.plan ?? null);
     const taskIsActive =
       state.task !== null &&
       state.task.status !== "completed" &&
@@ -612,6 +643,25 @@ export class PanelController {
     );
     this.#setTaskState(state.task?.status ?? "idle");
     this.#setInputEnabled(!taskIsActive);
+  }
+
+  #restorePlan(plan: PlanState | null): void {
+    // The checklist is rebuilt from the Session's own state: steps that never ran are never
+    // shown as done, and the message box stays disabled while the plan is still active.
+    this.#plan =
+      plan === null
+        ? undefined
+        : {
+            planId: plan.plan_id,
+            language: plan.language,
+            steps: plan.steps.map((step) => ({
+              text: step.text,
+              mark: step.status,
+            })),
+            skipped: plan.skipped,
+            active: plan.active,
+          };
+    this.#renderPlan();
   }
 
   #renderTakeover(): void {
@@ -688,6 +738,7 @@ export class PanelController {
           text: step.text,
           mark: "pending",
         })),
+        skipped: event.data.skipped,
         active: true,
       };
       this.#renderPlan();
@@ -708,6 +759,9 @@ export class PanelController {
     } else if (event.type === "plan_finished") {
       this.#plan.active = false;
       this.#renderPlan();
+      // One report for every finished plan: what was done, what failed, what was skipped.
+      this.#setStatus(event.data.report.split("\n")[0] ?? "");
+      this.#appendMessage("copilot", event.data.report);
       this.#setInputEnabled(this.#activeTaskId === undefined);
     }
   }
@@ -723,6 +777,12 @@ export class PanelController {
     }
     const document = this.#root.ownerDocument;
     const labels = PLAN_LABELS[plan.language];
+    // The checklist sits at the end of the chat; a chat that was following the newest
+    // message keeps following when the checklist grows (or every later message stops).
+    const scroll = this.#root.querySelector<HTMLElement>("#chat-scroll");
+    const follow =
+      scroll !== null &&
+      scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 100;
     container.hidden = false;
     container.dir = plan.language === "ar" ? "rtl" : "ltr";
     container.lang = plan.language;
@@ -752,6 +812,14 @@ export class PanelController {
       list.append(item);
     });
     container.replaceChildren(heading, list);
+    if (plan.skipped.length > 0) {
+      const note = document.createElement("p");
+      note.className = "plan-skipped-note";
+      note.textContent =
+        labels.skippedNote + plan.skipped.join(labels.separator);
+      container.append(note);
+    }
+    if (scroll !== null && follow) scroll.scrollTop = scroll.scrollHeight;
   }
 
   #renderRetry(): void {

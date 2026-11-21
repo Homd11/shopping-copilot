@@ -4,6 +4,10 @@ The plan holds only the Shopper's words for each step. It never carries an inten
 ID, an element ID or a target: each step is interpreted by the normal path at its own turn,
 against the latest observed Snapshot, as its own Shopping Task with its own task id.
 Progression is driven by the shared task end (`TaskRuntime.end_task`).
+
+A plan never runs on after something goes wrong: a step that fails (or is stopped, or whose
+request is replaced by a new one) skips everything after it, ends the plan, and the Shopper
+gets one report of what was done, what failed and what was skipped. Nothing is rolled back.
 """
 
 from dataclasses import dataclass, field
@@ -11,6 +15,7 @@ from uuid import uuid4
 
 from agent.llm.intent import StructuredIntent
 from agent.planner import Language
+from agent.schemas import AskShopperAction
 from agent.session_state import (
     ActivePlan,
     ActiveTask,
@@ -23,6 +28,45 @@ from agent.task_runtime import TaskRuntime
 # A completed task that ended in the catalogue's exhausted fallback did not do its step.
 RETRIEVAL_EXHAUSTED = "retrieval_exhausted"
 _GENERIC_FIRST_STEP: dict[str, str] = {"ar": "الطلب الأول", "en": "First request"}
+# The only choices a question may offer and still be a failure rather than a real question.
+_FAILURE_OPTIONS = frozenset(
+    {"Stop", "إيقاف", "Try again", "حاول تاني", "Start over", "ابدأ من جديد"}
+)
+# Intents of one family continue a step's question; another family is a new request.
+_FAMILIES = {
+    "cart_edit": "cart_edit",
+    "mutate": "mutate",
+    "navigate": "go",
+    "locate": "go",
+    "open_product": "go",
+    "find_products": "search",
+    "advice": "search",
+    "help": "talk",
+    "off_topic": "talk",
+    "unsupported": "talk",
+}
+_REASON_EXHAUSTED = {"ar": "ما قدرتش أكمّل البحث.", "en": "I couldn't finish the search."}
+_REASON_NOT_STARTED = {"ar": "ما قدرتش أبدأ الخطوة دي.", "en": "I couldn't start this step."}
+_HEADINGS: dict[str, dict[str, str]] = {
+    "ar": {
+        "done": "خلصت طلبك:",
+        "failed": "وقفت عند خطوة ماتمّتش:",
+        "stop": "وقفت الطلب زي ما طلبت:",
+        "new_request": "لغيت باقي الخطوات وبدأت طلبك الجديد:",
+        "takeover": "لغيت باقي الخطوات لأن المحادثة اتفتحت في صفحة تانية:",
+    },
+    "en": {
+        "done": "Your request is finished:",
+        "failed": "I stopped at a step that didn't work:",
+        "stop": "I stopped your request as you asked:",
+        "new_request": "I cancelled the remaining steps and started your new request:",
+        "takeover": "I cancelled the remaining steps because the chat moved to another tab:",
+    },
+}
+_SKIPPED_SUFFIX = {
+    "cancelled": {"ar": " (اتلغت)", "en": " (cancelled)"},
+    "failed": {"ar": " (اتخطّت)", "en": " (skipped)"},
+}
 
 
 @dataclass(frozen=True)
@@ -70,6 +114,7 @@ def open_plan(
         skipped_steps=list(steps.skipped_steps),
     )
     session.plan = plan
+    session.last_plan = plan
     runtime.append(
         session,
         "plan_created",
@@ -77,6 +122,7 @@ def open_plan(
             "plan_id": plan.plan_id,
             "language": language,
             "steps": [{"position": s.position, "text": s.text} for s in plan.steps],
+            "skipped": list(plan.skipped_steps),
         },
     )
     runtime.record(
@@ -131,11 +177,48 @@ def _finish_step(
     )
 
 
+def _report(plan: ActivePlan, outcome: str) -> str:
+    """The one message about a finished plan, built from the Shopper's own step words."""
+    lang = plan.language
+    if outcome == "cancelled":
+        heading = _HEADINGS[lang][plan.cancel_reason or "stop"]
+        skipped = _SKIPPED_SUFFIX["cancelled"][lang]
+    else:
+        heading = _HEADINGS[lang][outcome]
+        skipped = _SKIPPED_SUFFIX["failed"][lang]
+    lines = [heading]
+    for step in plan.steps:
+        if step.status == "done":
+            lines.append(f"✓ {step.text}")
+        elif step.status == "failed":
+            reason = plan.reasons.get(step.position)
+            lines.append(f"✕ {step.text} — {reason}" if reason else f"✕ {step.text}")
+        else:
+            lines.append(f"– {step.text}{skipped}")
+    if plan.skipped_steps:
+        if lang == "ar":
+            lines.append(
+                "مش هعمل دول دلوقتي لأن الحد ٣ طلبات في الرسالة: " + "، ".join(plan.skipped_steps)
+            )
+        else:
+            lines.append(
+                "Not done, because one message can hold at most 3 requests: "
+                + ", ".join(plan.skipped_steps)
+            )
+    return "\n".join(lines)
+
+
 def _finish_plan(runtime: TaskRuntime, session: Session, plan: ActivePlan, outcome: str) -> None:
     done = sum(s.status == "done" for s in plan.steps)
     failed = sum(s.status == "failed" for s in plan.steps)
     skipped = sum(s.status == "skipped" for s in plan.steps)
-    runtime.append(session, "plan_finished", {"plan_id": plan.plan_id, "outcome": outcome})
+    report = _report(plan, outcome)
+    runtime.append(
+        session,
+        "plan_finished",
+        {"plan_id": plan.plan_id, "outcome": outcome, "report": report},
+    )
+    session.conversation.append({"role": "copilot", "text": report})
     runtime.record(
         session,
         "plan_finished",
@@ -145,6 +228,13 @@ def _finish_plan(runtime: TaskRuntime, session: Session, plan: ActivePlan, outco
         failed_count=failed,
         skipped_count=skipped,
     )
+    if outcome == "cancelled":
+        runtime.record(
+            session,
+            "plan_cancelled",
+            plan_id=plan.plan_id,
+            reason=plan.cancel_reason or "stop",
+        )
     session.plan = None
 
 
@@ -157,33 +247,155 @@ def _stop_plan(
     _finish_plan(runtime, session, plan, outcome)
 
 
-def on_task_end(runtime: TaskRuntime, end: TaskEnd) -> None:
-    """The one place a plan moves: when the current step's task ends."""
-    session, task = end.session, end.task
+def _fail_step(
+    runtime: TaskRuntime,
+    session: Session,
+    plan: ActivePlan,
+    step: PlanStep,
+    task: ActiveTask | None,
+    reason: str,
+    *,
+    cancel_task: bool,
+) -> None:
+    """The step failed: nothing later runs, its task is ended so the Session is free at once.
+
+    Nothing is rolled back; the Shopper's earlier cart changes and their Undo stay.
+    """
+    if reason:
+        plan.reasons[step.position] = reason
+    _finish_step(runtime, session, plan, step, "failed", task)
+    for later in plan.steps[plan.cursor + 1 :]:
+        _finish_step(runtime, session, plan, later, "skipped", None)
+    if cancel_task and task is not None and session.active_task is task:
+        # The step's own end is already handled: the plan only listens while the step runs.
+        runtime.end_task(session, task, "cancelled")
+    _finish_plan(
+        runtime, session, plan, "cancelled" if plan.cancel_reason == "takeover" else "failed"
+    )
+
+
+def family(intent_kind: str | None) -> str | None:
+    return _FAMILIES.get(intent_kind or "")
+
+
+def is_failure_question(action: object) -> bool:
+    """A question that only offers to stop or try again: the step did not work."""
+    return (
+        isinstance(action, AskShopperAction)
+        and action.kind != "confirmation"
+        and bool(action.options)
+        and all(option in _FAILURE_OPTIONS for option in action.options)
+    )
+
+
+def _running_step(session: Session, task: ActiveTask | None) -> tuple[ActivePlan, PlanStep] | None:
     plan = session.plan
-    if plan is None or task.plan_position is None:
-        return
+    if plan is None or task is None or task.plan_position is None:
+        return None
     step = plan.steps[plan.cursor]
-    if step.task_id != task.task_id:
+    if step.status != "running" or step.task_id != task.task_id:
+        return None
+    return plan, step
+
+
+def settle(runtime: TaskRuntime, session: Session) -> None:
+    """Fail the current step when its task is waiting on a failure question."""
+    task = session.active_task
+    found = _running_step(session, task)
+    if found is None or task is None or task.status != "awaiting_answer":
         return
-    if end.kind != "completed" or end.reason == RETRIEVAL_EXHAUSTED:
-        # Paused, cancelled or exhausted: this step failed and nothing later runs.
-        # No retry, no report.
-        _finish_step(runtime, session, plan, step, "failed", task)
-        _stop_plan(
-            runtime,
-            session,
-            plan,
-            "cancelled" if end.kind == "cancelled" else "failed",
-            plan.cursor + 1,
+    action = task.action
+    if not is_failure_question(action):
+        return
+    plan, step = found
+    assert isinstance(action, AskShopperAction)
+    _fail_step(runtime, session, plan, step, task, action.narration, cancel_task=True)
+
+
+def reroute_new_request(
+    runtime: TaskRuntime, session: Session, task: ActiveTask, intent: StructuredIntent
+) -> bool:
+    """An answer that is really a new request ends the plan and starts a fresh task.
+
+    Only for a plan step's answer whose intent is of another family than the question's.
+    Returns True when the answer was taken over (the caller stops interpreting it).
+    """
+    from agent.task_interpretation import begin_interpretation
+
+    found = _running_step(session, task)
+    if (
+        found is None
+        or task.answering_family is None
+        or family(intent.intent) in {None, task.answering_family}
+        or session.last_snapshot is None
+    ):
+        return False
+    plan, _ = found
+    text, snapshot = task.message, session.last_snapshot
+    task.model_call_id = None
+    plan.cancel_reason = "new_request"
+    # The answer was already written to the conversation; the fresh task writes it again.
+    if session.conversation and session.conversation[-1] == {"role": "shopper", "text": text}:
+        session.conversation.pop()
+    runtime.end_task(session, task, "cancelled")
+
+    def started(fresh: ActiveTask) -> None:
+        session.start_pending = fresh.task_id
+
+    begin_interpretation(
+        runtime,
+        session.session_id,
+        text,
+        snapshot,
+        tab_id=session.lease_tab_id,
+        on_started=started,
+    )
+    return True
+
+
+def cancel_after_current(runtime: TaskRuntime, session: Session, reason: str) -> None:
+    """The plan ends cancelled once its current step ends; nothing after it ever starts."""
+    plan = session.plan
+    if plan is None:
+        return
+    plan.cancel_reason = reason
+    if _running_step(session, session.active_task) is None:
+        _stop_plan(runtime, session, plan, "cancelled", plan.cursor)
+
+
+def on_task_end(runtime: TaskRuntime, end: TaskEnd) -> None:
+    """The one place a plan moves: when the current step's task ends.
+
+    It acts only while the cursor step is running, so the second end of the same task (the
+    automatic cancel of a failed step) is ignored.
+    """
+    session, task = end.session, end.task
+    found = _running_step(session, task)
+    if found is None:
+        return
+    plan, step = found
+    if end.kind == "cancelled":
+        # A Stop (or a replaced request): this step was stopped, not failed.
+        if plan.cancel_reason != "new_request":
+            plan.cancel_reason = "stop"
+        _stop_plan(runtime, session, plan, "cancelled", plan.cursor)
+        return
+    if end.kind == "paused":
+        _fail_step(runtime, session, plan, step, task, task.pause_message or "", cancel_task=True)
+        return
+    if end.reason == RETRIEVAL_EXHAUSTED:
+        _fail_step(
+            runtime, session, plan, step, task, _REASON_EXHAUSTED[plan.language], cancel_task=False
         )
         return
     _finish_step(runtime, session, plan, step, "done", task)
     following = plan.cursor + 1
-    if following >= len(plan.steps):
+    if plan.cancel_reason == "takeover":
+        _stop_plan(runtime, session, plan, "cancelled", following)
+    elif following >= len(plan.steps):
         _finish_plan(runtime, session, plan, "done")
-        return
-    _start_step(runtime, session, plan, following)
+    else:
+        _start_step(runtime, session, plan, following)
 
 
 def _start_step(runtime: TaskRuntime, session: Session, plan: ActivePlan, index: int) -> None:
@@ -203,7 +415,7 @@ def _start_step(runtime: TaskRuntime, session: Session, plan: ActivePlan, index:
                 "earlier_steps_done": True,
             }
             _mark_running(runtime, session, plan, index, task)
-            plan.start_pending = task.task_id
+            session.start_pending = task.task_id
 
         begin_interpretation(
             runtime,
@@ -217,5 +429,27 @@ def _start_step(runtime: TaskRuntime, session: Session, plan: ActivePlan, index:
         # The next step could not even begin: it failed, and nothing after it runs.
         # Never raised into the request that ended the previous task: that task did end.
         if step.status == "pending":
-            _finish_step(runtime, session, plan, step, "failed", None)
-            _stop_plan(runtime, session, plan, "failed", index + 1)
+            plan.cursor = index
+            _fail_step(
+                runtime,
+                session,
+                plan,
+                step,
+                None,
+                _REASON_NOT_STARTED[plan.language],
+                cancel_task=False,
+            )
+
+
+def view(session: Session) -> dict[str, object] | None:
+    """The plan as the Session knows it, for a Panel that reloaded mid-plan or after one."""
+    plan = session.plan or session.last_plan
+    if plan is None:
+        return None
+    return {
+        "plan_id": plan.plan_id,
+        "language": plan.language,
+        "active": session.plan is plan,
+        "steps": [{"position": s.position, "text": s.text, "status": s.status} for s in plan.steps],
+        "skipped": list(plan.skipped_steps),
+    }

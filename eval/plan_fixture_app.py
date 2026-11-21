@@ -18,6 +18,12 @@ ADD_THEN_PANTS = "ضيفلي ده وكمان عايز بنطلون لاخويا"
 ADD_STEP_2 = "ضيفلي ده"
 PANTS_STEP = "عايز بنطلون لاخويا"
 ADVICE = "ده الأنسب لأخوك من الكتالوج."
+# Step 2 asks for 99 more of a product already in the cart: the Storefront refuses it (the
+# line would pass 99), so the plan fails there and step 3 never runs.
+ADD_THEN_TOO_MANY_THEN_CART = (
+    "ضيفلي الجزمة ديه للعربية مقاس 42 وبعدين ضيف 99 منها وبعدين افتح العربية"
+)
+TOO_MANY_STEP = "ضيف 99 منها"
 
 
 def intent(name, **fields):
@@ -34,7 +40,7 @@ def intent(name, **fields):
     }
 
 
-def add_intent(context, source, **steps):
+def add_intent(context, source, quantity=1, **steps):
     control = next(
         e
         for e in context["current_snapshot"]["elements"]
@@ -44,7 +50,7 @@ def add_intent(context, source, **steps):
         "cart_edit",
         cart_operation="add",
         cart_target_id=control["id"],
-        cart_quantity=1,
+        cart_quantity=quantity,
         cart_quantity_mode="set",
         cart_source=source,
         **steps,
@@ -95,6 +101,15 @@ class PlanModel:
             response = add_intent(
                 context, ADD_STEP, first_step=ADD_STEP, remaining_steps=[CART_STEP]
             )
+        elif message == ADD_THEN_TOO_MANY_THEN_CART:
+            response = add_intent(
+                context,
+                ADD_STEP,
+                first_step=ADD_STEP,
+                remaining_steps=[TOO_MANY_STEP, CART_STEP],
+            )
+        elif message == TOO_MANY_STEP:
+            response = add_intent(context, TOO_MANY_STEP, quantity=99)
         elif message == CART_STEP:
             response = intent("navigate", constraints={"target": "cart"})
         elif message == PANTS_STEP:

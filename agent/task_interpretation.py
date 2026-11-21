@@ -22,7 +22,7 @@ from agent.planner import (
     ActionIdentity,
     detect_language,
 )
-from agent.plans import PlanSteps, open_plan
+from agent.plans import PlanSteps, family, open_plan, reroute_new_request
 from agent.product_context import require_known_product
 from agent.remembered_sizes import (
     NAMED_PERSON,
@@ -181,6 +181,8 @@ def finish_interpretation(
     steps = plan_steps if plan_steps is not None else PlanSteps.from_intent(intent)
     if session.last_snapshot is not None:
         runtime.require_task_origin(task, session.last_snapshot)
+    if reroute_new_request(runtime, session, task, intent):
+        return None
     runtime.record(
         session,
         "intent",
@@ -451,6 +453,8 @@ def finish_catalogue_interpretation(
         raise ValueError("Incomplete intent cannot publish catalogue suggestions")
     if session.last_snapshot is not None:
         runtime.require_task_origin(task, session.last_snapshot)
+    if reroute_new_request(runtime, session, task, intent):
+        return None
     payload = result.to_wire()
     session.product_context.remember_suggestions(payload["suggestions"])
     task.suggestions = payload
@@ -586,6 +590,7 @@ def begin_answer_interpretation(
         matches = [o for o in variant["options"] if o.casefold() == text.strip().casefold()]
         chosen = matches[0] if len(matches) == 1 else None
     task.message = text
+    task.answering_family = family(task.intent_kind)
     runtime.record_debug(session, "shopper_message", text, task.task_id)
     task.retrieval_budget = None
     answers = _bounded_answers(task.resolved_state.get("_answers"))
@@ -660,7 +665,6 @@ def fail_interpretation(
     if task.status != "interpreting":
         return
     task.model_call_id = None
-    runtime.end_task(session, task, "paused", reason)
     messages = {
         "inference_busy": (
             "المساعد مشغول الآن. لم يُرسل طلبك للنموذج؛ جرّب بعد قليل.",
@@ -721,8 +725,7 @@ def fail_interpretation(
         )
 
     message = messages[reason][0 if task.language == "ar" else 1]
-    task.pause_message = message
-    runtime.append(session, "error", {"task_id": task_id, "message": message})
+    runtime.end_task(session, task, "paused", reason, message)
     runtime.sessions.touch(session)
 
 

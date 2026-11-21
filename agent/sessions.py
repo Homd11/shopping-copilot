@@ -98,7 +98,14 @@ class SessionStore:
         return self._registry.assert_lease(session, tab_id)
 
     def takeover(self, session_id: str, tab_id: str) -> Session:
-        return self._registry.takeover(session_id, tab_id)
+        session = self._registry.takeover(session_id, tab_id)
+        # Nothing after the plan's current step may start in the tab that is being left.
+        plans.cancel_after_current(self._runtime, session, "takeover")
+        return session
+
+    def settle_plan(self, session_id: str) -> None:
+        """Fail the plan's current step when its task waits on a failure question."""
+        plans.settle(self._runtime, self.get(session_id))
 
     def owns_lease(self, session_id: str, tab_id: str | None) -> bool:
         return self._registry.owns_lease(session_id, tab_id)

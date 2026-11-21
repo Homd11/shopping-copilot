@@ -110,6 +110,7 @@ function setup(options?: {
         event_cursor: 4,
         conversation: options?.restoredState?.conversation ?? [],
         requires_reconciliation: false,
+        plan: options?.restoredState?.plan ?? null,
         task: options?.restoredState?.task ?? null,
       };
     },
@@ -1222,9 +1223,12 @@ describe("PanelController plan checklist", () => {
     );
   const inputDisabled = (root: HTMLElement) =>
     root.querySelector<HTMLInputElement>("#shopper-message")!.disabled;
-  const created = (language: "ar" | "en" = "ar"): AgentEvent => ({
+  const created = (
+    language: "ar" | "en" = "ar",
+    skipped: string[] = [],
+  ): AgentEvent => ({
     type: "plan_created",
-    data: { plan_id: "plan-1", language, steps },
+    data: { plan_id: "plan-1", language, steps, skipped },
   });
   const started = (position: number, taskId: string): AgentEvent => ({
     type: "plan_step_started",
@@ -1237,9 +1241,12 @@ describe("PanelController plan checklist", () => {
     type: "plan_step_finished",
     data: { plan_id: "plan-1", position, outcome },
   });
-  const finished = (outcome: "done" | "failed" | "cancelled"): AgentEvent => ({
+  const finished = (
+    outcome: "done" | "failed" | "cancelled",
+    report = "Report",
+  ): AgentEvent => ({
     type: "plan_finished",
-    data: { plan_id: "plan-1", outcome },
+    data: { plan_id: "plan-1", outcome, report },
   });
 
   it("ticks marks live and keeps the input disabled until the plan finishes", async () => {
@@ -1302,9 +1309,11 @@ describe("PanelController plan checklist", () => {
           { position: 1, text: "<img src=x onerror=alert(1)>" },
           { position: 2, text: "open the cart" },
         ],
+        skipped: ["<b>later</b>"],
       },
     });
     expect(root.querySelector("#plan-checklist img")).toBeNull();
+    expect(root.querySelector("#plan-checklist b")).toBeNull();
     expect(root.querySelector(".plan-text")!.textContent).toBe(
       "<img src=x onerror=alert(1)>",
     );
@@ -1333,7 +1342,7 @@ describe("PanelController plan checklist", () => {
     });
     emit({
       type: "plan_finished",
-      data: { plan_id: "other", outcome: "done" },
+      data: { plan_id: "other", outcome: "done", report: "Other" },
     });
     expect(marks(root)).toEqual(["pending", "pending"]);
     expect(inputDisabled(root)).toBe(true);
@@ -1350,6 +1359,184 @@ describe("PanelController plan checklist", () => {
     emit({ type: "done", data: { summary: "Done", language: "en" } });
     expect(inputDisabled(root)).toBe(false);
     expect(root.querySelectorAll(".plan-step")).toHaveLength(0);
+  });
+
+  const conversationTexts = (root: HTMLElement) =>
+    Array.from(root.querySelectorAll("#conversation li")).map(
+      (item) => item.textContent,
+    );
+  const statusText = (root: HTMLElement) =>
+    root.querySelector("#task-status")!.textContent;
+  const marksWithWords = (root: HTMLElement) =>
+    Array.from(root.querySelectorAll(".plan-step")).map((item) => [
+      (item as HTMLElement).dataset.mark,
+      item.querySelector(".plan-state")!.textContent,
+    ]);
+
+  it("marks a failed step, the skipped ones after it, and shows the report", async () => {
+    const { root, emit } = await ready();
+    const report =
+      "وقفت عند خطوة ماتمّتش:\n✓ ضيفلي الجزمة للعربية\n✕ افتح العربية — تعذر فتح الصفحة المطلوبة. حاول تاني.";
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created());
+    emit(started(1, "task-1"));
+    emit(finishStep(1, "done"));
+    emit({ type: "task_started", data: { task_id: "task-2" } });
+    emit(started(2, "task-2"));
+    emit({ type: "error", data: { message: "تعذر فتح الصفحة المطلوبة." } });
+    emit(finishStep(2, "failed"));
+    emit({ type: "cancelled", data: {} });
+    expect(marks(root)).toEqual(["done", "failed"]);
+    expect(inputDisabled(root)).toBe(true);
+    // The step's own Retry is gone once its task is cancelled.
+    expect(root.querySelector("#retry-task")).toBeNull();
+    emit(finished("failed", report));
+    expect(marksWithWords(root)).toEqual([
+      ["done", "تمّت"],
+      ["failed", "لم تنجح"],
+    ]);
+    expect(conversationTexts(root).at(-1)).toBe(report);
+    expect(statusText(root)).toBe("وقفت عند خطوة ماتمّتش:");
+    expect(inputDisabled(root)).toBe(false);
+  });
+
+  it("marks steps skipped when the plan is cancelled and says so in the report", async () => {
+    const { root, emit } = await ready();
+    const report =
+      "I stopped your request as you asked:\n– Add the shoes (cancelled)\n– Open the cart (cancelled)";
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created("en"));
+    emit(started(1, "task-1"));
+    emit({ type: "cancelled", data: {} });
+    emit(finishStep(1, "skipped"));
+    emit(finishStep(2, "skipped"));
+    expect(inputDisabled(root)).toBe(true);
+    emit(finished("cancelled", report));
+    expect(marksWithWords(root)).toEqual([
+      ["skipped", "Skipped"],
+      ["skipped", "Skipped"],
+    ]);
+    expect(conversationTexts(root).at(-1)).toBe(report);
+    expect(statusText(root)).toBe("I stopped your request as you asked:");
+    expect(inputDisabled(root)).toBe(false);
+  });
+
+  it("appends the report of a plan that finished done as a copilot message", async () => {
+    const { root, emit } = await ready();
+    emit(created());
+    emit(finished("done", "خلصت طلبك:\n✓ أ\n✓ ب"));
+    expect(statusText(root)).toBe("خلصت طلبك:");
+    expect(
+      root.querySelector("#conversation li:last-child")!.className,
+    ).toContain("message-copilot");
+  });
+
+  it("announces requests beyond the limit under the checklist, in the Shopper's language", async () => {
+    const { root, emit } = await ready();
+    emit(created("ar", ["افتح الطلبات", "افتح المساعدة"]));
+    expect(root.querySelector(".plan-skipped-note")!.textContent).toBe(
+      "مش هعمل دول دلوقتي (الحد ٣ طلبات): افتح الطلبات، افتح المساعدة",
+    );
+    emit(created("en", ["show orders", "open help"]));
+    expect(root.querySelector(".plan-skipped-note")!.textContent).toBe(
+      "Not doing these now (limit is 3 requests): show orders, open help",
+    );
+    emit(created("en"));
+    expect(root.querySelector(".plan-skipped-note")).toBeNull();
+  });
+
+  describe("after a reload", () => {
+    const restoredWith = (
+      plan: SessionView["plan"],
+      task: SessionView["task"],
+    ): SessionView => ({
+      session_id: "session-restored",
+      lease: "owned",
+      event_cursor: 9,
+      conversation: [
+        { role: "shopper", text: "ضيفلي الجزمة وبعدين افتح العربية" },
+      ],
+      requires_reconciliation: false,
+      plan,
+      task,
+    });
+
+    async function reload(restoredState: SessionView) {
+      const context = setup({
+        savedSessionId: "session-restored",
+        restoredState,
+      });
+      await context.controller.start();
+      context.controller.receiveStorefront({ type: "snapshot", snapshot });
+      await Promise.resolve();
+      await Promise.resolve();
+      return context;
+    }
+
+    it("rebuilds an active checklist from the Session and keeps the input disabled", async () => {
+      const { root } = await reload(
+        restoredWith(
+          {
+            plan_id: "plan-1",
+            language: "ar",
+            active: true,
+            steps: [
+              { position: 1, text: "ضيفلي الجزمة للعربية", status: "done" },
+              { position: 2, text: "افتح العربية", status: "running" },
+              { position: 3, text: "افتح الحساب", status: "pending" },
+            ],
+            skipped: ["افتح الطلبات"],
+          },
+          {
+            task_id: "task-2",
+            status: "awaiting_action_result",
+            pending_question: null,
+          },
+        ),
+      );
+      // Steps that never ran are never shown as done.
+      expect(marks(root)).toEqual(["done", "running", "pending"]);
+      expect(root.querySelector<HTMLElement>("#plan-checklist")!.hidden).toBe(
+        false,
+      );
+      expect(root.querySelector(".plan-skipped-note")!.textContent).toBe(
+        "مش هعمل دول دلوقتي (الحد ٣ طلبات): افتح الطلبات",
+      );
+      expect(inputDisabled(root)).toBe(true);
+    });
+
+    it("rebuilds a finished checklist from the Session and enables the input", async () => {
+      const { root } = await reload(
+        restoredWith(
+          {
+            plan_id: "plan-1",
+            language: "en",
+            active: false,
+            steps: [
+              { position: 1, text: "Add the shoes", status: "done" },
+              { position: 2, text: "Open the cart", status: "failed" },
+              { position: 3, text: "Open the account", status: "skipped" },
+            ],
+            skipped: [],
+          },
+          { task_id: "task-2", status: "cancelled", pending_question: null },
+        ),
+      );
+      expect(marksWithWords(root)).toEqual([
+        ["done", "Done"],
+        ["failed", "Failed"],
+        ["skipped", "Skipped"],
+      ]);
+      expect(inputDisabled(root)).toBe(false);
+    });
+
+    it("shows no checklist when the Session has no plan", async () => {
+      const { root } = await reload(restoredWith(null, null));
+      expect(root.querySelector<HTMLElement>("#plan-checklist")!.hidden).toBe(
+        true,
+      );
+      expect(inputDisabled(root)).toBe(false);
+    });
   });
 
   it("clears a finished checklist when the Shopper sends the next message", async () => {

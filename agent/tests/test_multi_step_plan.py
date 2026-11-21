@@ -175,8 +175,14 @@ def test_plan_events_carry_the_exact_payloads_and_one_based_positions():
         (1, "done"),
         (2, "done"),
     ]
+    assert created["skipped"] == []
     assert by_name["plan_finished"] == [
-        {"session_id": session_id, "plan_id": plan_id, "outcome": "done"}
+        {
+            "session_id": session_id,
+            "plan_id": plan_id,
+            "outcome": "done",
+            "report": "خلصت طلبك:\n✓ ضيفلي الجزمة ديه للعربية\n✓ افتح الدفع",
+        }
     ]
 
 
@@ -298,8 +304,9 @@ def test_cancelling_during_step_one_cancels_the_plan_and_skips_the_rest():
         for e in events
         if e["event"] in {"plan_step_finished", "plan_finished"}
     ]
+    # A Stop skips the step it stopped (ticket 06); it did not fail.
     assert tail == [
-        ("plan_step_finished", 1, "failed"),
+        ("plan_step_finished", 1, "skipped"),
         ("plan_step_finished", 2, "skipped"),
         ("plan_finished", None, "cancelled"),
     ]
@@ -763,6 +770,34 @@ def test_a_decision_request_for_a_later_step_includes_the_marker_and_the_rule():
     assert "plan_step" not in json.loads(model.requests[0].messages[0].content) or (
         json.loads(model.requests[0].messages[0].content)["plan_step"] is None
     )
+
+
+def test_a_later_step_cannot_navigate_by_quoting_an_earlier_steps_words():
+    # Seen live: step 2 "find me a black backpack" was answered with step 1's "open the cart".
+    repeated = intent("cart", navigation_source=STEP_ONE_WORDS)
+    client, model = make_client(two_steps("cart"), repeated, repeated)
+    session_id = start(client)
+    first = stream(client, session_id)
+    complete(client, session_id, first, "/cart")
+    events = stream(client, session_id)
+    assert [e["data"]["outcome"] for e in events if e["event"] == "plan_step_finished"] == [
+        "done",
+        "failed",
+    ]
+    navigations = [
+        e["data"]["action"]["url"]
+        for e in events
+        if e["event"] == "action" and e["data"]["action"]["type"] == "navigate"
+    ]
+    assert navigations == ["/cart"]  # step 1 only; step 2 never navigated
+    assert len(model.requests) == 3  # step 1, then step 2 and its one repair
+
+
+def test_a_later_step_navigates_when_its_quote_is_its_own_words():
+    client, _ = make_client(two_steps("cart"), intent("checkout", navigation_source=STEP_TWO))
+    session_id = start(client)
+    events = run_two_steps(client, session_id)
+    assert [e["data"]["outcome"] for e in events if e["event"] == "plan_finished"] == ["done"]
 
 
 def test_a_later_step_cannot_reuse_the_whole_original_message_as_its_quote():

@@ -590,6 +590,15 @@ def _validate_interpreted_intent(
         _require_quoted_source(message, intent.mutation_source, state)
         _coded("mutation_invalid", validate_mutation_interpretation, message, intent)
     if (
+        intent.intent in {"navigate", "locate", "open_product"}
+        and state.get("_plan_step")
+        and intent.navigation_source
+    ):
+        # A later step sees the whole original message in its history; a quote that is not
+        # in this step's own words means the model answered an earlier part. An empty quote
+        # stays allowed, as for a single message.
+        _require_quoted_source(message, intent.navigation_source, state)
+    if (
         intent.intent in {"navigate", "locate"}
         and intent.constraints.target not in storefront.destination_routes
     ):

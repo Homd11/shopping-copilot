@@ -155,16 +155,16 @@ def accept_result(
                     session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
                 )
             else:
-                runtime.end_task(session, task, "paused", "cart_navigation_failed")
                 task.action = None
                 task.cart_actions.clear()
-                task.pause_message = (
+                runtime.end_task(
+                    session,
+                    task,
+                    "paused",
+                    "cart_navigation_failed",
                     "تعذر فتح الصفحة المطلوبة. حاول تاني."
                     if task.language == "ar"
-                    else "Could not open the requested page. Retry."
-                )
-                runtime.append(
-                    session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                    else "Could not open the requested page. Retry.",
                 )
             runtime.sessions.touch(session)
             return task
@@ -199,16 +199,16 @@ def accept_result(
             if isinstance(action, ClickAction):
                 runtime.ask_to_stop_uncertain_mutation(session, task, action)
             else:
-                runtime.end_task(session, task, "paused", "cart_edit_unavailable")
                 task.action = None
                 task.cart_actions.clear()
-                task.pause_message = (
+                runtime.end_task(
+                    session,
+                    task,
+                    "paused",
+                    "cart_edit_unavailable",
                     "تعذر تجهيز تعديل السلة. حاول تاني من الحالة الحالية."
                     if task.language == "ar"
-                    else "Could not prepare the cart change. Retry from the current state."
-                )
-                runtime.append(
-                    session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                    else "Could not prepare the cart change. Retry from the current state.",
                 )
         runtime.sessions.touch(session)
         return task
@@ -421,15 +421,15 @@ def accept_result(
                 task, action_result.snapshot, action.sequence_number + 1
             )
         except ValueError:
-            runtime.end_task(session, task, "paused", "guarded_control_missing")
             task.action = None
-            task.pause_message = (
+            runtime.end_task(
+                session,
+                task,
+                "paused",
+                "guarded_control_missing",
                 "الإجراء المطلوب غير متاح في حالة السلة الحالية."
                 if task.language == "ar"
-                else "That action is unavailable in the current cart state."
-            )
-            runtime.append(
-                session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                else "That action is unavailable in the current cart state.",
             )
         else:
             task.action = next_action

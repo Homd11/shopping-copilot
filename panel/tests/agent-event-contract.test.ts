@@ -56,10 +56,16 @@ describe("Agent event contract", () => {
           plan_id: "p1",
           language: "en",
           steps,
+          skipped: ["show orders"],
         }),
       ).toEqual({
         type: "plan_created",
-        data: { plan_id: "p1", language: "en", steps },
+        data: {
+          plan_id: "p1",
+          language: "en",
+          steps,
+          skipped: ["show orders"],
+        },
       });
       expect(
         parseAgentEvent("plan_step_started", {
@@ -78,8 +84,12 @@ describe("Agent event contract", () => {
         ).toEqual({ plan_id: "p1", position: 1, outcome });
       for (const outcome of ["done", "failed", "cancelled"])
         expect(
-          parseAgentEvent("plan_finished", { plan_id: "p1", outcome }).data,
-        ).toEqual({ plan_id: "p1", outcome });
+          parseAgentEvent("plan_finished", {
+            plan_id: "p1",
+            outcome,
+            report: "Report",
+          }).data,
+        ).toEqual({ plan_id: "p1", outcome, report: "Report" });
     });
 
     it("rejects malformed plan events", () => {
@@ -87,6 +97,7 @@ describe("Agent event contract", () => {
         plan_id: "p1",
         language: "ar",
         steps,
+        skipped: [],
         ...extra,
       });
       const bad: Array<[string, unknown]> = [
@@ -106,7 +117,14 @@ describe("Agent event contract", () => {
           "plan_created",
           created({ steps: [steps[0], { position: 3, text: "x" }] }),
         ],
-        ["plan_created", { language: "ar", steps }],
+        ["plan_created", { language: "ar", steps, skipped: [] }],
+        ["plan_created", created({ skipped: undefined })],
+        ["plan_created", created({ skipped: "none" })],
+        ["plan_created", created({ skipped: [1] })],
+        [
+          "plan_created",
+          created({ skipped: ["a", "b", "c", "d", "e", "f", "g"] }),
+        ],
         ["plan_created", created({ plan_id: "" })],
         ["plan_step_started", { plan_id: "p1", position: 0, task_id: "t" }],
         ["plan_step_started", { plan_id: "p1", position: 1.5, task_id: "t" }],
@@ -119,9 +137,11 @@ describe("Agent event contract", () => {
           "plan_step_finished",
           { plan_id: "p1", position: 1, outcome: "cancelled" },
         ],
-        ["plan_finished", { plan_id: "p1", outcome: "skipped" }],
-        ["plan_finished", { plan_id: 7, outcome: "done" }],
-        ["plan_finished", { plan_id: "p1" }],
+        ["plan_finished", { plan_id: "p1", outcome: "skipped", report: "r" }],
+        ["plan_finished", { plan_id: 7, outcome: "done", report: "r" }],
+        ["plan_finished", { plan_id: "p1", report: "r" }],
+        ["plan_finished", { plan_id: "p1", outcome: "done" }],
+        ["plan_finished", { plan_id: "p1", outcome: "done", report: 5 }],
       ];
       for (const [type, payload] of bad)
         expect(() => parseAgentEvent(type, payload)).toThrow(TypeError);

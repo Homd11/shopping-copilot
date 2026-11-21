@@ -728,6 +728,7 @@ def test_the_session_state_endpoint_does_not_expose_remembered_sizes():
         "event_cursor",
         "conversation",
         "requires_reconciliation",
+        "plan",
         "task",
     }
     text = json.dumps({k: v for k, v in state.json().items() if k != "conversation"})

@@ -12,9 +12,11 @@ from eval.plan_fixture_app import (
     ADD_STEP_2,
     ADD_THEN_CART,
     ADD_THEN_PANTS,
+    ADD_THEN_TOO_MANY_THEN_CART,
     ADVICE,
     CART_STEP,
     PANTS_STEP,
+    TOO_MANY_STEP,
 )
 from eval.services import local_services
 
@@ -150,5 +152,67 @@ def test_unrelated_pair_adds_once_then_shows_suggestions_with_retrieval_on():
             assert all(r["message"] == PANTS_STEP for r in decisions)
             assert all(r["plan_step"]["position"] == 2 for r in decisions)
             assert page.locator("#plan-checklist li").count() == 2
+        finally:
+            browser.close()
+
+
+REFUSED_EDIT_REPORT = (
+    "وقفت عند خطوة ماتمّتش:\n"
+    f"✓ {ADD_STEP}\n"
+    f"✕ {TOO_MANY_STEP} — مش متأكد إذا تعديل السلة اكتمل. راجع السلة الحالية؛ مش هكرره تلقائيًا.\n"
+    f"– {CART_STEP} (اتخطّت)"
+)
+
+
+def test_a_refused_cart_edit_midway_stops_the_plan_reports_it_and_rolls_nothing_back():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            posts = []
+            page.on(
+                "request",
+                lambda request: posts.append(request.url) if request.method == "POST" else None,
+            )
+            frame = open_product_page(page)
+            send(page, ADD_THEN_TOO_MANY_THEN_CART)
+
+            checklist = page.locator("#plan-checklist")
+            expect(checklist.locator("ol > li")).to_have_count(3, timeout=15000)
+            expect(checklist.locator("li").nth(0)).to_have_attribute(
+                "data-mark", "done", timeout=15000
+            )
+            # Step 1's add is in the cart and its 10-second Undo was offered.
+            offered = page.request.get("http://localhost:4000/cart/state").json()["undo"]
+            assert offered is not None and offered["remaining_ms"] > 0
+
+            expect(checklist.locator("li").nth(1)).to_have_attribute(
+                "data-mark", "failed", timeout=20000
+            )
+            expect(checklist.locator("li").nth(2)).to_have_attribute("data-mark", "skipped")
+            assert marks(page) == ["done", "failed", "skipped"]
+
+            # The report is one message in the Shopper's language; no Retry or question waits.
+            expect(page.locator("#conversation li").last).to_contain_text("وقفت عند خطوة ماتمّتش")
+            assert page.locator("#conversation li").last.text_content() == REFUSED_EDIT_REPORT
+            expect(page.locator("#task-status")).to_have_text("وقفت عند خطوة ماتمّتش:")
+            expect(page.locator("#retry-task")).to_have_count(0)
+            expect(page.locator("#pending-question button")).to_have_count(0)
+            expect(page.locator("#shopper-message")).to_be_enabled()
+
+            # Nothing was rolled back and step 3 never ran: the line is still in the cart and
+            # the page never went to the cart.
+            lines = page.request.get("http://localhost:4000/cart/state").json()["lines"]
+            assert [(line["product_id"], line["quantity"]) for line in lines] == [("shoe-01", 1)]
+            assert frame.locator("body").evaluate("() => location.pathname") == "/p/shoe-01"
+            assert [r["message"] for r in plan_requests(page)] == [
+                ADD_THEN_TOO_MANY_THEN_CART,
+                TOO_MANY_STEP,
+            ]
+
+            # No request is made after the failure.
+            made = len(posts)
+            page.wait_for_timeout(1500)
+            assert len(posts) == made
         finally:
             browser.close()

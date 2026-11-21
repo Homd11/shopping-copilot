@@ -48,17 +48,22 @@ class TaskRuntime:
         task: ActiveTask,
         kind: TaskEndKind,
         reason: str | None = None,
+        message: str | None = None,
     ) -> None:
         """The one place a Shopping Task ends: completed, cancelled, or paused with a reason.
 
         A completed or cancelled task leaves the Session's active task; a paused one stays
         there awaiting Retry. Cancelling appends its `cancelled` event and pausing writes its
         `task_paused` record here; a completed task's `done` event is written by the caller
-        first, because its summary differs. Listeners hear the end last.
+        first, because its summary differs. A pause's `message` is the Shopper-facing text: it
+        is stored and published as the `error` event before any listener hears the end.
         """
         task.status = kind
         if kind == "paused":
             self.record(session, "task_paused", task_id=task.task_id, reason=reason)
+            if message is not None:
+                task.pause_message = message
+                self.append(session, "error", {"task_id": task.task_id, "message": message})
         else:
             session.active_task = None
             session.last_task = task

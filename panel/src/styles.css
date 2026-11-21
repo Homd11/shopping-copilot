@@ -262,6 +262,15 @@ button:disabled {
   color: var(--muted);
   text-decoration: line-through;
 }
+.plan-skipped-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.message-copilot {
+  white-space: pre-line;
+}
 .suggestions:not(:empty) {
   display: grid;
   gap: 12px;

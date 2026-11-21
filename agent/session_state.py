@@ -77,8 +77,10 @@ class ActivePlan:
     steps: list[PlanStep]
     cursor: int = 0  # index into `steps` of the step whose task is current
     skipped_steps: list[str] = field(default_factory=list)  # words for the report, not work
-    # Task id of a step just started that nobody has interpreted yet (see `app.drive_plan`).
-    start_pending: str | None = None
+    # Why each failed step failed (its position -> the Shopper-language reason), for the report.
+    reasons: dict[int, str] = field(default_factory=dict)
+    # Set when the plan is to end cancelled: "stop", "new_request" or "takeover".
+    cancel_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -115,6 +117,8 @@ class ActiveTask:
     cart_actions: list[Action] = field(default_factory=list)
     cart_operation: str | None = None
     retrieval_budget: "RetrievalBudget | None" = None
+    # Intent family of the question the Shopper's latest answer replies to (plan steps only).
+    answering_family: str | None = None
     # 1-based position when this task is a step of the Session's plan; such a task never
     # creates a plan of its own.
     plan_position: int | None = None
@@ -157,6 +161,10 @@ class Session:
     advice_context: dict[str, Any] = field(default_factory=dict)
     invitation_id: str | None = None
     plan: ActivePlan | None = None
+    # The most recent plan, running or finished, until the next one is created (reload view).
+    last_plan: ActivePlan | None = None
+    # Task id of a task begun by code that nobody has interpreted yet (see `app.drive_plan`).
+    start_pending: str | None = None
     # Remembered sizes, keyed by (person, size kind). In memory for this Session only: never
     # on disk, in the state endpoint, in any event or log record. Gone with the Session.
     remembered_sizes: dict[tuple[str, str], str] = field(default_factory=dict, repr=False)

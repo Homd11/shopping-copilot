@@ -304,11 +304,12 @@ def create_app(
         does it here. A step that ends at once starts the next, so this loops.
         """
         while True:
+            sessions.settle_plan(session_id)
             session = sessions.get(session_id)
-            plan, task = session.plan, session.active_task
-            if plan is None or plan.start_pending is None:
+            task = session.active_task
+            if session.start_pending is None:
                 return
-            pending, plan.start_pending = plan.start_pending, None
+            pending, session.start_pending = session.start_pending, None
             if task is None or task.task_id != pending or task.status != "interpreting":
                 return
             await run_interpretation(session_id, task.task_id, task.model_call_id or "")

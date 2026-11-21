@@ -3,6 +3,7 @@
 from typing import Any
 from uuid import uuid4
 
+from agent import plans
 from agent.schemas import (
     AskShopperAction,
     ClickAction,
@@ -29,29 +30,26 @@ def state(runtime: TaskRuntime, session_id: str, tab_id: str) -> dict[str, Any]:
         task.confirmation = None
         task.mutation_proposal = None
         task.action = None
-        runtime.end_task(session, task, "paused", "refresh")
-        task.pause_message = (
+        runtime.end_task(
+            session,
+            task,
+            "paused",
+            "refresh",
             "انتهى التأكيد بعد تحديث الصفحة. حاول تاني لتأكيد الحالة الحالية."
             if task.language == "ar"
-            else "Confirmation expired on refresh. Retry from the current Storefront state."
+            else "Confirmation expired on refresh. Retry from the current Storefront state.",
         )
-        runtime.append(session, "error", {"task_id": task.task_id, "message": task.pause_message})
     if owned and session.active_task is not None and session.active_task.status == "interpreting":
         task = session.active_task
         task.model_call_id = None
-        runtime.end_task(session, task, "paused", "refresh")
-        task.pause_message = (
+        runtime.end_task(
+            session,
+            task,
+            "paused",
+            "refresh",
             "اتحدثت الصفحة أثناء فهم الطلب. حاول تاني أو أوقف المهمة."
             if task.language == "ar"
-            else "The page refreshed while I was interpreting. Retry or stop this task."
-        )
-        runtime.append(
-            session,
-            "error",
-            {
-                "task_id": task.task_id,
-                "message": task.pause_message,
-            },
+            else "The page refreshed while I was interpreting. Retry or stop this task.",
         )
     if (
         owned
@@ -70,6 +68,7 @@ def state(runtime: TaskRuntime, session_id: str, tab_id: str) -> dict[str, Any]:
         "event_cursor": len(session.events),
         "conversation": session.conversation,
         "requires_reconciliation": session.requires_reconciliation,
+        "plan": plans.view(session),
         "task": (
             {
                 "task_id": task.task_id,
@@ -104,15 +103,15 @@ def reconcile(
         elif task.cart_operation or task.mutation_kind:
             task.action = None
             task.cart_actions.clear()
-            runtime.end_task(session, task, "paused", "refresh")
-            task.pause_message = (
+            runtime.end_task(
+                session,
+                task,
+                "paused",
+                "refresh",
                 "اتحدثت الصفحة قبل تعديل السلة أو الطلب. حاول تاني من الحالة الحالية."
                 if task.language == "ar"
                 else "The page refreshed before the cart or order change. "
-                "Retry from the current Storefront state."
-            )
-            runtime.append(
-                session, "error", {"task_id": task.task_id, "message": task.pause_message}
+                "Retry from the current Storefront state.",
             )
         else:
             narration = (
@@ -148,6 +147,7 @@ def reconcile(
             session.conversation.append({"role": "copilot", "text": narration})
     runtime.record_snapshot(session, snapshot)
     session.requires_reconciliation = False
+    plans.settle(runtime, session)
     runtime.sessions.touch(session)
     view = state(runtime, session_id, tab_id)
     session.requires_reconciliation = False

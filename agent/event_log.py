@@ -184,6 +184,11 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
         "failed_count": is_count,
         "skipped_count": is_count,
     },
+    "plan_cancelled": {
+        **_TASK_CONTEXT,
+        "plan_id": _matches(PLAN_ID),
+        "reason": _one_of({"stop", "new_request", "takeover"}),
+    },
     "model_call": {
         **_TASK_CONTEXT,
         "provider": _token,
