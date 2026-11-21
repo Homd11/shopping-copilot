@@ -86,7 +86,11 @@ class SearchQuery(WireModel):
 
 class DetailsQuery(WireModel):
     v: Literal[1] = 1
-    ids: list[ProductId] = Field(min_length=1, max_length=9)
+    ids: list[ProductId] = Field(
+        min_length=1,
+        max_length=9,
+        description="At least one product ID; never an empty list.",
+    )
     requirements: Predicates = Field(default_factory=list)
     unverified_requirements: Unknowns = Field(
         default_factory=list,

@@ -196,7 +196,17 @@ class RetrievalBudget:
 
 
 class RetrievalExhausted(ValueError):
-    pass
+    """The decision or read budget ran out. `best_found` holds the products of the most recent
+    catalogue read that returned any (verified service results), with the requirement lists
+    that read was made under, so the turn can still show them."""
+
+    best_found: list
+    requirements: list
+    unverified_requirements: list
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.best_found, self.requirements, self.unverified_requirements = [], [], []
 
 
 @dataclass
@@ -242,6 +252,53 @@ def _reject(budget: RetrievalBudget, error: Exception, stage: str) -> dict:
         budget.rejections.append(_rejection_code(error, stage))
     debug_text("retrieval_rejection", text)
     return {"error": text}
+
+
+def _vocabulary_keys(storefront: StorefrontDefinition, field: str) -> dict[str, tuple[str, ...]]:
+    """Each key the Storefront accepts for an attribute filter, with the words that name it."""
+    vocabulary = storefront.vocabulary
+    if field == "category":
+        return {key: (key, label.ar, label.en) for key, label in storefront.categories.items()}
+    group = {
+        "product_type": vocabulary.types,
+        "color": vocabulary.colors,
+        "feature": vocabulary.features,
+        "use": vocabulary.suitable_for,
+    }[field]
+    return {key: (key, *aliases) for key, aliases in group.items()}
+
+
+def normalise_filter_values(query, storefront: StorefrontDefinition):
+    """Attribute filter values become the Storefront's own keys before any read: a key in any
+    case, or a label or alias of one (English or Arabic). A value that names no key is refused
+    with the allowed keys for that field, so a repair decision is not spent guessing again."""
+
+    def fixed(predicate):
+        field = getattr(predicate, "field", None)
+        if field not in {"category", "product_type", "color", "feature", "use"}:
+            return predicate
+        keys = _vocabulary_keys(storefront, field)
+        word = predicate.value.strip().casefold()
+        for key, names in keys.items():
+            if word in {name.strip().casefold() for name in names}:
+                return predicate.model_copy(update={"value": key})
+        raise Rejected(
+            "unknown_filter_value",
+            f"Unknown {field} value {predicate.value!r}. Allowed {field} keys: "
+            + ", ".join(keys)
+            + ". Use one of these keys exactly, or leave the filter out.",
+        )
+
+    return query.model_copy(
+        update={
+            "requirements": [fixed(p) for p in query.requirements],
+            **(
+                {"predicates": [fixed(p) for p in query.predicates]}
+                if isinstance(query, SearchQuery)
+                else {}
+            ),
+        }
+    )
 
 
 def _json(value):
@@ -376,11 +433,19 @@ async def retrieve_products(
     # hands a request back to search, that hand-off does not consume search budget.
     # Refunded once per turn, so a turn makes at most four model calls.
     handoff_refunded = False
+    # The routing decision (execute, or an empty recommend routed like it) carries no
+    # information either: when the interpreter hands the request back to search, it is
+    # refunded with the interpreter call, so the search that follows keeps its decisions.
+    routing_charged = False
     handed_back = False
     routed_empty_recommend = False
     requirements, unknowns = None, None
     # The first decision of the turn that names later steps wins; later ones may omit them.
     steps: dict[str, Any] = {}
+    # The products of the latest read that returned any: what the turn shows if it runs out.
+    best_found: list[Candidate] = []
+    # Searches of this turn that returned no products: the same search is not read again.
+    empty_searches: set[str] = set()
     # Who the turn is for: the latest decision that names someone else.
     beneficiary: str | None = None
 
@@ -392,10 +457,17 @@ async def retrieve_products(
                 skipped_steps=list(source.skipped_steps),
             )
 
+    def _with_best(error: RetrievalExhausted) -> RetrievalExhausted:
+        error.best_found = list(best_found)
+        error.requirements = list(requirements or [])
+        error.unverified_requirements = list(unknowns or [])
+        return error
+
     async def read(query, final=False):
         nonlocal requirements, unknowns
         if budget.reads >= (4 if final else 3):
             raise RetrievalExhausted("Catalogue read budget exhausted")
+        query = normalise_filter_values(query, storefront)
         if requirements is None:
             # First interpretation establishes the requirements, even when that list is empty.
             requirements = list(query.requirements)
@@ -409,6 +481,14 @@ async def retrieve_products(
         )
         # Revalidate after replacement: refinements cannot exceed combined predicate limits.
         query = type(query).model_validate(query.model_dump())
+        search_key = (
+            query.model_dump_json(exclude={"cursor"}) if isinstance(query, SearchQuery) else ""
+        )
+        if search_key in empty_searches:
+            raise Rejected(
+                "repeated_empty_search",
+                "That search returned no products; loosen or change the filters.",
+            )
         await ensure_active()
         budget.reads += 1
         result = await (
@@ -426,6 +506,10 @@ async def retrieve_products(
             raise Rejected("unknowns_omitted", "Catalogue omitted unknown requirements")
         for product in records:
             evidence[product.product.id] = product
+        if records:
+            best_found[:] = records
+        elif search_key:
+            empty_searches.add(search_key)
         entry = {
             "request": query.model_dump(mode="json"),
             "result": result.model_dump(mode="json", exclude={"products", "candidates"}),
@@ -576,6 +660,7 @@ async def retrieve_products(
                 # is routed like execute (code-side; the interpreter rereads the request).
                 # Live trace 2026-11-20: a cart command refused as "advice" after a search.
                 routed_empty_recommend = True
+                routing_charged = True
                 executing = True
                 feedback = None
                 continue
@@ -605,6 +690,7 @@ async def retrieve_products(
                 )
             elif isinstance(decision, ExecuteDecision):
                 executing = True
+                routing_charged = True
                 feedback = None
                 continue
             if (
@@ -661,6 +747,9 @@ async def retrieve_products(
                 feedback = None
                 if not handoff_refunded:
                     handoff_refunded = True
+                    budget.decisions -= 1
+                if routing_charged:
+                    routing_charged = False
                     budget.decisions -= 1
                 continue
             if intent.intent not in {"find_products", "advice"} and ids:
@@ -733,7 +822,12 @@ async def retrieve_products(
             )
         except (ValidationError, ValueError) as error:
             # Transport/index errors and exhaustion are explicit failures, never new model attempts.
-            if isinstance(error, CatalogueReadError | RetrievalExhausted):
+            if isinstance(error, RetrievalExhausted):
+                _with_best(error)
+                raise
+            if isinstance(error, CatalogueReadError):
                 raise
             feedback = _reject(budget, error, stage)
-    raise RetrievalExhausted("Decision budget exhausted; clarify in a new shopper message")
+    raise _with_best(
+        RetrievalExhausted("Decision budget exhausted; clarify in a new shopper message")
+    )

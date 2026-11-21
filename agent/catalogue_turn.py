@@ -14,7 +14,12 @@ from agent.advice import (
 )
 from agent.catalogue import DiscoveryResult
 from agent.catalogue_client import CatalogueClient
-from agent.catalogue_retrieval import RetrievalBudget, RetrievalExhausted, retrieve_products
+from agent.catalogue_retrieval import (
+    RetrievalBudget,
+    RetrievalExhausted,
+    RetrievalOutcome,
+    retrieve_products,
+)
 from agent.event_log import record
 from agent.llm.intent import StructuredIntent
 from agent.plans import PlanSteps
@@ -98,6 +103,41 @@ def _exhausted_turn(task):
     )
 
 
+BEST_FOUND_TEXT = {
+    "ar": "دي المنتجات اللي لقيتها لطلبك:",
+    "en": "Here's what I found for your request:",
+}
+
+
+def _best_found_outcome(task, error):
+    """The budget ran out after a read returned products: show the latest such read's
+    verified products as the usual suggestion cards with a code-built line. The model made
+    no selection, so no claim about them is made beyond the catalogue facts."""
+    language = "ar" if task.language == "ar" else "en"
+    intent = StructuredIntent.model_validate(
+        {
+            "v": 9,
+            "language": language,
+            "dialect": "unknown",
+            "intent": "advice",
+            "constraints": {},
+            "missing_fields": [],
+            "needs_clarification": False,
+        }
+    )
+    products = error.best_found[:3]
+    return RetrievalOutcome(
+        intent,
+        [p.product.id for p in products],
+        products,
+        task.retrieval_budget,
+        error.requirements,
+        error.unverified_requirements,
+        language=language,
+        advice_message=BEST_FOUND_TEXT[language],
+    )
+
+
 async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
     if task.retrieval_budget is None:
         task.retrieval_budget = RetrievalBudget()
@@ -122,6 +162,7 @@ async def prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active
 
 async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_active):
     """Run one catalogue turn; return the prepared turn and how it ended."""
+    best_found = False
     try:
         outcome = await retrieve_products(
             task.message,
@@ -134,9 +175,11 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
             budget=task.retrieval_budget,
             pending_clarification=task.pending_clarification,
         )
-    except RetrievalExhausted:
+    except RetrievalExhausted as error:
         await ensure_active()
-        return _exhausted_turn(task), "exhausted"
+        if not error.best_found:
+            return _exhausted_turn(task), "exhausted"
+        outcome, best_found = _best_found_outcome(task, error), True
     await ensure_active()
     if outcome.question:
         intent = StructuredIntent.model_validate(
@@ -192,7 +235,7 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
             facts=facts,
             beneficiary=who,
             size_hint=hint,
-        ), "recommend"
+        ), "best_found" if best_found else "recommend"
     if outcome.budget.advice >= 1:
         return _exhausted_turn(task), "exhausted"
     await ensure_active()

@@ -105,6 +105,8 @@ REJECTION_CODES = frozenset(
         "source_not_in_message",
         "this_mismatch",  # "this" named a product that code did not allow
         "execute_after_handoff",  # execute chosen again after the interpreter handed back
+        "unknown_filter_value",  # a filter value that names no Storefront vocabulary key
+        "repeated_empty_search",  # the same search as an earlier read that found nothing
         "other",
     }
 )
@@ -208,7 +210,9 @@ EVENTS: dict[str, dict[str, Callable[[Any], bool]]] = {
     },
     "retrieval_turn": {
         **_TASK_CONTEXT,
-        "outcome": _one_of({"recommend", "clarify", "execute", "exhausted", "failed"}),
+        "outcome": _one_of(
+            {"recommend", "best_found", "clarify", "execute", "exhausted", "failed"}
+        ),
         "decisions": _SEQUENCE,
         "reads": _SEQUENCE,
         "advice": _SEQUENCE,
