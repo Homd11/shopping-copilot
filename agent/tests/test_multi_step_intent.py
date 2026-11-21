@@ -223,35 +223,6 @@ def test_anything_that_is_not_a_condition_needs_clarification(condition):
     assert len(model.requests) == 1
 
 
-def test_replace_is_not_executable_yet_and_sends_no_action():
-    cart = {
-        **home_snapshot(),
-        "url": "http://localhost:4000/cart",
-        "elements": [
-            {
-                "id": 3,
-                "role": "button",
-                "name": "حذف",
-                "form_action": "/cart/remove",
-                "visible": True,
-            }
-        ],
-    }
-    reply = v10(
-        intent="cart_edit",
-        constraints={"color": "black"},
-        cart_operation="replace",
-        cart_target_id=3,
-        remaining_steps=[STEP],
-    )
-    StructuredIntent.model_validate(reply)
-    client, model = counting_client(reply)
-    events, state = say(client, "make it black instead", cart)
-    assert not actions(events)
-    assert len(model.requests) == 1
-    assert state["task"]["status"] == "completed"
-
-
 def test_no_shopper_words_step_words_or_names_reach_the_event_log():
     reply = v10(
         remaining_steps=[STEP_WORDS],
@@ -275,8 +246,8 @@ def test_the_prompt_asks_for_v10_and_keeps_its_existing_rules():
         resolved_state={},
         pending_clarification=None,
     )
-    assert PROMPT_VERSION == "intent-v35"
-    assert request.prompt_version == "intent-v35"
+    assert PROMPT_VERSION == "intent-v36"
+    assert request.prompt_version == "intent-v36"
     assert request.schema_version == 10
     assert "StructuredIntent JSON object, v=10." in request.system
     for kept in (
@@ -544,22 +515,6 @@ def large_pages() -> dict[str, dict]:
             element(
                 103 + n * 4, "button", f"حذف — {group}", form_action="/cart/remove", group=group
             ),
-            # The colour swap control every cart line carries (ticket 04).
-            element(
-                600 + n * 2,
-                "combobox",
-                f"اللون الجديد — ممشى النيل {n}",
-                value="أبيض",
-                options=["أبيض", "أزرق"],
-                group=group,
-            ),
-            element(
-                601 + n * 2,
-                "button",
-                f"غيّر اللون — ممشى النيل {n}",
-                form_action="/cart/replace",
-                group=group,
-            ),
         ]
     cart.append(element(900, "button", "تفريغ السلة", form_action="/cart/clear"))
     return {
@@ -615,7 +570,7 @@ def test_the_live_request_fits_the_openrouter_evaluation_budget_on_large_pages(p
         (len(json.dumps(posted[0]).encode()) + 4096) * 0.3 + request.max_tokens * 2.5
     ) / 1_000_000
     # The client refuses above 0.02 (agent/llm/openrouter.py); keep 10% headroom on these
-    # large pages. The cart page carries a colour swap control per line since ticket 04.
+    # large pages.
     assert reserve <= 0.018, f"{page}: reserve {reserve:.4f} leaves too little headroom"
 
 

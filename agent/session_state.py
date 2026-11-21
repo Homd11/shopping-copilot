@@ -134,6 +134,10 @@ class ActiveTask:
     # Why a conditional add was not done (a plan step then counts as skipped, not failed).
     # Shopper-facing text only; never recorded in a log.
     skip_reason: str | None = field(default=None, repr=False)
+    # A colour change in progress (an add of the new colour, then the removal of the old line):
+    # the line read from the cart and the phase. Task-only scratch: never in the Session, an
+    # event or a log record.
+    swap: dict[str, Any] | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)

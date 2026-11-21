@@ -25,6 +25,8 @@ from eval.plan_fixture_app import (
     FIND_TWO,
     OPEN_CLEAR_ACCOUNT,
     PANTS_STEP,
+    SWAP_TO_RED,
+    SWAP_TO_YELLOW,
     TOO_MANY_STEP,
 )
 from eval.services import local_services
@@ -152,8 +154,8 @@ def test_unrelated_pair_adds_once_then_shows_suggestions_with_retrieval_on():
             # call that names the steps. Step 2 is interpreted at its turn, marked position 2,
             # and its search is handed back to the catalogue decision loop (same marker).
             assert [(r["prompt"], r["message"], r["plan_step"]) for r in requests[:2]] == [
-                ("intent-v35", ADD_THEN_PANTS, None),
-                ("intent-v35", PANTS_STEP, {"position": 2, "of": 2, "earlier_steps_done": True}),
+                ("intent-v36", ADD_THEN_PANTS, None),
+                ("intent-v36", PANTS_STEP, {"position": 2, "of": 2, "earlier_steps_done": True}),
             ]
             decisions = requests[2:]
             # search, then recommend (its advice text rides in the decision: no advice call).
@@ -371,5 +373,67 @@ def test_add_it_if_it_is_under_a_price_adds_when_true_and_says_why_not_when_fals
                 ADD_IF_UNDER_1000,
                 ADD_IF_UNDER_2000,
             ]
+        finally:
+            browser.close()
+
+
+def seed_blue_line(page):
+    browser_post(page, "http://localhost:4000/__test/reset")
+    seeded = browser_post(
+        page,
+        "http://localhost:4000/__test/cart",
+        data={"lines": [{"product_id": "shoe-12", "quantity": 3, "size": "42", "color": "blue"}]},
+    )
+    assert seeded.status == 204
+    page.goto("http://localhost:4100")
+    expect(page.locator("#shopper-message")).to_be_enabled()
+    frame = page.frame_locator("#storefront-frame")
+    frame.locator("body").evaluate("() => { location.href = '/cart'; }")
+    expect(frame.get_by_role("button", name="حذف المنتج", exact=False)).to_be_visible()
+    return frame
+
+
+def line_facts(page):
+    lines = page.request.get("http://localhost:4000/__test/cart-state").json()["lines"]
+    return [(x["product_id"], x["quantity"], x["size"], x["color"]) for x in lines]
+
+
+def test_a_colour_swap_leaves_one_line_with_the_same_size_and_quantity_in_the_new_colour():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            frame = seed_blue_line(page)
+            assert line_facts(page) == [("shoe-12", 3, "42", "blue")]
+            send(page, SWAP_TO_YELLOW)
+
+            expect(page.locator("#conversation")).to_contain_text(
+                "غيّرت اللون: ضفت ملعب النجوم مقاس 42 باللون yellow وشلت اللي باللون blue.",
+                timeout=30000,
+            )
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            # The old line is gone; exactly one line remains, same size and quantity, new colour.
+            assert line_facts(page) == [("shoe-12", 3, "42", "yellow")]
+            expect(frame.locator("[data-cart-line]")).to_have_count(1)
+            assert [r["message"] for r in plan_requests(page)] == [SWAP_TO_YELLOW]
+        finally:
+            browser.close()
+
+
+def test_a_swap_to_a_colour_the_product_does_not_offer_asks_and_leaves_the_cart_alone():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            seed_blue_line(page)
+            send(page, SWAP_TO_RED)
+
+            question = page.locator("#conversation")
+            expect(question).to_contain_text(
+                "اللون red مش متاح للمنتج ده في المقاس 42. الألوان المتاحة: yellow. "
+                "تحب أغيّره لأنهي لون؟",
+                timeout=20000,
+            )
+            assert line_facts(page) == [("shoe-12", 3, "42", "blue")]
         finally:
             browser.close()

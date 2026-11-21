@@ -33,6 +33,8 @@ from agent.session_state import (
     ActionResultMismatch,
     ActiveTask,
 )
+from agent.swap import SWAP_REMOVE_FAILED
+from agent.swap import summary as swap_summary
 from agent.task_runtime import TaskRuntime
 from agent.touched_products import note_product_touched
 
@@ -45,6 +47,98 @@ def _visible_product_count(snapshot: Snapshot) -> int | None:
         if (match := re.fullmatch(r"(\d+) منتجات", element.name.strip())) is not None
     }
     return next(iter(counts)) if len(counts) == 1 else None
+
+
+def _swap_removing(task: ActiveTask) -> bool:
+    return task.swap is not None and task.swap["phase"] == "remove"
+
+
+def _swap_remove_failed(runtime: TaskRuntime, session, task: ActiveTask) -> None:
+    """The new colour is in the cart but the old line could not be removed: say so, stop."""
+    task.action = None
+    task.cart_actions.clear()
+    task.swap = None
+    runtime.end_task(
+        session,
+        task,
+        "paused",
+        "swap_remove_failed",
+        SWAP_REMOVE_FAILED[0 if task.language == "ar" else 1],
+    )
+
+
+def _step_to(runtime: TaskRuntime, session, task: ActiveTask, action) -> None:
+    task.action = action
+    task.step_count += 1
+    task.status = "awaiting_action_result"
+    runtime.append(session, "action", {"task_id": task.task_id, "action": to_wire(action)})
+
+
+def _swap_click_remove(runtime: TaskRuntime, session, task: ActiveTask, snapshot: Snapshot) -> None:
+    """On the verified cart Snapshot click the remove button of exactly the old line."""
+    assert task.swap is not None
+    buttons = [
+        e
+        for e in snapshot.elements
+        if e.visible
+        and not e.sensitive
+        and not e.disabled
+        and e.role == "button"
+        and e.form_action == "/cart/remove"
+        and e.group == task.swap["old_group"]
+    ]
+    if len(buttons) != 1:
+        _swap_remove_failed(runtime, session, task)
+        return
+    _step_to(
+        runtime,
+        session,
+        task,
+        ClickAction(
+            v=1,
+            type="click",
+            task_id=task.task_id,
+            action_id=f"action-{uuid4().hex}",
+            sequence_number=task.step_count + 1,
+            narration="هشيل اللون القديم من السلة."
+            if task.language == "ar"
+            else "I'll remove the old colour from the cart.",
+            id=buttons[0].id,
+        ),
+    )
+
+
+def _swap_to_remove_phase(runtime: TaskRuntime, session, task: ActiveTask, intent) -> None:
+    """The add is verified: open the cart to remove the old line."""
+    assert task.swap is not None
+    task.swap["phase"] = "remove"
+    task.cart_operation = "remove"
+    task.resolved_state["_intent"] = intent.model_copy(
+        update={
+            "cart_operation": "remove",
+            "product_id": None,
+            "constraints": intent.constraints.model_copy(update={"size": None, "color": None}),
+            "cart_quantity": None,
+            "cart_quantity_mode": None,
+            "cart_target_id": None,
+        }
+    ).model_dump(mode="json")
+    _step_to(
+        runtime,
+        session,
+        task,
+        NavigateAction(
+            v=1,
+            type="navigate",
+            task_id=task.task_id,
+            action_id=f"action-{uuid4().hex}",
+            sequence_number=task.step_count + 1,
+            narration="هفتح السلة وأشيل اللون القديم."
+            if task.language == "ar"
+            else "I'll open the cart and remove the old colour.",
+            url="/cart",
+        ),
+    )
 
 
 def accept_result(
@@ -106,6 +200,10 @@ def accept_result(
                 and action_result.status in {"ok", "navigated"}
                 and urlsplit(action_result.snapshot.url).path == expected
             ):
+                if _swap_removing(task):
+                    _swap_click_remove(runtime, session, task, action_result.snapshot)
+                    runtime.sessions.touch(session)
+                    return task
                 if intent.v >= 8 and not product_add:
                     # Navigation supplied the previously unavailable cart context.
                     # Resolve a DOM target from this fresh snapshot before any edit.
@@ -130,16 +228,20 @@ def accept_result(
                     task.task_id,
                     task.step_count + 1,
                     asked=asked,
-                    remembered=recall(session, intent) if product_add else None,
+                    remembered=recall(session, intent) if product_add and not task.swap else None,
                     used=used,
-                    stale_size=stale_selection(session, intent) if product_add else None,
+                    stale_size=(
+                        stale_selection(session, intent) if product_add and not task.swap else None
+                    ),
                     selected=chosen,
                 )
-                if product_add:
+                if product_add and not task.swap:
                     record_selection(session, intent, chosen.get("size"))
                 if "size" in used:
                     task.size_note = used_note(intent.language, used["size"])
                 task.action = task.cart_actions.pop(0)
+                if isinstance(task.action, AskShopperAction):
+                    task.swap = None  # nothing is removed by a swap whose add had to ask
                 task.step_count += 1
                 task.status = (
                     "awaiting_answer"
@@ -155,6 +257,8 @@ def accept_result(
                 runtime.append(
                     session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
                 )
+            elif _swap_removing(task):
+                _swap_remove_failed(runtime, session, task)
             else:
                 task.action = None
                 task.cart_actions.clear()
@@ -182,12 +286,25 @@ def accept_result(
             runtime.append(
                 session, "action", {"task_id": task.task_id, "action": to_wire(task.action)}
             )
+        elif (
+            success
+            and task.swap is not None
+            and task.swap["phase"] == "add"
+            and any(
+                e.visible and e.role == "status" and e.name in MESSAGES["add"]
+                for e in action_result.snapshot.elements
+            )
+        ):
+            _swap_to_remove_phase(runtime, session, task, intent)
         elif success and any(
             e.visible and e.role == "status" and e.name in MESSAGES[task.cart_operation]
             for e in action_result.snapshot.elements
         ):
             summary = with_note(
-                MESSAGES[task.cart_operation][0 if task.language == "ar" else 1], task.size_note
+                swap_summary(task.swap, task.language)
+                if _swap_removing(task)
+                else MESSAGES[task.cart_operation][0 if task.language == "ar" else 1],
+                task.size_note,
             )
             session.conversation.append({"role": "copilot", "text": summary})
             runtime.append(
@@ -201,6 +318,9 @@ def accept_result(
                     session, intent.product_id, action_result.snapshot, runtime.planner.storefront
                 )
             runtime.end_task(session, task, "completed")
+        elif _swap_removing(task) and isinstance(action, ClickAction) and not success:
+            # The click itself failed: the old line is still there next to the new one.
+            _swap_remove_failed(runtime, session, task)
         else:
             if isinstance(action, ClickAction):
                 runtime.ask_to_stop_uncertain_mutation(session, task, action)

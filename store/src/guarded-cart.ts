@@ -30,8 +30,6 @@ interface UndoRecord {
   kind: string;
   line: string;
   revision: number;
-  /** Set only for a colour swap. */
-  swap?: { product_id: string; size: string; from: string; into: string };
 }
 
 interface Confirmation {
@@ -88,93 +86,21 @@ export class GuardedCart {
     const after = this.#lines.find((line) => lineKey(line) === record?.line);
     const item = after ?? before;
     const product = item ? this.repository.get(item.product_id) : undefined;
-    if (
-      record === null ||
-      record.expiresAt <= this.#clock() ||
-      record.revision !== this.#revision
-    )
-      return null;
-    const remaining = record.expiresAt - this.#clock();
-    const swap = record.swap;
-    if (swap !== undefined) {
-      const swapped = this.repository.get(swap.product_id);
-      const detail = `${swap.size}: ${swap.from} → ${swap.into}`;
-      return {
-        id: record.id,
-        remaining_ms: remaining,
-        kind: record.kind,
-        description: `تبديل اللون: ${swapped?.nameAr ?? swap.product_id} · ${detail}`,
-        description_en: `Colour swap: ${swapped?.nameEn ?? swap.product_id} · ${detail}`,
-      };
-    }
-    return {
-      id: record.id,
-      remaining_ms: remaining,
-      kind: record.kind,
-      description: `${product?.nameAr ?? item?.product_id} · ${item?.size ?? "—"} / ${item?.color ?? "—"}: ${before?.quantity ?? 0} → ${after?.quantity ?? 0}`,
-      description_en: `${product?.nameEn ?? item?.product_id} · ${item?.size ?? "—"} / ${item?.color ?? "—"}: ${before?.quantity ?? 0} → ${after?.quantity ?? 0}`,
-    };
-  }
-
-  #commonOk(input: Record<string, unknown>): boolean {
-    const operation = input.operation_id;
-    return (
-      typeof operation === "string" &&
-      operation.length >= 1 &&
-      operation.length <= 100 &&
-      !this.#operations.has(operation) &&
-      input.revision === this.#revision
-    );
-  }
-
-  /**
-   * Why a colour swap would be refused, or null when it would apply. "variant"
-   * means the line exists but the product is unavailable or does not offer that
-   * colour in that size; anything else is "invalid".
-   */
-  #replaceProblem(
-    input: Record<string, unknown>,
-  ): "variant" | "invalid" | null {
-    const { product_id: id, size, color, new_color: next } = input;
-    if (
-      typeof id !== "string" ||
-      typeof size !== "string" ||
-      typeof color !== "string" ||
-      typeof next !== "string" ||
-      next === color
-    )
-      return "invalid";
-    const index = this.#lines.findIndex(
-      (line) => lineKey(line) === lineKey({ product_id: id, size, color }),
-    );
-    if (index === -1) return "invalid";
-    const product = this.repository.get(id);
-    if (
-      !product ||
-      !product.available ||
-      !product.sizes.includes(size) ||
-      !product.colors.includes(next)
-    )
-      return "variant";
-    const target = this.#lines.find(
-      (line) =>
-        lineKey(line) === lineKey({ product_id: id, size, color: next }),
-    );
-    if ((target?.quantity ?? 0) + this.#lines[index].quantity > 99)
-      return "invalid";
-    return null;
-  }
-
-  /** The refusal a rejected swap reports: variant_unavailable only when that is the sole problem. */
-  replaceRefusal(input: Record<string, unknown>): "variant_unavailable" | null {
-    this.refreshProductTerms();
-    return this.#commonOk(input) && this.#replaceProblem(input) === "variant"
-      ? "variant_unavailable"
+    return record !== null &&
+      record.expiresAt > this.#clock() &&
+      record.revision === this.#revision
+      ? {
+          id: record.id,
+          remaining_ms: record.expiresAt - this.#clock(),
+          kind: record.kind,
+          description: `${product?.nameAr ?? item?.product_id} · ${item?.size ?? "—"} / ${item?.color ?? "—"}: ${before?.quantity ?? 0} → ${after?.quantity ?? 0}`,
+          description_en: `${product?.nameEn ?? item?.product_id} · ${item?.size ?? "—"} / ${item?.color ?? "—"}: ${before?.quantity ?? 0} → ${after?.quantity ?? 0}`,
+        }
       : null;
   }
 
   edit(
-    kind: "add" | "quantity" | "remove" | "replace" | "undo",
+    kind: "add" | "quantity" | "remove" | "undo",
     input: Record<string, unknown>,
   ): boolean {
     this.refreshProductTerms();
@@ -193,34 +119,6 @@ export class GuardedCart {
         return false;
       this.#lines = undo.before.map((line) => ({ ...line }));
       this.#undo = null;
-    } else if (kind === "replace") {
-      if (this.#replaceProblem(input) !== null) return false;
-      const id = String(input.product_id);
-      const size = String(input.size);
-      const color = String(input.color);
-      const next = String(input.new_color);
-      const key = lineKey({ product_id: id, size, color });
-      const nextKey = lineKey({ product_id: id, size, color: next });
-      this.#undo = {
-        id: randomUUID(),
-        before: this.lines,
-        expiresAt: this.#clock() + 10000,
-        kind,
-        line: key,
-        revision: this.#revision + 1,
-        swap: { product_id: id, size, from: color, into: next },
-      };
-      const index = this.#lines.findIndex((line) => lineKey(line) === key);
-      const merge = this.#lines.findIndex((line) => lineKey(line) === nextKey);
-      if (merge === -1) this.#lines[index].color = next;
-      else {
-        this.#lines[index] = {
-          ...this.#lines[index],
-          color: next,
-          quantity: this.#lines[index].quantity + this.#lines[merge].quantity,
-        };
-        this.#lines.splice(merge, 1);
-      }
     } else {
       const product =
         typeof input.product_id === "string"

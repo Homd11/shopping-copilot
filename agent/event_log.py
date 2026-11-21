@@ -75,6 +75,7 @@ PAUSE_REASONS = frozenset(get_args(InterpretationPauseReason)) | {
     "cart_navigation_failed",
     "cart_edit_unavailable",
     "guarded_control_missing",
+    "swap_remove_failed",
 }
 # Why one catalogue decision was rejected. A closed set: never the error text.
 REJECTION_CODES = frozenset(

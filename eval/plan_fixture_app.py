@@ -38,6 +38,13 @@ ADD_IF_UNDER_1000 = "ضيفها لو أقل من 1000"
 ADD_IF_UNDER_2000 = "ضيفها لو أقل من 2000"
 
 
+# Ticket 10: a colour swap (an add, then a removal), and one to a colour the product lacks.
+SWAP_TO_YELLOW = "غيرت رأيي خليها صفرا بدل الأزرق"
+SWAP_SOURCE = "خليها صفرا"
+SWAP_TO_RED = "غيرت رأيي خليها احمر بدل الأزرق"
+SWAP_RED_SOURCE = "خليها احمر"
+
+
 def intent(name, **fields):
     return {
         "v": 10,
@@ -136,6 +143,22 @@ class PlanModel:
                     "comparator": "lt",
                     "value": "1000" if message == ADD_IF_UNDER_1000 else "2000",
                 },
+            )
+        elif message in {SWAP_TO_YELLOW, SWAP_TO_RED}:
+            # Only the operation, the NEW colour and the observed remove button of the line;
+            # code reads the old line and does the add and the removal.
+            control = next(
+                e
+                for e in context["current_snapshot"]["elements"]
+                if e.get("form_action") == "/cart/remove" and e["role"] == "button"
+            )
+            yellow = message == SWAP_TO_YELLOW
+            response = intent(
+                "cart_edit",
+                cart_operation="replace",
+                cart_target_id=control["id"],
+                cart_source=SWAP_SOURCE if yellow else SWAP_RED_SOURCE,
+                constraints={"color": "yellow" if yellow else "red"},
             )
         elif message == ADD_THIS:
             # Only the marker: which product "this" means is decided by code, never here.

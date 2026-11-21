@@ -58,6 +58,8 @@ from agent.shopper_access import ShopperBinding
 from agent.shopper_http import install_shopper_http
 from agent.speech import MAX_AUDIO_BYTES, OpenRouterSpeechTranscriber, SpeechTranscriber
 from agent.storefront_service import StorefrontService, identity_config
+from agent.swap import SwapDecision, read_line
+from agent.swap import decide as decide_swap
 
 
 class StepRequest(BaseModel):
@@ -366,6 +368,32 @@ def create_app(
         )
         return verdict, reason
 
+    async def prepare_swap(session_id: str, intent, observed, fetch) -> SwapDecision | None:
+        """The catalogue check before a colour change of a cart line, decided in code.
+
+        Reads the old line from the cart Snapshot; returns None when the intent is not a swap
+        on a readable cart line (the task then says which item it could not identify). A failed
+        or empty catalogue read leaves the product unknown, so the Copilot asks.
+        """
+        if (
+            intent.intent != "cart_edit"
+            or intent.cart_operation != "replace"
+            or intent.needs_clarification
+        ):
+            return None
+        storefront = planner.storefront
+        color = intent.constraints.color
+        line = read_line(
+            observed, intent.cart_target_id, intent.constraints.size, storefront.product_route
+        )
+        if line is None:
+            return None
+        try:
+            product = await fetch(line.product_id)
+        except (CatalogueReadError, httpx.HTTPError, ValueError, OSError):
+            product = None
+        return decide_swap(line, color, product, intent.language, storefront)
+
     async def _interpret_task(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
         if task is None or task.task_id != task_id or task.model_call_id != call_id:
@@ -459,6 +487,9 @@ def create_app(
                         )
 
                     verdict, reason = await prepare_add(session_id, prepared.intent, fetch_details)
+                    swap_check = await prepare_swap(
+                        session_id, prepared.intent, observed, fetch_details
+                    )
                     await ensure_active()
                     sessions.finish_interpretation(
                         session_id,
@@ -468,6 +499,7 @@ def create_app(
                         plan_steps=prepared.steps,
                         condition_result=verdict,
                         condition_reason=reason,
+                        swap_check=swap_check,
                     )
                 return
             intent = await interpret_message(
@@ -565,6 +597,7 @@ def create_app(
                 return next((p for p in found.products if p.id == product_id), None)
 
             verdict, reason = await prepare_add(session_id, intent, read_product)
+            swap_check = await prepare_swap(session_id, intent, observed, read_product)
             await verify_owner(session_id)
             sessions.finish_interpretation(
                 session_id,
@@ -573,6 +606,7 @@ def create_app(
                 intent,
                 condition_result=verdict,
                 condition_reason=reason,
+                swap_check=swap_check,
             )
         except CatalogueTurnInterrupted:
             sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")

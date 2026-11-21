@@ -4,6 +4,7 @@ import json
 from collections.abc import Mapping
 from dataclasses import replace
 from typing import Any
+from urllib.parse import urlsplit
 
 from pydantic import ValidationError
 
@@ -23,7 +24,7 @@ from agent.product_reference import names_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
-PROMPT_VERSION = "intent-v35"
+PROMPT_VERSION = "intent-v36"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
@@ -301,6 +302,11 @@ def build_intent_request(
             "do not require clarification. Do not replace an add request with open_product. "
             "For quantity/remove/undo, product_id is null; the observed cart_target_id "
             "button determines the cart line. "
+            "A colour change of an existing cart line (X instead of Y, بدل, غيرت رأيي خليها) is "
+            "replace, never remove plus add: constraints.color is the NEW colour and "
+            "cart_target_id is that line's remove button (حذف المنتج, form_action /cart/remove); "
+            "product_id and quantity are null, and constraints.size only narrows the line. "
+            "If the cart is not visible leave cart_target_id null. "
             "Leave catalogue_requirements/owned_items empty and owned_item null. Preserve "
             "the requested cart operation, quantity, mode and size/color. "
             "cart_source and navigation_source describe the current request. Emptying the "
@@ -531,17 +537,6 @@ def _validate_interpreted_intent(
     *,
     retrieval: bool = False,
 ) -> StructuredIntent:
-    if intent.cart_operation == "replace":
-        # Not executable yet: nothing is clicked, and later steps are not run either.
-        return StructuredIntent(
-            v=intent.v,
-            language=intent.language,
-            dialect=intent.dialect,
-            intent="unsupported",
-            constraints=IntentConstraints(),
-            missing_fields=[],
-            needs_clarification=False,
-        )
     for money in (intent.constraints.min_price, intent.constraints.max_price):
         if money is not None:
             money.to_money()
@@ -550,6 +545,14 @@ def _validate_interpreted_intent(
     if intent.intent == "cart_edit":
         if not intent.needs_clarification:
             _require_quoted_source(message, intent.cart_source, state)
+        if (
+            intent.cart_operation in {"quantity", "remove", "replace"}
+            and intent.cart_target_id is not None
+            and (snapshot is None or urlsplit(snapshot.url).path != "/cart")
+        ):
+            # An ID from another page can never name a cart line: the cart opens first and
+            # the line is chosen on its fresh Snapshot.
+            intent = intent.model_copy(update={"cart_target_id": None})
         intent = _coded("cart_edit_invalid", validate_cart_intent, message, intent, snapshot)
         if intent.product_id is not None:
             _coded(
@@ -636,7 +639,10 @@ def _resolve_this(
     """
     if not intent.refers_to_this or not (
         intent.intent == "open_product"
-        or (intent.intent == "cart_edit" and intent.cart_operation in {"add", "quantity", "remove"})
+        or (
+            intent.intent == "cart_edit"
+            and intent.cart_operation in {"add", "quantity", "remove", "replace"}
+        )
     ):
         return intent
     candidates = [

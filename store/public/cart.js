@@ -14,7 +14,6 @@
     add: ["تمت الإضافة إلى السلة", "Added to cart"],
     quantity: ["تم تحديث الكمية", "Quantity updated"],
     remove: ["تم حذف المنتج من السلة", "Item removed from cart"],
-    replace: ["تم تغيير اللون", "Colour changed"],
     undo: ["تم التراجع عن تعديل السلة", "Cart change undone"],
   };
   function toast(undo) {
@@ -166,7 +165,6 @@
     const kind = form.dataset.cartEdit;
     feedback.setAttribute("role", "status");
     form.dataset.cartResult = "pending";
-    let refusal = "";
     let beforeHtml;
     let beforeBadge;
     const contents = document.getElementById("cart-contents");
@@ -237,17 +235,7 @@
         body: JSON.stringify(data),
         signal: AbortSignal.timeout(8000),
       });
-      if (!response.ok) {
-        if (
-          kind === "replace" &&
-          (await response.json().catch(() => ({}))).error ===
-            "variant_unavailable"
-        )
-          refusal = ar()
-            ? "اللون ده مش متاح للمقاس ده."
-            : "That colour isn't available in this size.";
-        throw new Error("Cart edit rejected");
-      }
+      if (!response.ok) throw new Error("Cart edit rejected");
       render(await response.json());
       form.dataset.cartResult = "confirmed";
       feedback.textContent = messages[kind][ar() ? 0 : 1];
@@ -258,11 +246,9 @@
       toast(null);
       form.dataset.cartResult = "failed";
       feedback.dataset.cartResult = "failed";
-      feedback.textContent =
-        refusal ||
-        (ar()
-          ? "تعذر تأكيد تعديل السلة. لم نكرر العملية؛ راجع السلة قبل المحاولة مجددًا."
-          : "Cart change was not confirmed. Check the cart before trying again; it was not repeated.");
+      feedback.textContent = ar()
+        ? "تعذر تأكيد تعديل السلة. لم نكرر العملية؛ راجع السلة قبل المحاولة مجددًا."
+        : "Cart change was not confirmed. Check the cart before trying again; it was not repeated.";
       try {
         await refresh(false);
       } catch {

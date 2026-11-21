@@ -52,6 +52,8 @@ from agent.session_state import (
     InterpretationPauseReason,
     TaskConflict,
 )
+from agent.swap import COULD_NOT_CHECK, COULD_NOT_IDENTIFY, SwapDecision, read_line
+from agent.swap import scratch as swap_scratch
 from agent.task_runtime import TaskRuntime
 from agent.touched_products import note_touched, this_candidates
 
@@ -185,6 +187,7 @@ def finish_interpretation(
     plan_steps: PlanSteps | None = None,
     condition_result: bool | None = None,
     condition_reason: str | None = None,
+    swap_check: SwapDecision | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -272,6 +275,27 @@ def finish_interpretation(
             runtime.end_task(session, task, "completed")
             runtime.sessions.touch(session)
             return task
+    # A colour change of a cart line, read from the cart Snapshot by code. Anywhere else the
+    # cart opens first (below) and the line is chosen on the fresh cart Snapshot.
+    swapping = (
+        intent.intent == "cart_edit"
+        and intent.cart_operation == "replace"
+        and not intent.needs_clarification
+        and not asks_condition
+        and session.last_snapshot is not None
+        and urlsplit(session.last_snapshot.url).path == "/cart"
+    )
+    swap_line = (
+        read_line(
+            session.last_snapshot,
+            intent.cart_target_id,
+            intent.constraints.size,
+            runtime.planner.storefront.product_route,
+        )
+        if swapping
+        else None
+    )
+    swap_decision = swap_check if swap_line is not None else None
     verdict = condition_result if conditional and not asks_condition else None
     if conditional and verdict is False and condition_reason:
         # Not met: nothing is clicked; the step is skipped with its reason, the plan goes on.
@@ -304,6 +328,60 @@ def finish_interpretation(
             question=question,
             options=[],
         )
+    elif swapping:
+        if swap_line is not None and swap_decision is not None and swap_decision.kind == "go":
+            # Add the new colour first; the old line goes only after that add is verified.
+            task.swap = swap_scratch(swap_line, intent.constraints.color or "")
+            task.cart_operation = "add"
+            intent = StructuredIntent.model_validate(
+                {
+                    "v": 10,
+                    "language": intent.language,
+                    "dialect": intent.dialect,
+                    "intent": "cart_edit",
+                    "cart_operation": "add",
+                    "cart_source": intent.cart_source,
+                    "product_id": swap_line.product_id,
+                    "constraints": {"size": swap_line.size, "color": intent.constraints.color},
+                    "cart_quantity": swap_line.quantity,
+                    "cart_quantity_mode": "set",
+                    "missing_fields": [],
+                    "conflicting_fields": [],
+                    "needs_clarification": False,
+                }
+            )
+            action = NavigateAction(
+                v=1,
+                type="navigate",
+                task_id=task_id,
+                action_id=f"action-{uuid4().hex}",
+                sequence_number=task.step_count + 1,
+                narration="هفتح المنتج وأضيف اللون الجديد، وبعدها أشيل القديم."
+                if intent.language == "ar"
+                else "I'll open the product, add the new colour, then remove the old one.",
+                url=runtime.planner.storefront.product_route.replace(
+                    "{product_id}", swap_line.product_id
+                ),
+            )
+        else:
+            # Nothing is changed: say which item, or what the check found, and wait.
+            task.cart_operation = intent.cart_operation
+            if swap_decision is not None:
+                text = swap_decision.text
+            elif swap_line is None:
+                text = COULD_NOT_IDENTIFY[0 if intent.language == "ar" else 1]
+            else:
+                text = COULD_NOT_CHECK[intent.language]
+            action = AskShopperAction(
+                v=1,
+                type="ask_shopper",
+                task_id=task_id,
+                action_id=f"question-{uuid4().hex}",
+                sequence_number=task.step_count + 1,
+                narration=text,
+                question=text,
+                options=[],
+            )
     elif intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation
         if (
@@ -339,7 +417,7 @@ def finish_interpretation(
                 )
             ]
         elif (
-            intent.cart_operation in {"quantity", "remove"}
+            intent.cart_operation in {"quantity", "remove", "replace"}
             and session.last_snapshot is not None
             and urlsplit(session.last_snapshot.url).path != "/cart"
         ):

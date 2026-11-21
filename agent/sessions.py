@@ -36,6 +36,7 @@ from agent.session_state import (
     TaskStatus,
 )
 from agent.shopper_access import ShopperBinding
+from agent.swap import SwapDecision
 from agent.task_runtime import TaskRuntime
 
 __all__ = [
@@ -133,6 +134,7 @@ class SessionStore:
         plan_steps: PlanSteps | None = None,
         condition_result: bool | None = None,
         condition_reason: str | None = None,
+        swap_check: SwapDecision | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_interpretation(
             self._runtime,
@@ -143,6 +145,7 @@ class SessionStore:
             plan_steps=plan_steps,
             condition_result=condition_result,
             condition_reason=condition_reason,
+            swap_check=swap_check,
         )
 
     def finish_catalogue_interpretation(

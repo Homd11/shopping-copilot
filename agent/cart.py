@@ -87,7 +87,7 @@ def validate_cart_intent(
 ) -> StructuredIntent:
     """Check executable capability, never reinterpret Shopper language."""
     del message
-    if intent.cart_operation not in CART_ROUTES:
+    if intent.cart_operation not in CART_ROUTES and intent.cart_operation != "replace":
         raise ValueError("Unsupported cart operation")
     if intent.cart_quantity is not None and (
         not 1 <= intent.cart_quantity <= 99 or int(intent.cart_quantity) != intent.cart_quantity
@@ -105,6 +105,8 @@ def validate_cart_intent(
     if intent.needs_clarification or undo_expired(intent, snapshot):
         # An expired undo has nothing to bind; the task completes with an honest answer.
         return intent
+    # A colour change is an add and a removal: its line is named by its remove button.
+    route_name = "remove" if intent.cart_operation == "replace" else intent.cart_operation
     if intent.cart_target_id is not None:
         targets = (
             []
@@ -117,7 +119,7 @@ def validate_cart_intent(
                 and not element.sensitive
                 and not element.disabled
                 and element.role == "button"
-                and element.form_action == CART_ROUTES[intent.cart_operation]
+                and element.form_action == CART_ROUTES[route_name]
             ]
         )
         if len(targets) != 1:

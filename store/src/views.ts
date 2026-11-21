@@ -127,18 +127,6 @@ export function renderCartContents(
         const fields = `<input type="hidden" name="product_id" value="${escapeHtml(line.product_id)}">
           <input type="hidden" name="size" value="${escapeHtml(line.size ?? "")}">
           <input type="hidden" name="color" value="${escapeHtml(line.color ?? "")}">`;
-        const others = (product?.colors ?? []).filter(
-          (color) => color !== line.color,
-        );
-        const swap =
-          others.length === 0
-            ? ""
-            : `
-          <form action="/cart/replace" method="post" data-cart-edit="replace">${fields}
-            <label for="color-${escapeHtml(lineKey(line))}">اللون الجديد — ${name}</label>
-            <select id="color-${escapeHtml(lineKey(line))}" name="new_color">${others.map((color) => `<option value="${escapeHtml(color)}">${escapeHtml(color)}</option>`).join("")}</select>
-            <button type="submit" data-reversible-mutation="replace">غيّر اللون — ${name}</button>
-          </form>`;
         return `<li data-unit-price="${product?.price.amount ?? "0"}" data-cart-line="${escapeHtml(lineKey(line))}"><div role="group" aria-label="${name} / ${escapeHtml(product?.nameEn ?? "")} — ${escapeHtml(line.size ?? "")} / ${escapeHtml(line.color ?? "")}"><img class="cart-image" src="/assets/${product?.category ?? "shoes"}.svg" width="120" height="100" alt=""><a href="/p/${line.product_id}">${name}</a>
           <p>${escapeHtml(line.size ?? "—")} / ${escapeHtml(line.color ?? "—")} · ${product?.price.amount ?? "0"} EGP</p>
           <form action="/cart/quantity" method="post" data-cart-edit="quantity">${fields}
@@ -148,7 +136,7 @@ export function renderCartContents(
           </form>
           <form action="/cart/remove" method="post" data-cart-edit="remove">${fields}
             <button type="submit" data-reversible-mutation="remove">حذف المنتج — ${name}</button>
-          </form>${swap}</div></li>`;
+          </form></div></li>`;
       })
       .join(
         "",
