@@ -13,6 +13,7 @@ gets one report of what was done, what failed and what was skipped. Nothing is r
 from dataclasses import dataclass, field
 from uuid import uuid4
 
+from agent.conditions import CONDITION_FALSE
 from agent.llm.intent import StructuredIntent
 from agent.planner import Language
 from agent.schemas import AskShopperAction
@@ -210,6 +211,9 @@ def _report(plan: ActivePlan, outcome: str) -> str:
         elif step.status == "failed":
             reason = plan.reasons.get(step.position)
             lines.append(f"✕ {step.text} — {reason}" if reason else f"✕ {step.text}")
+        elif step.status == "skipped" and plan.reasons.get(step.position):
+            # Skipped by its own condition: the reason replaces the "(skipped)" suffix.
+            lines.append(f"– {step.text} — {plan.reasons[step.position]}")
         else:
             lines.append(f"– {step.text}{skipped}")
     if plan.skipped_steps:
@@ -438,7 +442,13 @@ def on_task_end(runtime: TaskRuntime, end: TaskEnd) -> None:
             runtime, session, plan, step, task, _REASON_EXHAUSTED[plan.language], cancel_task=False
         )
         return
-    _finish_step(runtime, session, plan, step, "done", task)
+    if end.reason == CONDITION_FALSE:
+        # The step's own condition was not met: skipped, not failed; the plan carries on.
+        if task.skip_reason:
+            plan.reasons[step.position] = task.skip_reason
+        _finish_step(runtime, session, plan, step, "skipped", task)
+    else:
+        _finish_step(runtime, session, plan, step, "done", task)
     following = plan.cursor + 1
     if plan.cancel_reason == "takeover":
         _stop_plan(runtime, session, plan, "cancelled", following)

@@ -98,7 +98,9 @@ def test_v10_carries_later_steps_as_words_but_only_the_first_step_runs():
         refers_to_this=True,
         condition={"fact": "in_stock", "comparator": "is", "value": "true"},
     )
-    client, model = counting_client(reply)
+    # A condition on a navigation is asked about since ticket 09 (test_conditions.py); this
+    # test is about the steps, so the first step runs from the reply without its condition.
+    client, model = counting_client({**reply, "condition": None})
     events, state = say(client)
     sent = actions(events)
     assert [a["type"] for a in sent] == ["navigate"]

@@ -9,6 +9,8 @@ from playwright.sync_api import expect, sync_playwright
 from eval.browser_http import browser_post
 from eval.plan_fixture_app import (
     ACCOUNT_STEP,
+    ADD_IF_UNDER_1000,
+    ADD_IF_UNDER_2000,
     ADD_NO_SIZE,
     ADD_STEP,
     ADD_STEP_2,
@@ -341,5 +343,33 @@ def test_an_ambiguous_this_after_two_suggestions_makes_the_copilot_ask_and_adds_
             frame = page.frame_locator("#storefront-frame")
             assert frame.locator("body").evaluate("() => location.pathname") == "/"
             assert [r["message"] for r in plan_requests(page)][-1] == ADD_THIS
+        finally:
+            browser.close()
+
+
+def test_add_it_if_it_is_under_a_price_adds_when_true_and_says_why_not_when_false():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            open_product_page(page)
+
+            # 1450 EGP is not under 1000: nothing is clicked and the reason is on screen.
+            send(page, ADD_IF_UNDER_1000)
+            reason = "ما ضفتهاش: سعرها 1450 جنيه، والشرط مش متحقق."
+            expect(page.locator("#conversation")).to_contain_text(reason, timeout=20000)
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            assert cart_lines(page) == []
+
+            # It is under 2000: the add runs exactly as an unconditional add.
+            send(page, ADD_IF_UNDER_2000)
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            assert [(line["product_id"], line["quantity"]) for line in cart_lines(page)] == [
+                ("shoe-01", 1)
+            ]
+            assert [r["message"] for r in plan_requests(page)] == [
+                ADD_IF_UNDER_1000,
+                ADD_IF_UNDER_2000,
+            ]
         finally:
             browser.close()

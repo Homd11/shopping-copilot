@@ -14,6 +14,8 @@ from agent.cart import (
     validate_cart_intent,
 )
 from agent.catalogue import DiscoveryResult
+from agent.conditions import CONDITION_FALSE
+from agent.conditions import QUESTION as CONDITION_QUESTION
 from agent.confirmation import (
     validate_mutation_interpretation,
 )
@@ -181,6 +183,8 @@ def finish_interpretation(
     intent: StructuredIntent,
     *,
     plan_steps: PlanSteps | None = None,
+    condition_result: bool | None = None,
+    condition_reason: str | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -247,7 +251,13 @@ def finish_interpretation(
             session.last_snapshot,
             runtime.planner.storefront,
         )
-    if intent.intent == "cart_edit":
+    # A condition code can check applies to an add of a known product, nothing else. It was
+    # evaluated by the caller from the verified catalogue record at this step's own turn.
+    conditional = intent.condition is not None and not intent.needs_clarification
+    asks_condition = conditional and not (
+        intent.intent == "cart_edit" and intent.cart_operation == "add" and intent.product_id
+    )
+    if intent.intent == "cart_edit" and not asks_condition:
         intent = validate_cart_intent(task.message, intent, session.last_snapshot)
         if undo_expired(intent, session.last_snapshot):
             summary = UNDO_EXPIRED[0] if intent.language == "ar" else UNDO_EXPIRED[1]
@@ -262,8 +272,39 @@ def finish_interpretation(
             runtime.end_task(session, task, "completed")
             runtime.sessions.touch(session)
             return task
+    verdict = condition_result if conditional and not asks_condition else None
+    if conditional and verdict is False and condition_reason:
+        # Not met: nothing is clicked; the step is skipped with its reason, the plan goes on.
+        task.language = intent.language
+        task.intent_kind = intent.intent
+        task.skip_reason = condition_reason
+        open_plan(runtime, session, task, steps, intent.language)
+        runtime.append(
+            session,
+            "done",
+            {"task_id": task_id, "summary": condition_reason, "language": intent.language},
+        )
+        task.model_call_id = None
+        session.conversation.append({"role": "copilot", "text": condition_reason})
+        runtime.end_task(session, task, "completed", CONDITION_FALSE)
+        runtime.sessions.touch(session)
+        return task
     asked: dict = {}
-    if intent.intent == "cart_edit" and not intent.needs_clarification:
+    if conditional and verdict is not True:
+        # The fact cannot be read (or the condition is not on an add): ask, never judge.
+        question = CONDITION_QUESTION[intent.language]
+        task.cart_operation = intent.cart_operation
+        action = AskShopperAction(
+            v=1,
+            type="ask_shopper",
+            task_id=task_id,
+            action_id=f"question-{uuid4().hex}",
+            sequence_number=task.step_count + 1,
+            narration=question,
+            question=question,
+            options=[],
+        )
+    elif intent.intent == "cart_edit" and not intent.needs_clarification:
         task.cart_operation = intent.cart_operation
         if (
             intent.cart_operation == "add"

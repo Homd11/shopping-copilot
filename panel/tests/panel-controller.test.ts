@@ -1516,6 +1516,33 @@ describe("PanelController plan checklist", () => {
     ).toContain("message-copilot");
   });
 
+  it("shows a step skipped by its own condition with its reason, and the plan done", async () => {
+    const { root, emit } = await ready();
+    const reason = "ما ضفتهاش: سعرها 1200 جنيه، والشرط مش متحقق.";
+    const report = `خلصت طلبك:
+✓ ضيفلي الجزمة
+– ضيفها لو أقل من 1000 — ${reason}`;
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created());
+    emit(started(1, "task-1"));
+    emit(finishStep(1, "done"));
+    emit({ type: "task_started", data: { task_id: "task-2" } });
+    emit(started(2, "task-2"));
+    emit({ type: "done", data: { summary: reason, language: "ar" } });
+    emit(finishStep(2, "skipped"));
+    expect(marksWithWords(root)).toEqual([
+      ["done", "تمّت"],
+      ["skipped", "تم تخطّيها"],
+    ]);
+    expect(conversationTexts(root).at(-1)).toBe(reason);
+    expect(inputDisabled(root)).toBe(true);
+    emit(finished("done", report));
+    expect(conversationTexts(root).at(-1)).toBe(report);
+    expect(statusText(root)).toBe("خلصت طلبك:");
+    expect(marks(root)).toEqual(["done", "skipped"]);
+    expect(inputDisabled(root)).toBe(false);
+  });
+
   it("announces requests beyond the limit under the checklist, in the Shopper's language", async () => {
     const { root, emit } = await ready();
     emit(created("ar", ["افتح الطلبات", "افتح المساعدة"]));

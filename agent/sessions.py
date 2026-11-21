@@ -131,9 +131,18 @@ class SessionStore:
         intent: StructuredIntent,
         *,
         plan_steps: PlanSteps | None = None,
+        condition_result: bool | None = None,
+        condition_reason: str | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_interpretation(
-            self._runtime, session_id, task_id, call_id, intent, plan_steps=plan_steps
+            self._runtime,
+            session_id,
+            task_id,
+            call_id,
+            intent,
+            plan_steps=plan_steps,
+            condition_result=condition_result,
+            condition_reason=condition_reason,
         )
 
     def finish_catalogue_interpretation(

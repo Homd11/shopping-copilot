@@ -33,6 +33,9 @@ OPEN_CLEAR_ACCOUNT = f"{CART_STEP} وبعدين {CLEAR_STEP} وبعدين {ACCOU
 # Ticket 08: two suggestion cards, then "this" with nothing to say which one is meant.
 FIND_TWO = "دورلي على جزمتين"
 ADD_THIS = "ضيفلي ديه للسلة"
+# Ticket 09: "add it if it is under N" on the open product (shoe-01 costs 1450 EGP).
+ADD_IF_UNDER_1000 = "ضيفها لو أقل من 1000"
+ADD_IF_UNDER_2000 = "ضيفها لو أقل من 2000"
 
 
 def intent(name, **fields):
@@ -122,6 +125,18 @@ class PlanModel:
                 }
             else:
                 raise ValueError("Unknown scripted decision request")
+        elif message in {ADD_IF_UNDER_1000, ADD_IF_UNDER_2000}:
+            # The model only names the fact, the comparator and the value; code reads the price.
+            response = add_intent(
+                context,
+                "ضيفها",
+                product_id="shoe-01",
+                condition={
+                    "fact": "price",
+                    "comparator": "lt",
+                    "value": "1000" if message == ADD_IF_UNDER_1000 else "2000",
+                },
+            )
         elif message == ADD_THIS:
             # Only the marker: which product "this" means is decided by code, never here.
             response = intent(

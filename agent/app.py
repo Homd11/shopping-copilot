@@ -20,6 +20,8 @@ from agent.catalogue import CatalogueReader, HttpCatalogueReader, evaluate_catal
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import DetailsQuery
 from agent.catalogue_turn import CatalogueTurnInterrupted, configured_client, prepare_turn
+from agent.conditions import evaluate as evaluate_condition
+from agent.conditions import not_met_text
 from agent.event_log import (
     EventLog,
     RequestLog,
@@ -325,23 +327,44 @@ def create_app(
         ):
             await _interpret_task(session_id, task_id, call_id)
 
-    async def note_add_kind(session_id: str, intent, lookup) -> None:
-        """Learn the size kind of an added product from verified catalogue facts (once per
-        product); a failed read just leaves the kind unknown, so nothing is stored or read."""
+    async def prepare_add(session_id: str, intent, fetch) -> tuple[bool | None, str | None]:
+        """Verified facts about the product an add names, read from the catalogue.
+
+        Learns the size kind (once per product) and, when the add carries a condition, reads
+        the product fresh and evaluates the condition in code. Returns (verdict, reason): the
+        verdict is None when the fact cannot be read; the reason is the code-built text for a
+        condition that is not met. A failed read just leaves everything unknown.
+        """
         session = sessions.get(session_id)
         if (
             intent.intent != "cart_edit"
             or intent.cart_operation != "add"
             or not intent.product_id
             or intent.needs_clarification
-            or intent.product_id in session.product_kinds
         ):
-            return
+            return None, None
+        conditional = intent.condition is not None
+        if not conditional and intent.product_id in session.product_kinds:
+            return None, None
         try:
-            facts = await lookup(intent.product_id)
+            product = await fetch(intent.product_id)
         except (CatalogueReadError, httpx.HTTPError, ValueError, OSError):
-            return
-        sessions.note_product_facts(session_id, facts)
+            return None, None
+        if product is None:
+            return None, None
+        if intent.product_id not in session.product_kinds:
+            kind = (product.category, getattr(product, "type", None) or product.product_type)
+            sessions.note_product_facts(session_id, {product.id: kind})
+        if not conditional:
+            return None, None
+        storefront = planner.storefront
+        verdict = evaluate_condition(intent.condition, product, storefront)
+        reason = (
+            not_met_text(intent.condition, product, intent.language, storefront)
+            if verdict is False
+            else None
+        )
+        return verdict, reason
 
     async def _interpret_task(session_id: str, task_id: str, call_id: str) -> None:
         task = sessions.get(session_id).active_task
@@ -428,17 +451,23 @@ def create_app(
                     )
                 else:
 
-                    async def details_facts(product_id):
+                    async def fetch_details(product_id):
                         found = await reader.details(DetailsQuery(ids=[product_id]))
-                        return {
-                            p.product.id: (p.product.category, p.product.type)
-                            for p in found.products
-                        }
+                        return next(
+                            (p.product for p in found.products if p.product.id == product_id),
+                            None,
+                        )
 
-                    await note_add_kind(session_id, prepared.intent, details_facts)
+                    verdict, reason = await prepare_add(session_id, prepared.intent, fetch_details)
                     await ensure_active()
                     sessions.finish_interpretation(
-                        session_id, task_id, call_id, prepared.intent, plan_steps=prepared.steps
+                        session_id,
+                        task_id,
+                        call_id,
+                        prepared.intent,
+                        plan_steps=prepared.steps,
+                        condition_result=verdict,
+                        condition_reason=reason,
                     )
                 return
             intent = await interpret_message(
@@ -531,13 +560,20 @@ def create_app(
                 )
                 return
 
-            async def snapshot_facts(product_id):
+            async def read_product(product_id):
                 found = await catalogue_reader.read()
-                return catalogue_facts(found, product_id)
+                return next((p for p in found.products if p.id == product_id), None)
 
-            await note_add_kind(session_id, intent, snapshot_facts)
+            verdict, reason = await prepare_add(session_id, intent, read_product)
             await verify_owner(session_id)
-            sessions.finish_interpretation(session_id, task_id, call_id, intent)
+            sessions.finish_interpretation(
+                session_id,
+                task_id,
+                call_id,
+                intent,
+                condition_result=verdict,
+                condition_reason=reason,
+            )
         except CatalogueTurnInterrupted:
             sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
             return

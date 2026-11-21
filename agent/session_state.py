@@ -131,6 +131,9 @@ class ActiveTask:
     # One short Shopper-language note for the done summary (a remembered size was used, or a
     # named person's size was not saved). Shopper-facing text only; never recorded in a log.
     size_note: str | None = field(default=None, repr=False)
+    # Why a conditional add was not done (a plan step then counts as skipped, not failed).
+    # Shopper-facing text only; never recorded in a log.
+    skip_reason: str | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)
