@@ -22,7 +22,7 @@ from agent.navigation import DESTINATION_TERMS, destination_label
 from agent.product_context import require_known_product
 from agent.product_reference import names_product
 from agent.schemas import Snapshot
-from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
+from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError, canonical_colour
 
 PROMPT_VERSION = "intent-v36"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
@@ -537,6 +537,13 @@ def _validate_interpreted_intent(
     *,
     retrieval: bool = False,
 ) -> StructuredIntent:
+    wanted_colour = intent.constraints.color
+    canonical = canonical_colour(wanted_colour, storefront)
+    if canonical is not None and canonical != wanted_colour:
+        # " أحمر" or an alias is the Storefront colour it names; unknown words stay refused.
+        intent = intent.model_copy(
+            update={"constraints": intent.constraints.model_copy(update={"color": canonical})}
+        )
     for money in (intent.constraints.min_price, intent.constraints.max_price):
         if money is not None:
             money.to_money()

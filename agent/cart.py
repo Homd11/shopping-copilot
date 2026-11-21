@@ -10,6 +10,7 @@ from uuid import uuid4
 from agent.product_reference import names_product
 from agent.remembered_sizes import matching_option, unavailable_line
 from agent.schemas import Action, AskShopperAction, ClickAction, SelectAction, Snapshot, TypeAction
+from agent.storefront import StorefrontDefinition, colour_label
 
 if TYPE_CHECKING:
     from agent.llm.intent import StructuredIntent
@@ -138,6 +139,7 @@ def plan_cart_edit(
     used: dict | None = None,
     stale_size: str | None = None,
     selected: dict | None = None,
+    storefront: StorefrontDefinition | None = None,
 ) -> list[Action]:
     """Plan the edit, or one handback. ``asked`` receives the add option a question asks for.
 
@@ -230,6 +232,11 @@ def plan_cart_edit(
                     prefix = unavailable_line(intent.language, remembered[1]) + " "
             if not (desired or current) or (desired and desired not in (control.options or [])):
                 options = ", ".join(control.options or [])
+                shown = options
+                if field == "color" and storefront is not None and intent.language == "ar":
+                    shown = ", ".join(
+                        colour_label(option, "ar", storefront) for option in control.options or []
+                    )
                 if options and asked is not None:
                     asked.update(field=field, options=list(control.options or []))
                 if not options:
@@ -238,8 +245,7 @@ def plan_cart_edit(
                         "No product options are available on the page. Stop and check the product.",
                     )
                 return handback(
-                    f"{prefix}محتاج اختيارًا متاحًا لحقل {control.name}. المتاح: {options}. "
-                    "تختار إيه؟",
+                    f"{prefix}محتاج اختيارًا متاحًا لحقل {control.name}. المتاح: {shown}. تختار إيه؟",
                     f"{prefix}Choose an available option for {control.name}: {options}. Which one?",
                     allow_answer=True,
                 )

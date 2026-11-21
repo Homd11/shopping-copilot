@@ -234,6 +234,7 @@ def accept_result(
                         stale_selection(session, intent) if product_add and not task.swap else None
                     ),
                     selected=chosen,
+                    storefront=runtime.planner.storefront,
                 )
                 if product_add and not task.swap:
                     record_selection(session, intent, chosen.get("size"))
@@ -301,7 +302,7 @@ def accept_result(
             for e in action_result.snapshot.elements
         ):
             summary = with_note(
-                swap_summary(task.swap, task.language)
+                swap_summary(task.swap, task.language, runtime.planner.storefront)
                 if _swap_removing(task)
                 else MESSAGES[task.cart_operation][0 if task.language == "ar" else 1],
                 task.size_note,

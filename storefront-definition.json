@@ -27,6 +27,27 @@
     "bags": { "ar": "الشنط", "en": "Bags" },
     "electronics": { "ar": "الإلكترونيات", "en": "Electronics" }
   },
+  "color_labels": {
+    "ar": {
+      "black": "أسود",
+      "blue": "أزرق",
+      "red": "أحمر",
+      "white": "أبيض",
+      "brown": "بني",
+      "green": "أخضر",
+      "gray": "رمادي",
+      "cream": "كريمي",
+      "beige": "بيج",
+      "sand": "رملي",
+      "navy": "كحلي",
+      "pink": "وردي",
+      "yellow": "أصفر",
+      "orange": "برتقالي",
+      "khaki": "كاكي",
+      "gold": "ذهبي",
+      "silver": "فضي"
+    }
+  },
   "vocabulary": {
     "categories": {
       "shoes": [

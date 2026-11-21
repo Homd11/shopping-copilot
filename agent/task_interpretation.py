@@ -450,6 +450,7 @@ def finish_interpretation(
                 used=used,
                 stale_size=stale_selection(session, intent),
                 selected=chosen,
+                storefront=runtime.planner.storefront,
             )
             record_selection(session, intent, chosen.get("size"))
             if "size" in used:

@@ -45,7 +45,7 @@ REMOVE_FAILED_EN = (
     "I added the new colour but couldn't remove the old one, so your cart has both now. "
     "You can ask me to remove it."
 )
-DONE_AR = "غيّرت اللون: ضفت ممشى النيل مقاس XXL باللون yellow وشلت اللي باللون blue."
+DONE_AR = "غيّرت اللون: ضفت ممشى النيل مقاس XXL باللون الأصفر وشلت اللي باللون الأزرق."
 DONE_EN = "Changed the colour: added Nile walker in size XXL in yellow and removed the blue one."
 
 
@@ -260,7 +260,7 @@ def test_a_colour_the_product_does_not_offer_asks_and_touches_nothing():
     assert kinds(events) == ["ask_shopper"]
     question = last_action(events)
     assert question["question"] == (
-        "اللون yellow مش متاح للمنتج ده في المقاس XXL. الألوان المتاحة: black. تحب أغيّره لأنهي لون؟"
+        "اللون الأصفر مش متاح للمنتج ده في المقاس XXL. الألوان المتاحة: أسود. تحب أغيّره لأنهي لون؟"
     )
     assert question["options"] == []
     assert state(client, session_id)["task"]["status"] == "awaiting_answer"
@@ -294,9 +294,7 @@ def test_no_colour_asks_which_colour_and_lists_the_others():
     shelf = Shelf(colors=("blue", "yellow", "black"), sizes=("42", SIZE))
     _, _, _, events = swap(shelf, replace_intent(constraints={}))
     assert kinds(events) == ["ask_shopper"]
-    assert last_action(events)["question"] == (
-        "تحب تغيّره للون إيه؟ الألوان المتاحة: yellow, black."
-    )
+    assert last_action(events)["question"] == ("تحب تغيّره للون إيه؟ الألوان المتاحة: أصفر, أسود.")
     _, _, _, events = swap(shelf, english(constraints={}), text=SOURCE_EN)
     assert last_action(events)["question"] == (
         "Which colour would you like instead? Available colours: yellow, black."
@@ -310,7 +308,7 @@ def test_the_same_colour_asks_which_colour_and_changes_nothing():
     assert kinds(events) == ["ask_shopper"]
     assert done_summaries(events) == []
     assert last_action(events)["question"] == (
-        "اللون blue هو اللي في السلة أصلاً. تحب تغيّره للون إيه؟ الألوان المتاحة: yellow, black."
+        "اللون الأزرق هو اللي في السلة أصلاً. تحب تغيّره للون إيه؟ الألوان المتاحة: أصفر, أسود."
     )
     assert last_action(events)["options"] == []
     _, _, _, events = swap(shelf, english(constraints={"color": "blue"}), text=SOURCE_EN)

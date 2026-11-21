@@ -294,6 +294,14 @@ class StructuredIntent(IntentModel):
 
     @model_validator(mode="before")
     @classmethod
+    def replace_carries_no_quantity(cls, data: object) -> object:
+        """A colour change names no quantity: stray model values are cleared, not refused."""
+        if isinstance(data, dict) and data.get("cart_operation") == "replace":
+            data = {**data, "cart_quantity": None, "cart_quantity_mode": None}
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
     def unsupported_conditions_need_clarification(cls, data: object) -> object:
         """A condition outside the four page-checkable kinds is a question, not a guess."""
         if not isinstance(data, dict) or data.get("v") != 10:

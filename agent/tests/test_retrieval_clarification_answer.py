@@ -111,7 +111,7 @@ def test_exact_option_replies_continue_the_add_without_another_model_call():
         answer(client, sid, size_question, "43", current)
         colour_question = last_action(client, sid)
         assert colour_question["type"] == "ask_shopper"
-        assert "yellow, blue" in colour_question["question"]
+        assert "أصفر, أزرق" in colour_question["question"]
 
         answer(client, sid, colour_question, " Blue ", current)
         complete_add(store, client, sid, current)

@@ -12,9 +12,9 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from agent.conditions import QUESTION as COULD_NOT_CHECK
-from agent.conditions import _canonical_colour, _fold_size
+from agent.conditions import _fold_size
 from agent.schemas import Snapshot
-from agent.storefront import StorefrontDefinition
+from agent.storefront import StorefrontDefinition, canonical_colour, colour_label
 
 SWAP_REMOVE_FAILED = (
     "ضفت اللون الجديد، بس ما قدرتش أشيل القديم، فالسلة فيها الاتنين دلوقتي. تقدر تطلب مني أشيله.",
@@ -111,7 +111,7 @@ def read_line(
 
 
 def _colour_key(value: str | None, storefront: StorefrontDefinition) -> str:
-    return ((_canonical_colour(value, storefront) or value or "").strip()).casefold()
+    return ((canonical_colour(value, storefront) or value or "").strip()).casefold()
 
 
 def decide(
@@ -127,16 +127,18 @@ def decide(
         return SwapDecision("ask", COULD_NOT_CHECK[language])
     old_key = _colour_key(line.old_color, storefront)
     others = [c for c in product.colors if _colour_key(c, storefront) != old_key]
-    colours = ", ".join(others) or "—"
+    colours = ", ".join(colour_label(c, language, storefront) for c in others) or "—"
+    new_name = colour_label(new_color, language, storefront, definite=True)
+    new_plain = colour_label(new_color, language, storefront)
     if new_color and _colour_key(new_color, storefront) == old_key:
         # The line already has this colour: a misread request, never an answer. Ask.
         return SwapDecision(
             "ask",
-            f"اللون {new_color} هو اللي في السلة أصلاً. تحب تغيّره للون إيه؟ "
+            f"اللون {new_name} هو اللي في السلة أصلاً. تحب تغيّره للون إيه؟ "
             f"الألوان المتاحة: {colours}."
             if arabic
-            else f"{new_color} is already the colour in your cart. Which colour would you like "
-            f"instead? Available colours: {colours}.",
+            else f"{new_plain} is already the colour in your cart. "
+            f"Which colour would you like instead? Available colours: {colours}.",
         )
     if not new_color:
         return SwapDecision(
@@ -157,10 +159,10 @@ def decide(
     where_en = f" in size {line.size}" if line.size else ""
     return SwapDecision(
         "ask",
-        f"اللون {new_color} مش متاح للمنتج ده{where}. الألوان المتاحة: {colours}. "
+        f"اللون {new_name} مش متاح للمنتج ده{where}. الألوان المتاحة: {colours}. "
         "تحب أغيّره لأنهي لون؟"
         if arabic
-        else f"{new_color} isn't available for this product{where_en}. "
+        else f"{new_plain} isn't available for this product{where_en}. "
         f"Available colours: {colours}. Which colour would you like?",
     )
 
@@ -170,13 +172,18 @@ def scratch(line: SwapLine, new_color: str) -> dict[str, Any]:
     return {**asdict(line), "new_color": new_color, "phase": "add"}
 
 
-def summary(swap: dict[str, Any], language: str) -> str:
+def summary(swap: dict[str, Any], language: str, storefront: StorefrontDefinition) -> str:
     """The done text, built by code."""
     arabic = language == "ar"
     name = swap["name_ar"] if arabic else swap["name_en"]
     size = swap["size"]
-    new = swap["new_color"]
-    old = swap["old_color"] or ("القديم" if arabic else "old")
+    new = colour_label(swap["new_color"], language, storefront, definite=True)
+    old_color = swap["old_color"]
+    old = (
+        colour_label(old_color, language, storefront, definite=True)
+        if old_color
+        else ("القديم" if arabic else "old")
+    )
     if arabic:
         where = f" مقاس {size}" if size else ""
         return f"غيّرت اللون: ضفت {name}{where} باللون {new} وشلت اللي باللون {old}."

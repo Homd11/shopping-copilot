@@ -408,7 +408,7 @@ def test_a_colour_swap_leaves_one_line_with_the_same_size_and_quantity_in_the_ne
             send(page, SWAP_TO_YELLOW)
 
             expect(page.locator("#conversation")).to_contain_text(
-                "غيّرت اللون: ضفت ملعب النجوم مقاس 42 باللون yellow وشلت اللي باللون blue.",
+                "غيّرت اللون: ضفت ملعب النجوم مقاس 42 باللون الأصفر وشلت اللي باللون الأزرق.",
                 timeout=30000,
             )
             expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
@@ -430,7 +430,7 @@ def test_a_swap_to_a_colour_the_product_does_not_offer_asks_and_leaves_the_cart_
 
             question = page.locator("#conversation")
             expect(question).to_contain_text(
-                "اللون red مش متاح للمنتج ده في المقاس 42. الألوان المتاحة: yellow. "
+                "اللون الأحمر مش متاح للمنتج ده في المقاس 42. الألوان المتاحة: أصفر. "
                 "تحب أغيّره لأنهي لون؟",
                 timeout=20000,
             )

@@ -9,6 +9,7 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from agent.llm.intent import StructuredIntent
+from agent.storefront import load_storefront_definition
 
 CATALOGUE_URL = "http://127.0.0.1:4000/__catalogue/v1/products"
 
@@ -138,6 +139,8 @@ _FACT_AR = {
     "shoes": "أحذية",
     "clothing": "ملابس",
 }
+# Every Storefront colour is named in Arabic from the one definition, not a second list.
+_FACT_AR.update(load_storefront_definition().color_labels_ar)
 _FACT_EN = {
     "leather": "leather",
     "lightweight": "lightweight",

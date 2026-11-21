@@ -11,7 +11,7 @@ from typing import Any
 
 from agent.llm.intent import IntentCondition
 from agent.remembered_sizes import _DIGITS
-from agent.storefront import StorefrontDefinition
+from agent.storefront import StorefrontDefinition, canonical_colour, colour_label
 
 CONDITION_FALSE = "condition_false"
 
@@ -21,15 +21,7 @@ QUESTION = {
 }
 
 
-def _canonical_colour(text: object, storefront: StorefrontDefinition) -> str | None:
-    """The Storefront colour a word names (the key itself or any alias), else None."""
-    if not isinstance(text, str):
-        return None
-    word = text.strip().casefold()
-    for canonical, aliases in storefront.vocabulary.colors.items():
-        if word == canonical.casefold() or word in {alias.casefold() for alias in aliases}:
-            return canonical
-    return None
+_canonical_colour = canonical_colour
 
 
 def _fold_size(text: str) -> str:
@@ -110,6 +102,9 @@ def not_met_text(
         return f"I didn't add it: size {value} {verb} for this product."
     if arabic:
         verb = "مش موجود" if positive else "موجود"
-        return f"ما ضفتهاش: اللون {value} {verb} في المنتج ده."
+        return f"ما ضفتهاش: اللون {colour_label(value, language, storefront)} {verb} في المنتج ده."
     verb = "isn't available" if positive else "is available"
-    return f"I didn't add it: colour {value} {verb} for this product."
+    return (
+        f"I didn't add it: colour {colour_label(value, language, storefront)} {verb} "
+        "for this product."
+    )

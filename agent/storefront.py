@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -65,6 +65,7 @@ class StorefrontDefinition:
     vocabulary: VocabularyDefinition
     url_rules: UrlRules
     destination_routes: dict[str, str]
+    color_labels_ar: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -271,7 +272,50 @@ def parse_storefront_definition(payload: object) -> StorefrontDefinition:
         vocabulary=vocabulary,
         url_rules=url_rules,
         destination_routes=destination_routes,
+        color_labels_ar=_colour_labels(payload, vocabulary.colors),
     )
+
+
+def _colour_labels(payload: dict[str, Any], colors: dict[str, tuple[str, ...]]) -> dict[str, str]:
+    raw = payload.get("color_labels", {})
+    raw_ar = raw.get("ar", {}) if isinstance(raw, dict) else {}
+    if not isinstance(raw_ar, dict):
+        raise StorefrontDefinitionError("color_labels.ar must be an object")
+    labels: dict[str, str] = {}
+    for key, label in raw_ar.items():
+        if key not in colors or not isinstance(label, str) or not label.strip():
+            raise StorefrontDefinitionError(f"color_labels.ar.{key} must name a Storefront colour")
+        labels[key] = label.strip()
+    return labels
+
+
+def canonical_colour(text: object, storefront: StorefrontDefinition) -> str | None:
+    """The Storefront colour a word names (the key itself or any alias), else None."""
+    if not isinstance(text, str):
+        return None
+    word = text.strip().casefold()
+    for canonical, aliases in storefront.vocabulary.colors.items():
+        if word == canonical.casefold() or word in {alias.casefold() for alias in aliases}:
+            return canonical
+    return None
+
+
+def colour_label(
+    value: object, language: str, storefront: StorefrontDefinition, *, definite: bool = False
+) -> str:
+    """A colour in the Shopper's language. Arabic uses the definition's label ("الأصفر" when
+    ``definite``, for use after "اللون"); English keeps the key. A value the Storefront does
+    not know, such as a page option, is returned as it is."""
+    text = str(value if value is not None else "").strip()
+    canonical = canonical_colour(text, storefront)
+    if canonical is None:
+        return text
+    if language == "ar":
+        label = storefront.color_labels_ar.get(canonical)
+        if label is None:
+            return text
+        return f"ال{label}" if definite else label
+    return canonical if text.casefold() != canonical else text
 
 
 _DIGIT_TRANSLATION = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
