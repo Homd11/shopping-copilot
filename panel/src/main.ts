@@ -13,6 +13,7 @@ import "./styles.css";
 import { linkShopper } from "./shopper-link.js";
 import { subscribeAgentStream } from "./event-stream.js";
 import { requireAdmission } from "./admission.js";
+import { PageMemory } from "./page-memory.js";
 
 declare const __COPILOT_PUBLIC_ORIGINS__: {
   panel: string;
@@ -279,10 +280,11 @@ const frame = document.querySelector<HTMLIFrameElement>("#storefront-frame");
 if (root === null || frame === null)
   throw new Error("Panel shell is incomplete");
 const spaVariant = new URL(window.location.href).searchParams.get("spa");
-const storefrontUrl =
-  spaVariant === "url" || spaVariant === "component" || spaVariant === "off"
-    ? `${STOREFRONT_ORIGIN}/?spa=${spaVariant}`
-    : `${STOREFRONT_ORIGIN}/`;
+const pageMemory = new PageMemory(
+  window.sessionStorage,
+  STOREFRONT_ORIGIN,
+  spaVariant,
+);
 
 const SESSION_KEY = "shopping-copilot.session-id";
 const CURSOR_KEY = "shopping-copilot.event-cursor";
@@ -336,6 +338,10 @@ window.addEventListener("message", (event) => {
       controller.invalidateShopper();
       return;
     }
+    pageMemory.remember(
+      (message.type === "snapshot" ? message.snapshot : message.result.snapshot)
+        ?.url,
+    );
     controller.receiveStorefront(message);
   }
 });
@@ -371,7 +377,7 @@ async function startLinked() {
   try {
     const begin = async () => {
       // Serialize the first Storefront navigation too: cookies are shared across tabs.
-      frame!.src = storefrontUrl;
+      frame!.src = pageMemory.startUrl();
       const linked = await linkShopper(frame!, AGENT_ORIGIN, STOREFRONT_ORIGIN);
       browserCsrf = linked.csrf;
       shopperContext = linked.context;
