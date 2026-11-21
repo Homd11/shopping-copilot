@@ -542,6 +542,22 @@ def large_pages() -> dict[str, dict]:
             element(
                 103 + n * 4, "button", f"حذف — {group}", form_action="/cart/remove", group=group
             ),
+            # The colour swap control every cart line carries (ticket 04).
+            element(
+                600 + n * 2,
+                "combobox",
+                f"اللون الجديد — ممشى النيل {n}",
+                value="أبيض",
+                options=["أبيض", "أزرق"],
+                group=group,
+            ),
+            element(
+                601 + n * 2,
+                "button",
+                f"غيّر اللون — ممشى النيل {n}",
+                form_action="/cart/replace",
+                group=group,
+            ),
         ]
     cart.append(element(900, "button", "تفريغ السلة", form_action="/cart/clear"))
     return {
@@ -591,7 +607,9 @@ def test_the_live_request_fits_the_openrouter_evaluation_budget_on_large_pages(p
     reserve = (
         (len(json.dumps(posted[0]).encode()) + 4096) * 0.3 + request.max_tokens * 2.5
     ) / 1_000_000
-    assert reserve <= 0.0165, f"{page}: reserve {reserve:.4f} leaves too little headroom"
+    # The client refuses above 0.02 (agent/llm/openrouter.py); keep 10% headroom on these
+    # large pages. The cart page carries a colour swap control per line since ticket 04.
+    assert reserve <= 0.018, f"{page}: reserve {reserve:.4f} leaves too little headroom"
 
 
 def test_step_overflow_moves_to_skipped_in_spoken_order_and_the_first_step_still_runs():

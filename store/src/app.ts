@@ -269,6 +269,20 @@ export function createApp(options: {
   app.get("/cart/state", (_request, response) => {
     response.set("Cache-Control", "no-store").json(cartView(shopper(response)));
   });
+  app.post("/cart/replace", (request, response) => {
+    const cart = shopper(response).cart;
+    const body = request.body ?? {};
+    const refusal = cart.replaceRefusal(body);
+    if (!cart.edit("replace", body)) {
+      response
+        .status(409)
+        .json({ error: refusal ?? "invalid_or_stale_cart_edit" });
+      events.cartChange("replace", "rejected", response.statusCode);
+      return;
+    }
+    response.json(cartView(shopper(response)));
+    events.cartChange("replace", "ok", response.statusCode);
+  });
   for (const kind of ["quantity", "remove", "undo"] as const) {
     app.post(`/cart/${kind}`, (request, response) => {
       const cart = shopper(response).cart;

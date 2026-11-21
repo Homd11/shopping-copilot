@@ -16,6 +16,7 @@ export const CART_CHANGES = [
   "add",
   "quantity",
   "remove",
+  "replace",
   "undo",
   "clear",
   "checkout",
