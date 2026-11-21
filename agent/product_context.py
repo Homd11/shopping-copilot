@@ -13,6 +13,25 @@ MAX_PRODUCTS = 24
 MAX_CONVERSATION_ENTRIES = 12
 
 
+def current_product(snapshot: Snapshot, storefront: StorefrontDefinition) -> dict[str, str] | None:
+    """The product whose page the Snapshot shows (its route and heading), else None."""
+    pattern = re.escape(storefront.product_route).replace(
+        re.escape("{product_id}"), r"(?P<id>[a-z0-9][a-z0-9-]*)"
+    )
+    current = re.fullmatch(pattern, urlsplit(snapshot.url).path)
+    if not current:
+        return None
+    heading = next(
+        (
+            e.name
+            for e in snapshot.elements
+            if e.visible and not e.sensitive and e.role == "heading" and e.level == 1
+        ),
+        snapshot.title,
+    )
+    return {"id": current["id"], "name": heading[:200]}
+
+
 def observed_products(snapshot: Snapshot, storefront: StorefrontDefinition) -> list[dict[str, str]]:
     origin = urlsplit(snapshot.url)
     pattern = re.escape(storefront.product_route).replace(
@@ -34,17 +53,9 @@ def observed_products(snapshot: Snapshot, storefront: StorefrontDefinition) -> l
         match = re.fullmatch(pattern, target.path)
         if match:
             references.append({"id": match["id"], "name": (element.group or element.name)[:200]})
-    current = re.fullmatch(pattern, origin.path)
+    current = current_product(snapshot, storefront)
     if current:
-        heading = next(
-            (
-                e.name
-                for e in snapshot.elements
-                if e.visible and not e.sensitive and e.role == "heading" and e.level == 1
-            ),
-            snapshot.title,
-        )
-        references.append({"id": current["id"], "name": heading[:200]})
+        references.append(current)
     labels: dict[str, list[str]] = {}
     for reference in references:
         names = labels.setdefault(reference["id"], [])
@@ -59,7 +70,11 @@ def require_known_product(
     snapshot: Snapshot | None,
     storefront: StorefrontDefinition,
 ) -> None:
-    references = [*state.get("_known_products", []), *state.get("_previous_suggestions", [])]
+    references = [
+        *state.get("_known_products", []),
+        *state.get("_previous_suggestions", []),
+        *state.get("_this_candidates", []),
+    ]
     if snapshot is not None:
         references.extend(observed_products(snapshot, storefront))
     if product_id is None or product_id not in {

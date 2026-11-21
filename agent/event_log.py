@@ -102,6 +102,7 @@ REJECTION_CODES = frozenset(
         "cart_edit_invalid",
         "mutation_invalid",
         "source_not_in_message",
+        "this_mismatch",  # "this" named a product that code did not allow
         "execute_after_handoff",  # execute chosen again after the interpreter handed back
         "other",
     }

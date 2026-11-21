@@ -19,6 +19,7 @@ from agent.llm.intent import (
 from agent.llm.intent_wire import wire_intent_adapter
 from agent.navigation import DESTINATION_TERMS, destination_label
 from agent.product_context import require_known_product
+from agent.product_reference import names_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
 
@@ -29,9 +30,11 @@ LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 class Rejected(ValueError):
     """A proposal refused for a known reason; ``code`` is a closed, text-free label."""
 
-    def __init__(self, code: str, message: str):
+    def __init__(self, code: str, message: str, allowed: dict[str, str] | None = None):
         super().__init__(message)
         self.code = code
+        # For the model's repair turn only (never logged): what the runtime would accept.
+        self.allowed = allowed
 
 
 class MissingExecutionField(ValueError):
@@ -426,6 +429,12 @@ def _repair_feedback(error, intent, snapshot, schema):
             "The quoted source must be words copied from the CURRENT Shopper message. Do not "
             "repeat an earlier request; decide the operation from the current message only."
         )
+    if isinstance(error, Rejected) and error.code == "this_mismatch":
+        feedback["allowed_this_product"] = error.allowed
+        feedback["required_action"] = (
+            "'This' means exactly the product named in allowed_this_product. Use it, or ask "
+            "which product the Shopper means; never choose another product or its cart line."
+        )
     cause = error if isinstance(error, ValidationError) else error.__cause__
     if isinstance(cause, ValidationError):
         # Runtime errors refer to the persisted contract, including field validators.
@@ -553,6 +562,7 @@ def _validate_interpreted_intent(
             )
     for product_id in intent.advice_product_ids:
         _coded("unknown_product", require_known_product, product_id, state, snapshot, storefront)
+    intent = _resolve_this(intent, state, snapshot)
     if intent.needs_clarification:
         return intent
     # Advice is read-only. Catalogue evaluation, not vocabulary membership, decides
@@ -612,6 +622,65 @@ def _validate_interpreted_intent(
             snapshot,
             storefront,
         )
+    return intent
+
+
+def _resolve_this(
+    intent: StructuredIntent, state: Mapping[str, Any], snapshot: Snapshot | None
+) -> StructuredIntent:
+    """Code, not the model, decides which product "this" means.
+
+    The model only set the marker. The candidates were computed when the task began (the open
+    product page, else the products last suggested, added or opened). Exactly one: the target
+    must be it. None or several: no target is chosen and the Shopper is asked.
+    """
+    if not intent.refers_to_this or not (
+        intent.intent == "open_product"
+        or (intent.intent == "cart_edit" and intent.cart_operation in {"add", "quantity", "remove"})
+    ):
+        return intent
+    candidates = [
+        item
+        for item in state.get("_this_candidates", [])
+        if isinstance(item, dict)
+        and isinstance(item.get("id"), str)
+        and isinstance(item.get("name"), str)
+    ]
+    if len(candidates) != 1:
+        return intent.model_copy(
+            update={
+                "needs_clarification": True,
+                "missing_fields": ["product_id"],
+                "conflicting_fields": [],
+                "product_id": None,
+                "cart_target_id": None,
+            }
+        )
+    if intent.needs_clarification:
+        return intent
+    allowed = candidates[0]
+    refusal = (
+        f"'This' means product {allowed['id']} ({allowed['name']}); "
+        "no other product or cart line may be chosen"
+    )
+    if intent.intent == "open_product" or intent.cart_operation == "add":
+        if intent.product_id is None:
+            return intent.model_copy(update={"product_id": allowed["id"]})
+        if intent.product_id != allowed["id"]:
+            raise Rejected("this_mismatch", refusal, {"id": allowed["id"], "name": allowed["name"]})
+        return intent
+    if intent.cart_target_id is None:
+        return intent  # nothing chosen yet: the cart opens and the line is chosen there
+    group = next(
+        (
+            e.group
+            for e in (snapshot.elements if snapshot is not None else [])
+            if e.id == intent.cart_target_id
+        ),
+        None,
+    )
+    if group is None or not names_product(group, allowed["name"]):
+        raise Rejected("this_mismatch", refusal, {"id": allowed["id"], "name": allowed["name"]})
     return intent
 
 
@@ -726,6 +795,13 @@ def trusted_clarification(
             else "I can only check price, stock, size or colour. Which condition do you mean?",
             [],
         )
+    if (
+        intent.refers_to_this
+        and "product_id" in intent.missing_fields
+        and intent.intent in {"open_product", "cart_edit"}
+    ):
+        # Options (the candidates' names) are added by the task, which knows them.
+        return ("تقصد أنهي منتج؟" if is_arabic else "Which product do you mean?", [])
     if intent.intent == "cart_edit":
         if "cart_quantity" in intent.missing_fields:
             return (

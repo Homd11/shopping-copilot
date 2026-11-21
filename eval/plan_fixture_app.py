@@ -30,6 +30,9 @@ CLEAR_STEP = "امسح العربية"
 ACCOUNT_STEP = "افتح الحساب"
 ADD_THEN_CLEAR = f"{ADD_NO_SIZE} بعدها {CLEAR_STEP}"
 OPEN_CLEAR_ACCOUNT = f"{CART_STEP} وبعدين {CLEAR_STEP} وبعدين {ACCOUNT_STEP}"
+# Ticket 08: two suggestion cards, then "this" with nothing to say which one is meant.
+FIND_TWO = "دورلي على جزمتين"
+ADD_THIS = "ضيفلي ديه للسلة"
 
 
 def intent(name, **fields):
@@ -101,8 +104,34 @@ class PlanModel:
                     "selected_ids": ["shoe-09"],
                     "advice_message": ADVICE,
                 }
+            elif message == FIND_TWO and not context["evidence"]:
+                response = {
+                    "kind": "search",
+                    "query": SearchQuery(
+                        query="",
+                        requirements=[{"field": "feature", "op": "exclude", "value": "leather"}],
+                    ).model_dump(),
+                }
+            elif message == FIND_TWO:
+                ids = [p["id"] for p in context["evidence"][-1]["advice_products"]][:2]
+                response = {
+                    "kind": "recommend",
+                    "language": "ar",
+                    "selected_ids": ids,
+                    "advice_message": ADVICE,
+                }
             else:
                 raise ValueError("Unknown scripted decision request")
+        elif message == ADD_THIS:
+            # Only the marker: which product "this" means is decided by code, never here.
+            response = intent(
+                "cart_edit",
+                cart_operation="add",
+                cart_quantity=1,
+                cart_quantity_mode="set",
+                cart_source=ADD_THIS,
+                refers_to_this=True,
+            )
         elif message == ADD_THEN_CART:
             response = add_intent(
                 context, ADD_STEP, first_step=ADD_STEP, remaining_steps=[CART_STEP]

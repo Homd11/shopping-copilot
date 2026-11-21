@@ -51,6 +51,7 @@ from agent.session_state import (
     TaskConflict,
 )
 from agent.task_runtime import TaskRuntime
+from agent.touched_products import note_touched, this_candidates
 
 _CONTEXT_TEXT_LIMIT = 2000
 _CONTEXT_ANSWER_LIMIT = 8
@@ -90,7 +91,12 @@ def _intent_context(task: "ActiveTask", intent: StructuredIntent) -> dict[str, A
         ),
         **{
             key: task.resolved_state[key]
-            for key in ("_known_products", "_recent_conversation", "_plan_step")
+            for key in (
+                "_known_products",
+                "_recent_conversation",
+                "_plan_step",
+                "_this_candidates",
+            )
             if key in task.resolved_state
         },
     }
@@ -122,10 +128,14 @@ def begin_interpretation(
     location = urlsplit(snapshot.url)
     if session.product_context.origin != (location.scheme, location.netloc):
         session.advice_context.clear()
+        session.last_touched.clear()
     if previous_target is not None:
         resolved_state["_previous_target"] = previous_target
     resolved_state.update(
         session.product_context.prepare(snapshot, runtime.planner.storefront, session.conversation)
+    )
+    resolved_state["_this_candidates"] = this_candidates(
+        session, snapshot, runtime.planner.storefront
     )
     if session.advice_context:
         resolved_state["_advice_context"] = session.advice_context.copy()
@@ -380,6 +390,19 @@ def finish_interpretation(
         task.pending_clarification = action.question
         task.pending_variant = asked or None
     if (
+        intent.refers_to_this
+        and task.pending_clarification == "product_id"
+        and isinstance(action, AskShopperAction)
+        and intent.intent in {"open_product", "cart_edit"}
+    ):
+        # "Which product?": the choices are the candidates code allowed, never more.
+        candidates = [
+            item["name"]
+            for item in task.resolved_state.get("_this_candidates", [])
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        ]
+        action.options = candidates if 2 <= len(candidates) <= 3 else []
+    elif (
         intent.intent == "open_product"
         and task.pending_clarification == "product_id"
         and isinstance(action, AskShopperAction)
@@ -576,6 +599,8 @@ def finish_catalogue_interpretation(
             texts=_shopper_texts(task),
         ),
     )
+    if end_reason is None and payload["suggestions"]:
+        note_touched(session, payload["suggestions"])
     open_plan(runtime, session, task, steps, intent.language)
     runtime.append(session, "suggestions", {"task_id": task_id, **payload})
     runtime.append(
@@ -614,13 +639,16 @@ def begin_answer_interpretation(
     runtime.require_task_origin(task, snapshot)
     selected = None
     if task.intent_kind == "open_product" and task.pending_clarification == "product_id":
-        candidates = [
-            item
-            for item in task.resolved_state.get("_previous_suggestions", [])
+        candidates = {
+            item["id"]: item
+            for item in (
+                *task.resolved_state.get("_previous_suggestions", []),
+                *task.resolved_state.get("_this_candidates", []),
+            )
             if isinstance(item, dict) and item.get("name") == text
-        ]
+        }
         if len(candidates) == 1 and text in task.action.options:
-            selected = candidates[0]
+            selected = next(iter(candidates.values()))
     variant, task.pending_variant = task.pending_variant, None
     chosen = None
     if selected is None and variant is not None:
@@ -643,6 +671,9 @@ def begin_answer_interpretation(
     task.resolved_state["_recent_conversation"] = session.product_context.prepare(
         snapshot, runtime.planner.storefront, session.conversation
     )["_recent_conversation"]
+    task.resolved_state["_this_candidates"] = this_candidates(
+        session, snapshot, runtime.planner.storefront
+    )
     session.conversation.append({"role": "shopper", "text": text})
     runtime.append(
         session,

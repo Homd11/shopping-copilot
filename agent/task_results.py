@@ -34,6 +34,7 @@ from agent.session_state import (
     ActiveTask,
 )
 from agent.task_runtime import TaskRuntime
+from agent.touched_products import note_product_touched
 
 
 def _visible_product_count(snapshot: Snapshot) -> int | None:
@@ -194,6 +195,11 @@ def accept_result(
                 "done",
                 {"task_id": task.task_id, "summary": summary, "language": task.language},
             )
+            if task.cart_operation == "add":
+                # "This" may now mean the product just added (before a later plan step starts).
+                note_product_touched(
+                    session, intent.product_id, action_result.snapshot, runtime.planner.storefront
+                )
             runtime.end_task(session, task, "completed")
         else:
             if isinstance(action, ClickAction):
@@ -489,6 +495,12 @@ def accept_result(
             task.target_name or "", ("الصفحة", "page")
         )
         if task.intent_kind == "open_product":
+            note_product_touched(
+                session,
+                task.resolved_state.get("_intent", {}).get("product_id"),
+                action_result.snapshot,
+                runtime.planner.storefront,
+            )
             summary = (
                 "تم فتح صفحة المنتج المقترح."
                 if task.language == "ar"

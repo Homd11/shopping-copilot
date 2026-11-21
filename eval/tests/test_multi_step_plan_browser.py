@@ -16,9 +16,11 @@ from eval.plan_fixture_app import (
     ADD_THEN_CLEAR,
     ADD_THEN_PANTS,
     ADD_THEN_TOO_MANY_THEN_CART,
+    ADD_THIS,
     ADVICE,
     CART_STEP,
     CLEAR_STEP,
+    FIND_TWO,
     OPEN_CLEAR_ACCOUNT,
     PANTS_STEP,
     TOO_MANY_STEP,
@@ -307,5 +309,37 @@ def test_a_guarded_step_in_the_middle_waits_for_confirm_then_step_three_runs_on_
                 ACCOUNT_STEP,
             ]
             expect(page.locator("#shopper-message")).to_be_enabled()
+        finally:
+            browser.close()
+
+
+def test_an_ambiguous_this_after_two_suggestions_makes_the_copilot_ask_and_adds_nothing():
+    with local_services(agent_app="eval.plan_fixture_app:retrieval_app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            browser_post(page, "http://localhost:4000/__test/reset")
+            page.goto("http://localhost:4100")
+            expect(page.locator("#shopper-message")).to_be_enabled()
+            send(page, FIND_TWO)
+
+            cards = page.locator(".suggestion-card")
+            expect(cards).to_have_count(2, timeout=20000)
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            names = [cards.nth(i).locator("h2").text_content() for i in range(2)]
+
+            send(page, ADD_THIS)
+            question = page.locator("#pending-question")
+            expect(question).to_contain_text("تقصد أنهي منتج؟", timeout=20000)
+            options = question.locator("button")
+            expect(options).to_have_count(2)
+            assert [options.nth(i).text_content() for i in range(2)] == names
+
+            # The model only said "this"; code asked instead of picking one, so nothing was
+            # added and the page never left the home page.
+            assert cart_lines(page) == []
+            frame = page.frame_locator("#storefront-frame")
+            assert frame.locator("body").evaluate("() => location.pathname") == "/"
+            assert [r["message"] for r in plan_requests(page)][-1] == ADD_THIS
         finally:
             browser.close()

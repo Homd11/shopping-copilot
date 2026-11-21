@@ -577,7 +577,12 @@ def test_the_live_request_fits_the_openrouter_evaluation_budget_on_large_pages(p
     request = build_intent_request(
         "ضيفلي ده للسلة",
         storefront=load_storefront_definition(),
-        resolved_state={},
+        # The worst case "this" context: three candidates (ticket 08).
+        resolved_state={
+            "_this_candidates": [
+                {"id": f"shoe-0{i}", "name": f"ممشى النيل الإصدار {i}"} for i in range(3)
+            ]
+        },
         pending_clarification=None,
         snapshot=snapshot,
     )

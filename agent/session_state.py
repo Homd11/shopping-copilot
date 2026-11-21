@@ -178,6 +178,9 @@ class Session:
     copilot_selected_size: dict[str, tuple[str, str]] = field(default_factory=dict, repr=False)
     # Size kind of products whose category and type the catalogue verified (id -> kind or None).
     product_kinds: dict[str, str | None] = field(default_factory=dict, repr=False)
+    # Products the latest completed task touched (cards shown, an add, an open): what "this"
+    # means when no product page is open. Verified {"id","name"} references only, at most 3.
+    last_touched: list[dict[str, str]] = field(default_factory=list, repr=False)
 
 
 class SessionNotFound(KeyError):
