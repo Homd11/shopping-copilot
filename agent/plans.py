@@ -47,6 +47,11 @@ _FAMILIES = {
 }
 _REASON_EXHAUSTED = {"ar": "ما قدرتش أكمّل البحث.", "en": "I couldn't finish the search."}
 _REASON_NOT_STARTED = {"ar": "ما قدرتش أبدأ الخطوة دي.", "en": "I couldn't start this step."}
+_REASON_CONFIRMATION = {
+    "ar": "انتهى التأكيد أو اتغيّرت السلة، فما نفّذتش الخطوة دي. تقدر تطلبها تاني.",
+    "en": "The Confirmation expired or the cart changed, so I didn't do this step. "
+    "You can ask again.",
+}
 _HEADINGS: dict[str, dict[str, str]] = {
     "ar": {
         "done": "خلصت طلبك:",
@@ -152,6 +157,11 @@ def _mark_running(
     )
 
 
+def _resume(runtime: TaskRuntime, session: Session, plan: ActivePlan, step: PlanStep) -> None:
+    plan.paused = plan.paused_action_id = None
+    runtime.append(session, "plan_resumed", {"plan_id": plan.plan_id, "position": step.position})
+
+
 def _finish_step(
     runtime: TaskRuntime,
     session: Session,
@@ -160,6 +170,13 @@ def _finish_step(
     outcome: str,
     task: ActiveTask | None,
 ) -> None:
+    if plan.paused is not None and step.status == "running":
+        # The step moved on from the Shopper's question before it ended: resumed comes first.
+        # A Stop or a skip just ends the wait with the plan.
+        if outcome in {"done", "failed"}:
+            _resume(runtime, session, plan, step)
+        else:
+            plan.paused = plan.paused_action_id = None
     step.status = outcome  # type: ignore[assignment]
     runtime.append(
         session,
@@ -235,6 +252,7 @@ def _finish_plan(runtime: TaskRuntime, session: Session, plan: ActivePlan, outco
             plan_id=plan.plan_id,
             reason=plan.cancel_reason or "stop",
         )
+    plan.paused = plan.paused_action_id = None
     session.plan = None
 
 
@@ -299,17 +317,49 @@ def _running_step(session: Session, task: ActiveTask | None) -> tuple[ActivePlan
 
 
 def settle(runtime: TaskRuntime, session: Session) -> None:
-    """Fail the current step when its task is waiting on a failure question."""
+    """Fail the current step on a failure question; show it paused on any other question."""
     task = session.active_task
     found = _running_step(session, task)
-    if found is None or task is None or task.status != "awaiting_answer":
-        return
-    action = task.action
-    if not is_failure_question(action):
+    if found is None or task is None:
         return
     plan, step = found
-    assert isinstance(action, AskShopperAction)
-    _fail_step(runtime, session, plan, step, task, action.narration, cancel_task=True)
+    asked = task.action if task.status == "awaiting_answer" else None
+    action = asked if isinstance(asked, AskShopperAction) else None
+    if plan.paused is not None and (action is None or action.action_id != plan.paused_action_id):
+        _resume(runtime, session, plan, step)
+    if action is None:
+        return
+    if is_failure_question(action):
+        _fail_step(runtime, session, plan, step, task, action.narration, cancel_task=True)
+    elif plan.paused is None:
+        plan.paused = "confirmation" if action.kind == "confirmation" else "question"
+        plan.paused_action_id = action.action_id
+        runtime.append(
+            session,
+            "plan_paused",
+            {"plan_id": plan.plan_id, "position": step.position, "reason": plan.paused},
+        )
+
+
+def fail_unusable_confirmation(runtime: TaskRuntime, session: Session, task: ActiveTask) -> bool:
+    """A step's Confirmation expired, went stale or could not be registered.
+
+    Returns False when the task is not a running plan step (the caller then refuses as it
+    always did). Otherwise the Confirmation is dead, the step fails and the Shopper can ask again.
+    """
+    found = _running_step(session, task)
+    if found is None:
+        return False
+    plan, step = found
+    if task.confirmation is not None:
+        task.confirmation.invalidate()
+    task.confirmation = None
+    task.mutation_proposal = None
+    task.action = None
+    _fail_step(
+        runtime, session, plan, step, task, _REASON_CONFIRMATION[plan.language], cancel_task=True
+    )
+    return True
 
 
 def reroute_new_request(
@@ -452,4 +502,5 @@ def view(session: Session) -> dict[str, object] | None:
         "active": session.plan is plan,
         "steps": [{"position": s.position, "text": s.text, "status": s.status} for s in plan.steps],
         "skipped": list(plan.skipped_steps),
+        "paused": plan.paused if session.plan is plan else None,
     }

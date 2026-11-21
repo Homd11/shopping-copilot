@@ -40,6 +40,8 @@ describe("Agent event contract", () => {
       "plan_created",
       "plan_step_started",
       "plan_step_finished",
+      "plan_paused",
+      "plan_resumed",
       "plan_finished",
     ]);
   });
@@ -90,6 +92,35 @@ describe("Agent event contract", () => {
             report: "Report",
           }).data,
         ).toEqual({ plan_id: "p1", outcome, report: "Report" });
+    });
+
+    it("accepts the paused and resumed plan events", () => {
+      for (const reason of ["question", "confirmation"]) {
+        expect(
+          parseAgentEvent("plan_paused", {
+            plan_id: "p1",
+            position: 2,
+            reason,
+          }).data,
+        ).toEqual({ plan_id: "p1", position: 2, reason });
+      }
+      expect(
+        parseAgentEvent("plan_resumed", { plan_id: "p1", position: 2 }).data,
+      ).toEqual({ plan_id: "p1", position: 2 });
+    });
+
+    it("rejects malformed paused and resumed events", () => {
+      const bad: Array<[string, unknown]> = [
+        ["plan_paused", { plan_id: "p1", position: 1, reason: "other" }],
+        ["plan_paused", { plan_id: "p1", position: 1 }],
+        ["plan_paused", { plan_id: "p1", position: 0, reason: "question" }],
+        ["plan_paused", { position: 1, reason: "question" }],
+        ["plan_resumed", { plan_id: "p1", position: 4 }],
+        ["plan_resumed", { plan_id: "", position: 1 }],
+        ["plan_resumed", { plan_id: "p1" }],
+      ];
+      for (const [type, payload] of bad)
+        expect(() => parseAgentEvent(type, payload)).toThrow(TypeError);
     });
 
     it("rejects malformed plan events", () => {

@@ -251,6 +251,12 @@ button:disabled {
   color: var(--blue);
   font-weight: 700;
 }
+.plan-step-paused .plan-mark,
+.plan-step-paused .plan-text,
+.plan-step-paused .plan-state {
+  color: #8a5a00;
+  font-weight: 700;
+}
 .plan-step-done .plan-mark {
   color: #17703a;
 }

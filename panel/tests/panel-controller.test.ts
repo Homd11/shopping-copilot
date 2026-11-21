@@ -1333,6 +1333,91 @@ describe("PanelController plan checklist", () => {
     expect(inputDisabled(root)).toBe(false);
   });
 
+  const paused = (
+    position: number,
+    reason: "question" | "confirmation",
+  ): AgentEvent => ({
+    type: "plan_paused",
+    data: { plan_id: "plan-1", position, reason },
+  });
+  const resumed = (position: number): AgentEvent => ({
+    type: "plan_resumed",
+    data: { plan_id: "plan-1", position },
+  });
+
+  it("shows the running step as waiting for the Shopper, then running again", async () => {
+    const { root, emit } = await ready();
+    emit({ type: "task_started", data: { task_id: "task-1" } });
+    emit(created());
+    emit(started(1, "task-1"));
+    emit(finishStep(1, "done"));
+    emit({ type: "task_started", data: { task_id: "task-2" } });
+    emit(started(2, "task-2"));
+    emit(paused(2, "question"));
+    expect(marksWithWords(root)).toEqual([
+      ["done", "تمّت"],
+      ["paused", "مستني ردك"],
+    ]);
+    expect(
+      root.querySelectorAll(".plan-step")[1]!.querySelector(".plan-mark")!
+        .textContent,
+    ).toBe("◷");
+    expect(inputDisabled(root)).toBe(true);
+    emit(resumed(2));
+    expect(marks(root)).toEqual(["done", "running"]);
+    emit(paused(2, "confirmation"));
+    expect(marks(root)).toEqual(["done", "paused"]);
+  });
+
+  it("labels the paused step in English", async () => {
+    const { root, emit } = await ready();
+    emit(created("en"));
+    emit(started(1, "task-1"));
+    emit(paused(1, "question"));
+    expect(marksWithWords(root)[0]).toEqual(["paused", "Waiting for you"]);
+  });
+
+  it("still renders the Confirmation card while the plan shows a paused step", async () => {
+    const { root, emit } = await ready();
+    emit({ type: "task_started", data: { task_id: "task-2" } });
+    emit(created());
+    emit(started(2, "task-2"));
+    emit({
+      type: "action",
+      data: {
+        action: {
+          v: 1,
+          type: "ask_shopper",
+          kind: "confirmation",
+          task_id: "task-2",
+          action_id: "confirmation-1234567890abcdef1234567890abcdef",
+          sequence_number: 2,
+          narration: "Confirm this action.",
+          question: "Confirm this action: empty the cart. Continue?",
+          options: ["Confirm", "Stop"],
+        },
+      },
+    });
+    emit(paused(2, "confirmation"));
+    expect(marks(root)).toEqual(["pending", "paused"]);
+    const card = root.querySelector<HTMLElement>(
+      "#pending-question .confirmation-card",
+    );
+    expect(card?.textContent).toContain("empty the cart");
+    expect(root.querySelectorAll(".plan-steps")).toHaveLength(1);
+  });
+
+  it("ignores paused and resumed for an unknown plan", async () => {
+    const { root, emit } = await ready();
+    emit(created());
+    emit(started(1, "task-1"));
+    emit({
+      type: "plan_paused",
+      data: { plan_id: "other", position: 1, reason: "question" },
+    });
+    expect(marks(root)).toEqual(["running", "pending"]);
+  });
+
   it("ignores step events for an unknown plan", async () => {
     const { root, emit } = await ready();
     emit(created());
@@ -1502,6 +1587,34 @@ describe("PanelController plan checklist", () => {
       expect(root.querySelector(".plan-skipped-note")!.textContent).toBe(
         "مش هعمل دول دلوقتي (الحد ٣ طلبات): افتح الطلبات",
       );
+      expect(inputDisabled(root)).toBe(true);
+    });
+
+    it("restores a paused step from the Session", async () => {
+      const { root } = await reload(
+        restoredWith(
+          {
+            plan_id: "plan-1",
+            language: "ar",
+            active: true,
+            paused: "confirmation",
+            steps: [
+              { position: 1, text: "ضيفلي الجزمة للعربية", status: "done" },
+              { position: 2, text: "امسح العربية", status: "running" },
+            ],
+            skipped: [],
+          },
+          {
+            task_id: "task-2",
+            status: "awaiting_answer",
+            pending_question: null,
+          },
+        ),
+      );
+      expect(marksWithWords(root)).toEqual([
+        ["done", "تمّت"],
+        ["paused", "مستني ردك"],
+      ]);
       expect(inputDisabled(root)).toBe(true);
     });
 

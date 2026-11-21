@@ -16,11 +16,14 @@ export const AGENT_EVENT_TYPES = [
   "plan_created",
   "plan_step_started",
   "plan_step_finished",
+  "plan_paused",
+  "plan_resumed",
   "plan_finished",
 ] as const;
 
 export type PlanStepOutcome = "done" | "failed" | "skipped";
 export type PlanOutcome = "done" | "failed" | "cancelled";
+export type PlanPauseReason = "question" | "confirmation";
 
 export type AgentEvent =
   | { type: "task_started"; data: { task_id: string } }
@@ -47,6 +50,11 @@ export type AgentEvent =
       type: "plan_step_finished";
       data: { plan_id: string; position: number; outcome: PlanStepOutcome };
     }
+  | {
+      type: "plan_paused";
+      data: { plan_id: string; position: number; reason: PlanPauseReason };
+    }
+  | { type: "plan_resumed"; data: { plan_id: string; position: number } }
   | {
       type: "plan_finished";
       data: { plan_id: string; outcome: PlanOutcome; report: string };
@@ -230,6 +238,23 @@ export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
           ] as const),
         },
       };
+    case "plan_paused":
+      return {
+        type,
+        data: {
+          plan_id: eventPlanId(data),
+          position: eventPosition(data),
+          reason: eventOneOf(data, "reason", [
+            "question",
+            "confirmation",
+          ] as const),
+        },
+      };
+    case "plan_resumed":
+      return {
+        type,
+        data: { plan_id: eventPlanId(data), position: eventPosition(data) },
+      };
     case "plan_finished":
       return {
         type,
@@ -250,7 +275,7 @@ export function parseAgentEvent(type: string, payload: unknown): AgentEvent {
   }
 }
 
-type PlanStepMark = "pending" | "running" | PlanStepOutcome;
+type PlanStepMark = "pending" | "running" | "paused" | PlanStepOutcome;
 
 interface PlanView {
   planId: string;
@@ -264,8 +289,13 @@ export interface PlanState {
   plan_id: string;
   language: "ar" | "en";
   active: boolean;
-  steps: Array<{ position: number; text: string; status: PlanStepMark }>;
+  steps: Array<{
+    position: number;
+    text: string;
+    status: Exclude<PlanStepMark, "paused">;
+  }>;
   skipped: string[];
+  paused?: PlanPauseReason | null;
 }
 
 const PLAN_LABELS = {
@@ -276,6 +306,7 @@ const PLAN_LABELS = {
     marks: {
       pending: ["○", "في الانتظار"],
       running: ["◐", "جاري التنفيذ"],
+      paused: ["◷", "مستني ردك"],
       done: ["✓", "تمّت"],
       failed: ["✕", "لم تنجح"],
       skipped: ["–", "تم تخطّيها"],
@@ -288,6 +319,7 @@ const PLAN_LABELS = {
     marks: {
       pending: ["○", "Waiting"],
       running: ["◐", "In progress"],
+      paused: ["◷", "Waiting for you"],
       done: ["✓", "Done"],
       failed: ["✕", "Failed"],
       skipped: ["–", "Skipped"],
@@ -656,7 +688,10 @@ export class PanelController {
             language: plan.language,
             steps: plan.steps.map((step) => ({
               text: step.text,
-              mark: step.status,
+              mark:
+                step.status === "running" && plan.paused
+                  ? "paused"
+                  : step.status,
             })),
             skipped: plan.skipped,
             active: plan.active,
@@ -751,6 +786,16 @@ export class PanelController {
       if (step === undefined) return;
       step.mark = "running";
       this.#renderPlan();
+    } else if (event.type === "plan_paused") {
+      const step = this.#plan.steps[event.data.position - 1];
+      if (step === undefined) return;
+      step.mark = "paused";
+      this.#renderPlan();
+    } else if (event.type === "plan_resumed") {
+      const step = this.#plan.steps[event.data.position - 1];
+      if (step === undefined) return;
+      step.mark = "running";
+      this.#renderPlan();
     } else if (event.type === "plan_step_finished") {
       const step = this.#plan.steps[event.data.position - 1];
       if (step === undefined) return;
@@ -797,7 +842,8 @@ export class PanelController {
       const item = document.createElement("li");
       item.className = `plan-step plan-step-${step.mark}`;
       item.dataset.mark = step.mark;
-      if (step.mark === "running") item.setAttribute("aria-current", "step");
+      if (step.mark === "running" || step.mark === "paused")
+        item.setAttribute("aria-current", "step");
       const mark = document.createElement("span");
       mark.className = "plan-mark";
       mark.setAttribute("aria-hidden", "true");

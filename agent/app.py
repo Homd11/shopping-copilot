@@ -414,6 +414,7 @@ def create_app(
                         advice_text=prepared.summary,
                         plan_steps=prepared.steps,
                         end_reason=RETRIEVAL_EXHAUSTED if prepared.exhausted else None,
+                        clarify=prepared.question,
                         facts=prepared.facts,
                         beneficiary=prepared.beneficiary,
                         size_hint=prepared.size_hint,

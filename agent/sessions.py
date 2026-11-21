@@ -150,6 +150,7 @@ class SessionStore:
         facts: Mapping[str, tuple[str, str]] | None = None,
         beneficiary: str | None = None,
         size_hint: str | None = None,
+        clarify: bool = False,
     ) -> ActiveTask | None:
         return task_interpretation.finish_catalogue_interpretation(
             self._runtime,
@@ -164,6 +165,7 @@ class SessionStore:
             facts=facts,
             beneficiary=beneficiary,
             size_hint=size_hint,
+            clarify=clarify,
         )
 
     def note_product_facts(

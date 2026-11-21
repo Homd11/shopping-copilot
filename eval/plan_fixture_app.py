@@ -24,6 +24,12 @@ ADD_THEN_TOO_MANY_THEN_CART = (
     "ضيفلي الجزمة ديه للعربية مقاس 42 وبعدين ضيف 99 منها وبعدين افتح العربية"
 )
 TOO_MANY_STEP = "ضيف 99 منها"
+# Ticket 07: a guarded step (clear the cart) at the end and in the middle of a sequence.
+ADD_NO_SIZE = "ضيفلي الجزمة ديه للعربية"
+CLEAR_STEP = "امسح العربية"
+ACCOUNT_STEP = "افتح الحساب"
+ADD_THEN_CLEAR = f"{ADD_NO_SIZE} بعدها {CLEAR_STEP}"
+OPEN_CLEAR_ACCOUNT = f"{CART_STEP} وبعدين {CLEAR_STEP} وبعدين {ACCOUNT_STEP}"
 
 
 def intent(name, **fields):
@@ -108,6 +114,21 @@ class PlanModel:
                 first_step=ADD_STEP,
                 remaining_steps=[TOO_MANY_STEP, CART_STEP],
             )
+        elif message == ADD_THEN_CLEAR:
+            response = add_intent(
+                context, ADD_NO_SIZE, first_step=ADD_NO_SIZE, remaining_steps=[CLEAR_STEP]
+            )
+        elif message == CLEAR_STEP:
+            response = intent("mutate", mutation_kind="clear_cart", mutation_source=CLEAR_STEP)
+        elif message == OPEN_CLEAR_ACCOUNT:
+            response = intent(
+                "navigate",
+                constraints={"target": "cart"},
+                first_step=CART_STEP,
+                remaining_steps=[CLEAR_STEP, ACCOUNT_STEP],
+            )
+        elif message == ACCOUNT_STEP:
+            response = intent("navigate", constraints={"target": "account"})
         elif message == TOO_MANY_STEP:
             response = add_intent(context, TOO_MANY_STEP, quantity=99)
         elif message == CART_STEP:

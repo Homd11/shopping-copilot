@@ -8,13 +8,18 @@ from playwright.sync_api import expect, sync_playwright
 
 from eval.browser_http import browser_post
 from eval.plan_fixture_app import (
+    ACCOUNT_STEP,
+    ADD_NO_SIZE,
     ADD_STEP,
     ADD_STEP_2,
     ADD_THEN_CART,
+    ADD_THEN_CLEAR,
     ADD_THEN_PANTS,
     ADD_THEN_TOO_MANY_THEN_CART,
     ADVICE,
     CART_STEP,
+    CLEAR_STEP,
+    OPEN_CLEAR_ACCOUNT,
     PANTS_STEP,
     TOO_MANY_STEP,
 )
@@ -214,5 +219,93 @@ def test_a_refused_cart_edit_midway_stops_the_plan_reports_it_and_rolls_nothing_
             made = len(posts)
             page.wait_for_timeout(1500)
             assert len(posts) == made
+        finally:
+            browser.close()
+
+
+def cart_lines(page):
+    return page.request.get("http://localhost:4000/__test/cart-state").json()["lines"]
+
+
+def test_add_then_clear_asks_for_confirmation_at_step_two_and_clears_only_after_confirm():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            frame = open_product_page(page)
+            send(page, ADD_THEN_CLEAR)
+
+            checklist = page.locator("#plan-checklist")
+            expect(checklist.locator("ol > li")).to_have_count(2, timeout=15000)
+            expect(checklist.locator("li").nth(0)).to_have_attribute(
+                "data-mark", "done", timeout=15000
+            )
+            # Step 2 waits on its own Confirmation card, offered only now, for the cart as it is.
+            card = page.locator(".confirmation-card")
+            expect(card).to_be_visible(timeout=15000)
+            expect(card).to_contain_text("إزالة كل المنتجات من السلة الحالية")
+            expect(checklist.locator("li").nth(1)).to_have_attribute("data-mark", "paused")
+            expect(checklist.locator("li").nth(1).locator(".plan-state")).to_have_text("مستني ردك")
+            expect(page.locator("#shopper-message")).to_be_disabled()
+            assert [line["product_id"] for line in cart_lines(page)] == ["shoe-01"]
+
+            card.get_by_role("button", name="تأكيد").click()
+            expect(checklist.locator("li").nth(1)).to_have_attribute(
+                "data-mark", "done", timeout=15000
+            )
+            assert marks(page) == ["done", "done"]
+            expect(frame.get_by_role("status")).to_have_text("السلة فارغة")
+            assert cart_lines(page) == []
+            expect(page.locator("#conversation li").last).to_have_text(
+                f"خلصت طلبك:\n✓ {ADD_NO_SIZE}\n✓ {CLEAR_STEP}"
+            )
+            expect(page.locator("#shopper-message")).to_be_enabled()
+            assert [r["message"] for r in plan_requests(page)] == [ADD_THEN_CLEAR, CLEAR_STEP]
+        finally:
+            browser.close()
+
+
+def test_a_guarded_step_in_the_middle_waits_for_confirm_then_step_three_runs_on_a_phone():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page(viewport={"width": 375, "height": 812})
+            browser_post(page, "http://localhost:4000/__test/reset")
+            seeded = browser_post(
+                page,
+                "http://localhost:4000/__test/cart",
+                data={"lines": [{"product_id": "shoe-09", "quantity": 2}]},
+            )
+            assert seeded.status == 204
+            page.goto("http://localhost:4100")
+            expect(page.locator("#shopper-message")).to_be_enabled()
+            frame = page.frame_locator("#storefront-frame")
+            send(page, OPEN_CLEAR_ACCOUNT)
+
+            checklist = page.locator("#plan-checklist")
+            card = page.locator(".confirmation-card")
+            expect(card).to_be_visible(timeout=20000)
+            expect(checklist.locator("li").nth(1)).to_have_attribute("data-mark", "paused")
+            assert marks(page) == ["done", "paused", "pending"]
+            # On a phone the checklist does not push the Confirmation card out of view.
+            expect(checklist).to_be_in_viewport()
+            expect(card).to_be_in_viewport()
+            expect(card.get_by_role("button", name="تأكيد")).to_be_in_viewport()
+            assert len(cart_lines(page)) == 1  # nothing cleared before the Shopper confirms
+
+            card.get_by_role("button", name="تأكيد").click()
+            expect(checklist.locator("li").nth(2)).to_have_attribute(
+                "data-mark", "done", timeout=20000
+            )
+            assert marks(page) == ["done", "done", "done"]
+            assert cart_lines(page) == []
+            expect(frame.locator("body")).to_be_visible()
+            assert frame.locator("body").evaluate("() => location.pathname") == "/account"
+            assert [r["message"] for r in plan_requests(page)] == [
+                OPEN_CLEAR_ACCOUNT,
+                CLEAR_STEP,
+                ACCOUNT_STEP,
+            ]
+            expect(page.locator("#shopper-message")).to_be_enabled()
         finally:
             browser.close()

@@ -424,6 +424,41 @@ def _remember_search_size(
     return None
 
 
+def _ask_clarification(
+    runtime: TaskRuntime,
+    session,
+    task: ActiveTask,
+    intent: StructuredIntent,
+    steps: PlanSteps,
+    question: str,
+) -> ActiveTask:
+    """Publish the catalogue's clarifying question as a free-text question the task waits on."""
+    task.language = intent.language
+    task.model_call_id = None
+    open_plan(runtime, session, task, steps, intent.language)
+    asking = AskShopperAction(
+        v=1,
+        type="ask_shopper",
+        task_id=task.task_id,
+        action_id=f"question-{uuid4().hex}",
+        sequence_number=task.step_count + 1,
+        narration=question,
+        question=question,
+        options=[],
+    )
+    task.action = asking
+    task.step_count += 1
+    task.status = "awaiting_answer"
+    task.intent_kind = "find_products"
+    task.pending_clarification = question
+    task.pending_variant = None
+    runtime.append(session, "narration", {"task_id": task.task_id, "text": question})
+    runtime.append(session, "action", {"task_id": task.task_id, "action": to_wire(asking)})
+    session.conversation.append({"role": "copilot", "text": question})
+    runtime.sessions.touch(session)
+    return task
+
+
 def finish_catalogue_interpretation(
     runtime: TaskRuntime,
     session_id: str,
@@ -438,6 +473,7 @@ def finish_catalogue_interpretation(
     facts: Mapping[str, tuple[str, str]] | None = None,
     beneficiary: str | None = None,
     size_hint: str | None = None,
+    clarify: bool = False,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -455,6 +491,14 @@ def finish_catalogue_interpretation(
         runtime.require_task_origin(task, session.last_snapshot)
     if reroute_new_request(runtime, session, task, intent):
         return None
+    steps = plan_steps if plan_steps is not None else PlanSteps.from_intent(intent)
+    if (
+        clarify
+        and advice_text is not None
+        and (task.plan_position is not None or (session.plan is None and steps.remaining_steps))
+    ):
+        # A plan never takes a question for an answer: the step waits for the Shopper.
+        return _ask_clarification(runtime, session, task, intent, steps, advice_text)
     payload = result.to_wire()
     session.product_context.remember_suggestions(payload["suggestions"])
     task.suggestions = payload
@@ -532,13 +576,7 @@ def finish_catalogue_interpretation(
             texts=_shopper_texts(task),
         ),
     )
-    open_plan(
-        runtime,
-        session,
-        task,
-        plan_steps if plan_steps is not None else PlanSteps.from_intent(intent),
-        intent.language,
-    )
+    open_plan(runtime, session, task, steps, intent.language)
     runtime.append(session, "suggestions", {"task_id": task_id, **payload})
     runtime.append(
         session,

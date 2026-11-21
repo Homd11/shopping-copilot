@@ -2,6 +2,7 @@
 
 from uuid import uuid4
 
+from agent import plans
 from agent.cart import scripted_cart_intent
 from agent.confirmation import (
     classify_guarded_mutation,
@@ -155,6 +156,13 @@ def answer(
                 mutation_kind=task.mutation_kind,
             )
 
+        def unusable(message: str) -> ActiveTask:
+            """Inside a plan the step fails and the plan reports it; otherwise as ever."""
+            if not plans.fail_unusable_confirmation(runtime, session, task):
+                raise ActionResultMismatch(message)
+            runtime.sessions.touch(session)
+            return task
+
         if text in {"Stop", "إيقاف"}:
             outcome("stopped")
             task.confirmation.invalidate()
@@ -173,11 +181,14 @@ def answer(
         )
         if candidate is None or text != expected_answer:
             outcome("stale")
-            raise ActionResultMismatch("Confirmation no longer matches the Storefront state")
+            if text != expected_answer:
+                # Not a Confirm at all: refused as ever, the step keeps waiting for its card.
+                raise ActionResultMismatch("Confirmation no longer matches the Storefront state")
+            return unusable("Confirmation no longer matches the Storefront state")
         element, current = candidate
         if not task.confirmation.can_confirm(question_id, "Confirm", current):
             outcome("expired")
-            raise ActionResultMismatch("Confirmation expired or was already used")
+            return unusable("Confirmation expired or was already used")
         if runtime.confirmation_registrar is None or not runtime.confirmation_registrar(
             session.shopper,
             snapshot.url,
@@ -187,10 +198,10 @@ def answer(
             int(dict(current.arguments)["cart_revision"]),
         ):
             outcome("unregistered")
-            raise ActionResultMismatch("The Storefront could not register this Confirmation")
+            return unusable("The Storefront could not register this Confirmation")
         if not task.confirmation.confirm(question_id, "Confirm", current):
             outcome("expired")
-            raise ActionResultMismatch("Confirmation expired before execution")
+            return unusable("Confirmation expired before execution")
         outcome("consumed")
         action = GuardedClickAction(
             v=1,

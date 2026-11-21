@@ -23,6 +23,8 @@ EventType = Literal[
     "plan_created",
     "plan_step_started",
     "plan_step_finished",
+    "plan_paused",
+    "plan_resumed",
     "plan_finished",
 ]
 
@@ -81,6 +83,10 @@ class ActivePlan:
     reasons: dict[int, str] = field(default_factory=dict)
     # Set when the plan is to end cancelled: "stop", "new_request" or "takeover".
     cancel_reason: str | None = None
+    # Why the running step waits on the Shopper: "question" or "confirmation"; None otherwise.
+    paused: str | None = None
+    # The id of the question that paused the plan, so a new question is told from the same one.
+    paused_action_id: str | None = None
 
 
 @dataclass(frozen=True)

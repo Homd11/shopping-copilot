@@ -60,6 +60,9 @@ class PreparedTurn:
     facts: dict[str, tuple[str, str]] = field(default_factory=dict)
     beneficiary: str | None = None
     size_hint: str | None = None
+    # The turn is a real question for the Shopper (the clarify outcome), never the exhausted
+    # fallback: its summary is the question.
+    question: bool = False
 
 
 def _size_hint(requirements) -> str | None:
@@ -148,7 +151,17 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
             }
         )
         return PreparedTurn(
-            intent, AdviceEvidence(DiscoveryResult(None, ()), ()), outcome.question, []
+            intent,
+            AdviceEvidence(DiscoveryResult(None, ()), ()),
+            outcome.question,
+            [],
+            PlanSteps(
+                outcome.first_step,
+                list(outcome.remaining_steps),
+                list(outcome.skipped_steps),
+                "unknown",
+            ),
+            question=True,
         ), "clarify"
     intent = outcome.intent
     steps = PlanSteps(
