@@ -39,21 +39,94 @@ interface Confirmation {
   issuedAt: number;
 }
 
+/** Bounds that keep one stored Shopper record far below the store's size guard. */
+export const MAX_RECENT_OPERATIONS = 200;
+export const MAX_ORDERS = 20;
+
+/**
+ * Open Confirmations and the Undo record are single-process, short-lived state. They
+ * are deliberately never persisted, so a restart ends them (a guarded action then
+ * needs a new Confirmation). The registry keeps one holder per Shopper per process.
+ */
+export class CartEphemeral {
+  confirmations = new Map<string, Confirmation>();
+  undo: UndoRecord | null = null;
+}
+
+export interface CartSnapshot {
+  lines: CartLine[];
+  revision: number;
+  terms: string;
+  orders: Array<{ id: string; lines: OrderLine[] }>;
+  operations: string[];
+}
+
 export class GuardedCart {
   #lines: CartLine[] = [];
   #revision = 0;
-  #confirmations = new Map<string, Confirmation>();
   #orders: Array<{ id: string; lines: OrderLine[] }> = [];
-  #undo: UndoRecord | null = null;
   #operations = new Set<string>();
   readonly #clock: () => number;
+  readonly #eph: CartEphemeral;
 
   #terms = "";
   constructor(
     clock: () => number,
     readonly repository: ProductRepository,
+    ephemeral: CartEphemeral = new CartEphemeral(),
   ) {
     this.#clock = clock;
+    this.#eph = ephemeral;
+  }
+
+  /** The durable part of the cart: never Confirmations or the Undo record. */
+  snapshot(): CartSnapshot {
+    return JSON.parse(
+      JSON.stringify({
+        lines: this.#lines,
+        revision: this.#revision,
+        terms: this.#terms,
+        orders: this.#orders,
+        operations: [...this.#operations],
+      }),
+    ) as CartSnapshot;
+  }
+
+  /** Loads a stored cart; returns false when the stored shape is not valid. */
+  restore(data: unknown): boolean {
+    const d = data as Partial<CartSnapshot> | null;
+    const okLine = (l: unknown): boolean => {
+      const x = l as Partial<OrderLine> | null;
+      return (
+        typeof x === "object" &&
+        x !== null &&
+        typeof x.product_id === "string" &&
+        Number.isSafeInteger(x.quantity)
+      );
+    };
+    if (
+      !d ||
+      !Array.isArray(d.lines) ||
+      !d.lines.every(okLine) ||
+      !Number.isSafeInteger(d.revision) ||
+      typeof d.terms !== "string" ||
+      !Array.isArray(d.orders) ||
+      !d.orders.every(
+        (o) =>
+          typeof o?.id === "string" &&
+          Array.isArray(o.lines) &&
+          o.lines.every(okLine),
+      ) ||
+      !Array.isArray(d.operations) ||
+      !d.operations.every((o) => typeof o === "string")
+    )
+      return false;
+    this.#lines = d.lines.map((line) => ({ ...line }));
+    this.#revision = d.revision!;
+    this.#terms = d.terms;
+    this.#orders = d.orders.map((o) => ({ id: o.id, lines: [...o.lines] }));
+    this.#operations = new Set(d.operations);
+    return true;
   }
 
   get revision(): number {
@@ -81,7 +154,7 @@ export class GuardedCart {
   }
 
   get undo() {
-    const record = this.#undo;
+    const record = this.#eph.undo;
     const before = record?.before.find((line) => lineKey(line) === record.line);
     const after = this.#lines.find((line) => lineKey(line) === record?.line);
     const item = after ?? before;
@@ -114,11 +187,11 @@ export class GuardedCart {
     )
       return false;
     if (kind === "undo") {
-      const undo = this.#undo;
+      const undo = this.#eph.undo;
       if (undo === null || this.undo === null || input.undo_id !== undo.id)
         return false;
       this.#lines = undo.before.map((line) => ({ ...line }));
-      this.#undo = null;
+      this.#eph.undo = null;
     } else {
       const product =
         typeof input.product_id === "string"
@@ -154,13 +227,13 @@ export class GuardedCart {
           ? (this.#lines[index]?.quantity ?? 0) + Number(quantity)
           : Number(quantity);
       if (kind !== "remove" && nextQuantity > 99) return false;
-      const previous = this.#undo;
+      const previous = this.#eph.undo;
       const coalesce =
         kind === "quantity" &&
         this.undo !== null &&
         previous?.kind === kind &&
         previous.line === key;
-      this.#undo = coalesce
+      this.#eph.undo = coalesce
         ? { ...previous!, revision: this.#revision + 1 }
         : {
             id: randomUUID(),
@@ -182,7 +255,9 @@ export class GuardedCart {
     }
     this.#revision++;
     this.#operations.add(operation);
-    this.#confirmations.clear();
+    if (this.#operations.size > MAX_RECENT_OPERATIONS)
+      this.#operations.delete(this.#operations.values().next().value!);
+    this.#eph.confirmations.clear();
     this.#terms = this.terms();
     return true;
   }
@@ -202,7 +277,7 @@ export class GuardedCart {
       return false;
     this.#lines = lines.map((line) => ({ ...line }));
     this.#revision++;
-    this.#undo = null;
+    this.#eph.undo = null;
     this.#terms = this.terms();
     return true;
   }
@@ -220,10 +295,10 @@ export class GuardedCart {
       !["clear_cart", "submit_checkout"].includes(input.kind) ||
       input.cart_revision !== this.#revision ||
       this.#lines.length === 0 ||
-      this.#confirmations.has(input.token)
+      this.#eph.confirmations.has(input.token)
     )
       return false;
-    this.#confirmations.set(input.token, {
+    this.#eph.confirmations.set(input.token, {
       kind: input.kind,
       cartRevision: input.cart_revision,
       catalogueRevision: this.repository.revision(),
@@ -235,9 +310,9 @@ export class GuardedCart {
   consume(token: unknown, kind: MutationKind, revision: unknown): boolean {
     this.refreshProductTerms();
     if (typeof token !== "string") return false;
-    const confirmation = this.#confirmations.get(token);
+    const confirmation = this.#eph.confirmations.get(token);
     if (confirmation === undefined) return false;
-    this.#confirmations.delete(token);
+    this.#eph.confirmations.delete(token);
     return (
       confirmation.kind === kind &&
       confirmation.catalogueRevision === this.repository.revision() &&
@@ -252,7 +327,7 @@ export class GuardedCart {
   clear(): void {
     this.#lines = [];
     this.#revision++;
-    this.#undo = null;
+    this.#eph.undo = null;
     this.#terms = this.terms();
   }
 
@@ -273,6 +348,8 @@ export class GuardedCart {
         };
       }),
     });
+    if (this.#orders.length > MAX_ORDERS)
+      this.#orders.splice(0, this.#orders.length - MAX_ORDERS);
     this.clear();
     return id;
   }
@@ -289,8 +366,8 @@ export class GuardedCart {
     const next = this.terms();
     if (this.#terms && this.#terms !== next) {
       this.#revision++;
-      this.#confirmations.clear();
-      if (this.#undo) this.#undo.revision = this.#revision;
+      this.#eph.confirmations.clear();
+      if (this.#eph.undo) this.#eph.undo.revision = this.#revision;
     }
     this.#terms = next;
   }
@@ -311,9 +388,9 @@ export class GuardedCart {
   reset(): void {
     this.#lines = [];
     this.#revision = 0;
-    this.#confirmations.clear();
+    this.#eph.confirmations.clear();
     this.#orders = [];
-    this.#undo = null;
+    this.#eph.undo = null;
     this.#operations.clear();
     this.#terms = this.terms();
   }

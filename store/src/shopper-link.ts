@@ -76,7 +76,7 @@ export function privateShopperRoutes(
     }
     next();
   });
-  router.post("/link/redeem", (request, response) => {
+  router.post("/link/redeem", async (request, response) => {
     const {
       ticket,
       challenge,
@@ -91,27 +91,32 @@ export function privateShopperRoutes(
       return;
     }
     const binding = tickets.redeem(ticket, challenge, audience);
-    if (!binding || !registry.lookup(binding)) {
+    if (!binding || !(await registry.lookup(binding))) {
       response.sendStatus(409);
       return;
     }
     response.json(binding);
   });
-  router.post("/shopper/validate", (request, response) => {
-    const state = registry.lookup(request.body ?? {});
+  router.post("/shopper/validate", async (request, response) => {
+    const state = await registry.lookup(request.body ?? {});
     if (!state) {
       response.sendStatus(410);
       return;
     }
     response.json({ valid: true });
   });
-  router.post("/confirmations", (request, response) => {
-    const state = registry.lookup(request.body?.shopper ?? {});
+  router.post("/confirmations", async (request, response) => {
+    const state = await registry.lookup(request.body?.shopper ?? {});
     if (!state) {
       response.sendStatus(410);
       return;
     }
     if (!state.cart.register(request.body?.confirmation ?? {})) {
+      response.sendStatus(409);
+      return;
+    }
+    // Registering may first notice a changed product and bump the cart revision.
+    if ((await registry.save(state)) !== "saved") {
       response.sendStatus(409);
       return;
     }

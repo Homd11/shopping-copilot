@@ -7,6 +7,7 @@ import {
   fileSink,
   streamSink,
 } from "./event-log.js";
+import { SqliteShopperStateStore } from "./shopper-state-store.js";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,6 +18,15 @@ const repository = openCatalogue(
     resolve(
       dirname(fileURLToPath(import.meta.url)),
       "../../work/catalogue.sqlite",
+    ),
+);
+// Shopper carts, orders and sign-in are saved in a local file so they survive a
+// restart. It lives under work/ (never committed); tests use temporary files.
+const stateStore = new SqliteShopperStateStore(
+  process.env.COPILOT_STATE_DB ??
+    resolve(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../work/storefront-state.sqlite",
     ),
 );
 const catalogueRanking = process.env.CATALOGUE_RANKING ?? "lexical";
@@ -30,10 +40,12 @@ const events = new StoreEventLog(
     : streamSink(),
   process.env.COPILOT_RELEASE ?? "local",
 );
-createApp({ ...identityConfig(), repository, catalogueRanking, events }).listen(
-  port,
-  "127.0.0.1",
-  () => {
-    console.log(`Shopping Copilot Store listening on http://localhost:${port}`);
-  },
-);
+createApp({
+  ...identityConfig(),
+  repository,
+  catalogueRanking,
+  events,
+  stateStore,
+}).listen(port, "127.0.0.1", () => {
+  console.log(`Shopping Copilot Store listening on http://localhost:${port}`);
+});

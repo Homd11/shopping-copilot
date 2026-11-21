@@ -12,6 +12,10 @@ import {
   browserLinkRoutes,
 } from "./shopper-link.js";
 import {
+  MemoryShopperStateStore,
+  type ShopperStateStore,
+} from "./shopper-state-store.js";
+import {
   ShopperRegistry,
   credentialDigest,
   type ShopperState,
@@ -21,7 +25,12 @@ import { validatePublicOrigin } from "../../bridge/src/public-origins.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { type CartLine } from "./guarded-cart.js";
-import { StoreEventLog, streamSink } from "./event-log.js";
+import {
+  StoreEventLog,
+  streamSink,
+  type CartChange,
+  type Outcome,
+} from "./event-log.js";
 
 import {
   categories,
@@ -131,11 +140,32 @@ export function createApp(options: {
   capacity?: number;
   ttlMs?: number;
   events?: StoreEventLog;
+  /** Where Shopper state is kept; defaults to in-memory (no restart survival). */
+  stateStore?: ShopperStateStore;
 }): Express {
   const repository = options.repository;
   const events = options.events ?? new StoreEventLog(streamSink());
   const app = express();
-  const registry = new ShopperRegistry(options);
+  // Cart-change records are held until the save decision, so the log states what the
+  // Shopper actually received (a failed save is logged as rejected with that status).
+  function logChange(
+    response: Response,
+    change: CartChange,
+    outcome: Outcome,
+    status: number,
+  ): void {
+    const held = response.locals.heldChanges as
+      | Array<[CartChange, Outcome, number]>
+      | undefined;
+    if (held) held.push([change, outcome, status]);
+    else events.cartChange(change, outcome, status);
+  }
+  const registry = new ShopperRegistry({
+    ...options,
+    store:
+      options.stateStore ??
+      new MemoryShopperStateStore({ clock: options.clock }),
+  });
   const sourceDirectory = dirname(fileURLToPath(import.meta.url));
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
@@ -184,6 +214,9 @@ export function createApp(options: {
       panelOrigin: audience,
       secure: origin.startsWith("https:"),
       evaluation: !production && options.evaluation === true,
+      snapshot: (read) => repository.snapshot(read),
+      record: (change, outcome, status) =>
+        events.cartChange(change, outcome, status),
     }),
   );
   app.use("/__copilot", browserLinkRoutes(tickets, audience));
@@ -222,12 +255,12 @@ export function createApp(options: {
             "انتهى التأكيد أو تغيرت السلة. لم يتم الإفراغ.",
           ),
         );
-      events.cartChange("clear", "unconfirmed", response.statusCode);
+      logChange(response, "clear", "unconfirmed", response.statusCode);
       return;
     }
     cart.clear();
     response.redirect(303, "/cart");
-    events.cartChange("clear", "ok", response.statusCode);
+    logChange(response, "clear", "ok", response.statusCode);
   });
 
   app.post("/cart/items", (request, response) => {
@@ -237,21 +270,21 @@ export function createApp(options: {
       typeof productId === "string" ? repository.get(productId) : undefined;
     if (product === undefined) {
       response.status(404).json({ error: "unknown_product" });
-      events.cartChange("add", "unknown_product", response.statusCode);
+      logChange(response, "add", "unknown_product", response.statusCode);
       return;
     }
     if (!product.available) {
       response.status(409).json({ error: "product_unavailable" });
-      events.cartChange("add", "unavailable", response.statusCode);
+      logChange(response, "add", "unavailable", response.statusCode);
       return;
     }
     if (!cart.edit("add", request.body ?? {})) {
       response.status(409).json({ error: "invalid_or_stale_cart_edit" });
-      events.cartChange("add", "rejected", response.statusCode);
+      logChange(response, "add", "rejected", response.statusCode);
       return;
     }
     response.json(cartView(shopper(response)));
-    events.cartChange("add", "ok", response.statusCode);
+    logChange(response, "add", "ok", response.statusCode);
   });
 
   function cartView(state: ShopperState) {
@@ -274,11 +307,11 @@ export function createApp(options: {
       const cart = shopper(response).cart;
       if (!cart.edit(kind, request.body ?? {})) {
         response.status(409).json({ error: "invalid_or_stale_cart_edit" });
-        events.cartChange(kind, "rejected", response.statusCode);
+        logChange(response, kind, "rejected", response.statusCode);
         return;
       }
       response.json(cartView(shopper(response)));
-      events.cartChange(kind, "ok", response.statusCode);
+      logChange(response, kind, "ok", response.statusCode);
     });
   }
 
@@ -309,7 +342,7 @@ export function createApp(options: {
             "انتهى التأكيد أو تغيرت السلة. لم يتم تسجيل طلب.",
           ),
         );
-      events.cartChange("checkout", "unconfirmed", response.statusCode);
+      logChange(response, "checkout", "unconfirmed", response.statusCode);
       return;
     }
     if (
@@ -328,11 +361,11 @@ export function createApp(options: {
             "استخدم بيانات الدفع الخيالية المعروضة فقط. لم يتم تسجيل طلب.",
           ),
         );
-      events.cartChange("checkout", "invalid_payment", response.statusCode);
+      logChange(response, "checkout", "invalid_payment", response.statusCode);
       return;
     }
     response.redirect(303, `/order/complete/${cart.submitOrder()}`);
-    events.cartChange("checkout", "ok", response.statusCode);
+    logChange(response, "checkout", "ok", response.statusCode);
   });
 
   app.get("/order/complete/:orderId", (request, response) => {
