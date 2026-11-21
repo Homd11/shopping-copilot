@@ -65,7 +65,7 @@ def state(runtime: TaskRuntime, session_id: str, tab_id: str) -> dict[str, Any]:
     return {
         "session_id": session.session_id,
         "lease": "owned" if owned else "takeover_required",
-        "event_cursor": len(session.events),
+        "event_cursor": session.last_event_id,
         "conversation": session.conversation,
         "requires_reconciliation": session.requires_reconciliation,
         "plan": plans.view(session),

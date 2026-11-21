@@ -150,6 +150,10 @@ def install_shopper_http(
             return denied("access_required")
         parts = path.strip("/").split("/")
         if len(parts) >= 2 and parts[0] == "sessions":
+            if parts[1] not in record.sessions and sessions.adopt(parts[1], record.shopper):
+                # A Session this process restored after a restart: its stored owner binding
+                # proves it is this Shopper's.
+                record.sessions.add(parts[1])
             if parts[1] not in record.sessions:
                 return JSONResponse({"detail": "Session not found"}, status_code=404)
             try:

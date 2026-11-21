@@ -1,12 +1,13 @@
 """Stable session interface composing storage and Shopping Task modules."""
 
 from collections.abc import Callable, Mapping
-from time import monotonic
+from time import monotonic, time
 from typing import Any
 
 from agent import (
     plans,
     remembered_sizes,
+    session_restore,
     task_commands,
     task_interpretation,
     task_recovery,
@@ -18,7 +19,7 @@ from agent.llm.intent import StructuredIntent
 from agent.planner import ScriptedPlanner
 from agent.plans import PlanSteps
 from agent.schemas import ActionResult, Snapshot
-from agent.session_registry import SESSION_TTL_SECONDS, SessionRegistry
+from agent.session_registry import SESSION_TTL_SECONDS, SessionRegistry, StateSaveFailed
 from agent.session_state import (
     AcceptedResult,
     ActionResultMismatch,
@@ -36,12 +37,14 @@ from agent.session_state import (
     TaskStatus,
 )
 from agent.shopper_access import ShopperBinding
+from agent.state_store import StateStore
 from agent.swap import SwapDecision
 from agent.task_runtime import TaskRuntime
 
 __all__ = [
     "SessionStore",
     "SESSION_TTL_SECONDS",
+    "StateSaveFailed",
     "EventType",
     "TaskStatus",
     "TaskEnd",
@@ -68,8 +71,16 @@ class SessionStore:
         capacity: int = 800,
         confirmation_registrar: Callable[[ShopperBinding | None, str, str, str, str, int], bool]
         | None = None,
+        store: StateStore | None = None,
+        wall_clock: Callable[[], float] = time,
     ) -> None:
-        self._registry = SessionRegistry(clock=clock, capacity=capacity)
+        self._registry = SessionRegistry(
+            clock=clock,
+            capacity=capacity,
+            store=store,
+            wall_clock=wall_clock,
+            on_restore=lambda session: session_restore.restore_interrupted(self._runtime, session),
+        )
         self._runtime = TaskRuntime(
             self._registry, planner or ScriptedPlanner(), clock, confirmation_registrar
         )
@@ -85,6 +96,24 @@ class SessionStore:
 
     def create(self, tab_id: str | None = None) -> Session:
         return self._registry.create(tab_id)
+
+    def flush(self, *, checkpoint: bool = False) -> None:
+        """Save every changed Session to the State Store (no-op without one)."""
+        self._registry.flush(checkpoint=checkpoint)
+
+    def adopt(self, session_id: str, binding: ShopperBinding | None) -> bool:
+        """Whether a Session this process restored belongs to this Shopper binding.
+
+        After a restart the browser has a new authority; the stored owner binding is the proof
+        that lets the same Shopper keep their Session.
+        """
+        if binding is None:
+            return False
+        try:
+            session = self._registry.get(session_id)
+        except SessionNotFound:
+            return False
+        return session.restored and session.shopper == binding
 
     def has_capacity(self) -> bool:
         return self._registry.has_capacity()

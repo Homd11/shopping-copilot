@@ -18,6 +18,8 @@ from deploy.host_files import ORIGINS, _pairs, _read_private
 from deploy.host_files import _file_metadata as _file_metadata
 from deploy.host_files import _parent_metadata as _parent_metadata
 
+AGENT_STATE_FILE = "/var/lib/shopping-copilot/agent/agent-state.sqlite"
+
 
 @dataclass(frozen=True)
 class HostSettings:
@@ -158,6 +160,9 @@ class HostSettings:
             "COPILOT_AGENT_ORIGIN": ORIGINS["agent"],
             "COPILOT_STORE_PRIVATE_URL": "http://127.0.0.1:4000",
             "COPILOT_CATALOGUE_DB": str(self.catalogue),
+            # Saved Copilot sessions: the Agent unit's own writable state folder, never the
+            # (read-only) release. Ticket 04 moves this to the DynamoDB state table.
+            "AGENT_STATE_FILE": AGENT_STATE_FILE,
         }
 
 

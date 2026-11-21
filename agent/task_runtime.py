@@ -218,7 +218,8 @@ class TaskRuntime:
 
     def append(self, session: Session, event: EventType, data: dict[str, Any]) -> None:
         payload = {"session_id": session.session_id, **data}
-        session.events.append(SessionEvent(id=len(session.events) + 1, event=event, data=payload))
+        session.last_event_id += 1
+        session.events.append(SessionEvent(id=session.last_event_id, event=event, data=payload))
         action = data.get("action") or {}
         if event.startswith("plan_"):
             return  # plans have their own records (plan_created, plan_step, plan_finished)

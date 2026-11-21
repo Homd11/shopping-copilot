@@ -81,12 +81,19 @@ def service_commands(node: Path) -> tuple[list[str], ...]:
 
 
 def service_environment(
-    base: Mapping[str, str] | None = None, *, real_model: bool = False, test_clock: bool = False
+    base: Mapping[str, str] | None = None,
+    *,
+    real_model: bool = False,
+    test_clock: bool = False,
+    state_directory: Path | None = None,
 ) -> dict[str, str]:
     """Return the isolated environment used by the local evaluation services."""
     environment = dict(os.environ if base is None else base)
     environment["COPILOT_SERVICE_SECRET"] = secrets.token_hex(32)
     environment["COPILOT_EVALUATION"] = "1"
+    if state_directory is not None:
+        environment["AGENT_STATE_FILE"] = str(state_directory / "agent-state.sqlite")
+        environment["COPILOT_STATE_DB"] = str(state_directory / "storefront-state.sqlite")
     if real_model:
         if environment.get("LLM_PROVIDER") in {None, "scripted"} or not environment.get(
             "LLM_MODEL"
@@ -140,6 +147,8 @@ def local_services(
     commands = service_commands(Path(node))
     commands[0][3] = agent_app
     with TemporaryDirectory(prefix="copilot-eval-catalogue-") as database_directory:
+        # The Agent and the Storefront save state here, never under work/. Restarts of one
+        # service reuse the same files, so a restart keeps what was saved.
         catalogue_file = str(Path(database_directory) / "catalogue.sqlite")
         subprocess.run(  # noqa: S603 - owned local importer and temporary database
             [
@@ -154,7 +163,11 @@ def local_services(
             stdout=subprocess.DEVNULL,
             creationflags=creation_flags,
         )
-        environment = service_environment(real_model=real_model, test_clock=test_clock)
+        environment = service_environment(
+            real_model=real_model,
+            test_clock=test_clock,
+            state_directory=Path(database_directory),
+        )
         environment["COPILOT_CATALOGUE_DB"] = catalogue_file
         processes = [
             subprocess.Popen(  # noqa: S603 - fixed local commands without a shell

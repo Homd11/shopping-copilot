@@ -194,6 +194,8 @@ def test_equivalent_guarded_form_targets_cannot_bypass_confirmation() -> None:
             page.goto("http://localhost:4100/")
             frame = page.frame_locator("#storefront-frame")
             expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
+            # The Bridge hook exists once the Panel has linked; the heading shows earlier.
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
             submissions = frame.locator("body").evaluate(
                 """async (body) => {
                     body.insertAdjacentHTML('beforeend', `

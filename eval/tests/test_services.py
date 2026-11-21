@@ -40,3 +40,10 @@ def test_real_browser_evaluation_requires_explicit_real_provider_selection() -> 
         service_environment(
             {"LLM_PROVIDER": "scripted", "LLM_MODEL": "scripted-v1"}, real_model=True
         )
+
+
+def test_local_evaluation_keeps_its_state_in_the_given_temporary_directory() -> None:
+    environment = service_environment({"PATH": "p"}, state_directory=Path("tmp-state"))
+
+    assert Path(environment["AGENT_STATE_FILE"]) == Path("tmp-state") / "agent-state.sqlite"
+    assert Path(environment["COPILOT_STATE_DB"]) == Path("tmp-state") / "storefront-state.sqlite"

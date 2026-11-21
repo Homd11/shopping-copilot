@@ -159,7 +159,7 @@ def test_open_stream_closes_at_revocation_without_releasing_pending_actions(expi
         stream = response.body_iterator
         assert "first" in await anext(stream)
         if expire_session:
-            now[0] = 1801
+            now[0] = 7 * 24 * 60 * 60 + 1  # the session lifetime is seven days
         else:
             valid[0] = False
         assert await anext(stream) == "event: shopper_reset\ndata: {}\n\n"

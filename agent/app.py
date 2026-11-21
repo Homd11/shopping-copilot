@@ -2,7 +2,7 @@ import asyncio
 import os
 from collections.abc import Callable
 from contextlib import asynccontextmanager, suppress
-from time import monotonic
+from time import monotonic, time
 from typing import Literal
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from starlette.responses import Response, StreamingResponse
+from starlette.responses import JSONResponse, Response, StreamingResponse
 
 from agent.admission.runtime import AdmissionClient, AdmissionPolicy, configured_admission
 from agent.admission.store import AdmissionDenied
@@ -52,11 +52,13 @@ from agent.sessions import (
     SessionExpired,
     SessionNotFound,
     SessionStore,
+    StateSaveFailed,
     TaskConflict,
 )
 from agent.shopper_access import ShopperBinding
 from agent.shopper_http import install_shopper_http
 from agent.speech import MAX_AUDIO_BYTES, OpenRouterSpeechTranscriber, SpeechTranscriber
+from agent.state_store import configured_state_store
 from agent.storefront_service import StorefrontService, identity_config
 from agent.swap import SwapDecision, read_line
 from agent.swap import decide as decide_swap
@@ -237,11 +239,16 @@ def create_app(
     def session_clock() -> float:
         return monotonic() + clock_offset[0]
 
+    def wall_clock() -> float:
+        return time() + clock_offset[0]
+
     sessions = session_store or SessionStore(
         planner,
         clock=session_clock,
         capacity=admission.maximum_sessions if admission else 800,
         confirmation_registrar=confirmation_registrar or service.register_confirmation,
+        store=configured_state_store(values),
+        wall_clock=wall_clock,
     )
     install_shopper_http(
         app,
@@ -291,6 +298,9 @@ def create_app(
             raise SessionNotFound(session_id)
 
     async def run_interpretation(session_id: str, task_id: str, call_id: str) -> None:
+        # Save what the request changed so far before any model call: if that fails the
+        # request has no effect (the change is rolled back) and nothing is interpreted.
+        sessions.flush(checkpoint=True)
         try:
             async with asyncio.timeout(INTERPRETATION_DEADLINE_SECONDS):
                 await _interpret(session_id, task_id, call_id)
@@ -933,6 +943,18 @@ def create_app(
         allow_methods=["GET", "POST"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def save_session_state(request: Request, call_next):
+        """Write-through: every change is saved before the response is sent; a failed save
+        fails the request instead of letting the Shopper see a change that will vanish."""
+        try:
+            response = await call_next(request)
+            sessions.flush()
+        except StateSaveFailed:
+            return JSONResponse({"detail": "State could not be saved"}, status_code=503)
+        return response
+
     app.state.events = events
     sessions.attach_event_log(events)
     app.add_middleware(RequestLog, events=events, routes=app.router.routes)

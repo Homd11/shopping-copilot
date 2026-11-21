@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sqlite3
 import subprocess
 import sys
@@ -374,6 +375,22 @@ def test_modified_release_and_internal_state_refuse_before_start(built_release, 
         ReleaseRuntime(damaged, config, tmp_path / "logs", local=True)
 
 
+def test_saved_shopper_state_lives_beside_other_state_never_in_the_release(built_release, tmp_path):
+    from deploy.configuration import preflight
+
+    config, values = configure_state(tmp_path / "state")
+    chosen = preflight(built_release, config, local=True)
+    state = tmp_path / "state"
+    assert Path(chosen["AGENT_STATE_FILE"]) == state / "agent-state.sqlite"
+    assert Path(chosen["COPILOT_STATE_DB"]) == state / "storefront-state.sqlite"
+    values["AGENT_STATE_FILE"] = (built_release / "work/agent-state.sqlite").as_posix()
+    config.write_text(
+        "".join(f"{k}='{v.replace(chr(92), '/')}'\n" for k, v in values.items()), encoding="utf-8"
+    )
+    with pytest.raises(ValueError):
+        preflight(built_release, config, local=True)
+
+
 def test_rollback_selects_installed_code_without_rewinding_quotas(built_release, tmp_path):
     from decimal import Decimal
     from time import time
@@ -433,7 +450,7 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
                 expect(page.locator("#shopper-message")).to_be_enabled()
 
             activate()
-            frame = page.frame(url="http://localhost:4000/")
+            frame = page.frame(url=re.compile(r"^http://localhost:4000/"))
             assert frame is not None
             frame.goto("http://localhost:4000/p/shoe-09")
             frame.locator("#product-size").select_option("43")
@@ -455,29 +472,30 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
             runtime.restart("agent")
             page.unroute("**/sessions/*/action-results")
             activate()
+            # The session now survives the restart (saved state). The work that was cut off
+            # is ended and reported as interrupted, never run again by itself and never left
+            # for Retry: the message box is usable at once.
+            expect(page.locator("#conversation")).to_contain_text("interrupted")
+            expect(page.locator("#retry-task")).to_have_count(0)
             cart = page.request.get("http://localhost:4000/cart/state").json()
             assert cart["lines"] == applied["lines"] and cart["revision"] == applied["revision"]
-            assert (
-                browser_post(
-                    page,
-                    f"http://localhost:8000/sessions/{old_session}/action-results",
-                    data=captured[0],
-                ).status
-                == 404
-            )
             session = page.evaluate("localStorage.getItem('shopping-copilot.session-id')")
             tab = page.evaluate("sessionStorage.getItem('shopping-copilot.tab-id')")
-            assert session != old_session
-            assert (
-                browser_post(
-                    page,
-                    f"http://localhost:8000/sessions/{session}/action-results",
-                    data=captured[0],
-                    headers={"x-tab-id": tab},
-                ).status
-                == 409
+            assert session == old_session
+            # The result that was lost before the restart is not applied afterwards: the
+            # interrupted task is no longer the active one.
+            late = browser_post(
+                page,
+                f"http://localhost:8000/sessions/{session}/action-results",
+                data=captured[0],
+                headers={"x-tab-id": tab},
             )
-            frame = page.frame(url="http://localhost:4000/")
+            assert late.status in {404, 409}, late.status
+            assert (
+                page.request.get("http://localhost:4000/cart/state").json()["lines"]
+                == applied["lines"]
+            )
+            frame = page.frame(url=re.compile(r"^http://localhost:4000/"))
             assert frame is not None
             frame.goto("http://localhost:4000/cart")
             page.locator("#shopper-message").fill("Empty my cart")
@@ -495,15 +513,16 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
             }
             runtime.restart("agent")
             activate()
-            assert (
-                browser_post(
-                    page,
-                    f"http://localhost:8000/sessions/{session}/tasks/{task['task_id']}/answers",
-                    data=stale_answer,
-                    headers={"x-tab-id": tab},
-                ).status
-                == 404
+            # The open Confirmation is expired by the restart: the task is ended as
+            # interrupted and the old answer can no longer approve anything.
+            expect(page.locator("#retry-task")).to_have_count(0)
+            stale = browser_post(
+                page,
+                f"http://localhost:8000/sessions/{session}/tasks/{task['task_id']}/answers",
+                data=stale_answer,
+                headers={"x-tab-id": tab},
             )
+            assert stale.status in {404, 409}, stale.status
             assert (
                 page.request.get("http://localhost:4000/cart/state").json()["lines"]
                 == applied["lines"]
@@ -523,6 +542,7 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
                 },
             ).json()
             undo = edit["undo"]["id"]
+            current_after_edit = page.request.get("http://localhost:4000/cart/state").json()
             # Capture an actually registered Confirmation at the transport seam,
             # after its explicit click but before the Storefront can apply it.
             from urllib.parse import parse_qs
@@ -534,7 +554,7 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
                 page.evaluate("window.__releaseGuardedBlocked = true")
                 route.abort()
 
-            frame = page.frame(url="http://localhost:4000/")
+            frame = page.frame(url=re.compile(r"^http://localhost:4000/"))
             assert frame is not None
             frame.goto("http://localhost:4000/cart")
             page.route("**/cart/clear", lose_guarded_request)
@@ -549,9 +569,16 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
             token = confirmations[0]["copilot_confirmation"][0]
             runtime.restart("store")
             page.unroute("**/cart/clear")
-            # Changed Storefront authority requires an explicit fresh link cycle.
-            activate()
-            assert page.request.get("http://localhost:4000/cart/state").json()["lines"] == []
+            # The Shopper's cart now survives a Storefront restart (saved state); what must
+            # not survive is the short-lived authority: the Undo and the Confirmation.
+            page.goto("http://localhost:4100/")
+            entry = page.locator("#admission-code")
+            expect(entry.or_(page.locator("#task-status"))).to_be_visible(timeout=15000)
+            if entry.is_visible():
+                entry.fill(code)
+                page.locator(".admission-entry button").click()
+            kept = page.request.get("http://localhost:4000/cart/state").json()
+            assert kept["lines"] == current_after_edit["lines"] and kept["lines"] != []
             assert (
                 browser_post(
                     page,
@@ -575,6 +602,8 @@ def test_built_browser_restarts_preserve_cart_and_reject_old_authority(built_rel
             assert after["identity"] == before["identity"]
             assert after["accounted_usd"] == before["accounted_usd"] == "0.200000000"
             assert after["uncertain"] == 1
-            assert invites.status()[0]["used_redemptions"] == 4
+            # Three code entries: the first visit and one after each Agent restart. The
+            # Storefront restart needed none, because the Shopper's link survives it.
+            assert invites.status()[0]["used_redemptions"] == 3
         finally:
             browser.close()

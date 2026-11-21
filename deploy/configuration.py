@@ -61,6 +61,17 @@ def preflight(release, config, *, local=False, minimum_free_bytes=64 * 1024 * 10
         if not local or not values.get("LIFECYCLE_DB_ID"):
             raise ValueError("Lifecycle transport is local rehearsal only")
         state_keys.append("LIFECYCLE_DB_PATH")
+    # Saved sessions and carts are mutable state: they live beside the other state files,
+    # never in the release tree (which must stay byte-identical to its manifest).
+    state_directory = Path(values["COPILOT_CATALOGUE_DB"]).parent
+    for key, name in (
+        ("AGENT_STATE_FILE", "agent-state.sqlite"),
+        ("COPILOT_STATE_DB", "storefront-state.sqlite"),
+    ):
+        values.setdefault(key, str(state_directory / name))
+        saved = Path(values[key])
+        if not saved.is_absolute() or saved.resolve().is_relative_to(release) or saved == config:
+            raise ValueError("Saved state must be an absolute file outside releases")
     for key in state_keys:
         raw = Path(values[key])
         if not raw.is_absolute():

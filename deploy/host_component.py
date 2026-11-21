@@ -13,6 +13,8 @@ from deploy.component_config import ProxySettings, StoreSettings, load_component
 from deploy.host_files import ORIGINS, _parent_metadata
 
 CADDY_STORAGE = Path("/var/lib/shopping-copilot/caddy")
+# Saved carts, orders and sign-in: the Storefront unit's own writable state folder.
+STORE_STATE_FILE = "/var/lib/shopping-copilot/store/storefront-state.sqlite"
 
 
 def _runtime_root():
@@ -67,6 +69,7 @@ def command(settings, component):
                     "COPILOT_PANEL_ORIGIN": ORIGINS["panel"],
                     "COPILOT_STORE_ORIGIN": ORIGINS["store"],
                     "COPILOT_CATALOGUE_DB": str(settings.catalogue),
+                    "COPILOT_STATE_DB": STORE_STATE_FILE,
                     "CATALOGUE_RANKING": "lexical",
                     "COPILOT_RELEASE": settings.fingerprint[:12],
                 }

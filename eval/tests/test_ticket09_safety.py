@@ -94,6 +94,9 @@ def test_unavailable_product_cannot_be_purchased_in_browser() -> None:
             page.goto("http://localhost:4100/")
             frame = page.frame_locator("#storefront-frame")
             expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
+            # The Storefront HTML shows before its Bridge script runs; the Panel enables its
+            # message box only once the Bridge answered the link, so wait for that.
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
             frame.locator("body").evaluate("() => { location.href = '/p/shoe-05'; }")
             expect(frame.locator('[data-testid="add-to-cart"]')).to_be_disabled()
             expect(frame.locator('article[data-product-id="shoe-05"]')).to_contain_text("غير متاح")
@@ -116,6 +119,9 @@ def test_off_origin_action_is_blocked_in_real_browser() -> None:
             page.goto("http://localhost:4100/")
             frame = page.frame_locator("#storefront-frame")
             expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
+            # The Storefront HTML shows before its Bridge script runs; the Panel enables its
+            # message box only once the Bridge answered the link, so wait for that.
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
             frame.locator("body").evaluate(
                 """async () => window.__copilot.run({
                     v: 1, type: 'navigate', task_id: 'safety-origin',
@@ -139,6 +145,9 @@ def test_browser_resolved_links_and_associated_forms_cannot_escape_origin() -> N
             page.goto("http://localhost:4100/")
             frame = page.frame_locator("#storefront-frame")
             expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
+            # The Storefront HTML shows before its Bridge script runs; the Panel enables its
+            # message box only once the Bridge answered the link, so wait for that.
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
             result = frame.locator("body").evaluate(
                 """async (body) => {
                     body.insertAdjacentHTML('beforeend', `
@@ -187,6 +196,9 @@ def test_sensitive_descendants_and_dropdowns_stay_private_in_browser() -> None:
             page.goto("http://localhost:4100/")
             frame = page.frame_locator("#storefront-frame")
             expect(frame.locator("h1")).to_have_text("تسوّق بسهولة")
+            # The Storefront HTML shows before its Bridge script runs; the Panel enables its
+            # message box only once the Bridge answered the link, so wait for that.
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
             result = frame.locator("body").evaluate(
                 """async (body) => {
                     body.insertAdjacentHTML('beforeend', `

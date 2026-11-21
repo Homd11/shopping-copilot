@@ -134,7 +134,9 @@ def test_invitation_waiting_page_boots_built_host_and_rechecks_revoked_access(
             page.locator("#admission-code").fill(code)
             page.locator(".admission-entry button").click()
             expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
-            assert page.request.get("http://localhost:4000/cart/state").json()["lines"] == []
+            # A host stop no longer empties the cart: saved state outlives the idle stop.
+            lines = page.request.get("http://localhost:4000/cart/state").json()["lines"]
+            assert [(line["product_id"], line["quantity"]) for line in lines] == [("shoe-09", 1)]
             assert invitations.status()[0]["used_redemptions"] == 2
     finally:
         server.should_exit = True

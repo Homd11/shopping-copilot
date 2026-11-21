@@ -161,6 +161,11 @@ class Session:
     session_id: str
     shopper: ShopperBinding | None = None
     events: list[SessionEvent] = field(default_factory=list)
+    # Id of the newest event ever appended: the stream cursor. Stored events are bounded, so
+    # the next id never comes from the list's length.
+    last_event_id: int = 0
+    # True when this process loaded the Session from the State Store (after a restart).
+    restored: bool = False
     active_task: ActiveTask | None = None
     accepted_results: dict[tuple[str, str, int], AcceptedResult] = field(default_factory=dict)
     conversation: list[dict[str, str]] = field(default_factory=list)
@@ -178,8 +183,8 @@ class Session:
     last_plan: ActivePlan | None = None
     # Task id of a task begun by code that nobody has interpreted yet (see `app.drive_plan`).
     start_pending: str | None = None
-    # Remembered sizes, keyed by (person, size kind). In memory for this Session only: never
-    # on disk, in the state endpoint, in any event or log record. Gone with the Session.
+    # Remembered sizes, keyed by (person, size kind). Saved only with the Session in the State
+    # Store (so they survive a restart); never in the state endpoint, any event or log record.
     remembered_sizes: dict[tuple[str, str], str] = field(default_factory=dict, repr=False)
     # Size the Copilot itself selected on a product's add form, and for whom (memory only).
     copilot_selected_size: dict[str, tuple[str, str]] = field(default_factory=dict, repr=False)

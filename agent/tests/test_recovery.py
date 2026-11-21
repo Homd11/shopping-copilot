@@ -440,13 +440,17 @@ def test_action_events_are_delivered_only_to_the_execution_lease_owner() -> None
     assert "event: action" in current_owner
 
 
-def test_inactive_session_expires_after_thirty_minutes() -> None:
+def test_inactive_session_expires_after_seven_days() -> None:
+    week = 7 * 24 * 60 * 60
     now = [1_000.0]
     store = SessionStore(clock=lambda: now[0])
     client = TestClient(create_app(store))
     session_id = create_owned_session(client)
 
-    now[0] += 1_801
+    now[0] += week - 1
+    assert client.get(f"/sessions/{session_id}/state?tab_id=tab-1").status_code == 200
+
+    now[0] += week + 1
     expired = client.get(f"/sessions/{session_id}/state?tab_id=tab-1")
 
     assert expired.status_code == 410

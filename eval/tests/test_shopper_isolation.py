@@ -95,12 +95,20 @@ def test_process_restarts_invalidate_authority_without_replaying_cart_changes():
                 page.request.get("http://localhost:4000/cart/state").json()["lines"][0]["quantity"]
                 == 2
             )
-            assert page.request.get(f"http://localhost:8000/sessions/{session}/state").status == 404
+            # The Copilot session is saved state now: after the restart it is still this
+            # Shopper's. (It is reached with a tab id; without one the request is invalid, 422.)
+            kept = page.request.get(
+                f"http://localhost:8000/sessions/{session}/state?tab_id=restart-observer"
+            )
+            assert kept.status == 200
             services.restart("store")
-            expect(page.locator("#task-status")).to_contain_text("Reload", timeout=8000)
+            # The Shopper's link is stable across a Storefront restart, so the Panel is not
+            # forced to reload and the saved cart is still there, with nothing replayed
+            # (still quantity 2). Only the 10-second Undo is gone.
             page.reload()
             expect(page.locator("#shopper-message")).to_be_enabled(timeout=15000)
-            assert page.request.get("http://localhost:4000/cart/state").json()["lines"] == []
+            lines = page.request.get("http://localhost:4000/cart/state").json()["lines"]
+            assert [(line["product_id"], line["quantity"]) for line in lines] == [("shoe-09", 2)]
             denied = browser_post(
                 page,
                 "http://localhost:4000/cart/undo",

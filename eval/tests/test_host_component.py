@@ -93,6 +93,7 @@ def test_fixed_store_environment_excludes_ambient_authority(module, settings, mo
         "COPILOT_PANEL_ORIGIN": "https://app.scpilot.tech",
         "COPILOT_STORE_ORIGIN": "https://store.scpilot.tech",
         "COPILOT_CATALOGUE_DB": str(settings.catalogue),
+        "COPILOT_STATE_DB": "/var/lib/shopping-copilot/store/storefront-state.sqlite",
         "CATALOGUE_RANKING": "lexical",
         "COPILOT_RELEASE": settings.fingerprint[:12],
     }
