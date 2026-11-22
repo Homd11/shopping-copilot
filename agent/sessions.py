@@ -192,6 +192,7 @@ class SessionStore:
         beneficiary: str | None = None,
         size_hint: str | None = None,
         clarify: bool = False,
+        options: list[str] | None = None,
     ) -> ActiveTask | None:
         return task_interpretation.finish_catalogue_interpretation(
             self._runtime,
@@ -207,6 +208,7 @@ class SessionStore:
             beneficiary=beneficiary,
             size_hint=size_hint,
             clarify=clarify,
+            options=options,
         )
 
     def note_product_facts(

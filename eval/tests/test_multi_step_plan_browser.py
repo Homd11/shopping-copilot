@@ -23,6 +23,7 @@ from eval.plan_fixture_app import (
     CART_STEP,
     CLEAR_STEP,
     FIND_TWO,
+    OPEN_BY_NAME,
     OPEN_CLEAR_ACCOUNT,
     OPEN_UNNAMED,
     PANTS_STEP,
@@ -155,12 +156,12 @@ def test_unrelated_pair_adds_once_then_shows_suggestions_with_retrieval_on():
             # call that names the steps. Step 2 is interpreted at its turn, marked position 2,
             # and its search is handed back to the catalogue decision loop (same marker).
             assert [(r["prompt"], r["message"], r["plan_step"]) for r in requests[:2]] == [
-                ("intent-v36", ADD_THEN_PANTS, None),
-                ("intent-v36", PANTS_STEP, {"position": 2, "of": 2, "earlier_steps_done": True}),
+                ("intent-v39", ADD_THEN_PANTS, None),
+                ("intent-v39", PANTS_STEP, {"position": 2, "of": 2, "earlier_steps_done": True}),
             ]
             decisions = requests[2:]
             # search, then recommend (its advice text rides in the decision: no advice call).
-            assert [r["prompt"] for r in decisions] == ["catalogue-decision-v9"] * 2
+            assert [r["prompt"] for r in decisions] == ["catalogue-decision-v11"] * 2
             assert all(r["message"] == PANTS_STEP for r in decisions)
             assert all(r["plan_step"]["position"] == 2 for r in decisions)
             assert page.locator("#plan-checklist li").count() == 2
@@ -469,5 +470,34 @@ def test_a_product_the_message_does_not_name_is_confirmed_and_no_leaves_the_cart
             assert frame.locator("body").evaluate("() => location.pathname") == "/c/shoes"
             assert cart_lines(page) == []
             assert [r["message"] for r in plan_requests(page)] == [OPEN_UNNAMED]
+        finally:
+            browser.close()
+
+
+def test_a_fresh_session_opens_the_product_the_shopper_names():
+    with local_services(agent_app="eval.plan_fixture_app:retrieval_app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            browser_post(page, "http://localhost:4000/__test/reset")
+            page.goto("http://localhost:4100")
+            expect(page.locator("#shopper-message")).to_be_enabled()
+            frame = page.frame_locator("#storefront-frame")
+            expect(frame.get_by_role("link", name="الأحذية").first).to_be_visible(timeout=15000)
+            assert frame.locator("body").evaluate("() => location.pathname") == "/"
+            send(page, OPEN_BY_NAME)
+
+            # The page of exactly that product opens: no search answer, no question.
+            expect(frame.get_by_role("heading", name="خطوة سريعة")).to_be_visible(timeout=20000)
+            assert frame.locator("body").evaluate("() => location.pathname") == "/p/shoe-02"
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            expect(page.locator("#pending-question button")).to_have_count(0)
+            expect(page.locator("[data-product-id]")).to_have_count(0)
+            assert cart_lines(page) == []
+            # The routing decision, then the interpreter's marker; code did the rest.
+            assert [(r["prompt"], r["message"]) for r in plan_requests(page)] == [
+                ("catalogue-decision-v11", OPEN_BY_NAME),
+                ("intent-v39", OPEN_BY_NAME),
+            ]
         finally:
             browser.close()

@@ -46,6 +46,9 @@ SWAP_RED_SOURCE = "خليها احمر"
 # Copilot reliability 08: the model picks a product the message does not name.
 OPEN_UNNAMED = "افتح الجزمة الجديدة"
 UNNAMED_PRODUCT = "shoe-02"
+# Copilot reliability 06: a product named in a fresh session; the name is exactly one product's.
+OPEN_BY_NAME = "افتح خطوة سريعة"
+NAMED_PRODUCT_NAME = "خطوة سريعة"
 
 
 def intent(name, **fields):
@@ -133,6 +136,8 @@ class PlanModel:
                     "selected_ids": ids,
                     "advice_message": ADVICE,
                 }
+            elif message == OPEN_BY_NAME:
+                response = {"kind": "execute"}
             else:
                 raise ValueError("Unknown scripted decision request")
         elif message in {ADD_IF_UNDER_1000, ADD_IF_UNDER_2000}:
@@ -167,6 +172,13 @@ class PlanModel:
             # The model picks an id the words never name; code must ask before opening it.
             response = intent(
                 "open_product", product_id=UNNAMED_PRODUCT, navigation_source=OPEN_UNNAMED
+            )
+        elif message == OPEN_BY_NAME:
+            # Only the marker and the name the Shopper said; code finds the product.
+            response = intent(
+                "find_products",
+                constraints={"query": NAMED_PRODUCT_NAME},
+                request_mode="open",
             )
         elif message == ADD_THIS:
             # Only the marker: which product "this" means is decided by code, never here.

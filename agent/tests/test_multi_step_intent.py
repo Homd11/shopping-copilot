@@ -246,8 +246,8 @@ def test_the_prompt_asks_for_v10_and_keeps_its_existing_rules():
         resolved_state={},
         pending_clarification=None,
     )
-    assert PROMPT_VERSION == "intent-v36"
-    assert request.prompt_version == "intent-v36"
+    assert PROMPT_VERSION == "intent-v39"
+    assert request.prompt_version == "intent-v39"
     assert request.schema_version == 10
     assert "StructuredIntent JSON object, v=10." in request.system
     for kept in (

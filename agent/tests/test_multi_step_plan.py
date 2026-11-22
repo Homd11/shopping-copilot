@@ -633,7 +633,7 @@ def test_the_decision_prompt_asks_for_the_first_step_only_and_is_v9():
     model = RecordingModel({"kind": "clarify", "language": "en", "question": "Which one?"})
     asyncio.run(run_retrieval(model))
     request = model.requests[0]
-    assert request.prompt_version == "catalogue-decision-v9"
+    assert request.prompt_version == "catalogue-decision-v11"
     for phrase in ("first_step", "remaining_steps", "FIRST step only", "skipped_steps"):
         assert phrase in request.system
 

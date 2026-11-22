@@ -620,6 +620,7 @@ def _ask_clarification(
     intent: StructuredIntent,
     steps: PlanSteps,
     question: str,
+    options: list[str] | None = None,
 ) -> ActiveTask:
     """Publish the catalogue's clarifying question as a free-text question the task waits on."""
     task.language = intent.language
@@ -633,7 +634,7 @@ def _ask_clarification(
         sequence_number=task.step_count + 1,
         narration=question,
         question=question,
-        options=[],
+        options=list(options or []),
     )
     task.action = asking
     task.step_count += 1
@@ -663,6 +664,7 @@ def finish_catalogue_interpretation(
     beneficiary: str | None = None,
     size_hint: str | None = None,
     clarify: bool = False,
+    options: list[str] | None = None,
 ) -> ActiveTask | None:
     session = runtime.sessions.get(session_id)
     task = session.active_task
@@ -687,7 +689,7 @@ def finish_catalogue_interpretation(
         and (task.plan_position is not None or (session.plan is None and steps.remaining_steps))
     ):
         # A plan never takes a question for an answer: the step waits for the Shopper.
-        return _ask_clarification(runtime, session, task, intent, steps, advice_text)
+        return _ask_clarification(runtime, session, task, intent, steps, advice_text, options)
     payload = result.to_wire()
     session.product_context.remember_suggestions(payload["suggestions"])
     task.suggestions = payload

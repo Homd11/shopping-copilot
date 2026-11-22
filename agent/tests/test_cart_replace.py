@@ -519,7 +519,7 @@ def test_no_record_carries_a_colour_a_size_a_name_or_the_shoppers_words():
 def test_the_prompt_teaches_replace_as_a_colour_change_of_a_cart_line():
     client, model, session_id, _ = swap()
     system = model.requests[-1].system
-    assert model.requests[-1].prompt_version == "intent-v36"
+    assert model.requests[-1].prompt_version == "intent-v39"
     assert "is replace, never remove plus add" in system
     assert "حذف المنتج" in system
     assert "/cart/replace" not in system

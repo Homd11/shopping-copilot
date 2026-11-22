@@ -289,3 +289,52 @@ def test_a_disabled_undo_control_counts_as_expired(retrieval):
     session.send("تراجع", undo_snapshot(enabled=False))
     assert session.actions() == []
     assert session.summaries() == [UNDO_EXPIRED[0]]
+
+
+# Ticket 07 (copilot reliability, B7): Egyptian wording for the order and for emptying the cart
+# is a guarded mutation behind the Confirmation; opening checkout only navigates.
+CHECKOUT_BUTTONS = dict(
+    id=3,
+    role="button",
+    name="Place order",
+    form_action="/checkout/submit",
+    mutation_state="cart:3",
+    visible=True,
+)
+
+
+@pytest.mark.parametrize("words", ["اعمل الطلب", "خلّص الطلب", "كمّل الطلب", "أكّد الطلب"])
+def test_arabic_order_wording_as_submit_checkout_reaches_the_confirmation_card(retrieval, words):
+    session = retrieval(mutation("submit_checkout", words))
+    session.send(words, snapshot_at("/checkout", CHECKOUT_BUTTONS))
+    action = session.actions()[-1]
+    assert action["type"] == "ask_shopper" and action["kind"] == "confirmation"
+    assert not [a for a in session.actions() if a["type"] == "click"]
+
+
+@pytest.mark.parametrize("words", ["امسح السلة كلها", "فضّي السلة"])
+def test_arabic_clear_wording_as_clear_cart_reaches_the_confirmation_card(retrieval, words):
+    session = retrieval(mutation("clear_cart", words))
+    session.send(words, clear_page())
+    action = session.actions()[-1]
+    assert action["type"] == "ask_shopper" and action["kind"] == "confirmation"
+    assert not [a for a in session.actions() if a["type"] == "click"]
+
+
+def test_opening_checkout_only_navigates_and_never_submits(retrieval):
+    from agent.tests.test_step import home_snapshot
+
+    opened = dict(
+        v=8,
+        language="ar",
+        dialect="egyptian_arabic",
+        intent="navigate",
+        constraints={"target": "checkout"},
+        missing_fields=[],
+        needs_clarification=False,
+        navigation_source="افتح الدفع",
+    )
+    session = retrieval(opened)
+    session.send("افتح الدفع", home_snapshot())
+    actions = session.actions()
+    assert [a["type"] for a in actions] == ["navigate"] and actions[0]["url"] == "/checkout"

@@ -40,8 +40,18 @@ from agent.llm.bedrock import BedrockProviderError
 from agent.llm.gemini import GeminiRateLimitError
 from agent.llm.groq import GroqRateLimitError
 from agent.llm.openrouter import OpenRouterBudgetError
+from agent.named_product import (
+    QUESTION as NAMED_QUESTION,
+)
+from agent.named_product import (
+    from_catalogue_product,
+    is_open_by_name,
+    resolve_named_product,
+    shopper_words,
+)
 from agent.planner import ActionIdentity, ScriptedPlanner, UnsupportedShoppingTask
 from agent.plans import RETRIEVAL_EXHAUSTED
+from agent.product_confirmation import NAMED_KEY
 from agent.schemas import ActionResult, Snapshot, to_wire
 from agent.session_stream import encode_sse as encode_sse
 from agent.session_stream import session_event_response
@@ -476,6 +486,7 @@ def create_app(
                         plan_steps=prepared.steps,
                         end_reason=RETRIEVAL_EXHAUSTED if prepared.exhausted else None,
                         clarify=prepared.question,
+                        options=prepared.options,
                         facts=prepared.facts,
                         beneficiary=prepared.beneficiary,
                         size_hint=prepared.size_hint,
@@ -488,6 +499,9 @@ def create_app(
                         prepared.evidence.unverified_requirements
                     )
                 else:
+                    if prepared.named_product is not None:
+                        # Code chose this product from the Shopper's exact words (ticket 06).
+                        task.resolved_state[NAMED_KEY] = prepared.named_product
 
                     async def fetch_details(product_id):
                         found = await reader.details(DetailsQuery(ids=[product_id]))
@@ -524,6 +538,47 @@ def create_app(
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                 return
+            if is_open_by_name(intent):
+                phase = "catalogue"
+                catalogue = await catalogue_reader.read()
+
+                async def look_up(name):
+                    return [from_catalogue_product(p) for p in catalogue.validated_products()]
+
+                resolution = await resolve_named_product(
+                    intent,
+                    shopper_words(task.message, task.resolved_state),
+                    look_up,
+                    category_missing=True,
+                )
+                phase = "intent"
+                await verify_owner(session_id)
+                if sessions.get(session_id).last_snapshot != observed:
+                    sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
+                    return
+                if resolution.kind == "several":
+                    sessions.finish_catalogue_interpretation(
+                        session_id,
+                        task_id,
+                        call_id,
+                        intent,
+                        resolution.choices,
+                        advice_text=NAMED_QUESTION["ar" if intent.language == "ar" else "en"],
+                        clarify=True,
+                        options=[c.name for c in resolution.choices.suggestions],
+                    )
+                    return
+                if resolution.kind == "one":
+                    product = resolution.products[0]
+                    known = task.resolved_state.setdefault("_known_products", [])
+                    known.append(
+                        {
+                            "id": product.id,
+                            "name": product.name_ar if intent.language == "ar" else product.name_en,
+                        }
+                    )
+                    task.resolved_state[NAMED_KEY] = product.id
+                intent = resolution.intent
             catalogue_discovery = intent.catalogue_discovery
             if intent.v >= 9 and (intent.intent == "advice" or catalogue_discovery):
                 phase = "catalogue"

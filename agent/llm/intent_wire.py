@@ -73,6 +73,7 @@ _branches = (
         ("cart_edit",),
         (
             "product_id",
+            "request_mode",
             "cart_operation",
             "cart_source",
             "cart_target_id",
@@ -82,7 +83,8 @@ _branches = (
             *_for_whom,
             "condition",
         ),
-        _constraints("CartVariants", ("size", "color")),
+        # query only carries the name of a product marked request_mode=open (add by name).
+        _constraints("CartVariants", ("size", "color", "query")),
     ),
     _branch(
         "NavigationDecision",

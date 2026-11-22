@@ -379,7 +379,7 @@ def test_final_decision_without_evidence_keeps_every_choice():
     model = RecordingModel({}, {}, _search())
     with pytest.raises(RetrievalExhausted):
         asyncio.run(run(model, Reads()))
-    assert "FINAL decision" not in model.requests[2].system
+    assert "FINAL decision" not in model.requests[2].messages[0].content
 
 
 def test_interpreter_handoff_to_search_does_not_consume_search_budget():
@@ -717,3 +717,24 @@ def test_a_recommend_with_selected_ids_or_after_reads_is_unchanged():
     model = RecordingModel(_search(), EMPTY_RECOMMEND)
     outcome = asyncio.run(run(model, Reads()))
     assert outcome.selected_ids == [] and len(model.requests) == 2
+
+
+# Ticket 07 (copilot reliability, B7 / sticky topic): a recommend that carries a cart or
+# checkout target is an action request in disguise (capture #57: "امسح السلة كلها" after a
+# search came back as recommend with constraints.target "cart", three times).
+@pytest.mark.parametrize("target", ["cart", "checkout"])
+def test_a_recommend_carrying_a_cart_or_checkout_target_is_refused_for_an_execute_repair(target):
+    advice = {**_recommend("p-1"), "constraints": {"target": target}}
+    model = RecordingModel(_search(), advice, _recommend("p-1"))
+    budget = RetrievalBudget()
+    outcome = asyncio.run(run(model, Reads(), budget=budget))
+    assert budget.rejections == ["action_in_advice"]
+    assert "this is a cart/checkout action: return execute" in model.requests[2].messages[0].content
+    assert outcome.selected_ids == ["p-1"]
+
+
+def test_a_recommend_without_an_action_target_is_not_refused():
+    advice = {**_recommend("p-1"), "constraints": {"category": "shoes"}}
+    budget = RetrievalBudget()
+    asyncio.run(run(RecordingModel(_search(), advice), Reads(), budget=budget))
+    assert budget.rejections == []

@@ -107,6 +107,7 @@ REJECTION_CODES = frozenset(
         "unsupported_reading",  # a reading of "unsupported", refused once for a repair
         "this_mismatch",  # "this" named a product that code did not allow
         "execute_after_handoff",  # execute chosen again after the interpreter handed back
+        "action_in_advice",  # a recommend that carried a cart/checkout target, not execute
         "unknown_filter_value",  # a filter value that names no Storefront vocabulary key
         "repeated_empty_search",  # the same search as an earlier read that found nothing
         "other",

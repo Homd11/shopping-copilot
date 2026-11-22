@@ -21,6 +21,8 @@ from agent.storefront import StorefrontDefinition
 PRODUCT_DECLINED = "product_declined"
 CONFIRMED_KEY = "_confirmed_product"
 PENDING_KEY = "_confirm_product"
+# Code resolved this product from the Shopper's exact words (open/add by name, ticket 06).
+NAMED_KEY = "_named_product"
 
 QUESTION = {"ar": "تقصد {name}؟", "en": "Did you mean {name}?"}
 OPTIONS = {"ar": ["أيوه", "لا"], "en": ["Yes", "No"]}
@@ -90,8 +92,8 @@ def unnamed_product(
         )
     ):
         return None
-    if state.get(CONFIRMED_KEY) == product_id:
-        return None  # the Shopper said yes to exactly this product
+    if product_id in (state.get(CONFIRMED_KEY), state.get(NAMED_KEY)):
+        return None  # the Shopper said yes to, or named, exactly this product
     candidates = {
         item.get("id") for item in state.get("_this_candidates", []) if isinstance(item, dict)
     }

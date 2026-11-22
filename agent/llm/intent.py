@@ -223,7 +223,9 @@ class StructuredIntent(IntentModel):
     price_preference: PricePreference | None = None
     owned_item: OwnedItem | None = None
     desired_wear_position: Literal["upper", "lower", "footwear"] | None = None
-    request_mode: Literal["browse", "recommend", "style"] = "browse"
+    # "open": the Shopper named a product to open or add that is not in known products; the name
+    # is copied into constraints.query and code resolves the product from the catalogue (v10).
+    request_mode: Literal["browse", "recommend", "style", "open"] = "browse"
     owned_items: list[OwnedItem] = Field(default_factory=list, max_length=6)
     preferred_colors: list[str] = Field(default_factory=list, max_length=6)
     subjective_preferences: list[str] = Field(default_factory=list, max_length=6)
@@ -377,6 +379,22 @@ class StructuredIntent(IntentModel):
             or self.cart_operation == "replace"
         ):
             raise ValueError("Multi-step fields and replace require schema 10")
+        if self.request_mode == "open" and (
+            self.v < 10
+            or self.product_id is not None
+            or not (
+                self.intent == "find_products"
+                or (self.intent == "cart_edit" and self.cart_operation == "add")
+            )
+            or (
+                not self.needs_clarification
+                and not (self.constraints.query and self.constraints.query.strip())
+            )
+        ):
+            raise ValueError(
+                "request_mode open applies to find_products or a cart add of a named product: "
+                "schema 10, the name in constraints.query and no product_id"
+            )
         if (self.intent == "advice" or self.advice_product_ids) and (
             self.v < 9 or self.intent != "advice" or self.constraints.target is not None
         ):
@@ -404,10 +422,11 @@ class StructuredIntent(IntentModel):
                 )
             ):
                 raise ValueError("Quantity mode must match an explicit quantity operation")
+            allowed = {"size", "color", *({"query"} if self.request_mode == "open" else ())}
             if any(
                 value is not None
                 for key, value in self.constraints.model_dump().items()
-                if key not in {"size", "color"}
+                if key not in allowed
             ):
                 raise PydanticCustomError(
                     "cart_authority_isolation", "Cart edits cannot carry discovery constraints"

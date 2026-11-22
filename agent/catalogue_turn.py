@@ -68,6 +68,9 @@ class PreparedTurn:
     # The turn is a real question for the Shopper (the clarify outcome), never the exhausted
     # fallback: its summary is the question.
     question: bool = False
+    # Choices for "which product?": their names, and the product code chose from an exact name.
+    options: list[str] = field(default_factory=list)
+    named_product: str | None = None
 
 
 def _size_hint(requirements) -> str | None:
@@ -193,9 +196,10 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
                 "needs_clarification": False,
             }
         )
+        choices = outcome.choices or DiscoveryResult(None, ())
         return PreparedTurn(
             intent,
-            AdviceEvidence(DiscoveryResult(None, ()), ()),
+            AdviceEvidence(choices, ()),
             outcome.question,
             [],
             PlanSteps(
@@ -205,6 +209,7 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
                 "unknown",
             ),
             question=True,
+            options=[item.name for item in choices.suggestions],
         ), "clarify"
     intent = outcome.intent
     steps = PlanSteps(
@@ -222,7 +227,14 @@ async def _prepare_turn(task, snapshot, storefront, llm, catalogue, ensure_activ
     ]
     facts = {p.product.id: (p.product.category, p.product.type) for p in outcome.products}
     if intent.intent not in {"find_products", "advice"} or intent.needs_clarification:
-        return PreparedTurn(intent, None, None, references, steps), "execute"
+        return PreparedTurn(
+            intent,
+            None,
+            None,
+            references,
+            steps,
+            named_product=intent.product_id if outcome.named else None,
+        ), "execute"
     evidence = prepare_retrieved_advice(outcome)
     who, hint = outcome.beneficiary, _size_hint(outcome.requirements)
     if outcome.advice_message is not None:

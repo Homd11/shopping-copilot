@@ -24,7 +24,7 @@ from agent.product_reference import names_product
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError, canonical_colour
 
-PROMPT_VERSION = "intent-v36"
+PROMPT_VERSION = "intent-v39"
 LIVE_SCHEMA_VERSIONS = frozenset({8, 9, 10})
 
 
@@ -257,7 +257,23 @@ def build_intent_request(
             "Known products include earlier recommendations and visits; previous_suggestions "
             "is only the latest recommendation batch. Use the conversation turns to resolve "
             "references across different tasks without reviving completed actions. "
-            "If the requested product is unknown, use find_products to search by name "
+            "OPEN OR ADD BY NAME: when the Shopper asks to open (افتح, open, وريني صفحة) or "
+            "to add or put (ضيف, حط, add, put) a product BY NAME and that product is not in "
+            "known_products, previous_suggestions or a visible product link, use "
+            "request_mode=open and never guess a product ID: for opening, intent find_products "
+            "with request_mode=open and "
+            "constraints containing ONLY query = the product name copied exactly from the "
+            "Shopper's words (just the name: no افتح, no page, no size, colour or quantity); "
+            "ANY request to add/put a named product in the cart (ضيف/حط X في/للسلة, add X to "
+            "the cart), with or without size, colour or quantity, is cart_edit with "
+            "cart_operation=add and request_mode=open, NEVER find_products: find_products with "
+            "request_mode=open is only for opening or showing the product page, and a size or "
+            "colour beside a name never turns an add into an open. "
+            "For adding, cart_edit add with request_mode=open, product_id null, constraints."
+            "query = that name, plus the requested size/color, cart_quantity and cart_source "
+            "as usual. Code finds the product in the catalogue, so product_id stays null. "
+            "A product that IS known keeps open_product / cart_edit add with its product_id. "
+            "If the requested product is unknown and not named, use find_products to search "
             "or ask for clarification; never guess a product ID. "
             "Resolve names, typos and pronouns yourself; ask product_id clarification only "
             "when genuinely ambiguous. "
@@ -295,7 +311,8 @@ def build_intent_request(
             "or decrease (delta). More means a delta, not the final total. For add, "
             "cart_quantity sets the product form's units to add; its mode may be set or null, "
             "never increase/decrease. Remove and undo have null quantity mode. "
-            "Cart constraints may contain ONLY requested size/color. Preserve "
+            "Cart constraints may contain ONLY requested size/color (and query for "
+            "request_mode=open). Preserve "
             "already-selected variants otherwise. "
             "For add, resolve the chosen product from known_products, previous_suggestions "
             "and the conversation into product_id. Keep requested size/color and quantity. "
@@ -314,8 +331,14 @@ def build_intent_request(
             "cart_source and navigation_source describe the current request. Emptying the "
             "whole cart is always mutate/clear_cart, even when the cart has one line or "
             "line remove buttons are visible; never cart_edit remove. "
-            "submitting a fictional order is mutate/submit_checkout. These only propose an "
-            "operation: application-bound "
+            "Placing or submitting the fictional order is always mutate/submit_checkout: "
+            "اعمل الطلب, خلّص الطلب, كمّل الطلب, أكّد الطلب, place my order, complete my "
+            "order; it is never navigate. Only opening the payment page (افتح الدفع, افتح "
+            "الشيك اوت, open checkout) is navigate to checkout, and that never submits. "
+            "Emptying the cart (امسح السلة كلها, فضّي السلة, empty my cart) is "
+            "mutate/clear_cart every time, even right after a product search or "
+            "recommendation: a cart or guarded action is never find_products. "
+            "These only propose an operation: application-bound "
             "confirmation is always required before execution. Opening checkout/cart never "
             "authorizes mutation. "
             "Never read or enter credentials/payment fields. Use unsupported for unsupported "
@@ -681,6 +704,8 @@ def _validate_interpreted_intent(
         or (retrieval and intent.intent == "find_products")
     ):
         return intent
+    if intent.request_mode == "open":
+        return intent  # the named product is resolved from the catalogue by code
     if intent.intent == "find_products" and intent.constraints.category is None:
         raise MissingExecutionField("category")
     # These are executable/catalogue capabilities, not allowed Shopper spellings.

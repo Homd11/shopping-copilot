@@ -10,6 +10,7 @@ from uuid import uuid4
 from pydantic import ConfigDict, Field, TypeAdapter, ValidationError, model_validator
 
 from agent.advice import ADVICE_GROUNDING_POLICY, prepare_retrieved_advice
+from agent.catalogue import DiscoveryResult
 from agent.catalogue_client import CatalogueReadError
 from agent.catalogue_contract import Candidate, DetailsQuery, SearchQuery, WireModel
 from agent.event_log import MAX_REJECTIONS, REJECTION_CODES, debug_text
@@ -33,6 +34,15 @@ from agent.llm.intent_pipeline import (
     refusal_guidance,
     snapshot_context,
     validate_live_response,
+)
+from agent.named_product import (
+    QUESTION as NAMED_QUESTION,
+)
+from agent.named_product import (
+    from_candidate,
+    is_open_by_name,
+    resolve_named_product,
+    shopper_words,
 )
 from agent.schemas import Snapshot
 from agent.storefront import StorefrontDefinition, UnsupportedCurrencyError
@@ -228,6 +238,10 @@ class RetrievalOutcome:
     skipped_steps: list[str] = field(default_factory=list)
     # Who the turn is for (never a name); None means the Shopper.
     beneficiary: str | None = None
+    # Open/add by name: the intent's product was chosen by code from an exact name match, so it
+    # counts as named by the Shopper (ticket 08); `choices` are the cards for several matches.
+    named: bool = False
+    choices: DiscoveryResult | None = None
 
 
 def _rejection_code(error: Exception, stage: str) -> str:
@@ -389,12 +403,21 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
             "It carries language, selected_ids, constraints and subjective_preferences; "
             "it has no nested intent object and cannot execute actions. "
             "For navigation/cart/other execution intents return only kind=execute. "
+            "Opening or adding a product BY NAME (افتح خطوة سريعة, open Quick Step, ضيف "
+            "خطوة سريعة للسلة, add Quick Step) is an execution intent too: the interpreter marks "
+            "it request_mode=open and code finds the product, so return kind=execute even when "
+            "no product is known yet; never search for a name you were asked to open or add. "
             "The established action interpreter will then interpret this same request "
             "against the current snapshot. Do not include action fields in this routing decision. "
             "Give a natural question via clarify only when necessary. "
             "Write shopper-facing questions in the shopper's language, matching language. "
             "Recommendations may have no category. Preserve shopper constraints in constraints. "
             "Do not search for a clear navigation or cart command: route it to execute. "
+            "A cart or guarded action request always routes to execute, never search or "
+            "recommend, even right after a product search or recommendation: empty/clear the "
+            "cart (امسح السلة كلها, فضّي السلة, empty my cart), place the order (اعمل الطلب, "
+            "خلّص الطلب, كمّل الطلب, أكّد الطلب, place my order), add, remove, change quantity "
+            "or undo. A recommend never carries constraints.target cart or checkout. "
             "This stage never chooses DOM controls, fills forms or authorizes mutations. "
             "The action interpreter owns those decisions and their safety checks. "
             "Do not claim execution, bypass guards or leave the Storefront. "
@@ -411,7 +434,7 @@ def _request(message, state, snapshot, storefront, history, feedback, budget, pr
         response_schema=provider_schema(MODEL_DECISION),
         response_validator=DECISION.validate_json,
         provider_attempt_limit=1,
-        prompt_version="catalogue-decision-v9",
+        prompt_version="catalogue-decision-v11",
         schema_version=1,
         max_tokens=2048,
         attempt_id="retrieval-" + uuid4().hex,
@@ -681,6 +704,11 @@ async def retrieve_products(
                 feedback = None
                 continue
             if isinstance(decision, RecommendDecision):
+                if decision.constraints.target in {"cart", "checkout"} and not handed_back:
+                    raise Rejected(
+                        "action_in_advice",
+                        "this is a cart/checkout action: return execute, not recommend",
+                    )
                 advice_message = decision.advice_message
                 if advice_message is not None and not advice_message.strip():
                     raise Rejected("blank_advice", "Advice message must not be blank")
@@ -755,6 +783,45 @@ async def retrieve_products(
             if executing:
                 # An execute decision names no steps: the action interpreter's reply does.
                 note_steps(intent)
+            if executing and is_open_by_name(intent):
+                # A product the Shopper named but code does not know yet: the catalogue, not
+                # the model, says which product it is (exactly one, several or none).
+                async def look_up(name):
+                    await ensure_active()
+                    found = await catalogue.search(SearchQuery(query=name))
+                    await ensure_active()
+                    return [from_candidate(c) for c in found.candidates]
+
+                resolution = await resolve_named_product(
+                    intent, shopper_words(message, context), look_up
+                )
+                if resolution.kind == "one":
+                    return RetrievalOutcome(
+                        resolution.intent,
+                        [],
+                        [resolution.products[0].record],
+                        budget,
+                        requirements or [],
+                        unknowns or [],
+                        beneficiary=beneficiary or intent.beneficiary,
+                        named=True,
+                        **steps,
+                    )
+                if resolution.kind == "several":
+                    return RetrievalOutcome(
+                        None,
+                        [],
+                        [],
+                        budget,
+                        requirements or [],
+                        unknowns or [],
+                        NAMED_QUESTION["ar" if intent.language == "ar" else "en"],
+                        intent.language,
+                        beneficiary=beneficiary or intent.beneficiary,
+                        choices=resolution.choices,
+                        **steps,
+                    )
+                intent = resolution.intent  # no match: the normal search below
             if (
                 executing
                 and intent.intent in {"find_products", "advice"}
