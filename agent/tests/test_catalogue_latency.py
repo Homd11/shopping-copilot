@@ -264,7 +264,7 @@ def test_combined_advice_then_open_publishes_cards_and_guarded_navigation_in_thr
     )
     with TestClient(app) as client:
         sid = client.post("/sessions").json()["session_id"]
-        for text in ["shirt but smthng diffrent", "حلو ده افتحلي صفحته"]:
+        for text in ["shirt but smthng diffrent", "حلو ده افتحلي صفحة Piece"]:
             assert (
                 client.post(
                     f"/sessions/{sid}/messages",

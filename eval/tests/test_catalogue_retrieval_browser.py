@@ -29,6 +29,10 @@ def test_retrieval_advice_actions_and_two_shoppers_share_database_not_carts():
                 # Selected ninth candidate is rendered despite an unknown exclusion.
                 expect(a.locator('[data-product-id="shoe-09"]')).to_be_visible()
                 send(a, "[fixture:open]")
+                # The message names no product, so the Copilot confirms the model's pick first.
+                question = a.locator("#pending-question")
+                expect(question).to_contain_text("Did you mean", timeout=15000)
+                question.get_by_role("button", name="Yes", exact=True).click()
                 frame = a.frame_locator("#storefront-frame")
                 expect(frame.locator("#product-size")).to_be_visible()
                 frame.locator("#product-size").select_option("43")

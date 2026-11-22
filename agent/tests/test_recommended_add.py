@@ -76,7 +76,7 @@ def start(store, client):
     client.post(
         f"/sessions/{sid}/messages",
         json={
-            "text": "عايز اول كوتشي لون ازرق مقاس 43 ضيفه فالعربية",
+            "text": "عايز ملعب النجوم لون ازرق مقاس 43 ضيفه فالعربية",
             "snapshot": home_snapshot(),
         },
     )

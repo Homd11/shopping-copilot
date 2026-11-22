@@ -270,20 +270,22 @@ def test_expired_undo_completes_the_task_with_an_arabic_answer_and_no_action(ret
     session = retrieval(undo, undo, undo)
     session.send("تراجع عن آخر تعديل", snapshot_at("/cart"))
     assert session.actions() == []
-    assert len(session.model.requests) == 1
+    assert len(session.model.requests) == 2  # refused once for a repair, then the honest answer
     assert session.summaries() == [UNDO_EXPIRED[0]]
     assert session.store.get(session.sid).last_task.status == "completed"
 
 
 def test_expired_undo_answers_in_english(retrieval):
-    session = retrieval(payload("undo", "undo", language="en", dialect="english"))
+    english = payload("undo", "undo", language="en", dialect="english")
+    session = retrieval(english, english)
     session.send("undo that please", snapshot_at("/cart"))
     assert session.actions() == []
     assert session.summaries() == [UNDO_EXPIRED[1]]
 
 
 def test_a_disabled_undo_control_counts_as_expired(retrieval):
-    session = retrieval(payload("undo", "تراجع", cart_target_id=20))
+    disabled = payload("undo", "تراجع", cart_target_id=20)
+    session = retrieval(disabled, disabled)
     session.send("تراجع", undo_snapshot(enabled=False))
     assert session.actions() == []
     assert session.summaries() == [UNDO_EXPIRED[0]]

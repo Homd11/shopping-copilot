@@ -290,7 +290,7 @@ def test_advice_followup_can_open_verified_product_without_an_extra_advice_call(
     with client_for(model) as client:
         session = client.post("/sessions").json()["session_id"]
         send(client, session, "ساعدني اختار")
-        events = send(client, session, "طب وريني دا")
+        events = send(client, session, "طب وريني قميص أبيض")
     actions = [event["data"]["action"] for event in events if event["event"] == "action"]
     assert len(actions) == 1
     assert actions[0]["type"] == "navigate"
@@ -438,7 +438,7 @@ def test_advice_context_copied_into_navigation_gets_specific_repair_without_weak
     with client_for(model) as client:
         session = client.post("/sessions").json()["session_id"]
         send(client, session, "ساعدني اختار")
-        events = send(client, session, "طب افتح ده اللي لسه قايله")
+        events = send(client, session, "طب افتح قميص أبيض اللي لسه قايله")
     actions = [event["data"]["action"] for event in events if event["event"] == "action"]
     assert len(actions) == 1 and actions[0]["url"] == "/p/white-shirt"
     repair = json.loads(model.requests[-1].system.split("Runtime validation feedback: ")[-1])

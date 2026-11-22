@@ -16,6 +16,7 @@ from uuid import uuid4
 from agent.conditions import CONDITION_FALSE
 from agent.llm.intent import StructuredIntent
 from agent.planner import Language
+from agent.product_confirmation import DECLINED_REASON, PRODUCT_DECLINED
 from agent.schemas import AskShopperAction
 from agent.session_state import (
     ActivePlan,
@@ -118,6 +119,7 @@ def open_plan(
         language=language,
         steps=[PlanStep(position=i, text=text) for i, text in enumerate(words, start=1)],
         skipped_steps=list(steps.skipped_steps),
+        message=str(task.resolved_state.get("_original_message") or task.message),
     )
     session.plan = plan
     session.last_plan = plan
@@ -442,6 +444,12 @@ def on_task_end(runtime: TaskRuntime, end: TaskEnd) -> None:
             runtime, session, plan, step, task, _REASON_EXHAUSTED[plan.language], cancel_task=False
         )
         return
+    if end.reason == PRODUCT_DECLINED:
+        # The Shopper did not confirm the product: the step was not done, nothing runs after.
+        _fail_step(
+            runtime, session, plan, step, task, DECLINED_REASON[plan.language], cancel_task=False
+        )
+        return
     if end.reason == CONDITION_FALSE:
         # The step's own condition was not met: skipped, not failed; the plan carries on.
         if task.skip_reason:
@@ -456,6 +464,14 @@ def on_task_end(runtime: TaskRuntime, end: TaskEnd) -> None:
         _finish_plan(runtime, session, plan, "done")
     else:
         _start_step(runtime, session, plan, following)
+
+
+def _is_whole_message(turn: object, message: str) -> bool:
+    """A Shopper turn holding the plan's whole message (history keeps a bounded prefix)."""
+    if not isinstance(turn, dict) or turn.get("role") != "shopper":
+        return False
+    text = turn.get("text")
+    return isinstance(text, str) and bool(text) and message.startswith(text)
 
 
 def _start_step(runtime: TaskRuntime, session: Session, plan: ActivePlan, index: int) -> None:
@@ -474,6 +490,14 @@ def _start_step(runtime: TaskRuntime, session: Session, plan: ActivePlan, index:
                 "of": len(plan.steps),
                 "earlier_steps_done": True,
             }
+            # The step answers its own words: the whole message and the last step's
+            # destination would pull a model back to a part that is already done.
+            task.resolved_state.pop("_previous_target", None)
+            conversation = task.resolved_state.get("_recent_conversation")
+            if isinstance(conversation, list):
+                task.resolved_state["_recent_conversation"] = [
+                    turn for turn in conversation if not _is_whole_message(turn, plan.message)
+                ]
             _mark_running(runtime, session, plan, index, task)
             session.start_pending = task.task_id
 

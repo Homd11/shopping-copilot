@@ -24,6 +24,7 @@ from eval.plan_fixture_app import (
     CLEAR_STEP,
     FIND_TWO,
     OPEN_CLEAR_ACCOUNT,
+    OPEN_UNNAMED,
     PANTS_STEP,
     SWAP_TO_RED,
     SWAP_TO_YELLOW,
@@ -435,5 +436,38 @@ def test_a_swap_to_a_colour_the_product_does_not_offer_asks_and_leaves_the_cart_
                 timeout=20000,
             )
             assert line_facts(page) == [("shoe-12", 3, "42", "blue")]
+        finally:
+            browser.close()
+
+
+def test_a_product_the_message_does_not_name_is_confirmed_and_no_leaves_the_cart_alone():
+    with local_services(agent_app="eval.plan_fixture_app:app"), sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        try:
+            page = browser.new_page()
+            browser_post(page, "http://localhost:4000/__test/reset")
+            page.goto("http://localhost:4100")
+            expect(page.locator("#shopper-message")).to_be_enabled()
+            # The product cards of the shoes page are what makes the picked id a known product.
+            frame = page.frame_locator("#storefront-frame")
+            frame.locator("body").evaluate("() => { location.href = '/c/shoes'; }")
+            expect(frame.locator("[data-product-id='shoe-02']")).to_be_visible(timeout=15000)
+            send(page, OPEN_UNNAMED)
+
+            question = page.locator("#pending-question")
+            expect(question).to_contain_text("تقصد", timeout=20000)
+            options = question.locator("button")
+            expect(options).to_have_count(2)
+            assert [options.nth(i).text_content() for i in range(2)] == ["أيوه", "لا"]
+            assert frame.locator("body").evaluate("() => location.pathname") == "/c/shoes"
+
+            options.nth(1).click()
+            expect(page.locator("#conversation")).to_contain_text(
+                "تمام، ما عملتش حاجة. قولي تقصد أنهي منتج.", timeout=20000
+            )
+            expect(page.locator("#shopper-message")).to_be_enabled(timeout=20000)
+            assert frame.locator("body").evaluate("() => location.pathname") == "/c/shoes"
+            assert cart_lines(page) == []
+            assert [r["message"] for r in plan_requests(page)] == [OPEN_UNNAMED]
         finally:
             browser.close()

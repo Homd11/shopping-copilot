@@ -274,7 +274,8 @@ def test_after_opening_a_product_this_means_the_opened_product():
     opening = intent("cart", intent="open_product", constraints={}, product_id="shoe-09")
     opening["navigation_source"] = "افتح ممشى النيل"
     client, model = make_client(opening, open_this())
-    session_id = begin(client, "افتح ممشى النيل", home_with_links("shoe-09"))
+    named = {**home_snapshot(), "elements": [element(10, "link", NILE, href="/p/shoe-09")]}
+    session_id = begin(client, "افتح ممشى النيل", named)
     report_result(client, session_id, stream(client, session_id), product_page())
     assert "done" in names(stream(client, session_id))
 
@@ -492,7 +493,7 @@ def test_a_message_that_does_not_refer_to_this_behaves_exactly_as_before():
         product_id="shoe-12", refers_to_this=False, cart_source="ضيفلي عداء الأهرام"
     )
     client, model = make_client(named)
-    page = home_with_links("shoe-12")
+    page = {**home_snapshot(), "elements": [element(10, "link", PYRAMID, href="/p/shoe-12")]}
     session_id = begin(client, "ضيفلي عداء الأهرام", page)
     events = stream(client, session_id)
     assert last_action(events)["url"] == "/p/shoe-12"

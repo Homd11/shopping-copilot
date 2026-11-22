@@ -29,6 +29,8 @@ from agent.llm.intent_pipeline import (
     _restore_clarification,
     _validate_interpreted_intent,
     build_intent_request,
+    quote_refusal_guidance,
+    refusal_guidance,
     snapshot_context,
     validate_live_response,
 )
@@ -245,13 +247,23 @@ def _rejection_code(error: Exception, stage: str) -> str:
     return code if code in REJECTION_CODES else "other"
 
 
-def _reject(budget: RetrievalBudget, error: Exception, stage: str) -> dict:
+def _reject(
+    budget: RetrievalBudget,
+    error: Exception,
+    stage: str,
+    message: str = "",
+    snapshot: Snapshot | None = None,
+) -> dict:
     """Record the reason for one rejected decision and return the feedback for the next."""
     text = str(error)[:1000]
     if len(budget.rejections) < MAX_REJECTIONS:
         budget.rejections.append(_rejection_code(error, stage))
     debug_text("retrieval_rejection", text)
-    return {"error": text}
+    feedback = {"error": text}
+    if isinstance(error, Rejected) and error.code == "source_not_in_message":
+        feedback.update(quote_refusal_guidance(message))
+    feedback.update(refusal_guidance(error, snapshot))
+    return feedback
 
 
 def _vocabulary_keys(storefront: StorefrontDefinition, field: str) -> dict[str, tuple[str, ...]]:
@@ -420,6 +432,7 @@ async def retrieve_products(
 ) -> RetrievalOutcome:
     budget = budget or RetrievalBudget()
     history, evidence, feedback = [], {}, None
+    quote_refused = False
     preferences = []
     # Conversation state chooses the entry point, never the meaning of shopper words.
     # An answer to a pending question goes to the action interpreter, which resolves
@@ -577,6 +590,8 @@ async def retrieve_products(
                     resolved_state=context,
                     pending_clarification=pending_clarification,
                     snapshot=snapshot,
+                    # The last repair reads the current request alone, not the conversation.
+                    with_history=not (quote_refused and budget.decisions >= 3),
                 ),
                 provider_attempt_limit=1,
                 attempt_id="retrieval-execution-" + uuid4().hex,
@@ -599,6 +614,7 @@ async def retrieve_products(
                     parts.append(text)
         except (LLMInvalidResponseError, ValidationError) as error:
             feedback = _reject(budget, error, schema_stage)
+            quote_refused = False
             continue
         # Provider configuration, budget, and transport failures are operational errors.
         # Only malformed output should consume another model decision attempt.
@@ -728,7 +744,13 @@ async def retrieve_products(
                 )
             stage = "intent_schema"
             intent = _validate_interpreted_intent(
-                message, proposed_intent, storefront, trusted, snapshot, retrieval=True
+                message,
+                proposed_intent,
+                storefront,
+                trusted,
+                snapshot,
+                retrieval=True,
+                refused=set(budget.rejections),
             )
             if executing:
                 # An execute decision names no steps: the action interpreter's reply does.
@@ -827,7 +849,8 @@ async def retrieve_products(
                 raise
             if isinstance(error, CatalogueReadError):
                 raise
-            feedback = _reject(budget, error, stage)
+            feedback = _reject(budget, error, stage, message, snapshot)
+            quote_refused = isinstance(error, Rejected) and error.code == "source_not_in_message"
     raise _with_best(
         RetrievalExhausted("Decision budget exhausted; clarify in a new shopper message")
     )

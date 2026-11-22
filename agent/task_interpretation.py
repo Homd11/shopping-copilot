@@ -25,6 +25,15 @@ from agent.planner import (
     detect_language,
 )
 from agent.plans import PlanSteps, family, open_plan, reroute_new_request
+from agent.product_confirmation import (
+    CONFIRMED_KEY,
+    DECLINED,
+    OPTIONS,
+    PENDING_KEY,
+    PRODUCT_DECLINED,
+    QUESTION,
+    unnamed_product,
+)
 from agent.product_context import require_known_product
 from agent.remembered_sizes import (
     NAMED_PERSON,
@@ -228,11 +237,20 @@ def finish_interpretation(
             }
         )
     if intent.intent in {"off_topic", "unsupported", "help"}:
-        summary = (
-            "أقدر أساعدك في التسوق داخل المتجر."
-            if intent.language == "ar"
-            else ("I can help with shopping in this Storefront.")
-        )
+        if intent.intent == "unsupported":
+            # Read as unsupported even after one repair: say so, not the generic shopping line.
+            summary = (
+                "ما قدرتش أفهم الطلب ده كعملية في المتجر. تقدر تقولها بطريقة تانية؟"
+                if intent.language == "ar"
+                else "I couldn't match that to something I can do in the shop. "
+                "Could you say it another way?"
+            )
+        else:
+            summary = (
+                "أقدر أساعدك في التسوق داخل المتجر."
+                if intent.language == "ar"
+                else ("I can help with shopping in this Storefront.")
+            )
         runtime.append(
             session,
             "done",
@@ -254,6 +272,18 @@ def finish_interpretation(
             session.last_snapshot,
             runtime.planner.storefront,
         )
+    # The model chose this product by id: code asks unless the Shopper's words back the choice.
+    unnamed = (
+        None
+        if intent.needs_clarification
+        else unnamed_product(
+            intent,
+            task.resolved_state,
+            _shopper_texts(task),
+            session.last_snapshot,
+            runtime.planner.storefront,
+        )
+    )
     # A condition code can check applies to an add of a known product, nothing else. It was
     # evaluated by the caller from the verified catalogue record at this step's own turn.
     conditional = intent.condition is not None and not intent.needs_clarification
@@ -314,7 +344,19 @@ def finish_interpretation(
         runtime.sessions.touch(session)
         return task
     asked: dict = {}
-    if conditional and verdict is not True:
+    if unnamed is not None:
+        question = QUESTION[intent.language].format(name=unnamed)
+        action = AskShopperAction(
+            v=1,
+            type="ask_shopper",
+            task_id=task_id,
+            action_id=f"question-{uuid4().hex}",
+            sequence_number=task.step_count + 1,
+            narration=question,
+            question=question,
+            options=list(OPTIONS[intent.language]),
+        )
+    elif conditional and verdict is not True:
         # The fact cannot be read (or the condition is not on an add): ask, never judge.
         question = CONDITION_QUESTION[intent.language]
         task.cart_operation = intent.cart_operation
@@ -532,6 +574,10 @@ def finish_interpretation(
             for item in task.resolved_state.get("_previous_suggestions", [])
             if isinstance(item, dict) and isinstance(item.get("name"), str)
         ][:3]
+    if unnamed is not None and isinstance(action, AskShopperAction):
+        # The draft stays in `_intent`; a yes continues with exactly this product.
+        task.pending_clarification = action.question
+        task.resolved_state[PENDING_KEY] = {"id": intent.product_id}
     # Later steps exist only as the Shopper's words; the plan is announced before any action.
     open_plan(runtime, session, task, steps, intent.language)
     runtime.append(session, "narration", {"task_id": task_id, "text": action.narration})
@@ -769,6 +815,16 @@ def begin_answer_interpretation(
         }
         if len(candidates) == 1 and text in task.action.options:
             selected = next(iter(candidates.values()))
+    pending = task.resolved_state.get(PENDING_KEY)
+    reply = text.strip().casefold()
+    options = [o.casefold() for o in task.action.options]
+    confirmed = (
+        isinstance(pending, dict)
+        and len(options) == 2
+        and reply == options[0]
+        and isinstance(task.resolved_state.get("_intent"), dict)
+    )
+    declined = isinstance(pending, dict) and len(options) == 2 and reply == options[1]
     variant, task.pending_variant = task.pending_variant, None
     chosen = None
     if selected is None and variant is not None:
@@ -783,6 +839,8 @@ def begin_answer_interpretation(
     task.resolved_state["_answers"] = [*answers, text[:_CONTEXT_TEXT_LIMIT]][
         -_CONTEXT_ANSWER_LIMIT:
     ]
+    if confirmed or declined:
+        task.resolved_state.pop(PENDING_KEY, None)
     task.action = None
     task.status = "interpreting"
     task.model_call_id = f"call-{uuid4().hex}"
@@ -804,7 +862,26 @@ def begin_answer_interpretation(
         },
     )
     runtime.sessions.touch(session)
-    if selected is not None:
+    if declined:
+        summary = DECLINED[task.language]
+        runtime.append(
+            session,
+            "done",
+            {"task_id": task_id, "summary": summary, "language": task.language},
+        )
+        task.model_call_id = None
+        session.conversation.append({"role": "copilot", "text": summary})
+        runtime.end_task(session, task, "completed", PRODUCT_DECLINED)
+        runtime.sessions.touch(session)
+    elif confirmed:
+        pending_id = pending["id"]
+        task.resolved_state[CONFIRMED_KEY] = pending_id
+        intent = StructuredIntent.model_validate(task.resolved_state["_intent"])
+        if intent.product_id != pending_id:
+            raise ActionResultMismatch("The confirmed product no longer matches the request")
+        finish_interpretation(runtime, session_id, task_id, task.model_call_id, intent)
+    elif selected is not None:
+        task.resolved_state[CONFIRMED_KEY] = selected["id"]
         # The answer is bound to this question's verified choices. No model
         # is needed to reinterpret an exact product button selection.
         intent = StructuredIntent.model_validate(

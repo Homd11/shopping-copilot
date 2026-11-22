@@ -79,6 +79,8 @@ class ActivePlan:
     steps: list[PlanStep]
     cursor: int = 0  # index into `steps` of the step whose task is current
     skipped_steps: list[str] = field(default_factory=list)  # words for the report, not work
+    # The whole multi-step message, so a later step's interpreter history can leave it out.
+    message: str = ""
     # Why each failed step failed (its position -> the Shopper-language reason), for the report.
     reasons: dict[int, str] = field(default_factory=dict)
     # Set when the plan is to end cancelled: "stop", "new_request" or "takeover".

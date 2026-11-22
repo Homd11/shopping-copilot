@@ -269,7 +269,7 @@ def test_model_refusal_of_injection_never_emits_a_browser_action() -> None:
             "needs_clarification": False,
         }
     )
-    client = real_client([[LLMChunk(text=malicious)]])
+    client = real_client([[LLMChunk(text=malicious)], [LLMChunk(text=malicious)]])
     session_id = client.post("/sessions").json()["session_id"]
     submitted = client.post(
         f"/sessions/{session_id}/messages",

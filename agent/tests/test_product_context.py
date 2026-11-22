@@ -147,8 +147,9 @@ def test_verified_product_survives_other_tasks_and_refresh(intervening):
     ) as client:
         sid = client.post("/sessions").json()["session_id"]
         submit(client, sid, "Recommend a shirt for the outfit", snapshot_at("/"))
-        submit(client, sid, "Open that shirt", snapshot_at("/"))
-        report(client, sid, snapshot_at("/p/white-shirt"))
+        submit(client, sid, "Open the white shirt", snapshot_at("/"))
+        heading = dict(id=1, role="heading", level=1, name="White Shirt", visible=True)
+        report(client, sid, snapshot_at("/p/white-shirt", heading))
         current = cart_snapshot(3) if intervening == "cart_edit" else snapshot_at("/")
         submit(client, sid, "Do another shopping task", current)
         if intervening == "navigate":
@@ -169,7 +170,7 @@ def test_verified_product_survives_other_tasks_and_refresh(intervening):
         )
         assert reconciled.status_code == 200
         before = len(actions(client, sid))
-        submit(client, sid, "Open the shirt from earlier again", snapshot_at("/"))
+        submit(client, sid, "Open the white shirt from earlier again", snapshot_at("/"))
         new = actions(client, sid)[before:]
         assert [a["url"] for a in new] == ["/p/white-shirt"]
         assert '"known_products"' in model.requests[-1].system
@@ -220,7 +221,7 @@ def test_browsed_product_identity_survives_leaving_the_results_page(observation)
                 ).status_code
                 == 200
             )
-        submit(client, sid, "Open the shirt I saw earlier", snapshot_at("/cart"))
+        submit(client, sid, "Open the Formal Shirt I saw earlier", snapshot_at("/cart"))
         assert actions(client, sid)[-1]["url"] == "/p/clothing-05"
         context = json.loads(model.requests[-1].system.split("\n", 1)[0].split(": ", 1)[1])
         assert context["known_products"] == [
@@ -239,7 +240,7 @@ def test_remembered_identity_does_not_cross_session_or_origin(change):
         submit(
             client,
             sid,
-            "Original conversation",
+            "Open the Shirt, original conversation",
             snapshot_at(
                 "/cart", dict(id=22, role="link", name="Shirt", href="/p/clothing-05", visible=True)
             ),
@@ -251,7 +252,7 @@ def test_remembered_identity_does_not_cross_session_or_origin(change):
         if change == "origin":
             current["url"] = "https://other.example/"
         before = 0 if change == "session" else len(actions(client, sid))
-        submit(client, sid, "Open the earlier product", current)
+        submit(client, sid, "Open the earlier Shirt", current)
         assert len(actions(client, sid)) == before
         context = json.loads(model.requests[-1].system.split("\n", 1)[0].split(": ", 1)[1])
         assert context["known_products"] == []

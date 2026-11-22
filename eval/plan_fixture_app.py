@@ -43,6 +43,9 @@ SWAP_TO_YELLOW = "غيرت رأيي خليها صفرا بدل الأزرق"
 SWAP_SOURCE = "خليها صفرا"
 SWAP_TO_RED = "غيرت رأيي خليها احمر بدل الأزرق"
 SWAP_RED_SOURCE = "خليها احمر"
+# Copilot reliability 08: the model picks a product the message does not name.
+OPEN_UNNAMED = "افتح الجزمة الجديدة"
+UNNAMED_PRODUCT = "shoe-02"
 
 
 def intent(name, **fields):
@@ -159,6 +162,11 @@ class PlanModel:
                 cart_target_id=control["id"],
                 cart_source=SWAP_SOURCE if yellow else SWAP_RED_SOURCE,
                 constraints={"color": "yellow" if yellow else "red"},
+            )
+        elif message == OPEN_UNNAMED:
+            # The model picks an id the words never name; code must ask before opening it.
+            response = intent(
+                "open_product", product_id=UNNAMED_PRODUCT, navigation_source=OPEN_UNNAMED
             )
         elif message == ADD_THIS:
             # Only the marker: which product "this" means is decided by code, never here.

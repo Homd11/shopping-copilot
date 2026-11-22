@@ -204,7 +204,7 @@ def test_comparison_only_ids_survive_for_the_next_turn():
     )
     with TestClient(app) as client:
         sid = client.post("/sessions").json()["session_id"]
-        for text in ["compare it", "open it"]:
+        for text in ["compare it", "open the Piece قطعة"]:
             client.post(
                 f"/sessions/{sid}/messages", json={"text": text, "snapshot": home_snapshot()}
             )

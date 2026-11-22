@@ -24,7 +24,7 @@ def payload(**changes):
 def interpret(message, value, state=None, pending=None):
     return asyncio.run(
         interpret_message(
-            ScriptedLLMClient([[LLMChunk(text=json.dumps(value))]]),
+            ScriptedLLMClient([[LLMChunk(text=json.dumps(value))]] * 2),  # 2nd: the one repair
             message,
             storefront=load_storefront_definition(),
             resolved_state=state or {},

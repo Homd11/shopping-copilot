@@ -103,6 +103,8 @@ REJECTION_CODES = frozenset(
         "cart_edit_invalid",
         "mutation_invalid",
         "source_not_in_message",
+        "undo_without_button",  # an undo reading while no enabled Undo control was visible
+        "unsupported_reading",  # a reading of "unsupported", refused once for a repair
         "this_mismatch",  # "this" named a product that code did not allow
         "execute_after_handoff",  # execute chosen again after the interpreter handed back
         "unknown_filter_value",  # a filter value that names no Storefront vocabulary key

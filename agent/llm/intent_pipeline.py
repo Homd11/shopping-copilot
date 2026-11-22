@@ -1,14 +1,14 @@
 """Model-owned language interpretation followed by runtime capability checks."""
 
 import json
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from dataclasses import replace
 from typing import Any
 from urllib.parse import urlsplit
 
 from pydantic import ValidationError
 
-from agent.cart import validate_cart_intent
+from agent.cart import undo_expired, validate_cart_intent
 from agent.confirmation import validate_mutation_interpretation
 from agent.llm.contract import LLMClient, LLMMessage, LLMRequest
 from agent.llm.intent import (
@@ -104,6 +104,7 @@ def build_intent_request(
     resolved_state: Mapping[str, Any],
     pending_clarification: str | None,
     snapshot: Snapshot | None = None,
+    with_history: bool = True,
 ) -> LLMRequest:
     history = tuple(
         LLMMessage(
@@ -111,7 +112,8 @@ def build_intent_request(
             content=item["text"][:2400],
         )
         for item in resolved_state.get("_recent_conversation", [])[-12:]
-        if isinstance(item, dict)
+        if with_history
+        and isinstance(item, dict)
         and item.get("role") in {"shopper", "copilot", "assistant"}
         and isinstance(item.get("text"), str)
     )
@@ -389,7 +391,12 @@ async def interpret_message(
                 )
             intent = _restore_clarification(intent, resolved_state, pending_clarification, message)
             return _validate_interpreted_intent(
-                message, intent, storefront, resolved_state, snapshot
+                message,
+                intent,
+                storefront,
+                resolved_state,
+                snapshot,
+                refused={first_error.code} if isinstance(first_error, Rejected) else (),
             )
         except (StructuredIntentDraftError, ValueError) as error:
             first_error = first_error or error
@@ -403,15 +410,26 @@ async def interpret_message(
                     )
                 raise first_error from error
             # Feed back field/schema diagnostics and current controls, never raw rejected prose.
-            feedback = _repair_feedback(error, intent, snapshot, request.response_schema or {})
+            feedback = _repair_feedback(
+                error, intent, snapshot, request.response_schema or {}, message
+            )
+            # After a quote refusal the model echoed an old request: read the repair from the
+            # current request alone. Any other cause keeps the conversation it needs.
             request = replace(
-                request,
+                build_intent_request(
+                    message,
+                    storefront=storefront,
+                    resolved_state=resolved_state,
+                    pending_clarification=pending_clarification,
+                    snapshot=snapshot,
+                    with_history=not _is_quote_refusal(error),
+                ),
                 system=request.system
                 + "\nThe previous decision failed runtime/schema validation. Check the schema, "
                 "current observed target IDs, "
                 "operation compatibility, money bounds/currency, and clarification state. "
                 "Return a corrected decision.\nRuntime validation feedback: "
-                + json.dumps(feedback),
+                + json.dumps(feedback, ensure_ascii=False),
                 prompt_version=f"{PROMPT_VERSION}-repair",
             )
         except RuntimeError as error:
@@ -421,8 +439,79 @@ async def interpret_message(
     raise AssertionError("unreachable")
 
 
-def _repair_feedback(error, intent, snapshot, schema):
+CURRENT_REQUEST_LIMIT = 600
+
+
+def _is_quote_refusal(error: object) -> bool:
+    return isinstance(error, Rejected) and error.code == "source_not_in_message"
+
+
+def quote_refusal_guidance(message: str) -> dict[str, str]:
+    """What a model needs after quoting something that is not in the current request."""
+    return {
+        "current_request": message[:CURRENT_REQUEST_LIMIT],
+        "required_action": (
+            "The quoted source must be words copied from the CURRENT Shopper message above. "
+            "Earlier messages were already handled; do not repeat or quote an earlier request. "
+            "Decide the operation from the current message only."
+        ),
+    }
+
+
+SUPPORTED_OPERATIONS = [
+    "search products (find_products)",
+    "open a product (open_product)",
+    "add to cart (cart_edit/add)",
+    "change a quantity (cart_edit/quantity)",
+    "remove a cart line (cart_edit/remove)",
+    "change a cart line's colour or size (cart_edit/replace)",
+    "undo the last cart change, only while an Undo control is visible (cart_edit/undo)",
+    "empty the whole cart (mutate/clear_cart)",
+    "check out (mutate/submit_checkout)",
+]
+
+
+def _guarded_controls(snapshot: Snapshot | None) -> list[dict[str, str]]:
+    kinds = {"/cart/clear": "clear_cart", "/checkout/submit": "submit_checkout"}
+    return [
+        {"name": e.name[:60], "operation": "mutate/" + kinds[e.form_action]}
+        for e in (snapshot.elements if snapshot is not None else [])
+        if e.visible
+        and not e.sensitive
+        and not e.disabled
+        and e.role == "button"
+        and e.form_action in kinds
+    ]
+
+
+def refusal_guidance(error: object, snapshot: Snapshot | None) -> dict[str, Any]:
+    """Repair feedback for the two refusals that carry no schema diagnostics."""
+    if not isinstance(error, Rejected):
+        return {}
+    if error.code == "undo_without_button":
+        return {
+            "required_action": (
+                "Undo is only possible while an enabled Undo control is visible, and none is "
+                "visible now. If the Shopper meant one of the visible controls below, return that "
+                "operation; otherwise keep undo."
+            ),
+            "visible_guarded_controls": _guarded_controls(snapshot),
+        }
+    if error.code == "unsupported_reading":
+        return {
+            "required_action": (
+                "Re-read the CURRENT request as one of the supported operations if it fits "
+                "one (including a colour change, which is cart_edit/replace). Use unsupported "
+                "only if none fits."
+            ),
+            "supported_operations": SUPPORTED_OPERATIONS,
+        }
+    return {}
+
+
+def _repair_feedback(error, intent, snapshot, schema, message=""):
     feedback = {"validation": "Rejected proposal; reinterpret the original request."}
+    feedback.update(refusal_guidance(error, snapshot))
     if isinstance(error, MissingExecutionField):
         feedback["missing_execution_field"] = "constraints." + error.field
         feedback["required_action"] = (
@@ -431,10 +520,7 @@ def _repair_feedback(error, intent, snapshot, schema):
             "inside constraints. If genuinely ambiguous, ask a clarification instead."
         )
     if isinstance(error, Rejected) and error.code == "source_not_in_message":
-        feedback["required_action"] = (
-            "The quoted source must be words copied from the CURRENT Shopper message. Do not "
-            "repeat an earlier request; decide the operation from the current message only."
-        )
+        feedback.update(quote_refusal_guidance(message))
     if isinstance(error, Rejected) and error.code == "this_mismatch":
         feedback["allowed_this_product"] = error.allowed
         feedback["required_action"] = (
@@ -536,7 +622,10 @@ def _validate_interpreted_intent(
     snapshot: Snapshot | None,
     *,
     retrieval: bool = False,
+    refused: Collection[str] = (),
 ) -> StructuredIntent:
+    """`refused` holds the codes this turn already refused once: those repairs are not asked
+    for again, so a repeated reading stands and gets its honest answer."""
     wanted_colour = intent.constraints.color
     canonical = canonical_colour(wanted_colour, storefront)
     if canonical is not None and canonical != wanted_colour:
@@ -561,6 +650,8 @@ def _validate_interpreted_intent(
             # the line is chosen on its fresh Snapshot.
             intent = intent.model_copy(update={"cart_target_id": None})
         intent = _coded("cart_edit_invalid", validate_cart_intent, message, intent, snapshot)
+        if "undo_without_button" not in refused and undo_expired(intent, snapshot):
+            raise Rejected("undo_without_button", "No enabled Undo control is visible")
         if intent.product_id is not None:
             _coded(
                 "unknown_product",
@@ -572,6 +663,12 @@ def _validate_interpreted_intent(
             )
     for product_id in intent.advice_product_ids:
         _coded("unknown_product", require_known_product, product_id, state, snapshot, storefront)
+    if (
+        intent.intent == "unsupported"
+        and not intent.needs_clarification
+        and "unsupported_reading" not in refused
+    ):
+        raise Rejected("unsupported_reading", "The request was read as unsupported")
     intent = _resolve_this(intent, state, snapshot)
     if intent.needs_clarification:
         return intent
