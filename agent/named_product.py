@@ -209,6 +209,9 @@ def needs_name_check(intent: StructuredIntent, state: Any) -> bool:
         return False
     if product_id in (state.get(CONFIRMED_KEY), state.get(NAMED_KEY)):
         return False  # the Shopper said yes to it, or code resolved it from their name
+    draft = state.get("_intent")
+    if isinstance(draft, dict) and draft.get("product_id") == product_id:
+        return False  # answering a question about this very product: it was settled earlier
     candidates = {i.get("id") for i in state.get("_this_candidates", []) if isinstance(i, dict)}
     return not (intent.refers_to_this and product_id in candidates)  # code resolved "this"
 

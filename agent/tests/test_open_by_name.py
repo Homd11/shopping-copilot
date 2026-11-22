@@ -485,12 +485,12 @@ def test_the_open_marker_is_normalised_not_refused(changes, mode, product_id, qu
 NILE_RUNNER = "عداء النيل"
 
 
-def chosen_add(product_id, **overrides) -> dict:
+def chosen_add(product_id, constraints=None, **overrides) -> dict:
     """The model adds the product it picked by id (the open page's), no name marker."""
     return intent(
         "cart",
         intent="cart_edit",
-        constraints={"size": "42", "color": "red"},
+        constraints=constraints or {"size": "42", "color": "red"},
         cart_operation="add",
         cart_source=overrides.pop("source", ADD_QUICK),
         cart_quantity=1,
@@ -589,6 +589,40 @@ def test_the_switch_leaves_no_names_in_event_records():
     text = json.dumps(sink.records, ensure_ascii=False)
     for secret in (QUICK, QUICK_EN, NILE_RUNNER, "shoe-20", "shoe-23", ADD_QUICK):
         assert secret not in text
+
+
+class NoCatalogueReads(NamedCatalogue):
+    """Any catalogue search is a failure (the release smoke's catalogue client). The size-kind
+    details read an add makes of its own product is not a name lookup and stays allowed."""
+
+    async def search(self, query):
+        raise AssertionError("Unexpected catalogue search")
+
+
+def test_an_answer_to_a_variant_question_runs_no_name_check_and_no_catalogue_read():
+    # The product was settled when the question was asked; "اسود" names no product, and the
+    # check must not look it up (release smoke: "Unexpected catalogue search").
+    from agent.tests.test_confirm_unnamed_product import answer, question_of
+
+    said = "ضيفه للسلة"  # "this": code resolves the open page's product, no name needed
+    page = snapshot_at(
+        "/p/shoe-23",
+        element(1, "heading", NILE_RUNNER, level=1),
+        element(2, "combobox", "المقاس", value="43", options=["42", "43"]),
+        element(3, "combobox", "اللون", value="", options=["blue", "black", "white"]),
+        element(4, "textbox", "الكمية", value="1"),
+        element(5, "button", "أضف إلى السلة", form_action="/cart/items"),
+    )
+    first = chosen_add("shoe-23", source=said, constraints={"size": "43"}, refers_to_this=True)
+    second = chosen_add("shoe-23", source="اسود", constraints={"size": "43", "color": "black"})
+    client, model, _ = retrieval_client(first, second, catalogue=NoCatalogueReads())
+    session_id = begin(client, said, page)
+    question = question_of(stream(client, session_id))
+    assert answer(client, session_id, question, "اسود", page).status_code == 202
+    events = stream(client, session_id)
+    assert not [e for e in events if e["event"] == "error"]
+    assert last_action(events)["type"] in {"select", "click", "type"}
+    assert len(model.requests) == 2
 
 
 # --- The legacy (non-retrieval) interpreter path -----------------------------------------------
