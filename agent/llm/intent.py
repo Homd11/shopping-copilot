@@ -296,6 +296,32 @@ class StructuredIntent(IntentModel):
 
     @model_validator(mode="before")
     @classmethod
+    def open_marker_is_normalised(cls, data: object) -> object:
+        """`request_mode: "open"` (open/add a product the Shopper named) is a hint code can
+        always settle, so a stray combination is repaired here, never refused: it applies only
+        to find_products or a cart add with a name in constraints.query. Elsewhere, or with no
+        name, it falls back to browse (the name field goes with it unless find_products keeps
+        it as a search); with a name the model's own product_id is dropped, because the
+        Shopper's words decide the product."""
+        if not isinstance(data, dict) or data.get("request_mode") != "open":
+            return data
+        constraints = data.get("constraints")
+        constraints = constraints if isinstance(constraints, dict) else {}
+        query = constraints.get("query")
+        named = isinstance(query, str) and bool(query.strip())
+        applies = data.get("v") == 10 and (
+            data.get("intent") == "find_products"
+            or (data.get("intent") == "cart_edit" and data.get("cart_operation") == "add")
+        )
+        if applies and named:
+            return {**data, "product_id": None}
+        data = {**data, "request_mode": "browse"}
+        if data.get("intent") != "find_products" and "query" in constraints:
+            data["constraints"] = {k: v for k, v in constraints.items() if k != "query"}
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
     def replace_carries_no_quantity(cls, data: object) -> object:
         """A colour change names no quantity: stray model values are cleared, not refused."""
         if isinstance(data, dict) and data.get("cart_operation") == "replace":
@@ -379,22 +405,6 @@ class StructuredIntent(IntentModel):
             or self.cart_operation == "replace"
         ):
             raise ValueError("Multi-step fields and replace require schema 10")
-        if self.request_mode == "open" and (
-            self.v < 10
-            or self.product_id is not None
-            or not (
-                self.intent == "find_products"
-                or (self.intent == "cart_edit" and self.cart_operation == "add")
-            )
-            or (
-                not self.needs_clarification
-                and not (self.constraints.query and self.constraints.query.strip())
-            )
-        ):
-            raise ValueError(
-                "request_mode open applies to find_products or a cart add of a named product: "
-                "schema 10, the name in constraints.query and no product_id"
-            )
         if (self.intent == "advice" or self.advice_product_ids) and (
             self.v < 9 or self.intent != "advice" or self.constraints.target is not None
         ):

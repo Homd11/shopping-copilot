@@ -66,7 +66,10 @@ def test_known_product_open_goes_directly_to_interpreter_in_one_call():
     assert result.intent.intent == "open_product"
     assert len(model.requests) == 1
     assert model.requests[0].prompt_version.startswith("intent-")
-    assert not reads.calls
+    # The only read is code checking the Shopper's words against catalogue names (ticket 06).
+    assert [call.query for call in reads.calls] == [
+        "something different pls.. actually open that one?"
+    ]
 
 
 @pytest.mark.parametrize("references", [[], ["p-1"]])

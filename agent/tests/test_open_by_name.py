@@ -11,7 +11,6 @@ supplies the product id on this path. Expected strings are written out literally
 import json
 
 import pytest
-from pydantic import ValidationError
 
 from agent.event_log import MemorySink
 from agent.llm.intent import StructuredIntent
@@ -385,6 +384,213 @@ def test_no_event_record_carries_a_product_name_id_or_the_shoppers_words():
         assert secret not in text
 
 
+# --- The marker is normalised, never refused (live hotfix) ----------------------------------------
+
+
+def test_adding_a_named_product_while_another_products_page_is_open_adds_the_named_one():
+    # Live: on the Cairo Marathon page the model marked the add as open and also set the page's
+    # product_id. The id is dropped; the Shopper's words decide, so Quick Step is added.
+    page = product_with_size("shoe-21", MARATHON)
+    reply = add_intent(QUICK, ADD_QUICK) | {"product_id": "shoe-21"}
+    client, model, _ = retrieval_client(reply)
+    session_id = begin(client, ADD_QUICK, page)
+    events = stream(client, session_id)
+    assert last_action(events)["url"] == "/p/shoe-20"
+    assert not [e for e in events if e["event"] == "error"]
+    assert len(model.requests) == 1  # no repair round, no exhausted fallback
+
+
+def test_a_remove_marked_open_is_an_ordinary_remove():
+    cart = snapshot_at(
+        "/cart",
+        element(1, "link", MARATHON, href="/p/shoe-21", group=f"{MARATHON} — 43 — أزرق"),
+        element(2, "button", "حذف", form_action="/cart/remove", group=f"{MARATHON} — 43 — أزرق"),
+    )
+    said = "ما تشيلش ماراثون القاهرة احذف خطوة سريعة بس"
+    reply = intent(
+        "cart",
+        intent="cart_edit",
+        constraints={"query": QUICK},
+        request_mode="open",
+        cart_operation="remove",
+        cart_target_id=2,
+        cart_source=said,
+    )
+    client, model, catalogue = retrieval_client(reply)
+    session_id = begin(client, said, cart)
+    events = stream(client, session_id)
+    assert last_action(events)["type"] == "click"
+    assert last_action(events)["id"] == 2
+    assert catalogue.searches == []
+    assert not [e for e in events if e["event"] == "error"]
+    assert len(model.requests) == 1
+
+
+@pytest.mark.parametrize(
+    ("changes", "mode", "product_id", "query"),
+    [
+        # open on an intent that cannot be an open: back to browse, the query goes with it
+        (
+            {"intent": "navigate", "constraints": {"query": QUICK, "target": "cart"}},
+            "browse",
+            None,
+            None,
+        ),
+        (
+            {"intent": "open_product", "constraints": {"query": QUICK}, "product_id": "shoe-20"},
+            "browse",
+            "shoe-20",
+            None,
+        ),
+        # a name and an id: the id goes, the name stays for code to resolve
+        (
+            {
+                "intent": "cart_edit",
+                "cart_operation": "add",
+                "constraints": {"query": QUICK},
+                "product_id": "shoe-21",
+            },
+            "open",
+            None,
+            QUICK,
+        ),
+        ({"constraints": {"query": QUICK}, "product_id": "shoe-21"}, "open", None, QUICK),
+        # no name: nothing to resolve, the id path stays
+        (
+            {
+                "intent": "cart_edit",
+                "cart_operation": "add",
+                "constraints": {},
+                "product_id": "shoe-21",
+            },
+            "browse",
+            "shoe-21",
+            None,
+        ),
+        ({"v": 9}, "browse", None, QUICK),
+    ],
+)
+def test_the_open_marker_is_normalised_not_refused(changes, mode, product_id, query):
+    extra = {"cart_source": "x"} if changes.get("intent") == "cart_edit" else {}
+    parsed = StructuredIntent.model_validate(_v10(request_mode="open") | extra | changes)
+    assert (parsed.request_mode, parsed.product_id, parsed.constraints.query) == (
+        mode,
+        product_id,
+        query,
+    )
+
+
+# --- A model-chosen product the Shopper's words contradict (live hotfix, wrong-product add) -----
+
+NILE_RUNNER = "عداء النيل"
+
+
+def chosen_add(product_id, **overrides) -> dict:
+    """The model adds the product it picked by id (the open page's), no name marker."""
+    return intent(
+        "cart",
+        intent="cart_edit",
+        constraints={"size": "42", "color": "red"},
+        cart_operation="add",
+        cart_source=overrides.pop("source", ADD_QUICK),
+        cart_quantity=1,
+        cart_quantity_mode="set",
+        product_id=product_id,
+        **overrides,
+    )
+
+
+def test_an_add_naming_another_product_than_the_open_page_adds_the_named_one():
+    # Live: on product A's page the model returned A's id for "add Quick Step"; ticket 08
+    # exempts the open page, so A would have been added. Code sees B's name and switches.
+    client, model, catalogue = retrieval_client(chosen_add("shoe-23"))
+    session_id = begin(client, ADD_QUICK, product_with_size("shoe-23", NILE_RUNNER))
+    events = stream(client, session_id)
+    assert last_action(events)["url"] == "/p/shoe-20"  # B's page, not a form on A's page
+    assert [a["type"] for a in actions(events)] == ["navigate"]
+    assert not [e for e in events if e["event"] == "error"]
+    assert len(model.requests) == 1
+    assert catalogue.searches == [ADD_QUICK]
+    # On B's page the requested size and colour apply to B.
+    report_result(client, session_id, events, product_with_size("shoe-20", QUICK))
+    follow = last_action(stream(client, session_id))
+    assert follow["type"] in {"select", "type", "click"}
+
+
+def test_an_open_naming_another_product_than_the_chosen_one_opens_the_named_one():
+    reply = intent("cart", intent="open_product", constraints={}, product_id="shoe-23") | {
+        "navigation_source": OPEN_QUICK
+    }
+    client, _, _ = retrieval_client(reply)
+    session_id = begin(client, OPEN_QUICK, product_with_size("shoe-23", NILE_RUNNER))
+    events = stream(client, session_id)
+    assert last_action(events)["url"] == "/p/shoe-20"
+    assert "ask_shopper" not in [a["type"] for a in actions(events)]
+
+
+def test_an_add_naming_only_the_open_pages_product_is_unchanged():
+    said = f"ضيف {NILE_RUNNER} للسلة مقاس 42"
+    client, model, _ = retrieval_client(chosen_add("shoe-23", source=said))
+    session_id = begin(client, said, product_with_size("shoe-23", NILE_RUNNER))
+    events = stream(client, session_id)
+    assert last_action(events)["type"] in {"select", "click", "type"}
+    assert "navigate" not in [a["type"] for a in actions(events)]
+    assert len(model.requests) == 1
+
+
+def test_an_add_naming_the_chosen_product_and_another_is_unchanged():
+    said = f"ضيف {NILE_RUNNER} مع {QUICK} للسلة"
+    client, _, _ = retrieval_client(chosen_add("shoe-23", source=said))
+    session_id = begin(client, said, product_with_size("shoe-23", NILE_RUNNER))
+    events = stream(client, session_id)
+    assert "navigate" not in [a["type"] for a in actions(events)]
+    assert "ask_shopper" not in [a["type"] for a in actions(events)]
+
+
+def test_an_add_with_no_name_on_the_open_page_is_unchanged():
+    said = "ضيفه للسلة مقاس 42"
+    client, model, catalogue = retrieval_client(chosen_add("shoe-23", source=said))
+    session_id = begin(client, said, product_with_size("shoe-23", NILE_RUNNER))
+    events = stream(client, session_id)
+    assert last_action(events)["type"] in {"select", "click", "type"}
+    assert "navigate" not in [a["type"] for a in actions(events)]
+    assert len(model.requests) == 1
+
+
+def test_an_add_naming_two_other_products_asks_which_and_does_nothing():
+    said = f"ضيف {QUICK} و {NILE_RUNNER} للسلة"
+    client, _, _ = retrieval_client(chosen_add("shoe-21", source=said))
+    session_id = begin(client, said, product_with_size("shoe-21", MARATHON))
+    events = stream(client, session_id)
+    assert cards(events) == ["shoe-20", "shoe-23"]
+    assert summary(events) == [WHICH_AR]
+    assert moves(events) == []
+
+
+def test_a_product_the_shopper_confirmed_is_not_second_guessed():
+    # "Yes" to "تقصد X؟" names nothing in the message, but it is the Shopper's own choice.
+    from agent.named_product import needs_name_check
+    from agent.product_confirmation import CONFIRMED_KEY
+
+    parsed = StructuredIntent.model_validate(chosen_add("shoe-23"))
+    assert needs_name_check(parsed, {})
+    assert not needs_name_check(parsed, {CONFIRMED_KEY: "shoe-23"})
+    assert not needs_name_check(
+        parsed.model_copy(update={"refers_to_this": True}),
+        {"_this_candidates": [{"id": "shoe-23"}]},
+    )
+
+
+def test_the_switch_leaves_no_names_in_event_records():
+    sink = MemorySink()
+    client, _, _ = retrieval_client(chosen_add("shoe-23"), sink=sink)
+    session_id = begin(client, ADD_QUICK, product_with_size("shoe-23", NILE_RUNNER))
+    stream(client, session_id)
+    text = json.dumps(sink.records, ensure_ascii=False)
+    for secret in (QUICK, QUICK_EN, NILE_RUNNER, "shoe-20", "shoe-23", ADD_QUICK):
+        assert secret not in text
+
+
 # --- The legacy (non-retrieval) interpreter path -----------------------------------------------
 
 
@@ -448,6 +654,12 @@ def test_without_retrieval_an_add_by_name_opens_the_page():
     assert last_action(stream(client, session_id))["url"] == "/p/shoe-20"
 
 
+def test_without_retrieval_an_add_naming_another_product_than_the_open_page_adds_the_named_one():
+    client, _ = legacy_client(chosen_add("shoe-23"))
+    session_id = begin(client, ADD_QUICK, product_with_size("shoe-23", NILE_RUNNER))
+    assert last_action(stream(client, session_id))["url"] == "/p/shoe-20"
+
+
 def test_without_retrieval_no_match_asks_the_usual_category_question():
     said = "افتح بوت الجبل"
     client, _ = legacy_client(open_intent("بوت الجبل", said))
@@ -469,20 +681,6 @@ def test_the_open_mode_is_part_of_structured_intent_v10():
     assert parsed.request_mode == "open"
     assert parsed.constraints.query == QUICK
     assert not parsed.catalogue_discovery  # it is not a search request
-
-
-@pytest.mark.parametrize(
-    "changes",
-    [
-        {"constraints": {}},  # no name to resolve
-        {"intent": "navigate", "constraints": {"target": "cart"}},  # only find_products / add
-        {"intent": "open_product", "constraints": {}, "product_id": "shoe-20"},
-        {"v": 9},  # a v10 marker
-    ],
-)
-def test_the_open_mode_is_refused_where_it_cannot_apply(changes):
-    with pytest.raises(ValidationError):
-        StructuredIntent.model_validate(_v10(request_mode="open") | changes)
 
 
 def test_the_prompts_describe_the_open_mode_and_their_versions_are_bumped():

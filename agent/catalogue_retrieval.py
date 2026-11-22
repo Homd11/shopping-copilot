@@ -39,8 +39,10 @@ from agent.named_product import (
     QUESTION as NAMED_QUESTION,
 )
 from agent.named_product import (
+    check_chosen_product,
     from_candidate,
     is_open_by_name,
+    needs_name_check,
     resolve_named_product,
     shopper_words,
 )
@@ -783,19 +785,29 @@ async def retrieve_products(
             if executing:
                 # An execute decision names no steps: the action interpreter's reply does.
                 note_steps(intent)
-            if executing and is_open_by_name(intent):
-                # A product the Shopper named but code does not know yet: the catalogue, not
-                # the model, says which product it is (exactly one, several or none).
-                async def look_up(name):
+            if executing and (is_open_by_name(intent) or needs_name_check(intent, context)):
+                # A product the Shopper named but code does not know yet, or a model-chosen
+                # product the Shopper's words contradict: the catalogue, not the model, says
+                # which product it is (exactly one, several or none).
+                async def look_up(text):
                     await ensure_active()
-                    found = await catalogue.search(SearchQuery(query=name))
+                    found = await catalogue.search(SearchQuery(query=text))
                     await ensure_active()
                     return [from_candidate(c) for c in found.candidates]
 
-                resolution = await resolve_named_product(
-                    intent, shopper_words(message, context), look_up
-                )
-                if resolution.kind == "one":
+                words = shopper_words(message, context)
+                if context.get("_plan_step"):
+                    words = [message]  # a later step is its own words, not the whole message
+                if is_open_by_name(intent):
+                    resolution = await resolve_named_product(intent, words, look_up)
+                else:
+                    try:
+                        resolution = await check_chosen_product(
+                            intent, words, context, snapshot, storefront, look_up
+                        )
+                    except CatalogueReadError:
+                        resolution = None  # cannot verify: the existing name guard still applies
+                if resolution is not None and resolution.kind == "one":
                     return RetrievalOutcome(
                         resolution.intent,
                         [],
@@ -807,7 +819,7 @@ async def retrieve_products(
                         named=True,
                         **steps,
                     )
-                if resolution.kind == "several":
+                if resolution is not None and resolution.kind == "several":
                     return RetrievalOutcome(
                         None,
                         [],
@@ -821,7 +833,8 @@ async def retrieve_products(
                         choices=resolution.choices,
                         **steps,
                     )
-                intent = resolution.intent  # no match: the normal search below
+                if resolution is not None:
+                    intent = resolution.intent  # no match: the normal search below
             if (
                 executing
                 and intent.intent in {"find_products", "advice"}

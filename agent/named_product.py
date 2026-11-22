@@ -14,6 +14,7 @@ from typing import Any, Literal
 
 from agent.catalogue import DiscoveryResult, Suggestion
 from agent.llm.intent import StructuredIntent
+from agent.product_confirmation import CONFIRMED_KEY, NAMED_KEY, reference_names
 from agent.product_reference import names_product, product_name_tokens
 
 MAX_NAME_CHARS = 200
@@ -191,3 +192,80 @@ async def resolve_named_product(
     if found:
         return Resolution("several", intent, found)
     return Resolution("none", as_search(intent, category_missing=category_missing), [])
+
+
+def needs_name_check(intent: StructuredIntent, state: Any) -> bool:
+    """A model-chosen product (open, or a cart add) the Shopper's words must not contradict."""
+    product_id = intent.product_id
+    if (
+        product_id is None
+        or intent.needs_clarification
+        or intent.request_mode == "open"
+        or not (
+            intent.intent == "open_product"
+            or (intent.intent == "cart_edit" and intent.cart_operation == "add")
+        )
+    ):
+        return False
+    if product_id in (state.get(CONFIRMED_KEY), state.get(NAMED_KEY)):
+        return False  # the Shopper said yes to it, or code resolved it from their name
+    candidates = {i.get("id") for i in state.get("_this_candidates", []) if isinstance(i, dict)}
+    return not (intent.refers_to_this and product_id in candidates)  # code resolved "this"
+
+
+async def check_chosen_product(
+    intent: StructuredIntent,
+    words: Sequence[object],
+    state: Any,
+    snapshot: Any,
+    storefront: Any,
+    lookup: Callable[[str], Awaitable[Sequence[NamedProduct]]],
+) -> Resolution | None:
+    """Does the Shopper's own wording name a DIFFERENT catalogue product than the model chose?
+
+    The model may pick the open page's product for "add Quick Step" (ticket 08 exempts the
+    open page). Names come from the verified catalogue, matched like tickets 06/08. Exactly one
+    other product named: switch to it ("one"). Several: ask which ("several"). The chosen
+    product's own name present, or no other product named: None (behave as before).
+    """
+    texts = [t for t in words if isinstance(t, str) and t.strip()]
+    chosen = intent.product_id
+    if not texts or chosen is None:
+        return None
+    if any(
+        names_product(text, part)
+        for part in reference_names(chosen, state, snapshot, storefront)
+        for text in texts
+    ):
+        return None
+    named: dict[str, NamedProduct] = {}
+    for product in await lookup(texts[0][:1024]):
+        if any(
+            names_product(text, name)
+            for text in texts
+            for name in (product.name_ar, product.name_en)
+        ):
+            named.setdefault(product.id, product)
+    if chosen in named:
+        return None
+    others = list(named.values())
+    if len(others) == 1:
+        return Resolution("one", opened(intent, others[0].id), others)
+    if others:
+        return Resolution("several", intent, others)
+    return None
+
+
+def choice_intent(language: str) -> StructuredIntent:
+    """The read-only intent a "which product?" answer is published under."""
+    return StructuredIntent.model_validate(
+        {
+            "v": 9,
+            "language": language,
+            "dialect": "unknown",
+            "intent": "advice",
+            "constraints": {},
+            "missing_fields": [],
+            "needs_clarification": False,
+        }
+    )

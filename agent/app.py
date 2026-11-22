@@ -44,8 +44,11 @@ from agent.named_product import (
     QUESTION as NAMED_QUESTION,
 )
 from agent.named_product import (
+    check_chosen_product,
+    choice_intent,
     from_catalogue_product,
     is_open_by_name,
+    needs_name_check,
     resolve_named_product,
     shopper_words,
 )
@@ -538,30 +541,54 @@ def create_app(
             if sessions.get(session_id).last_snapshot != observed:
                 sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                 return
-            if is_open_by_name(intent):
-                phase = "catalogue"
-                catalogue = await catalogue_reader.read()
+            read_once: list = []
 
-                async def look_up(name):
+            async def read_catalogue():
+                # One read per interpretation: the name check and the add facts share it.
+                if not read_once:
+                    read_once.append(await catalogue_reader.read())
+                return read_once[0]
+
+            if is_open_by_name(intent) or needs_name_check(intent, task.resolved_state):
+                phase = "catalogue"
+
+                async def look_up(text):
+                    catalogue = await read_catalogue()
                     return [from_catalogue_product(p) for p in catalogue.validated_products()]
 
-                resolution = await resolve_named_product(
-                    intent,
-                    shopper_words(task.message, task.resolved_state),
-                    look_up,
-                    category_missing=True,
-                )
+                words = shopper_words(task.message, task.resolved_state)
+                if task.resolved_state.get("_plan_step"):
+                    words = [task.message]
+                if is_open_by_name(intent):
+                    resolution = await resolve_named_product(
+                        intent, words, look_up, category_missing=True
+                    )
+                else:
+                    try:
+                        resolution = await check_chosen_product(
+                            intent,
+                            words,
+                            task.resolved_state,
+                            observed,
+                            planner.storefront,
+                            look_up,
+                        )
+                    except (CatalogueReadError, httpx.HTTPError, ValueError, OSError):
+                        resolution = None  # cannot verify: the existing name guard still applies
                 phase = "intent"
                 await verify_owner(session_id)
                 if sessions.get(session_id).last_snapshot != observed:
                     sessions.fail_interpretation(session_id, task_id, call_id, "interrupted")
                     return
+            else:
+                resolution = None
+            if resolution is not None:
                 if resolution.kind == "several":
                     sessions.finish_catalogue_interpretation(
                         session_id,
                         task_id,
                         call_id,
-                        intent,
+                        choice_intent(intent.language),
                         resolution.choices,
                         advice_text=NAMED_QUESTION["ar" if intent.language == "ar" else "en"],
                         clarify=True,
@@ -658,7 +685,7 @@ def create_app(
                 return
 
             async def read_product(product_id):
-                found = await catalogue_reader.read()
+                found = await read_catalogue()
                 return next((p for p in found.products if p.id == product_id), None)
 
             verdict, reason = await prepare_add(session_id, intent, read_product)
